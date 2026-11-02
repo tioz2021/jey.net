@@ -1,0 +1,39 @@
+# Rust
+/backend/target/
+**/*.rs.bk
+
+# Frontend
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/dist/
+/frontend/.turbo/
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local data (uploads, sqlite, dumps)
+/data/
+*.db
+*.db-shm
+*.db-wal
+*.sql.gz
+
+# Toolchain installed inside the project
+/.toolchain/
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+.DS_Store
+
+# Build and check artifacts
+/build/
+/coverage/
