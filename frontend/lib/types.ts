@@ -24,6 +24,7 @@ export interface User {
   locale: string;
   email_verified: boolean;
   is_public: boolean;
+  avatar_key: string | null;
   created_at: string;
 }
 

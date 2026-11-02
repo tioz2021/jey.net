@@ -44,6 +44,7 @@ use crate::items::update::update_item;
 use crate::mail::Mailer;
 use crate::media::LocalStorage;
 use crate::stats::stats;
+use crate::users::avatar::{clear_avatar, set_avatar};
 use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
 
@@ -91,6 +92,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
         .route("/me/sessions/revoke-all", post(revoke_all_sessions))
+        .route("/me/avatar", post(set_avatar).delete(clear_avatar))
         // A generous transport limit: the exact 10 MB rule lives in the
         // handler, so an oversized image gets a JSON 413 instead of a plain
         // text rejection from the body extractor.

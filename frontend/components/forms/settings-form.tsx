@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
+import { CoverPicker } from "@/components/items/cover-picker";
 import { Button, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
@@ -159,6 +160,26 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
 
   return (
     <div className={styles.sections}>
+      <section className={styles.section}>
+        <h2 className={styles.title}>Аватар</h2>
+        <CoverPicker
+          label="Фотография профиля"
+          currentUrl={
+            initialUser.avatar_key ? `/media/${initialUser.avatar_key}` : null
+          }
+          onUploaded={async (uploadId) => {
+            const response = await api.auth.setAvatar(uploadId);
+            setUser(response.user);
+            router.refresh();
+          }}
+          onCleared={async () => {
+            const response = await api.auth.clearAvatar();
+            setUser(response.user);
+            router.refresh();
+          }}
+        />
+      </section>
+
       <section className={styles.section}>
         <h2 className={styles.title}>Профиль</h2>
         <form className={styles.form} onSubmit={saveProfile} noValidate>

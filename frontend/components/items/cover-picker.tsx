@@ -20,10 +20,12 @@ export function CoverPicker({
   currentUrl,
   onUploaded,
   onCleared,
+  label = "Обложка",
 }: {
   currentUrl?: string | null;
   onUploaded: (uploadId: string) => void;
   onCleared: () => void;
+  label?: string;
 }) {
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
   const [uploading, setUploading] = useState(false);
@@ -60,7 +62,7 @@ export function CoverPicker({
 
   return (
     <div className={styles.field}>
-      <span className={styles.label}>Обложка</span>
+      <span className={styles.label}>{label}</span>
 
       {preview && !broken ? (
         <img

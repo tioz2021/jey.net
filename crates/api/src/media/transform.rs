@@ -17,6 +17,8 @@ pub const LARGE_MAX_SIDE: u32 = 1200;
 pub const PREVIEW_MAX_SIDE: u32 = 400;
 /// Lossy WebP quality; 78 keeps photos under the size budget.
 const WEBP_QUALITY: f32 = 78.0;
+/// Avatars are square and small: they appear in the header and profile.
+pub const AVATAR_SIZE: u32 = 128;
 
 /// Original dimensions (after orientation) and the two WebP renditions.
 #[derive(Debug)]
@@ -61,6 +63,31 @@ pub fn process(bytes: &[u8]) -> Result<ProcessedImage, AppError> {
         preview_width: preview_image.width(),
         preview_height: preview_image.height(),
     })
+}
+
+/// Crops the centre square and resizes it to 128 px.
+pub fn avatar(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
+    let reader = ImageReader::new(Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|_| undecodable())?;
+
+    let mut decoder = reader.into_decoder().map_err(|_| undecodable())?;
+    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
+
+    let mut image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+    image.apply_orientation(orientation);
+
+    let side = image.width().min(image.height());
+    let x = (image.width() - side) / 2;
+    let y = (image.height() - side) / 2;
+
+    let square = image.crop_imm(x, y, side, side).resize_exact(
+        AVATAR_SIZE,
+        AVATAR_SIZE,
+        FilterType::Lanczos3,
+    );
+
+    to_webp(&square)
 }
 
 fn undecodable() -> AppError {
@@ -138,6 +165,17 @@ mod tests {
 
         // A sideways photo becomes upright: the sides swap.
         assert_eq!((processed.width, processed.height), (200, 400));
+    }
+
+    #[test]
+    fn avatar_is_square_even_for_a_wide_photo() {
+        let decoded = image::load_from_memory(&avatar(&jpeg_of(400, 200)).expect("avatar"))
+            .expect("decode webp");
+
+        assert_eq!(
+            (decoded.width(), decoded.height()),
+            (AVATAR_SIZE, AVATAR_SIZE)
+        );
     }
 
     #[test]

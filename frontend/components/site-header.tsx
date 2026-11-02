@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useUser } from "@/lib/user-context";
+import { Avatar } from "@/components/profile/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { LogoutButton } from "./logout-button";
@@ -36,6 +37,10 @@ export function SiteHeader() {
         <ThemeToggle />
         {loading ? null : user ? (
           <>
+            <Avatar
+              url={user.avatar_key ? `/media/${user.avatar_key}` : null}
+              name={user.display_name}
+            />
             <span className={styles.name}>{user.display_name}</span>
             <LogoutButton />
           </>

@@ -50,7 +50,7 @@ pub async fn update_me(
              is_public = coalesce($3, is_public)
          where id = $4 and deleted_at is null
          returning id, email::text as email, display_name, locale,
-                   email_verified_at, is_public, created_at, password_hash",
+                   email_verified_at, is_public, avatar_key, created_at, password_hash",
     )
     .bind(display_name)
     .bind(payload.locale)

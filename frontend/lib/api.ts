@@ -186,6 +186,15 @@ export const auth = {
   updateMe: (patch: ProfilePatch) =>
     request<UserResponse>("/me", { method: "PATCH", body: patch }),
 
+  setAvatar: (uploadId: string) =>
+    request<UserResponse>("/me/avatar", {
+      method: "POST",
+      body: { upload_id: uploadId },
+    }),
+
+  clearAvatar: () =>
+    request<UserResponse>("/me/avatar", { method: "DELETE" }),
+
   changePassword: (input: PasswordChangeInput) =>
     request<void>("/me/password", { method: "PATCH", body: input }),
 

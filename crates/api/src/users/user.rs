@@ -22,6 +22,7 @@ pub struct UserView {
     pub locale: String,
     pub email_verified: bool,
     pub is_public: bool,
+    pub avatar_key: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -34,6 +35,7 @@ pub struct UserRow {
     pub locale: String,
     pub email_verified_at: Option<DateTime<Utc>>,
     pub is_public: bool,
+    pub avatar_key: Option<String>,
     pub created_at: DateTime<Utc>,
     pub password_hash: String,
 }
@@ -47,6 +49,7 @@ impl From<UserRow> for UserView {
             locale: row.locale,
             email_verified: row.email_verified_at.is_some(),
             is_public: row.is_public,
+            avatar_key: row.avatar_key,
             created_at: row.created_at,
         }
     }
@@ -63,7 +66,7 @@ pub async fn create(
         "insert into users (id, email, password_hash, display_name)
          values ($1, $2, $3, $4)
          returning id, email::text as email, display_name, locale,
-                   email_verified_at, is_public, created_at, password_hash",
+                   email_verified_at, is_public, avatar_key, created_at, password_hash",
     )
     .bind(Uuid::new_v4())
     .bind(email)
@@ -85,7 +88,7 @@ pub async fn create(
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, email::text as email, display_name, locale,
-                email_verified_at, is_public, created_at, password_hash
+                email_verified_at, is_public, avatar_key, created_at, password_hash
          from users
          where email = $1 and deleted_at is null",
     )
@@ -99,7 +102,7 @@ pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>
 pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, email::text as email, display_name, locale,
-                email_verified_at, is_public, created_at, password_hash
+                email_verified_at, is_public, avatar_key, created_at, password_hash
          from users
          where id = $1 and deleted_at is null",
     )
