@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/components/profile/avatar";
+import { HeaderSearch } from "@/components/header-search";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useUser } from "@/lib/user-context";
@@ -51,29 +52,7 @@ export function SiteHeader() {
           {loading ? null : user ? (
             <>
               <div className={styles.tools}>
-                <form action="/items" className={styles.search} method="get" role="search">
-                  <label className="visually-hidden" htmlFor="global-search">
-                    Поиск по записям
-                  </label>
-                  <svg
-                    aria-hidden="true"
-                    className={styles.searchIcon}
-                    fill="none"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    width="14"
-                  >
-                    <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="2" />
-                    <path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <input
-                    className={styles.searchInput}
-                    id="global-search"
-                    name="q"
-                    placeholder="Поиск"
-                    type="search"
-                  />
-                </form>
+                <HeaderSearch />
                 <QuickAdd />
                 <ThemeToggle />
               </div>

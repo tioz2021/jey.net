@@ -1,0 +1,45 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.button:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+}
+
+.icon {
+  flex: none;
+  color: var(--color-text-muted);
+}
+
+.input {
+  width: 10.5rem;
+  height: 28px;
+  padding: 0 var(--space-2) 0 0;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+
+.input:focus {
+  background: var(--color-surface);
+}
