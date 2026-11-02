@@ -14,4 +14,3 @@ export { Skeleton } from "./Skeleton";
 export type { SkeletonProps } from "./Skeleton";
 export { Textarea } from "./Textarea";
 export type { TextareaProps } from "./Textarea";
-export { ThemeToggle } from "./ThemeToggle";

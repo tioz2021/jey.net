@@ -38,3 +38,4 @@ pnpm-debug.log*
 # Build and check artifacts
 /build/
 /coverage/
+.shots/

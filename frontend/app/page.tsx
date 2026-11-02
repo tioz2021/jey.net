@@ -11,8 +11,8 @@ import {
   Select,
   Skeleton,
   Textarea,
-  ThemeToggle,
 } from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import styles from "./page.module.css";
 

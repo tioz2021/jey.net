@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useUser } from "@/lib/user-context";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import { LogoutButton } from "./logout-button";
 import styles from "./site-header.module.css";
@@ -32,6 +33,7 @@ export function SiteHeader() {
       </nav>
 
       <div className={styles.right}>
+        <ThemeToggle />
         {loading ? null : user ? (
           <>
             <span className={styles.name}>{user.display_name}</span>

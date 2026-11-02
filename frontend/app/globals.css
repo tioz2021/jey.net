@@ -110,6 +110,8 @@
   --shadow-md: 0 4px 16px rgb(0 0 0 / 45%);
 }
 
+/* Breakpoints used across the app: 360 (small phone), 768 (tablet), 1200 (desktop). */
+
 *,
 *::before,
 *::after {
@@ -123,6 +125,7 @@ body {
 }
 
 body {
+  overflow-wrap: break-word;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);

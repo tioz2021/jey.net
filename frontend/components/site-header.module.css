@@ -1,5 +1,6 @@
 .header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
@@ -43,4 +44,25 @@
 
 .link {
   font-size: var(--text-sm);
+}
+
+/* Phones: navigation moves to its own row instead of squeezing. */
+@media (width <= 720px) {
+  .header {
+    padding: var(--space-3) var(--space-4);
+    row-gap: var(--space-2);
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .name {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
