@@ -55,7 +55,7 @@ cmd_migrate() {
     # files it already knows about, so a newly added .sql file alone does not
     # trigger a rebuild. Touching the module that calls the macro forces one.
     touch "${ROOT_DIR}/crates/api/src/db.rs"
-    RUST_LOG=error cargo run --quiet --manifest-path "${ROOT_DIR}/crates/api/Cargo.toml" -- migrate
+    RUST_LOG=error cargo run --quiet --manifest-path "${ROOT_DIR}/crates/api/Cargo.toml" --bin jey-api -- migrate
 }
 
 cmd_reset() {

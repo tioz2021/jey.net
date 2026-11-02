@@ -58,6 +58,7 @@ fn test_config() -> Config {
         public_url: "http://localhost:3000".to_owned(),
         mail_from: "jey@localhost".to_owned(),
         mail_dir: std::path::PathBuf::from("var/mail"),
+        media_dir: std::path::PathBuf::from("var/test-uploads"),
     }
 }
 
@@ -278,7 +279,48 @@ impl TestClient {
             None => Body::empty(),
         };
 
-        let mut request = builder.body(body).expect("valid request");
+        self.execute(builder.body(body).expect("valid request"))
+            .await
+    }
+
+    /// Sends a multipart form with one binary part named `file`.
+    pub async fn post_multipart_with_cookie(
+        &self,
+        path: &str,
+        filename: &str,
+        content_type: &str,
+        bytes: &[u8],
+        cookie: &str,
+    ) -> TestResponse {
+        const BOUNDARY: &str = "----jeytestboundary";
+
+        let mut body = Vec::new();
+        body.extend_from_slice(format!("--{BOUNDARY}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!("Content-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\n")
+                .as_bytes(),
+        );
+        body.extend_from_slice(format!("Content-Type: {content_type}\r\n\r\n").as_bytes());
+        body.extend_from_slice(bytes);
+        body.extend_from_slice(format!("\r\n--{BOUNDARY}--\r\n").as_bytes());
+
+        let request = Request::builder()
+            .method(Method::POST)
+            .uri(path)
+            .header("x-forwarded-for", &self.ip)
+            .header("origin", "http://localhost:3000")
+            .header("cookie", cookie)
+            .header(
+                "content-type",
+                format!("multipart/form-data; boundary={BOUNDARY}"),
+            )
+            .body(Body::from(body))
+            .expect("valid request");
+
+        self.execute(request).await
+    }
+
+    async fn execute(&self, mut request: Request<Body>) -> TestResponse {
         request
             .extensions_mut()
             .insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 4000))));

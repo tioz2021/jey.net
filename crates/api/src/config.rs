@@ -90,6 +90,8 @@ pub struct Config {
     pub mail_from: String,
     /// Where the development transport writes `.eml` files.
     pub mail_dir: PathBuf,
+    /// Where uploaded files are stored until the storage abstraction lands.
+    pub media_dir: PathBuf,
 }
 
 impl Config {
@@ -152,6 +154,11 @@ impl Config {
             None => PathBuf::from("var/mail"),
         };
 
+        let media_dir = match var("MEDIA_DIR") {
+            Some(raw) => PathBuf::from(raw),
+            None => PathBuf::from("var/uploads"),
+        };
+
         let allowed_origins = match var("ALLOWED_ORIGINS") {
             Some(raw) => parse_origins(&raw)?,
             None => vec![DEFAULT_ORIGIN.to_owned()],
@@ -181,6 +188,7 @@ impl Config {
             public_url,
             mail_from,
             mail_dir,
+            media_dir,
         })
     }
 }

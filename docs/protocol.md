@@ -107,6 +107,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | POST | `/me/password` | `{current_password, new_password}` | `204` |
 | DELETE | `/me` | `{password}` | `204` |
 | POST | `/me/sessions/revoke-all` | — | `204`, все сессии завершены |
+| POST | `/uploads` | `multipart/form-data`, поле `file` | `201 {upload}`; `413` больше 10 МБ; `415` не JPEG/PNG/WebP |
 | POST | `/auth/verify-email` | `{token}` | `204` |
 | POST | `/auth/verify-email/resend` | — | `204`, не чаще раза в 10 минут на аккаунт |
 | POST | `/auth/password-reset/request` | `{email}` | `202` (всегда) |

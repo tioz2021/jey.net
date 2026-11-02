@@ -12,6 +12,7 @@ pub mod http;
 pub mod import;
 pub mod items;
 pub mod mail;
+pub mod media;
 pub mod stats;
 pub mod telemetry;
 pub mod users;

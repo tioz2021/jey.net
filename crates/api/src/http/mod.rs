@@ -2,6 +2,7 @@
 
 pub mod origin;
 pub mod ratelimit;
+mod uploads;
 
 use std::sync::Arc;
 
@@ -29,6 +30,7 @@ use crate::db;
 use crate::error::AppError;
 use crate::export::export;
 use crate::http::origin::require_allowed_origin;
+use crate::http::uploads::upload;
 use crate::import::import;
 use crate::items::create::create_item;
 use crate::items::delete::{delete_item, restore_item};
@@ -82,6 +84,13 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
         .route("/me/sessions/revoke-all", post(revoke_all_sessions))
+        // A generous transport limit: the exact 10 MB rule lives in the
+        // handler, so an oversized image gets a JSON 413 instead of a plain
+        // text rejection from the body extractor.
+        .route(
+            "/uploads",
+            post(upload).layer(DefaultBodyLimit::max(16 * 1024 * 1024)),
+        )
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/items", post(create_item).get(list_items))
         .route(

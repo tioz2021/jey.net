@@ -83,6 +83,14 @@ impl AppError {
         Self::new(DomainError::conflict(message))
     }
 
+    pub fn unsupported_media_type(message: impl Into<String>) -> Self {
+        Self::new(DomainError::unsupported_media_type(message))
+    }
+
+    pub fn payload_too_large(message: impl Into<String>) -> Self {
+        Self::new(DomainError::payload_too_large(message))
+    }
+
     pub fn rate_limited(message: impl Into<String>, retry_after_secs: u64) -> Self {
         Self::new(DomainError::rate_limited(message, retry_after_secs))
     }
@@ -123,6 +131,18 @@ impl AppError {
             DomainError::Conflict(message) => {
                 (StatusCode::CONFLICT, "conflict", message.clone(), None)
             }
+            DomainError::UnsupportedMediaType(message) => (
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "unsupported_media_type",
+                message.clone(),
+                None,
+            ),
+            DomainError::PayloadTooLarge(message) => (
+                StatusCode::PAYLOAD_TOO_LARGE,
+                "payload_too_large",
+                message.clone(),
+                None,
+            ),
             DomainError::RateLimited {
                 message,
                 retry_after_secs,

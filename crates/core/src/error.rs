@@ -29,6 +29,12 @@ pub enum DomainError {
     #[error("conflict: {0}")]
     Conflict(String),
 
+    #[error("unsupported media type: {0}")]
+    UnsupportedMediaType(String),
+
+    #[error("payload too large: {0}")]
+    PayloadTooLarge(String),
+
     #[error("rate limited: {message}")]
     RateLimited {
         message: String,
@@ -72,6 +78,14 @@ impl DomainError {
 
     pub fn conflict(message: impl Into<String>) -> Self {
         Self::Conflict(message.into())
+    }
+
+    pub fn unsupported_media_type(message: impl Into<String>) -> Self {
+        Self::UnsupportedMediaType(message.into())
+    }
+
+    pub fn payload_too_large(message: impl Into<String>) -> Self {
+        Self::PayloadTooLarge(message.into())
     }
 
     pub fn rate_limited(message: impl Into<String>, retry_after_secs: u64) -> Self {

@@ -1,5 +1,6 @@
 [package]
 name = "jey-api"
+default-run = "jey-api"
 description = "HTTP API for the jey.net portal"
 version.workspace = true
 edition.workspace = true
@@ -12,7 +13,7 @@ jey-core = { path = "../core" }
 
 argon2 = "0.6"
 async-trait = "0.1"
-axum = "0.8"
+axum = { version = "0.8", features = ["multipart"] }
 chrono = { version = "0.4", features = ["serde"] }
 hex = "0.4"
 rand = "0.9"
