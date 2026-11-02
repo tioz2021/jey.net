@@ -6,6 +6,7 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::error::AppError;
+use crate::media::transform;
 
 /// Largest accepted file.
 pub const MAX_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
@@ -62,6 +63,10 @@ pub struct StoredUpload {
     pub storage_key: String,
     pub sha256: Vec<u8>,
     pub size: i64,
+    pub width: u32,
+    pub height: u32,
+    pub large_key: String,
+    pub preview_key: String,
 }
 
 /// Validates the bytes and writes them under the media root.
@@ -81,19 +86,29 @@ pub async fn save(media_dir: &Path, user_id: Uuid, bytes: &[u8]) -> Result<Store
         AppError::unsupported_media_type("only JPEG, PNG and WebP images are accepted")
     })?;
 
+    // Decoding also rejects files that pass the signature check but are broken.
+    let processed = transform::process(bytes)?;
+
     let id = Uuid::new_v4();
     let storage_key = format!("{user_id}/{id}.{}", format.extension());
-    let path = media_dir.join(&storage_key);
+    let large_key = format!("{user_id}/{id}_large.webp");
+    let preview_key = format!("{user_id}/{id}_preview.webp");
 
-    if let Some(parent) = path.parent() {
+    if let Some(parent) = media_dir.join(&storage_key).parent() {
         tokio::fs::create_dir_all(parent)
             .await
             .map_err(AppError::internal)?;
     }
 
-    tokio::fs::write(&path, bytes)
-        .await
-        .map_err(AppError::internal)?;
+    for (key, contents) in [
+        (&storage_key, bytes),
+        (&large_key, processed.large.as_slice()),
+        (&preview_key, processed.preview.as_slice()),
+    ] {
+        tokio::fs::write(media_dir.join(key), contents)
+            .await
+            .map_err(AppError::internal)?;
+    }
 
     let mut hasher = Sha256::new();
     hasher.update(bytes);
@@ -104,6 +119,10 @@ pub async fn save(media_dir: &Path, user_id: Uuid, bytes: &[u8]) -> Result<Store
         storage_key,
         sha256: hasher.finalize().to_vec(),
         size: bytes.len() as i64,
+        width: processed.width,
+        height: processed.height,
+        large_key,
+        preview_key,
     })
 }
 

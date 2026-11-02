@@ -44,8 +44,10 @@ pub async fn upload(
     let stored = media::save(&state.config.media_dir, current.user.id, &bytes).await?;
 
     sqlx::query(
-        "insert into uploads (id, user_id, mime, size_bytes, sha256, storage_key)
-         values ($1, $2, $3, $4, $5, $6)",
+        "insert into uploads
+             (id, user_id, mime, size_bytes, sha256, storage_key,
+              width, height, large_key, preview_key)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
     )
     .bind(stored.id)
     .bind(current.user.id)
@@ -53,6 +55,10 @@ pub async fn upload(
     .bind(stored.size)
     .bind(&stored.sha256)
     .bind(&stored.storage_key)
+    .bind(stored.width as i32)
+    .bind(stored.height as i32)
+    .bind(&stored.large_key)
+    .bind(&stored.preview_key)
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
@@ -64,6 +70,8 @@ pub async fn upload(
                 "id": stored.id,
                 "mime": stored.mime,
                 "size_bytes": stored.size,
+                "width": stored.width,
+                "height": stored.height,
             }
         })),
     ))
