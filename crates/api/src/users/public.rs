@@ -101,6 +101,47 @@ async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppE
     .ok_or_else(|| AppError::not_found("profile"))
 }
 
+/// `GET /api/v1/public/users/{id}/items/{item_id}`
+///
+/// One finished record of a public profile; anything else answers `404`.
+pub async fn item(
+    State(state): State<AppState>,
+    Path((user_id, item_id)): Path<(Uuid, Uuid)>,
+) -> Result<Json<Value>, AppError> {
+    load_public_user(&state.pool, user_id).await?;
+
+    let item = sqlx::query_as::<_, PublicItemView>(
+        "select i.id,
+                i.kind,
+                i.title,
+                i.subtitle,
+                i.year,
+                i.rating,
+                i.cover_key,
+                i.updated_at,
+                coalesce(
+                    array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
+                    '{}'
+                ) as tags
+         from items i
+         left join item_tags it on it.item_id = i.id
+         left join tags t on t.id = it.tag_id
+         where i.id = $2
+           and i.user_id = $1
+           and i.status = 'done'
+           and i.deleted_at is null
+         group by i.id",
+    )
+    .bind(user_id)
+    .bind(item_id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("record"))?;
+
+    Ok(Json(json!({ "item": item })))
+}
+
 async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicItemView>, AppError> {
     sqlx::query_as::<_, PublicItemView>(
         "select i.id,

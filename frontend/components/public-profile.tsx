@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Badge, Card } from "@/components/ui";
@@ -9,6 +10,7 @@ import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 import styles from "./public-profile.module.css";
 
 const ORDER: ItemKind[] = ["movie", "book", "image", "other"];
+const PAGE_LIMIT = 12;
 
 const KIND_PLURALS: Record<ItemKind, string> = {
   movie: "Фильмы",
@@ -25,6 +27,7 @@ export function PublicProfileView({
   items: PublicItem[];
 }) {
   const [active, setActive] = useState<ItemKind | "all">("all");
+  const [expanded, setExpanded] = useState(false);
 
   const counts = useMemo(() => {
     const map = new Map<ItemKind, number>();
@@ -35,14 +38,18 @@ export function PublicProfileView({
   }, [items]);
 
   const kinds = ORDER.filter((kind) => (counts.get(kind) ?? 0) > 0);
-  const visible = active === "all" ? items : items.filter((item) => item.kind === active);
+  const shown = expanded ? items : items.slice(0, PAGE_LIMIT);
+  const visible =
+    active === "all" ? shown : shown.filter((item) => item.kind === active);
 
-  const groups = kinds.map((kind) => ({
-    kind,
-    label: KIND_PLURALS[kind],
-    count: counts.get(kind) ?? 0,
-    items: items.filter((item) => item.kind === kind),
-  }));
+  const groups = kinds
+    .map((kind) => ({
+      kind,
+      label: KIND_PLURALS[kind],
+      count: counts.get(kind) ?? 0,
+      items: shown.filter((item) => item.kind === kind),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <div className={styles.stack}>
@@ -125,13 +132,23 @@ export function PublicProfileView({
                 {groups.map((group) => (
                   <section className={styles.group} key={group.kind}>
                     <h2 className={styles.groupTitle}>{group.label}</h2>
-                    <ItemGrid items={group.items} />
+                    <ItemGrid items={group.items} userId={profile.id} />
                   </section>
                 ))}
               </div>
             ) : (
-              <ItemGrid items={visible} />
+              <ItemGrid items={visible} userId={profile.id} />
             )}
+
+            {items.length > PAGE_LIMIT ? (
+              <button
+                className={styles.more}
+                onClick={() => setExpanded((value) => !value)}
+                type="button"
+              >
+                {expanded ? "Свернуть" : `Показать все (${items.length})`}
+              </button>
+            ) : null}
           </>
         )}
       </Card>
@@ -143,11 +160,12 @@ export function PublicProfileView({
   );
 }
 
-function ItemGrid({ items }: { items: PublicItem[] }) {
+function ItemGrid({ items, userId }: { items: PublicItem[]; userId: string }) {
   return (
     <ul className={styles.grid}>
       {items.map((item) => (
-        <li className={styles.card} key={item.id}>
+        <li key={item.id}>
+          <Link className={styles.card} href={`/u/${userId}/${item.id}`}>
           {item.cover_key ? (
             // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
             <img
@@ -180,6 +198,7 @@ function ItemGrid({ items }: { items: PublicItem[] }) {
               </ul>
             ) : null}
           </div>
+          </Link>
         </li>
       ))}
     </ul>

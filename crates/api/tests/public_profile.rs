@@ -153,6 +153,45 @@ async fn private_profiles_are_not_listed() {
 }
 
 #[tokio::test]
+async fn public_record_is_readable_without_private_fields() {
+    let (client, email, cookie, user) = account().await;
+    let user_id = user["id"].as_str().expect("user id").to_owned();
+
+    let visible = add_item(&client, &cookie, "Открытая", "done", Some("секрет")).await;
+    let hidden = add_item(&client, &cookie, "Черновик", "planned", None).await;
+
+    client
+        .patch("/api/v1/me", json!({ "is_public": true }), &cookie)
+        .await;
+
+    let item_id = visible["id"].as_str().expect("item id");
+    let response = client
+        .get(
+            &format!("/api/v1/public/users/{user_id}/items/{item_id}"),
+            None,
+        )
+        .await;
+    assert_eq!(response.status, 200, "body: {}", response.body);
+    assert_eq!(response.body["item"]["title"], "Открытая");
+    assert!(response.body["item"].get("review").is_none());
+    assert!(!response.body.to_string().contains(&email));
+
+    let planned_id = hidden["id"].as_str().expect("item id");
+    assert_eq!(
+        client
+            .get(
+                &format!("/api/v1/public/users/{user_id}/items/{planned_id}"),
+                None,
+            )
+            .await
+            .status,
+        404
+    );
+
+    purge_test_user(&pool().await, user_id.parse::<Uuid>().expect("uuid")).await;
+}
+
+#[tokio::test]
 async fn malformed_id_is_a_validation_error() {
     let client = TestClient::new().await;
 

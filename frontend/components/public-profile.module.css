@@ -136,7 +136,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  height: 100%;
   padding: var(--space-2);
+  color: inherit;
+  text-decoration: none;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
 }
@@ -209,4 +212,19 @@
   margin: 0;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.more {
+  align-self: center;
+  padding: 6px var(--space-4);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--color-surface-hover);
 }
