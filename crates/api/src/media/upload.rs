@@ -4,6 +4,7 @@ use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::error::AppError;
+use crate::media::quota;
 use crate::media::storage::{self, LocalStorage, Variant};
 use crate::media::transform;
 
@@ -66,6 +67,7 @@ pub struct StoredUpload {
     pub height: u32,
     pub large_key: String,
     pub preview_key: String,
+    pub total_bytes: i64,
 }
 
 /// Validates the bytes and writes the original plus both renditions.
@@ -73,6 +75,8 @@ pub async fn save(
     storage: &LocalStorage,
     user_id: Uuid,
     bytes: &[u8],
+    quota_limit_bytes: i64,
+    quota_used_bytes: i64,
 ) -> Result<StoredUpload, AppError> {
     if bytes.is_empty() {
         return Err(AppError::validation_field("file", "file is empty"));
@@ -91,6 +95,11 @@ pub async fn save(
 
     // Decoding also rejects files that pass the signature check but are broken.
     let processed = transform::process(bytes)?;
+
+    let total_bytes =
+        bytes.len() as i64 + processed.large.len() as i64 + processed.preview.len() as i64;
+
+    quota::ensure_fits(quota_limit_bytes, quota_used_bytes, total_bytes)?;
 
     let id = Uuid::new_v4();
     let storage_key = storage::upload_key(user_id, id, Variant::Original, format.extension());
@@ -125,6 +134,7 @@ pub async fn save(
         height: processed.height,
         large_key,
         preview_key,
+        total_bytes,
     })
 }
 

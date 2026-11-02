@@ -90,8 +90,10 @@ pub struct Config {
     pub mail_from: String,
     /// Where the development transport writes `.eml` files.
     pub mail_dir: PathBuf,
-    /// Where uploaded files are stored until the storage abstraction lands.
+    /// Where uploaded files are stored.
     pub media_dir: PathBuf,
+    /// Per-user storage quota in bytes.
+    pub media_quota_bytes: u64,
 }
 
 impl Config {
@@ -159,6 +161,11 @@ impl Config {
             None => PathBuf::from("var/media"),
         };
 
+        let media_quota_mb = match var("MEDIA_QUOTA_MB") {
+            Some(raw) => parse_quota_mb(&raw)?,
+            None => crate::media::DEFAULT_QUOTA_MB,
+        };
+
         let allowed_origins = match var("ALLOWED_ORIGINS") {
             Some(raw) => parse_origins(&raw)?,
             None => vec![DEFAULT_ORIGIN.to_owned()],
@@ -189,6 +196,7 @@ impl Config {
             mail_from,
             mail_dir,
             media_dir,
+            media_quota_bytes: media_quota_mb * 1024 * 1024,
         })
     }
 }
@@ -350,6 +358,23 @@ impl ConfigError {
     }
 }
 
+/// Parses the per-user quota from megabytes.
+fn parse_quota_mb(raw: &str) -> Result<u64, ConfigError> {
+    let megabytes = raw.parse::<u64>().map_err(|_| {
+        ConfigError::invalid_value("MEDIA_QUOTA_MB", raw, "must be a positive integer")
+    })?;
+
+    if megabytes == 0 {
+        return Err(ConfigError::invalid_value(
+            "MEDIA_QUOTA_MB",
+            raw,
+            "must be greater than zero",
+        ));
+    }
+
+    Ok(megabytes)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -397,5 +422,13 @@ mod tests {
         assert!(parse_origins("localhost:3000").is_err());
         assert!(parse_origins("https://jey.net/").is_err());
         assert!(parse_origins(" , ").is_err());
+    }
+
+    #[test]
+    fn quota_is_parsed_and_validated() {
+        assert_eq!(parse_quota_mb("300").expect("valid"), 300);
+        assert!(parse_quota_mb("0").is_err());
+        assert!(parse_quota_mb("-5").is_err());
+        assert!(parse_quota_mb("many").is_err());
     }
 }

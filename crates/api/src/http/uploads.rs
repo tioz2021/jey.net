@@ -41,13 +41,21 @@ pub async fn upload(
 
     let bytes = bytes.ok_or_else(|| AppError::validation_field(FILE_FIELD, "file is required"))?;
 
-    let stored = media::save(&state.storage, current.user.id, &bytes).await?;
+    let used = media::used_bytes(&state.pool, current.user.id).await?;
+    let stored = media::save(
+        &state.storage,
+        current.user.id,
+        &bytes,
+        state.config.media_quota_bytes as i64,
+        used,
+    )
+    .await?;
 
     sqlx::query(
         "insert into uploads
              (id, user_id, mime, size_bytes, sha256, storage_key,
-              width, height, large_key, preview_key)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+              width, height, large_key, preview_key, total_bytes)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
     )
     .bind(stored.id)
     .bind(current.user.id)
@@ -59,6 +67,7 @@ pub async fn upload(
     .bind(stored.height as i32)
     .bind(&stored.large_key)
     .bind(&stored.preview_key)
+    .bind(stored.total_bytes)
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;

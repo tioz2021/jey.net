@@ -59,6 +59,7 @@ fn test_config() -> Config {
         mail_from: "jey@localhost".to_owned(),
         mail_dir: std::path::PathBuf::from("var/mail"),
         media_dir: std::path::PathBuf::from("var/test-media"),
+        media_quota_bytes: 200 * 1024 * 1024,
     }
 }
 
