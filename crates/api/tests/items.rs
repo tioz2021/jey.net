@@ -1103,3 +1103,30 @@ async fn status_rules_depend_on_kind() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn create_item_sanitises_control_characters() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "Inter\u{0007}stellar",
+                "status": "done",
+                "review": "Первый абзац.\nВторой абзац.\u{001b}[31m"
+            }),
+            &cookie,
+        )
+        .await;
+
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    assert_eq!(created.body["item"]["title"], "Interstellar");
+    assert_eq!(
+        created.body["item"]["review"], "Первый абзац.\nВторой абзац.[31m",
+        "line breaks stay, escape characters go"
+    );
+
+    client.cleanup(&email).await;
+}

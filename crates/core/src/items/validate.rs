@@ -21,11 +21,21 @@ pub const MAX_RATING: u8 = 10;
 pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
     let title = clean_title(&item.title)?;
     let subtitle = match item.subtitle.as_deref() {
-        Some(value) => Some(clean_optional_text("subtitle", value, MAX_SUBTITLE_LENGTH)?),
+        Some(value) => Some(clean_optional_text(
+            "subtitle",
+            value,
+            MAX_SUBTITLE_LENGTH,
+            false,
+        )?),
         None => None,
     };
     let review = match item.review.as_deref() {
-        Some(value) => Some(clean_optional_text("review", value, MAX_REVIEW_LENGTH)?),
+        Some(value) => Some(clean_optional_text(
+            "review",
+            value,
+            MAX_REVIEW_LENGTH,
+            true,
+        )?),
         None => None,
     };
     let source_url = match item.source_url.as_deref() {
@@ -57,11 +67,21 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         None => None,
     };
     let subtitle = match patch.subtitle.as_deref() {
-        Some(value) => Some(clean_optional_text("subtitle", value, MAX_SUBTITLE_LENGTH)?),
+        Some(value) => Some(clean_optional_text(
+            "subtitle",
+            value,
+            MAX_SUBTITLE_LENGTH,
+            false,
+        )?),
         None => None,
     };
     let review = match patch.review.as_deref() {
-        Some(value) => Some(clean_optional_text("review", value, MAX_REVIEW_LENGTH)?),
+        Some(value) => Some(clean_optional_text(
+            "review",
+            value,
+            MAX_REVIEW_LENGTH,
+            true,
+        )?),
         None => None,
     };
     let source_url = match patch.source_url.as_deref() {
@@ -105,7 +125,8 @@ pub fn status_allowed(kind: ItemKind, status: ItemStatus) -> bool {
 }
 
 fn clean_title(value: &str) -> Result<String, DomainError> {
-    let trimmed = value.trim();
+    let cleaned = sanitise(value, false);
+    let trimmed = cleaned.trim();
     let length = trimmed.chars().count();
 
     if length == 0 {
@@ -125,8 +146,10 @@ fn clean_optional_text(
     field: &'static str,
     value: &str,
     max_length: usize,
+    keep_line_breaks: bool,
 ) -> Result<String, DomainError> {
-    let trimmed = value.trim();
+    let cleaned = sanitise(value, keep_line_breaks);
+    let trimmed = cleaned.trim();
     let length = trimmed.chars().count();
 
     if length > max_length {
@@ -140,7 +163,8 @@ fn clean_optional_text(
 }
 
 fn clean_url(value: &str) -> Result<String, DomainError> {
-    let trimmed = value.trim();
+    let cleaned = sanitise(value, false);
+    let trimmed = cleaned.trim();
 
     if trimmed.chars().count() > MAX_URL_LENGTH {
         return Err(DomainError::validation_field(
@@ -178,6 +202,21 @@ fn validate_rating(rating: Option<u8>) -> Result<(), DomainError> {
         }
         _ => Ok(()),
     }
+}
+
+/// Removes control characters: they break rendering, logs and terminals.
+///
+/// Reviews keep line breaks and tabs; titles and URLs lose them too.
+fn sanitise(value: &str, keep_line_breaks: bool) -> String {
+    value
+        .chars()
+        .filter(|ch| {
+            if keep_line_breaks && matches!(ch, '\n' | '\t') {
+                return true;
+            }
+            !ch.is_control()
+        })
+        .collect()
 }
 
 /// Trims tags, drops empty ones, removes case-insensitive duplicates and
@@ -301,6 +340,40 @@ mod tests {
 
         item.source_url = Some("https://example.com".to_owned());
         assert!(validate_new(&item).is_ok());
+    }
+
+    #[test]
+    fn control_characters_are_removed() {
+        let mut item = new_item();
+        item.title = "Inter\u{0007}stellar".to_owned();
+        item.review = Some("line one\nline two\ttabbed\u{001b}[31m".to_owned());
+
+        let validated = validate_new(&item).expect("valid");
+
+        assert_eq!(validated.title, "Interstellar");
+        assert_eq!(
+            validated.review.as_deref(),
+            Some("line one\nline two\ttabbed[31m")
+        );
+    }
+
+    #[test]
+    fn titles_lose_line_breaks() {
+        let mut item = new_item();
+        item.title = "Inter\nstellar".to_owned();
+
+        assert_eq!(validate_new(&item).expect("valid").title, "Interstellar");
+    }
+
+    #[test]
+    fn review_length_is_bounded() {
+        let mut item = new_item();
+
+        item.review = Some("a".repeat(MAX_REVIEW_LENGTH));
+        assert!(validate_new(&item).is_ok());
+
+        item.review = Some("a".repeat(MAX_REVIEW_LENGTH + 1));
+        assert!(validate_new(&item).is_err());
     }
 
     #[test]
