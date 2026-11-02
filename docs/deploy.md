@@ -267,6 +267,59 @@ systemctl show -p MemoryMax --value jey-api
 дождится кластера Postgres. Проверять стоит через 5–10 секунд после появления
 SSH, а не сразу.
 
+## 8. Caddy: HTTPS и проксирование
+
+Файл `deploy/Caddyfile` копируется в `/etc/caddy/Caddyfile`.
+
+Пока своего домена нет, используется `129-121-149-16.sslip.io`: это имя
+автоматически резолвится в IP сервера, поэтому Let's Encrypt выдаёт обычный
+сертификат. Когда появится настоящий домен — меняем hostname в Caddyfile и
+`PUBLIC_URL`/`ALLOWED_ORIGINS` в `/etc/jey/api.env`, перезапускаем оба сервиса.
+
+Что делает конфигурация:
+
+| Директива | Зачем |
+|---|---|
+| `encode zstd gzip` | сжатие ответов (Caddy сжимает от 512 байт) |
+| `header` | HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, скрытие `Server` |
+| `request_body max_size 40MB` | верхняя граница; реальные лимиты — в API |
+| `reverse_proxy /api/*`, `/media/*`, `/health*` | в API на `127.0.0.1:8080` |
+| `handle {}` | заглушка до деплоя фронтенда (T75) |
+
+### Установка
+
+```bash
+curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
+  | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt \
+  > /etc/apt/sources.list.d/caddy-stable.list
+apt-get update && apt-get install -y caddy
+
+cp deploy/Caddyfile /etc/caddy/Caddyfile
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+systemctl restart caddy
+```
+
+Сертификат выпускается автоматически при первом запросе; прогресс виден в
+`journalctl -u caddy`.
+
+### Проверки
+
+```bash
+curl -sSI https://<host>/api/v1/health        # 200 + заголовки
+curl -sSI http://<host>/                      # 308 на https
+curl -sS  https://<host>/api/v1/health        # {"status":"ok",...}
+echo | openssl s_client -connect <host>:443 -servername <host> 2>/dev/null \
+  | openssl x509 -noout -issuer -dates        # Let's Encrypt
+```
+
+Сжатие удобно проверять на ответе побольше (список записей):
+
+```bash
+curl -H 'Accept-Encoding: gzip' -D - -o /dev/null https://<host>/api/v1/items
+# content-encoding: gzip
+```
+
 ## Что дальше
 
 - T74–T75 — деплой фронтенда;

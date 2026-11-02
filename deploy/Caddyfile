@@ -1,0 +1,38 @@
+# jey.net — reverse proxy and TLS termination.
+#
+# The hostname is an sslip.io alias until a real domain is bought: it resolves
+# to the server IP and lets Let's Encrypt issue a normal certificate.
+
+129-121-149-16.sslip.io {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# The API enforces tighter per-endpoint limits; this is only a backstop.
+	request_body {
+		max_size 40MB
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /media/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle /health* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	# The web client is deployed in T75 and will replace this placeholder.
+	handle {
+		respond "jey.net API is running. The web client arrives in T75." 200
+	}
+}
