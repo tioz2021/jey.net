@@ -4,7 +4,7 @@ import Link from "next/link";
 import styles from "../legal.module.css";
 
 export const metadata: Metadata = {
-  title: "Политика конфиденциальности — jey",
+  title: "Политика конфиденциальности — jey.net",
   description:
     "Какие данные хранит jey, зачем они нужны, кому передаются, сколько хранятся и как удалить аккаунт.",
 };
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <p className={styles.updated}>Обновлено 2 ноября 2026 года</p>
 
       <p>
-        jey — личный некоммерческий портал для учёта фильмов, книг и картинок.
+        jey.net — личный некоммерческий портал для учёта фильмов, книг и картинок.
         Ниже — честное описание того, какие данные хранит сервис и что с ними
         происходит. Если что-то осталось непонятным, напишите в{" "}
         <a href={CONTACT} rel="noreferrer" target="_blank">

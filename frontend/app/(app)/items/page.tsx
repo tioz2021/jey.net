@@ -9,7 +9,7 @@ import { ListSkeleton } from "@/components/skeletons";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Записи — jey",
+  title: "Записи — jey.net",
 };
 
 export default function ItemsPage() {

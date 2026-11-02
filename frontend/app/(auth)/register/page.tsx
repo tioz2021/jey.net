@@ -9,17 +9,12 @@ import { Card } from "@/components/ui";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Регистрация — jey",
+  title: "Регистрация — jey.net",
 };
 
 export default function RegisterPage() {
   return (
     <div className={styles.wrapper}>
-      <h1 className={styles.brand}>
-        <Link className={styles.brandLink} href="/">
-          jey
-        </Link>
-      </h1>
       <Card title="Регистрация">
         <Suspense fallback={null}>
           <RedirectIfAuthenticated />

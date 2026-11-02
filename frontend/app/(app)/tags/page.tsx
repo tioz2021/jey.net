@@ -10,7 +10,7 @@ import type { TagsResponse } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Теги — jey",
+  title: "Теги — jey.net",
 };
 
 export default async function TagsPage() {

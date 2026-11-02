@@ -10,7 +10,7 @@ import type { ItemResponse } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Редактирование — jey",
+  title: "Редактирование — jey.net",
 };
 
 export default async function EditItemPage({

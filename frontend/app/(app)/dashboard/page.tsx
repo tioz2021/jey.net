@@ -13,7 +13,7 @@ import type { ItemKind, ItemStatus, Stats } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Статистика — jey",
+  title: "Статистика — jey.net",
 };
 
 export default async function DashboardPage() {

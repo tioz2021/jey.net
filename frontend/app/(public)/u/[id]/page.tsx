@@ -19,17 +19,17 @@ export async function generateMetadata({
 
   // A private profile must not leak even through its <title>.
   if (!data) {
-    return { title: "Профиль не найден — jey", robots: { index: false } };
+    return { title: "Профиль не найден — jey.net", robots: { index: false } };
   }
 
   const { profile, items } = data;
   const description =
     items.length > 0
-      ? `Завершённых записей: ${items.length}. Фильмы, книги и картинки, собранные в jey.`
-      : "Публичный профиль в jey.";
+      ? `Завершённых записей: ${items.length}. Фильмы, книги и картинки, собранные в jey.net.`
+      : "Публичный профиль в jey.net.";
 
   return {
-    title: `${profile.display_name} — jey`,
+    title: `${profile.display_name} — jey.net`,
     description,
     alternates: { canonical: `/u/${id}` },
     openGraph: {

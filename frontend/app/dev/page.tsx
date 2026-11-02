@@ -79,7 +79,7 @@ export default function DevPlaygroundPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>jey</h1>
+          <h1 className={styles.title}>jey.net</h1>
           <p className={styles.subtitle}>
             Демо-страница базовых компонентов. Страницы портала появятся дальше.
           </p>

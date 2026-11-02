@@ -3,19 +3,35 @@ import type { ReactNode } from "react";
 
 import styles from "./layout.module.css";
 
-/** Public pages (shared profiles) have their own minimal header. */
+/** Public pages (landing, shared profiles, legal) have a light classic header. */
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/">
-          jey
-        </Link>
-        <Link className={styles.login} href="/login">
-          Войти
-        </Link>
+        <div className={styles.inner}>
+          <Link className={styles.brand} href="/">
+            jey.net
+          </Link>
+
+          <nav className={styles.nav} aria-label="Основное">
+            <Link className={styles.navLink} href="/#features">
+              Возможности
+            </Link>
+            <Link className={styles.navLink} href="/#screenshots">
+              Как выглядит
+            </Link>
+            <Link className={styles.navLink} href="/login">
+              Войти
+            </Link>
+            <Link className={styles.cta} href="/register">
+              Регистрация
+            </Link>
+          </nav>
+        </div>
       </header>
+
       <main className={styles.main}>{children}</main>
+
       <footer className={styles.footer}>
         <Link href="/privacy">Политика конфиденциальности</Link>
         <span aria-hidden="true">·</span>

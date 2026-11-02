@@ -9,17 +9,12 @@ import { Card } from "@/components/ui";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Вход — jey",
+  title: "Вход — jey.net",
 };
 
 export default function LoginPage() {
   return (
     <div className={styles.wrapper}>
-      <h1 className={styles.brand}>
-        <Link className={styles.brandLink} href="/">
-          jey
-        </Link>
-      </h1>
       <Card title="Вход">
         {/* useSearchParams needs a Suspense boundary during prerendering. */}
         <Suspense fallback={null}>

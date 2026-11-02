@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { AppNav } from "@/components/app-nav";
 import { SiteHeader } from "@/components/site-header";
 
 import styles from "./layout.module.css";
@@ -36,7 +37,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <div className={styles.container}>{children}</div>
+      <div className={styles.shell}>
+        <AppNav />
+        <div className={styles.content}>{children}</div>
+      </div>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,11 +13,21 @@ export const metadata: Metadata = {
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main className={styles.main}>
-      <div className={styles.corner}>
-        <ThemeToggle />
-      </div>
-      {children}
-    </main>
+    <div className={styles.page}>
+      <header className={styles.bar}>
+        <div className={styles.barInner}>
+          <Link className={styles.brand} href="/">
+            jey.net
+          </Link>
+          <nav className={styles.links} aria-label="Аккаунт">
+            <Link href="/login">Вход</Link>
+            <Link href="/register">Регистрация</Link>
+            <ThemeToggle />
+          </nav>
+        </div>
+      </header>
+
+      <main className={styles.main}>{children}</main>
+    </div>
   );
 }

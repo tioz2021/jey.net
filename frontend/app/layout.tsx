@@ -12,19 +12,19 @@ const SITE_DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.PUBLIC_URL ?? "http://localhost:3000"),
-  title: "jey — личный портал",
+  title: "jey.net — личный портал",
   description: SITE_DESCRIPTION,
-  applicationName: "jey",
+  applicationName: "jey.net",
   openGraph: {
     type: "website",
-    siteName: "jey",
+    siteName: "jey.net",
     locale: "ru_RU",
-    title: "jey — личный портал",
+    title: "jey.net — личный портал",
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary",
-    title: "jey — личный портал",
+    title: "jey.net — личный портал",
     description: SITE_DESCRIPTION,
   },
   robots: { index: true, follow: true },

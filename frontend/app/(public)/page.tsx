@@ -4,11 +4,11 @@ import Link from "next/link";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "jey — фильмы, книги и картинки в одном месте",
+  title: "jey.net — фильмы, книги и картинки в одном месте",
   description:
     "Личный каталог того, что вы посмотрели, прочитали и сохранили: оценки, заметки, теги, обложки, поиск и экспорт данных.",
   openGraph: {
-    title: "jey — фильмы, книги и картинки в одном месте",
+    title: "jey.net — фильмы, книги и картинки в одном месте",
     description:
       "Оценки, заметки, теги и обложки в одном списке. Публичный профиль — только по желанию.",
   },
@@ -85,7 +85,7 @@ export default function LandingPage() {
         </p>
       </section>
 
-      <section className={styles.features} aria-labelledby="features-title">
+      <section className={styles.features} id="features" aria-labelledby="features-title">
         <h2 className={styles.sectionTitle} id="features-title">
           Что внутри
         </h2>
@@ -99,7 +99,7 @@ export default function LandingPage() {
         </ul>
       </section>
 
-      <section className={styles.shots} aria-labelledby="shots-title">
+      <section className={styles.shots} id="screenshots" aria-labelledby="shots-title">
         <h2 className={styles.sectionTitle} id="shots-title">
           Как это выглядит
         </h2>

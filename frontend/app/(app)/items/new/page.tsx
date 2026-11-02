@@ -6,7 +6,7 @@ import { ItemForm } from "@/components/forms/item-form";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Новая запись — jey",
+  title: "Новая запись — jey.net",
 };
 
 export default function NewItemPage() {

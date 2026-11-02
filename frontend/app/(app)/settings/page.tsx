@@ -11,7 +11,7 @@ import type { UserResponse } from "@/lib/types";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Настройки — jey",
+  title: "Настройки — jey.net",
 };
 
 export default async function SettingsPage() {
