@@ -65,6 +65,7 @@ export function ItemsFilters() {
 
         <div className={styles.row}>
         <Select
+          className={styles.select}
           label="Тип"
           value={searchParams.get("kind") ?? ""}
           onChange={(event) => setParam("kind", event.target.value)}
@@ -78,6 +79,7 @@ export function ItemsFilters() {
         </Select>
 
         <Select
+          className={styles.select}
           label="Статус"
           value={searchParams.get("status") ?? ""}
           onChange={(event) => setParam("status", event.target.value)}
@@ -91,6 +93,7 @@ export function ItemsFilters() {
         </Select>
 
         <Select
+          className={styles.select}
           label="Тег"
           value={searchParams.get("tag") ?? ""}
           onChange={(event) => setParam("tag", event.target.value)}
@@ -104,6 +107,7 @@ export function ItemsFilters() {
         </Select>
 
         <Select
+          className={styles.select}
           label="Сортировка"
           value={searchParams.get("sort") ?? "created_desc"}
           onChange={(event) => setParam("sort", event.target.value)}

@@ -18,6 +18,7 @@ export function Select({
   error,
   id,
   children,
+  className,
   ...rest
 }: SelectProps) {
   const generatedId = useId();
@@ -36,7 +37,7 @@ export function Select({
       <select
         {...rest}
         id={selectId}
-        className={`${styles.control} ${error ? styles.invalid : ""}`}
+        className={`${styles.control} ${error ? styles.invalid : ""} ${className ?? ""}`}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
       >
