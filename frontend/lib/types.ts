@@ -122,6 +122,18 @@ export interface ItemResponse {
   item: Item;
 }
 
+export interface Upload {
+  id: string;
+  mime: string;
+  size_bytes: number;
+  width: number;
+  height: number;
+}
+
+export interface UploadResponse {
+  upload: Upload;
+}
+
 export interface TagsResponse {
   tags: TagCount[];
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- covers are already WebP renditions served by our API */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -70,6 +71,14 @@ export default async function ItemPage({
           </div>
           <ItemActions itemId={item.id} title={item.title} />
         </header>
+
+        {item.cover_key ? (
+          <img
+            className={styles.cover}
+            src={`/media/${item.cover_key}`}
+            alt={`Обложка записи «${item.title}»`}
+          />
+        ) : null}
 
         <div className={styles.badges}>
           <Badge>{KIND_LABELS[item.kind]}</Badge>

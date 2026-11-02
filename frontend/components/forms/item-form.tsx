@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/errors";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
+import { CoverPicker } from "@/components/items/cover-picker";
 import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
@@ -168,6 +169,8 @@ export function ItemForm({
   const [values, setValues] = useState<Values>(() => toValues(initial));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
+  const [coverCleared, setCoverCleared] = useState(false);
 
   const statuses = STATUS_BY_KIND[values.kind];
 
@@ -203,7 +206,15 @@ export function ItemForm({
         ? await api.items.update(itemId, result.item)
         : await api.items.create(result.item);
 
-      router.push(`/items/${response.item.id}`);
+      const savedId = response.item.id;
+
+      if (coverUploadId) {
+        await api.items.setCover(savedId, coverUploadId);
+      } else if (coverCleared && itemId) {
+        await api.items.clearCover(itemId);
+      }
+
+      router.push(`/items/${savedId}`);
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError) {
@@ -306,6 +317,18 @@ export function ItemForm({
         tags={values.tags}
         onChange={(tags) => update("tags", tags)}
         error={errors.tags}
+      />
+
+      <CoverPicker
+        currentUrl={initial?.cover_key ? `/media/${initial.cover_key}` : null}
+        onUploaded={(uploadId) => {
+          setCoverUploadId(uploadId);
+          setCoverCleared(false);
+        }}
+        onCleared={() => {
+          setCoverUploadId(null);
+          setCoverCleared(true);
+        }}
       />
 
       {errors.form ? (

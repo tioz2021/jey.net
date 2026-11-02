@@ -1,5 +1,6 @@
 //! Item records: storage and, later, the HTTP handlers.
 
+pub mod cover;
 pub mod create;
 pub mod delete;
 pub mod filters;

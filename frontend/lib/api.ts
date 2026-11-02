@@ -9,6 +9,7 @@
 import { ApiError } from "./errors";
 import type {
   ImportReport,
+  UploadResponse,
   Item,
   ItemFilters,
   ItemList,
@@ -51,15 +52,25 @@ async function request<T>(
     ...rest
   } = options;
 
+  const isFormData = body instanceof FormData;
+
   const response = await fetch(`${BASE}${path}`, {
     ...rest,
     credentials: "include",
     headers: {
       Accept: "application/json",
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      // The browser sets the multipart boundary itself.
+      ...(body === undefined || isFormData
+        ? {}
+        : { "Content-Type": "application/json" }),
       ...headers,
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body:
+      body === undefined
+        ? undefined
+        : isFormData
+          ? body
+          : JSON.stringify(body),
   });
 
   // 204 and empty bodies carry nothing to parse.
@@ -220,6 +231,24 @@ export const items = {
 
   restore: (id: string) =>
     request<ItemResponse>(`/items/${id}/restore`, { method: "POST" }),
+
+  setCover: (id: string, uploadId: string) =>
+    request<ItemResponse>(`/items/${id}/cover`, {
+      method: "POST",
+      body: { upload_id: uploadId },
+    }),
+
+  clearCover: (id: string) =>
+    request<ItemResponse>(`/items/${id}/cover`, { method: "DELETE" }),
+};
+
+export const uploads = {
+  upload: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+
+    return request<UploadResponse>("/uploads", { method: "POST", body: form });
+  },
 };
 
 export const tags = {
@@ -237,6 +266,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, items, tags, stats, transfer };
+export const api = { auth, items, tags, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

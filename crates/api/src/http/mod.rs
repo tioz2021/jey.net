@@ -32,6 +32,7 @@ use crate::export::export;
 use crate::http::origin::require_allowed_origin;
 use crate::http::uploads::upload;
 use crate::import::import;
+use crate::items::cover::{clear_cover, set_cover};
 use crate::items::create::create_item;
 use crate::items::delete::{delete_item, restore_item};
 use crate::items::get::get_item;
@@ -100,6 +101,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             get(get_item).patch(update_item).delete(delete_item),
         )
         .route("/items/{id}/restore", post(restore_item))
+        .route("/items/{id}/cover", post(set_cover).delete(clear_cover))
         .route("/tags", get(list_tags))
         .route("/tags/{id}", delete(delete_tag))
         .route("/stats", get(stats))

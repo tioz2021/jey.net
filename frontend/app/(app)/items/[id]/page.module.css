@@ -39,6 +39,13 @@
   overflow-wrap: anywhere;
 }
 
+.cover {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;

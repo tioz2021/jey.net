@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- covers are already WebP renditions served by our API */
 import Link from "next/link";
 
 import { Badge } from "@/components/ui";
@@ -35,6 +36,15 @@ export function ItemCard({ item, query }: { item: Item; query?: string }) {
 
   return (
     <article className={styles.card}>
+      {item.cover_key ? (
+        <img
+          className={styles.cover}
+          src={`/media/${item.cover_key}`}
+          alt=""
+          loading="lazy"
+        />
+      ) : null}
+
       <div className={styles.header}>
         <h2 className={styles.title}>
           {item.deleted_at ? (
