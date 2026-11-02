@@ -47,7 +47,7 @@
 | **M5 · Деплой** | T69–T79 | VPS, Postgres, Caddy, TLS, бэкапы, мониторинг, регламент миграций |
 | **M6 · Полировка** | T80–T89 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 
-**Текущий статус:** T01 принята. Следующая — T02.
+**Текущий статус:** T01, T02 приняты. Следующая — T03.
 
 ---
 
@@ -59,7 +59,7 @@
   **Проверить:** `git status --short` пуст после коммита; `git check-ignore backend/target .env frontend/node_modules` показывает все три; README открывается и ссылки на `docs/*` рабочие.
   **Коммит:** `chore: initialize repository with documentation`
 
-- [ ] **T02 · Каркас бэкенда на axum**
+- [x] **T02 · Каркас бэкенда на axum**
   **Файлы:** `backend/Cargo.toml`, `backend/src/main.rs`, `rust-toolchain.toml`
   **Сделать:** крейт `jey-api`, edition 2024; зависимости: `axum`, `tokio`, `tower-http`, `tracing`, `serde`; сервер слушает `BIND_ADDR`; `GET /health` → `{"status":"ok","version":"0.1.0"}`; корректное завершение по `SIGINT`/`SIGTERM`.
   **Проверить:** `cargo run` стартует; `curl -s localhost:8080/health` → JSON; `Ctrl+C` завершает процесс без паники; `cargo clippy -- -D warnings` чист.
