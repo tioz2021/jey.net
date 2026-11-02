@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 import { ItemList } from "@/components/items/item-list";
 import { SearchBox } from "@/components/items/search-box";
-import { Skeleton } from "@/components/ui";
+import { ListSkeleton } from "@/components/skeletons";
 
 import styles from "./page.module.css";
 
@@ -23,14 +23,7 @@ export default function ItemsPage() {
       </header>
 
       {/* useSearchParams needs a Suspense boundary during prerendering. */}
-      <Suspense
-        fallback={
-          <div style={{ display: "grid", gap: "var(--space-3)" }}>
-            <Skeleton height="4rem" />
-            <Skeleton height="6.5rem" />
-          </div>
-        }
-      >
+      <Suspense fallback={<ListSkeleton />}>
         <div style={{ display: "grid", gap: "var(--space-5)" }}>
           <SearchBox />
           <ItemList />

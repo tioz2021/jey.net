@@ -3,7 +3,9 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { Button, Skeleton } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { EmptyState } from "@/components/empty-state";
+import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types";
@@ -99,33 +101,31 @@ export function ItemList() {
       <ItemsFilters />
 
       {error ? (
-        <div className={styles.state} role="alert">
-          <p className={styles.stateTitle}>Не удалось загрузить записи</p>
-          <p className={styles.stateText}>{error}</p>
-          <Button
-            variant="secondary"
-            onClick={() => setReloadToken((value) => value + 1)}
-          >
-            Повторить
-          </Button>
-        </div>
+        <EmptyState
+          title="Не удалось загрузить записи"
+          text={error}
+          action={
+            <Button
+              variant="secondary"
+              onClick={() => setReloadToken((value) => value + 1)}
+            >
+              Повторить
+            </Button>
+          }
+        />
       ) : loading ? (
-        <div className={styles.list} aria-busy="true">
-          <Skeleton height="6.5rem" />
-          <Skeleton height="6.5rem" />
-          <Skeleton height="6.5rem" />
-        </div>
+        <ListSkeleton />
       ) : items.length === 0 ? (
-        <div className={styles.state}>
-          <p className={styles.stateTitle}>
-            {hasFilters ? "Ничего не найдено" : "Записей пока нет"}
-          </p>
-          <p className={styles.stateText}>
-            {hasFilters
-              ? "Попробуйте изменить фильтры."
-              : "Добавьте первый фильм, книгу или картинку — они появятся здесь."}
-          </p>
-        </div>
+        <EmptyState
+          title={hasFilters ? "Ничего не найдено" : "Записей пока нет"}
+          text={
+            hasFilters
+              ? "Попробуйте изменить фильтры или поисковый запрос."
+              : "Добавьте первый фильм, книгу или картинку — они появятся здесь."
+          }
+          actionHref={hasFilters ? "/items" : "/items/new"}
+          actionLabel={hasFilters ? "Сбросить фильтры" : "Добавить запись"}
+        />
       ) : (
         <>
           <ul className={styles.list}>

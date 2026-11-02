@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DeleteTagButton } from "@/components/items/delete-tag-button";
+import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
 import type { TagsResponse } from "@/lib/types";
@@ -42,13 +43,12 @@ export default async function TagsPage() {
       </header>
 
       {tags.length === 0 ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>Тегов пока нет</p>
-          <p className={styles.muted}>
-            Добавьте теги в форме записи — они появятся здесь.
-          </p>
-          <Link href="/items/new">Добавить запись</Link>
-        </div>
+        <EmptyState
+          title="Тегов пока нет"
+          text="Добавьте теги в форме записи — они появятся здесь."
+          actionHref="/items/new"
+          actionLabel="Добавить запись"
+        />
       ) : (
         <ul className={styles.list}>
           {tags.map((tag) => (

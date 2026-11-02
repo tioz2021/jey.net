@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Distribution } from "@/components/stats/distribution";
 import { MonthChart } from "@/components/stats/month-chart";
 import { StatCard } from "@/components/stats/stat-card";
+import { EmptyState } from "@/components/empty-state";
 import { Card } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
 import { backendFetch } from "@/lib/server-api";
@@ -43,14 +44,12 @@ export default async function DashboardPage() {
           <StatCard label="Готово" value="0" />
           <StatCard label="Запланировано" value="0" />
         </div>
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>Пока нечего считать</p>
-          <p className={styles.muted}>
-            Добавьте первую запись — здесь появятся графики по месяцам, типам и
-            статусам.
-          </p>
-          <Link href="/items/new">Добавить запись</Link>
-        </div>
+        <EmptyState
+          title="Пока нечего считать"
+          text="Добавьте первую запись — здесь появятся графики по месяцам, типам и статусам."
+          actionHref="/items/new"
+          actionLabel="Добавить запись"
+        />
       </main>
     );
   }
