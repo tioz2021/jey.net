@@ -25,6 +25,7 @@ use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
 use crate::http::origin::require_allowed_origin;
+use crate::mail::Mailer;
 use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
 
@@ -40,6 +41,7 @@ const READINESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1)
 pub struct AppState {
     pub pool: PgPool,
     pub config: Arc<Config>,
+    pub mailer: Arc<dyn Mailer>,
 }
 
 /// Builds the full application router.

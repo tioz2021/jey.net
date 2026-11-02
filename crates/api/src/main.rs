@@ -11,7 +11,7 @@ use tracing::{info, warn};
 
 use jey_api::config::Config;
 use jey_api::http::{AppState, VERSION, router};
-use jey_api::{db, telemetry};
+use jey_api::{db, mail, telemetry};
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -114,6 +114,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
     let state = AppState {
         pool,
+        mailer: mail::from_config(&config),
         config: Arc::new(config),
     };
 

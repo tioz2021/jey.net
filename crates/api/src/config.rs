@@ -84,6 +84,12 @@ pub struct Config {
     pub session_ttl_days: u32,
     pub allowed_origins: Vec<String>,
     pub log_format: LogFormat,
+    /// Public address of the web client, used in emails.
+    pub public_url: String,
+    /// From address for outgoing mail.
+    pub mail_from: String,
+    /// Where the development transport writes `.eml` files.
+    pub mail_dir: PathBuf,
 }
 
 impl Config {
@@ -124,6 +130,28 @@ impl Config {
             key: "DATABASE_URL",
         })?;
 
+        let public_url = match var("PUBLIC_URL") {
+            Some(raw) => validate_public_url(&raw)?,
+            None => DEFAULT_PUBLIC_URL.to_owned(),
+        };
+
+        let mail_from = match var("MAIL_FROM") {
+            Some(raw) if raw.contains('@') => raw,
+            Some(raw) => {
+                return Err(ConfigError::invalid_value(
+                    "MAIL_FROM",
+                    &raw,
+                    "must look like an email address",
+                ));
+            }
+            None => DEFAULT_MAIL_FROM.to_owned(),
+        };
+
+        let mail_dir = match var("MAIL_DIR") {
+            Some(raw) => PathBuf::from(raw),
+            None => PathBuf::from("var/mail"),
+        };
+
         let allowed_origins = match var("ALLOWED_ORIGINS") {
             Some(raw) => parse_origins(&raw)?,
             None => vec![DEFAULT_ORIGIN.to_owned()],
@@ -150,6 +178,9 @@ impl Config {
             session_ttl_days,
             allowed_origins,
             log_format,
+            public_url,
+            mail_from,
+            mail_dir,
         })
     }
 }
@@ -157,6 +188,8 @@ impl Config {
 const DEFAULT_BIND_ADDR: &str = "127.0.0.1:8080";
 const DEFAULT_SESSION_TTL_DAYS: u32 = 30;
 const DEFAULT_ORIGIN: &str = "http://localhost:3000";
+const DEFAULT_PUBLIC_URL: &str = "http://localhost:3000";
+const DEFAULT_MAIL_FROM: &str = "jey@localhost";
 
 fn var(key: &'static str) -> Option<String> {
     env::var(key)
@@ -174,6 +207,20 @@ fn parse_bool(key: &'static str, raw: &str) -> Result<bool, ConfigError> {
             raw,
             "must be one of: true, false, 1, 0, yes, no, on, off",
         )),
+    }
+}
+
+fn validate_public_url(raw: &str) -> Result<String, ConfigError> {
+    let url = raw.trim_end_matches('/');
+
+    if url.starts_with("http://") || url.starts_with("https://") {
+        Ok(url.to_owned())
+    } else {
+        Err(ConfigError::invalid_value(
+            "PUBLIC_URL",
+            raw,
+            "must start with http:// or https://",
+        ))
     }
 }
 

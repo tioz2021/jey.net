@@ -18,6 +18,7 @@ use axum::http::{Method, Request, StatusCode};
 use http_body_util::BodyExt;
 use jey_api::config::{AppEnv, Config, LogFormat};
 use jey_api::http::{AppState, router};
+use jey_api::mail::memory::MemoryMailer;
 use serde_json::Value;
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
@@ -54,6 +55,9 @@ fn test_config() -> Config {
         session_ttl_days: 30,
         allowed_origins: vec!["http://localhost:3000".to_owned()],
         log_format: LogFormat::Pretty,
+        public_url: "http://localhost:3000".to_owned(),
+        mail_from: "jey@localhost".to_owned(),
+        mail_dir: std::path::PathBuf::from("var/mail"),
     }
 }
 
@@ -62,6 +66,8 @@ pub struct TestClient {
     app: Router,
     pool: PgPool,
     ip: String,
+    /// Everything the handlers "sent" during the test.
+    pub mailer: Arc<MemoryMailer>,
 }
 
 pub struct TestResponse {
@@ -87,9 +93,11 @@ impl TestClient {
             .try_init();
 
         let pool = pool().await;
+        let mailer = Arc::new(MemoryMailer::new());
         let state = AppState {
             pool: pool.clone(),
             config: Arc::new(test_config()),
+            mailer: mailer.clone(),
         };
 
         // Every test gets its own client address so rate-limit counters of one
@@ -101,6 +109,7 @@ impl TestClient {
             app: router(state),
             pool,
             ip,
+            mailer,
         }
     }
 
