@@ -673,53 +673,53 @@
   **Проверить:** новый аккаунт видит подсказку; после добавления она не появляется; не мешает повторно.
   **Коммит:** `feat(web): guide new accounts to their first record`
 
-- [ ] **D08 · SMTP и баннер подтверждения почты**
-  **Файлы:** `crates/api/src/mail/smtp.rs`, `crates/api/src/config.rs`, `docs/deploy.md`, `frontend/components/verify-email-banner.tsx`
-  **Сделать:** SMTP-транспорт (host, port, user, password, from, STARTTLS), выбор транспорта по окружению, шаблоны писем; баннер «Подтвердите почту» с переотправкой.
-  **Проверить:** письмо уходит на реальный ящик; ссылка подтверждает адрес; баннер исчезает после подтверждения; без SMTP в dev письма пишутся файлами.
-  **Коммит:** `feat(mail): send verification letters over smtp`
-
-- [ ] **D09 · Микро-состояния**
+- [ ] **D08 · Микро-состояния**
   **Файлы:** `frontend/components/items/item-card.module.css`, `frontend/components/ui/Button.module.css`, `frontend/components/toasts.module.css`
   **Сделать:** hover карточки — смена фона без рамки; нажатие кнопок; плавное появление тостов; уважать `prefers-reduced-motion`.
   **Проверить:** нет сдвигов вёрстки; hover не мешает клику; анимации отключаются системной настройкой.
   **Коммит:** `style(web): add hover, press and toast motion`
 
-- [ ] **D10 · Иконки разделов и типов**
+- [ ] **D09 · Иконки разделов и типов**
   **Файлы:** `frontend/components/icons.tsx`, `frontend/components/site-header.tsx`, `frontend/components/app-nav.tsx`
   **Сделать:** SVG-иконки разделов (записи, теги, статистика, настройки) и типов (фильм, книга, картинка, другое).
   **Проверить:** иконки выровнены с текстом; мобильная шапка не ломается; декоративные скрыты от скринридера.
   **Коммит:** `feat(web): add section and kind icons`
 
-- [ ] **D11 · Осмысленные пустые состояния**
+- [ ] **D10 · Осмысленные пустые состояния**
   **Файлы:** `frontend/components/empty-state.tsx`, `frontend/components/illustrations/*.svg`
   **Сделать:** небольшие SVG-иллюстрации для пустого каталога, тегов, статистики и пустого поиска вместо пунктирного прямоугольника.
   **Проверить:** состояния читаемы и не растягивают страницу; выглядят уместно в тёмной теме.
   **Коммит:** `style(web): illustrate empty states`
 
-- [ ] **D12 · Тултипы и подписи на графиках**
+- [ ] **D11 · Тултипы и подписи на графиках**
   **Файлы:** `frontend/components/stats/month-chart.tsx`, `frontend/components/stats/distribution.tsx`
   **Сделать:** подписи значений, тултипы при наведении и фокусе, доступные `aria`-описания.
   **Проверить:** значения читаются без наведения; тултип не вылезает за экран на мобильном.
   **Коммит:** `feat(web): label and explain chart values`
 
-- [ ] **D13 · Баннер профиля и крупный аватар**
+- [ ] **D12 · Баннер профиля и крупный аватар**
   **Файлы:** `frontend/components/public-profile.tsx`, `frontend/components/public-profile.module.css`, `frontend/app/(public)/u/[id]/*`
   **Сделать:** цветная полоса-баннер (или обложка первой записи), крупный аватар, аккуратная шапка профиля.
   **Проверить:** без обложки остаётся нейтральный фон; контраст текста сохраняется; корректно на мобильном.
   **Коммит:** `style(web): add a profile banner and larger avatar`
 
-- [ ] **D14 · Единый знак в шапке**
+- [ ] **D13 · Единый знак в шапке**
   **Файлы:** `frontend/components/site-header.tsx`, `frontend/app/icon.svg`
   **Сделать:** тот же знак «j», что в фавиконе, рядом с текстом `jey.net`.
   **Проверить:** шапка не выше 48 px; на мобильном не тесно; знак декоративный (`aria-hidden`).
   **Коммит:** `style(web): add the logo mark to the header`
 
-- [ ] **D15 · Цветовые статусы**
+- [ ] **D14 · Цветовые статусы**
   **Файлы:** `frontend/lib/labels.ts`, `frontend/components/ui/Badge.module.css`
   **Сделать:** «Готово» — зелёный, «В процессе» — янтарный, «Запланировано» — синий, «Брошено» — серый.
   **Проверить:** цвета различимы в светлой и тёмной теме; статус читается и по тексту, не только по цвету.
   **Коммит:** `style(web): colour-code record statuses`
+
+- [ ] **D15 · SMTP и баннер подтверждения почты**
+  **Файлы:** `crates/api/src/mail/smtp.rs`, `crates/api/src/config.rs`, `docs/deploy.md`, `frontend/components/verify-email-banner.tsx`
+  **Сделать:** SMTP-транспорт (host, port, user, password, from, STARTTLS), выбор транспорта по окружению, шаблоны писем; баннер «Подтвердите почту» с переотправкой.
+  **Проверить:** письмо уходит на реальный ящик; ссылка подтверждает адрес; баннер исчезает после подтверждения; без SMTP в dev письма пишутся файлами.
+  **Коммит:** `feat(mail): send verification letters over smtp`
 
 - [ ] **T91 · Бэклог и ретроспектива**
   **Файлы:** `docs/backlog.md`, `docs/retrospective.md`
