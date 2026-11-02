@@ -49,7 +49,7 @@
 | **M7 · Полировка** | T82–T91 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T12 приняты. Следующая — T13.
+**Текущий статус:** T01–T13 приняты. Следующая — T14.
 
 ---
 
@@ -135,11 +135,11 @@
   **Проверить:** миграция применяется на чистой БД; дубликат email (в другом регистре) отклоняется; `display_name` длиной 61 символ отклоняется; `updated_at` обновляется триггером.
   **Коммит:** `feat(db): add users table`
 
-- [ ] **T13 · Схема sessions**
-  **Файлы:** `migrations/0003_sessions.sql`
-  **Сделать:** таблица `sessions`: `id uuid pk`, `user_id uuid not null references users(id) on delete cascade`, `token_hash bytea not null unique`, `created_at`, `last_seen_at`, `expires_at not null`, `ip inet`, `user_agent text`; индексы по `user_id` и `expires_at`.
-  **Проверить:** удаление пользователя удаляет его сессии; вставка дубликата `token_hash` отклоняется; запрос «активные сессии пользователя» использует индекс.
-  **Коммит:** `feat(db): add sessions table`
+- [x] **T13 · Схема devices и sessions**
+  **Файлы:** `migrations/0003_devices_sessions.sql`
+  **Сделать:** `devices` (`id`, `user_id` cascade, `installation_id`, `name`, `platform`, `created_at`, `last_seen_at`, `last_sync_seq`, уникальность `(user_id, installation_id)`); `sessions` (`id`, `user_id` cascade, `device_id` set null, `token_hash bytea unique`, `created_at`, `last_seen_at`, `expires_at`, `ip`, `user_agent`); индексы по `sessions(user_id)`, `sessions(expires_at)`, `devices(user_id)`.
+  **Проверить:** удаление пользователя уносит его устройства и сессии; дубликат `token_hash` отклоняется; повторная установка с тем же `installation_id` не создаёт второе устройство; запрос «активные сессии пользователя» использует индекс.
+  **Коммит:** `feat(db): add devices and sessions tables`
 
 - [ ] **T14 · Хеширование паролей**
   **Файлы:** `crates/api/src/auth/mod.rs`, `crates/api/src/auth/password.rs`
@@ -658,7 +658,7 @@
   **Коммит:** `feat(desktop): support offline item management`
 
 - [ ] **T96 · Регистрация устройства**
-  **Файлы:** `crates/api/src/http/devices.rs`, `crates/desktop/src/sync/device.rs`, `migrations/0010_devices.sql`
+  **Файлы:** `crates/api/src/http/devices.rs`, `crates/desktop/src/sync/device.rs`
   **Сделать:** `POST /api/v1/devices` при первом входе; `X-Device-Id` в sync-запросах; привязка сессии к устройству; идемпотентность по идентификатору установки.
   **Проверить:** устройство появляется в БД; повторная регистрация не создаёт дубль; sync-запрос без `X-Device-Id` отклоняется `400`.
   **Коммит:** `feat(sync): register devices`
