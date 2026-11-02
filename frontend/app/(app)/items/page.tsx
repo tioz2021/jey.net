@@ -1,27 +1,27 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
 
-import { Card } from "@/components/ui";
-
-import styles from "./page.module.css";
+import { ItemList } from "@/components/items/item-list";
+import { Skeleton } from "@/components/ui";
 
 export const metadata: Metadata = {
-  title: "Каталог — jey",
+  title: "Записи — jey",
 };
 
-// Placeholder: the real catalogue arrives with the list page task.
 export default function ItemsPage() {
   return (
-    <main className={styles.page}>
-      <Card title="Каталог">
-        <p className={styles.text}>
-          Здесь будет список записей с фильтрами и поиском. Аккаунт создан —
-          страница каталога появится в ближайших задачах.
-        </p>
-        <p className={styles.text}>
-          <Link href="/">На главную</Link>
-        </p>
-      </Card>
+    <main>
+      {/* useSearchParams needs a Suspense boundary during prerendering. */}
+      <Suspense
+        fallback={
+          <div style={{ display: "grid", gap: "var(--space-3)" }}>
+            <Skeleton height="4rem" />
+            <Skeleton height="6.5rem" />
+          </div>
+        }
+      >
+        <ItemList />
+      </Suspense>
     </main>
   );
 }
