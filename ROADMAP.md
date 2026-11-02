@@ -49,7 +49,7 @@
 | **M7 · Полировка** | T82–T91 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T11 приняты. M1 закрыт. Следующая — T12.
+**Текущий статус:** T01–T12 приняты. Следующая — T13.
 
 ---
 
@@ -129,7 +129,7 @@
 
 ## M2 · Аккаунты
 
-- [ ] **T12 · Схема users**
+- [x] **T12 · Схема users**
   **Файлы:** `migrations/0002_users.sql`
   **Сделать:** расширение `citext`; таблица `users`: `id uuid pk`, `email citext unique not null`, `email_verified_at timestamptz`, `password_hash text not null`, `display_name text not null`, `locale text not null default 'ru'`, `is_public boolean not null default false`, `created_at`, `updated_at`, `deleted_at`; CHECK на длину `display_name`; индекс по `deleted_at`.
   **Проверить:** миграция применяется на чистой БД; дубликат email (в другом регистре) отклоняется; `display_name` длиной 61 символ отклоняется; `updated_at` обновляется триггером.
