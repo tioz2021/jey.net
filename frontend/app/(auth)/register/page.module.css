@@ -8,8 +8,12 @@
 
 .brand {
   align-self: center;
+  margin: 0;
   font-size: var(--text-xl);
   font-weight: 600;
+}
+
+.brandLink {
   color: var(--color-text);
   text-decoration: none;
 }

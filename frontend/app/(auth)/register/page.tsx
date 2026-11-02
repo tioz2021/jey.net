@@ -15,9 +15,11 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className={styles.wrapper}>
-      <Link className={styles.brand} href="/">
-        jey
-      </Link>
+      <h1 className={styles.brand}>
+        <Link className={styles.brandLink} href="/">
+          jey
+        </Link>
+      </h1>
       <Card title="Регистрация">
         <Suspense fallback={null}>
           <RedirectIfAuthenticated />

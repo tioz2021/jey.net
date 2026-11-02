@@ -32,12 +32,7 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={toggle}
-      aria-label="Переключить тему"
-    >
+    <Button variant="ghost" size="sm" onClick={toggle}>
       {theme === "dark" ? "Светлая тема" : "Тёмная тема"}
     </Button>
   );

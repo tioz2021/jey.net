@@ -22,8 +22,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT}
         </Script>
+        <a className="skip-link" href="#content">
+          Перейти к содержимому
+        </a>
         <UserProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <div id="content" tabIndex={-1}>
+              {children}
+            </div>
+          </ToastProvider>
         </UserProvider>
       </body>
     </html>

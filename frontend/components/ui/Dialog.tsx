@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useId, useRef } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import { Button } from "./Button";
 import styles from "./Dialog.module.css";
@@ -20,6 +20,7 @@ export interface DialogProps {
  */
 export function Dialog({ open, title, children, onClose, footer }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     const dialog = ref.current;
@@ -46,11 +47,49 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
     return () => dialog.removeEventListener("close", handleClose);
   }, [onClose]);
 
+  function trapFocus(event: KeyboardEvent<HTMLDialogElement>) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const dialog = ref.current;
+    if (!dialog) {
+      return;
+    }
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((element) => element.offsetParent !== null);
+
+    if (focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) {
+      return;
+    }
+
+    const active = document.activeElement;
+
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   return (
     <dialog
       ref={ref}
       className={styles.dialog}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
+      onKeyDown={trapFocus}
       onClick={(event) => {
         // A click on the backdrop lands on the dialog element itself.
         if (event.target === ref.current) {
@@ -60,7 +99,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
     >
       <div className={styles.inner}>
         <header className={styles.header}>
-          <h2 className={styles.title} id="dialog-title">
+          <h2 className={styles.title} id={titleId}>
             {title}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="Закрыть">
