@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -11,6 +10,7 @@ import { errorMessage } from "@/lib/errors";
 import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types";
 
 import { ItemsFilters } from "./filters";
+import { useItemsQuery } from "./query-context";
 import { ItemCard } from "./item-card";
 import styles from "./item-list.module.css";
 
@@ -34,7 +34,7 @@ function parseFilters(params: URLSearchParams): ItemFilters {
 }
 
 export function ItemList() {
-  const searchParams = useSearchParams();
+  const { params: searchParams } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
   const hasFilters = ["kind", "status", "tag", "q"].some((key) =>
@@ -113,7 +113,7 @@ export function ItemList() {
             </Button>
           }
         />
-      ) : loading ? (
+      ) : loading && items.length === 0 ? (
         <ListSkeleton />
       ) : items.length === 0 ? (
         <EmptyState
@@ -128,7 +128,11 @@ export function ItemList() {
         />
       ) : (
         <>
-          <ul className={styles.list}>
+          <p aria-live="polite" className={styles.updating} role="status">
+            {loading ? "Обновляем список…" : "\u00A0"}
+          </p>
+
+          <ul className={`${styles.list} ${loading ? styles.pending : ""}`}>
             {items.map((item) => (
               <li key={item.id}>
                 <ItemCard item={item} query={filters.q} />

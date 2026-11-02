@@ -10,11 +10,28 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  /* Changing the filter replaces the cards; without this the browser
+     "anchors" the scroll position and the page drifts. */
+  overflow-anchor: none;
 }
 
 .more {
   display: flex;
   justify-content: center;
+}
+
+/* The previous page stays on screen while the next one loads, so switching
+   a category does not collapse the page height. */
+.updating {
+  min-height: 1.25em;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.pending {
+  opacity: 0.55;
+  transition: opacity 120ms ease-out;
 }
 
 @media (width <= 480px) {

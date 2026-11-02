@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button, Select } from "@/components/ui";
@@ -8,6 +7,7 @@ import { api } from "@/lib/api";
 import { KIND_LABELS, SORT_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { ItemKind, ItemStatus, Sort, TagCount } from "@/lib/types";
 
+import { useItemsQuery } from "./query-context";
 import styles from "./filters.module.css";
 
 const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
@@ -15,8 +15,7 @@ const STATUSES = Object.entries(STATUS_LABELS) as [ItemStatus, string][];
 const SORTS = Object.entries(SORT_LABELS) as [Sort, string][];
 
 export function ItemsFilters() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { params: searchParams, update } = useItemsQuery();
   const [tags, setTags] = useState<TagCount[]>([]);
 
   useEffect(() => {
@@ -39,16 +38,13 @@ export function ItemsFilters() {
   }, []);
 
   function setParam(key: string, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-
-    const query = params.toString();
-    router.replace(query ? `/items?${query}` : "/items", { scroll: false });
+    update((params) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
   }
 
   const hasFilters =
@@ -121,15 +117,22 @@ export function ItemsFilters() {
         Показать корзину
       </label>
 
-      {hasFilters ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.replace("/items", { scroll: false })}
-        >
-          Сбросить фильтры
-        </Button>
-      ) : null}
+      <Button
+        aria-hidden={!hasFilters}
+        disabled={!hasFilters}
+        style={{ visibility: hasFilters ? undefined : "hidden" }}
+        variant="ghost"
+        size="sm"
+        onClick={() =>
+          update((params) => {
+            for (const key of [...params.keys()]) {
+              params.delete(key);
+            }
+          })
+        }
+      >
+        Сбросить фильтры
+      </Button>
     </div>
   );
 }

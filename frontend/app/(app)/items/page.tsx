@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { ItemList } from "@/components/items/item-list";
+import { ItemsQueryProvider } from "@/components/items/query-context";
 import { SearchBox } from "@/components/items/search-box";
-import { ListSkeleton } from "@/components/skeletons";
 
 import styles from "./page.module.css";
 
@@ -12,7 +11,20 @@ export const metadata: Metadata = {
   title: "Записи — jey.net",
 };
 
-export default function ItemsPage() {
+export default async function ItemsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const raw = await searchParams;
+  const initial = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === "string") {
+      initial.set(key, value);
+    }
+  }
+
   return (
     <main>
       <header className={styles.header}>
@@ -22,13 +34,15 @@ export default function ItemsPage() {
         </Link>
       </header>
 
-      {/* useSearchParams needs a Suspense boundary during prerendering. */}
-      <Suspense fallback={<ListSkeleton />}>
+      {/* The page renders dynamically, so useSearchParams needs no Suspense
+          boundary here; without the fallback a category switch never collapses
+          the list height. */}
+      <ItemsQueryProvider initialSearch={initial.toString()}>
         <div style={{ display: "grid", gap: "var(--space-5)" }}>
           <SearchBox />
           <ItemList />
         </div>
-      </Suspense>
+      </ItemsQueryProvider>
     </main>
   );
 }

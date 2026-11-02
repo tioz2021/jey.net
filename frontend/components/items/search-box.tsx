@@ -1,18 +1,17 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 
+import { useItemsQuery } from "./query-context";
 import styles from "./search-box.module.css";
 
 const DEBOUNCE_MS = 300;
 
 export function SearchBox() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
+  const { params, update } = useItemsQuery();
+  const urlQuery = params.get("q") ?? "";
 
   const [value, setValue] = useState(urlQuery);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,17 +31,15 @@ export function SearchBox() {
   }, []);
 
   function apply(next: string) {
-    const params = new URLSearchParams(searchParams.toString());
     const trimmed = next.trim();
 
-    if (trimmed) {
-      params.set("q", trimmed);
-    } else {
-      params.delete("q");
-    }
-
-    const query = params.toString();
-    router.replace(query ? `/items?${query}` : "/items", { scroll: false });
+    update((params) => {
+      if (trimmed) {
+        params.set("q", trimmed);
+      } else {
+        params.delete("q");
+      }
+    });
   }
 
   function handleChange(next: string) {
