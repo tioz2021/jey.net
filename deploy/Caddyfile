@@ -31,8 +31,8 @@
 		reverse_proxy 127.0.0.1:8080
 	}
 
-	# The web client is deployed in T75 and will replace this placeholder.
+	# Everything else is the Next.js web client.
 	handle {
-		respond "jey.net API is running. The web client arrives in T75." 200
+		reverse_proxy 127.0.0.1:3000
 	}
 }

@@ -1,0 +1,30 @@
+[Unit]
+Description=jey.net web client (Next.js)
+Documentation=https://github.com/tioz2021/jey.net
+After=network-online.target jey-api.service
+Wants=network-online.target
+Requires=jey-api.service
+
+[Service]
+Type=simple
+User=jey
+Group=jey
+WorkingDirectory=/opt/jey/web
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+Environment=BACKEND_URL=http://127.0.0.1:8080
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=2
+
+MemoryMax=512M
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/jey/web/.next/cache
+
+[Install]
+WantedBy=multi-user.target

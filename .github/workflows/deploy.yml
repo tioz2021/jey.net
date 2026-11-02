@@ -1,0 +1,86 @@
+name: Deploy
+
+# Manual on purpose: a deploy needs production secrets and a reviewed commit.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .
+
+      - name: Build API
+        run: cargo build --release -p jey-api --bin jey-api
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build web
+        working-directory: frontend
+        env:
+          BACKEND_URL: http://127.0.0.1:8080
+        run: |
+          npm ci
+          npm run build
+          cp -R .next/static .next/standalone/.next/static
+          tar -C .next/standalone -czf ../jey-web.tar.gz .
+
+      - name: Set up SSH
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload artifacts
+        run: |
+          rsync -av --chmod=755 target/release/jey-api \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/jey/jey-api.new"
+          rsync -av jey-web.tar.gz \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/jey-web.tar.gz"
+
+      - name: Activate
+        run: |
+          ssh "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" '
+            set -e
+            set -a; . /etc/jey/api.env; set +a
+            /opt/jey/jey-api.new migrate
+            mv /opt/jey/jey-api.new /opt/jey/jey-api
+            systemctl restart jey-api
+
+            rm -rf /opt/jey/web.prev
+            mv /opt/jey/web /opt/jey/web.prev
+            install -d -o jey -g jey -m 750 /opt/jey/web
+            tar -xzf /tmp/jey-web.tar.gz -C /opt/jey/web
+            rm -f /tmp/jey-web.tar.gz
+            install -d -o jey -g jey -m 750 /opt/jey/web/.next/cache
+            chown -R jey:jey /opt/jey/web
+            systemctl restart jey-web
+
+            sleep 3
+            curl -fsS http://127.0.0.1:8080/api/v1/health
+            curl -fsS -o /dev/null -w "web: %{http_code}\n" http://127.0.0.1:3000/login
+          '
