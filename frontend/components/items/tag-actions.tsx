@@ -112,7 +112,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
           size="sm"
           onClick={() => open("merge")}
         >
-          Слить
+          Объединить
         </Button>
         <Button variant="ghost" size="sm" onClick={() => open("delete")}>
           Удалить
@@ -150,7 +150,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
 
       <Dialog
         open={mode === "merge"}
-        title={`Слить «${tag.name}» с другим тегом`}
+        title={`Объединить «${tag.name}» с другим тегом`}
         onClose={close}
         footer={
           <>
@@ -158,7 +158,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
               Отмена
             </Button>
             <Button disabled={!target} loading={pending} onClick={merge}>
-              Слить
+              Объединить
             </Button>
           </>
         }
