@@ -78,6 +78,11 @@ export interface ItemFilters {
   include_deleted?: boolean;
 }
 
+export interface ItemNeighbors {
+  prev_id: string | null;
+  next_id: string | null;
+}
+
 export interface ItemList {
   items: Item[];
   next_cursor: string | null;

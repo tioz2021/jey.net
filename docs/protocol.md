@@ -156,6 +156,7 @@ Origin: http://localhost:3000
 | GET | `/items` | список с фильтрами и курсором |
 | POST | `/items` | создание |
 | GET | `/items/{id}` | одна запись |
+| GET | `/items/{id}/neighbors` | id предыдущей и следующей записи в текущем порядке |
 | PATCH | `/items/{id}` | частичное обновление |
 | DELETE | `/items/{id}` | в корзину (мягкое удаление) |
 | POST | `/items/{id}/restore` | восстановление |

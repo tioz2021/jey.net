@@ -175,7 +175,11 @@ export function ItemList({
           <ul className={styles.list}>
             {items.map((item) => (
               <li key={item.id}>
-                <ItemCard item={item} query={filters.q} />
+                <ItemCard
+                  href={`/items/${item.id}${query ? `?${query}` : ""}`}
+                  item={item}
+                  query={filters.q}
+                />
               </li>
             ))}
           </ul>

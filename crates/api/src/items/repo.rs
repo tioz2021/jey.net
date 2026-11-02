@@ -314,6 +314,76 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
     rows.into_iter().map(Item::try_from).collect()
 }
 
+#[derive(Debug, sqlx::FromRow)]
+struct NeighborRow {
+    prev_id: Option<Uuid>,
+    next_id: Option<Uuid>,
+}
+
+/// The records before and after `id` in the same order the list uses.
+pub async fn neighbors(
+    pool: &PgPool,
+    user_id: Uuid,
+    id: Uuid,
+    filters: &crate::items::filters::Filters,
+    sort: crate::items::list::Sort,
+) -> Result<Option<(Option<Uuid>, Option<Uuid>)>, AppError> {
+    use crate::items::list::Sort;
+
+    let order = match sort {
+        Sort::CreatedDesc => "i.created_at desc, i.id desc",
+        Sort::CreatedAsc => "i.created_at asc, i.id asc",
+        Sort::UpdatedDesc => "i.updated_at desc, i.id desc",
+        Sort::RatingDesc => "coalesce(i.rating, 0) desc, i.id desc",
+        Sort::YearDesc => "coalesce(i.year, 0) desc, i.id desc",
+        Sort::TitleAsc => "lower(i.title) asc, i.id asc",
+    };
+
+    let sql = format!(
+        "with ordered as (
+             select i.id,
+                    lag(i.id) over (order by {order}) as prev_id,
+                    lead(i.id) over (order by {order}) as next_id
+             from items i
+             where i.user_id = $1
+               and i.deleted_at is null
+               and ($3::text is null or i.kind = $3)
+               and ($4::text is null or i.status = $4)
+               and ($5::text is null or exists (
+                   select 1
+                   from item_tags it2
+                   join tags t2 on t2.id = it2.tag_id
+                   where it2.item_id = i.id
+                     and t2.user_id = $1
+                     and lower(t2.name) = lower($5)
+               ))
+               and ($6::int is null or i.year >= $6)
+               and ($7::int is null or i.year <= $7)
+               and ($8::int is null or i.rating >= $8)
+               and ($9::int is null or i.rating <= $9)
+               and ($10::text is null or to_char(date_trunc('month', i.created_at), 'YYYY-MM') = $10)
+         )
+         select prev_id, next_id from ordered where id = $2"
+    );
+
+    let row = sqlx::query_as::<_, NeighborRow>(AssertSqlSafe(sql))
+        .bind(user_id)
+        .bind(id)
+        .bind(filters.kind.map(ItemKind::as_str))
+        .bind(filters.status.map(ItemStatus::as_str))
+        .bind(filters.tag.as_deref())
+        .bind(filters.year_from)
+        .bind(filters.year_to)
+        .bind(filters.rating_min.map(i32::from))
+        .bind(filters.rating_max.map(i32::from))
+        .bind(filters.month.as_deref())
+        .fetch_optional(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    Ok(row.map(|row| (row.prev_id, row.next_id)))
+}
+
 /// Applies a partial update and bumps the revision.
 pub async fn update(
     pool: &PgPool,

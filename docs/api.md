@@ -127,6 +127,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET | `/items` | список с фильтрами и курсором |
 | POST | `/items` | создать |
 | GET | `/items/{id}` | одна запись |
+| GET | `/items/{id}/neighbors` | соседи по текущей сортировке и фильтрам |
 | PATCH | `/items/{id}` | частично обновить |
 | DELETE | `/items/{id}` | в корзину |
 | POST | `/items/{id}/restore` | из корзины |

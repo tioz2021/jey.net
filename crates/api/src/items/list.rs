@@ -6,7 +6,7 @@
 
 use axum::Json;
 use axum::extract::rejection::QueryRejection;
-use axum::extract::{Query, State};
+use axum::extract::{Path, Query, State};
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use jey_core::items::{Item, ItemKind, ItemStatus};
@@ -112,6 +112,35 @@ pub async fn list_items(
     let views: Vec<ItemView> = items.into_iter().map(ItemView::from).collect();
 
     Ok(Json(json!({ "items": views, "next_cursor": next_cursor })))
+}
+
+/// `GET /api/v1/items/{id}/neighbors`
+///
+/// Ids of the previous and next record in the same filtered order the list
+/// would show. Either side is `null` at the edges.
+pub async fn neighbors(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(id): Path<Uuid>,
+    query: Result<Query<ListQuery>, QueryRejection>,
+) -> Result<Json<Value>, AppError> {
+    let Query(query) = query.map_err(|rejection| AppError::validation(rejection.body_text()))?;
+
+    let filters = Filters::parse(&query)?;
+    let sort = match query.sort.as_deref() {
+        Some(raw) => Sort::parse(raw)?,
+        None => Sort::CreatedDesc,
+    };
+
+    let neighbors = repo::neighbors(&state.pool, current.user.id, id, &filters, sort).await?;
+
+    match neighbors {
+        Some((prev_id, next_id)) => Ok(Json(json!({
+            "prev_id": prev_id,
+            "next_id": next_id,
+        }))),
+        None => Err(AppError::not_found("item")),
+    }
 }
 
 pub const DEFAULT_LIMIT: i64 = 20;

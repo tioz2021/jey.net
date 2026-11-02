@@ -112,6 +112,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/items", post(create_item).get(list_items))
+        .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(
             "/items/{id}",
             get(get_item).patch(update_item).delete(delete_item),

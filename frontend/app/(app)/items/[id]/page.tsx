@@ -3,10 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
+import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
 import { backendFetch } from "@/lib/server-api";
-import type { ItemResponse } from "@/lib/types";
+import type { ItemNeighbors as ItemNeighborsResponse, ItemResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
@@ -25,10 +26,24 @@ function formatDate(value: string): string {
 
 export default async function ItemPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id } = await params;
+  const raw = await searchParams;
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === "string" && value) {
+      query.set(key, value);
+    }
+  }
+
+  const queryString = query.toString();
+  const backHref = `/items${queryString ? `?${queryString}` : ""}`;
+
   const response = await backendFetch(`/items/${encodeURIComponent(id)}`);
 
   if (response.status === 400 || response.status === 404) {
@@ -52,10 +67,28 @@ export default async function ItemPage({
 
   const { item } = (await response.json()) as ItemResponse;
 
+  let prevHref: string | null = null;
+  let nextHref: string | null = null;
+
+  // Search results are ordered by relevance, so arrows would be misleading.
+  if (!query.get("q")) {
+    const neighborsResponse = await backendFetch(
+      `/items/${encodeURIComponent(id)}/neighbors${queryString ? `?${queryString}` : ""}`,
+    );
+
+    if (neighborsResponse.ok) {
+      const neighbors = (await neighborsResponse.json()) as ItemNeighborsResponse;
+      const suffix = queryString ? `?${queryString}` : "";
+
+      prevHref = neighbors.prev_id ? `/items/${neighbors.prev_id}${suffix}` : null;
+      nextHref = neighbors.next_id ? `/items/${neighbors.next_id}${suffix}` : null;
+    }
+  }
+
   return (
     <main>
       <p className={styles.back}>
-        <Link href="/items">← К записям</Link>
+        <Link href={backHref}>← К записям</Link>
       </p>
 
       <PageHeader
@@ -68,6 +101,8 @@ export default async function ItemPage({
           </>
         }
       />
+
+      <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
 
       <div className={styles.stack}>
         <div className={styles.body}>
