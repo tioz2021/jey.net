@@ -117,31 +117,29 @@ export function ItemsFilters() {
         </div>
 
         <div className={styles.foot}>
-          <label className={styles.toggle}>
-        <input
-          type="checkbox"
-          checked={searchParams.get("deleted") === "1"}
-          onChange={(event) => setParam("deleted", event.target.checked ? "1" : "")}
-        />
-            Показать корзину
-          </label>
-
           <Button
-        aria-hidden={!hasFilters}
-        disabled={!hasFilters}
-        style={{ visibility: hasFilters ? undefined : "hidden" }}
-        variant="ghost"
-        size="sm"
-        onClick={() =>
-          update((params) => {
-            for (const key of [...params.keys()]) {
-              params.delete(key);
+            disabled={!hasFilters}
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              update((params) => {
+                for (const key of [...params.keys()]) {
+                  params.delete(key);
+                }
+              })
             }
-          })
-        }
           >
             Сбросить фильтры
           </Button>
+
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={searchParams.get("deleted") === "1"}
+              onChange={(event) => setParam("deleted", event.target.checked ? "1" : "")}
+            />
+            Показать корзину
+          </label>
         </div>
       </div>
     </section>
