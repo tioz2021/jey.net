@@ -1,12 +1,5 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
-mod auth;
-mod config;
-mod db;
-mod error;
-mod http;
-mod telemetry;
-
 use std::error::Error;
 use std::net::SocketAddr;
 use std::process::ExitCode;
@@ -16,8 +9,9 @@ use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tracing::{info, warn};
 
-use crate::config::Config;
-use crate::http::{AppState, VERSION, router};
+use jey_api::config::Config;
+use jey_api::http::{AppState, VERSION, router};
+use jey_api::{db, telemetry};
 
 #[tokio::main]
 async fn main() -> ExitCode {

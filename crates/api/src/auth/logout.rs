@@ -9,9 +9,9 @@ use axum::http::header::SET_COOKIE;
 use axum::http::{HeaderMap, HeaderValue};
 use axum::response::{IntoResponse, Response};
 
-use crate::AppState;
 use crate::auth::session;
 use crate::error::AppError;
+use crate::http::AppState;
 
 /// `POST /api/v1/auth/logout`
 pub async fn logout(

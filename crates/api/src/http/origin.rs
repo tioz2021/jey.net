@@ -10,8 +10,8 @@ use axum::http::{HeaderMap, Method};
 use axum::middleware::Next;
 use axum::response::Response;
 
-use crate::AppState;
 use crate::error::AppError;
+use crate::http::AppState;
 
 /// Rejects `POST`, `PUT`, `PATCH` and `DELETE` coming from unknown origins.
 pub async fn require_allowed_origin(

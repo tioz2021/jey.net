@@ -14,12 +14,12 @@ use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::AppState;
 use crate::auth::normalise_email;
 use crate::auth::password;
 use crate::auth::session;
 use crate::auth::user::{self, UserView};
 use crate::error::AppError;
+use crate::http::AppState;
 use crate::http::ratelimit;
 
 #[derive(Debug, Deserialize)]
