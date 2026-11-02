@@ -1,5 +1,6 @@
 //! Uploaded images: format detection, size limits and local storage.
 
+pub mod gc;
 pub mod quota;
 pub mod storage;
 pub mod transform;
