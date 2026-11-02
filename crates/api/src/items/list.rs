@@ -31,6 +31,8 @@ pub struct ListQuery {
     pub cursor: Option<String>,
     /// `true` shows records from the bin as well.
     pub include_deleted: Option<bool>,
+    /// `true` lists only records that are in the bin.
+    pub only_deleted: Option<bool>,
     pub tag: Option<String>,
     pub year_from: Option<i32>,
     pub year_to: Option<i32>,
@@ -56,6 +58,9 @@ pub async fn list_items(
     };
     let limit = parse_limit(query.limit)?;
 
+    let only_deleted = query.only_deleted.unwrap_or(false);
+    let include_deleted = query.include_deleted.unwrap_or(false) || only_deleted;
+
     // A non-empty `q` switches to relevance-ordered search.
     let search_query = query
         .q
@@ -64,7 +69,9 @@ pub async fn list_items(
         .filter(|value| !value.is_empty())
         .map(str::to_owned);
 
-    if let Some(search_query) = search_query {
+    if let Some(search_query) = search_query
+        && !only_deleted
+    {
         if search_query.chars().count() > search::MAX_QUERY_LENGTH {
             return Err(AppError::validation_field(
                 "q",
@@ -93,7 +100,8 @@ pub async fn list_items(
             sort,
             limit: limit + 1,
             cursor,
-            include_deleted: query.include_deleted.unwrap_or(false),
+            include_deleted,
+            only_deleted,
         },
     )
     .await?;

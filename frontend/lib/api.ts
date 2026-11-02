@@ -242,6 +242,12 @@ export const items = {
   restore: (id: string) =>
     request<ItemResponse>(`/items/${id}/restore`, { method: "POST" }),
 
+  purge: (id: string) =>
+    request<void>(`/items/${id}/purge`, { method: "DELETE" }),
+
+  emptyTrash: () =>
+    request<{ purged: number }>("/trash", { method: "DELETE" }),
+
   setCover: (id: string, uploadId: string) =>
     request<ItemResponse>(`/items/${id}/cover`, {
       method: "POST",

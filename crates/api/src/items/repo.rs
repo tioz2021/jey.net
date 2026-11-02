@@ -201,6 +201,7 @@ pub struct ListPage {
     pub limit: i64,
     pub cursor: Option<(String, Uuid)>,
     pub include_deleted: bool,
+    pub only_deleted: bool,
 }
 
 /// Lists one page of records, strictly after the cursor when given.
@@ -214,6 +215,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
         limit,
         cursor,
         include_deleted,
+        only_deleted,
     } = page;
 
     let (cursor_predicate, order) = match sort {
@@ -268,6 +270,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
                and ($11::int is null or i.rating >= $11)
                and ($12::int is null or i.rating <= $12)
                and ($13::text is null or to_char(date_trunc('month', i.created_at), 'YYYY-MM') = $13)
+               and (not $14::boolean or i.deleted_at is not null)
                and {cursor_predicate}
              order by {order}
              limit $6
@@ -307,6 +310,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
         .bind(filters.rating_min.map(i32::from))
         .bind(filters.rating_max.map(i32::from))
         .bind(filters.month.as_deref())
+        .bind(only_deleted)
         .fetch_all(pool)
         .await
         .map_err(AppError::internal)?;
@@ -382,6 +386,32 @@ pub async fn neighbors(
         .map_err(AppError::internal)?;
 
     Ok(row.map(|row| (row.prev_id, row.next_id)))
+}
+
+/// Deletes one record from the bin for good.
+pub async fn purge(pool: &PgPool, user_id: Uuid, id: Uuid) -> Result<bool, AppError> {
+    let result = sqlx::query(
+        "delete from items
+         where id = $1 and user_id = $2 and deleted_at is not null",
+    )
+    .bind(id)
+    .bind(user_id)
+    .execute(pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(result.rows_affected() > 0)
+}
+
+/// Empties the bin and returns how many records were removed.
+pub async fn purge_all(pool: &PgPool, user_id: Uuid) -> Result<u64, AppError> {
+    let result = sqlx::query("delete from items where user_id = $1 and deleted_at is not null")
+        .bind(user_id)
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    Ok(result.rows_affected())
 }
 
 /// Applies a partial update and bumps the revision.

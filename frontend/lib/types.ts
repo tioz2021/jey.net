@@ -76,6 +76,7 @@ export interface ItemFilters {
   rating_max?: number;
   month?: string;
   include_deleted?: boolean;
+  only_deleted?: boolean;
 }
 
 export interface ItemNeighbors {

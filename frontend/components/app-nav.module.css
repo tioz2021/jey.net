@@ -35,6 +35,11 @@
   background: var(--color-surface);
 }
 
+.trashLink {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+}
+
 .active {
   font-weight: 600;
   background: var(--color-surface);
@@ -72,6 +77,11 @@
     padding: 10px var(--space-2);
     border-left: 0;
     border-bottom: 2px solid transparent;
+  }
+
+  .trashLink {
+    margin-top: 0;
+    border-top: 0;
   }
 
   .active {

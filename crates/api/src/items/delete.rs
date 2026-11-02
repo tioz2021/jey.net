@@ -32,6 +32,36 @@ pub async fn delete_item(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// `DELETE /api/v1/items/{id}/purge`
+///
+/// Removes one record from the bin for good.
+pub async fn purge_item(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(raw_id): Path<String>,
+) -> Result<StatusCode, AppError> {
+    let id = parse_id(&raw_id)?;
+
+    let purged = repo::purge(&state.pool, current.user.id, id).await?;
+    if !purged {
+        return Err(AppError::not_found("item is not in the bin"));
+    }
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// `DELETE /api/v1/trash`
+///
+/// Empties the whole bin.
+pub async fn empty_trash(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let purged = repo::purge_all(&state.pool, current.user.id).await?;
+
+    Ok(Json(json!({ "purged": purged })))
+}
+
 /// `POST /api/v1/items/{id}/restore`
 pub async fn restore_item(
     State(state): State<AppState>,

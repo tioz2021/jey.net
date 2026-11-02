@@ -54,8 +54,7 @@ export function ItemsFilters() {
     searchParams.has("kind") ||
     searchParams.has("status") ||
     searchParams.has("tag") ||
-    searchParams.has("sort") ||
-    searchParams.has("deleted");
+    searchParams.has("sort");
 
   return (
     <section className={styles.panel} aria-labelledby="filters-title">
@@ -141,14 +140,6 @@ export function ItemsFilters() {
             Сбросить фильтры
           </Button>
 
-          <label className={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={searchParams.get("deleted") === "1"}
-              onChange={(event) => setParam("deleted", event.target.checked ? "1" : "")}
-            />
-            Показать корзину
-          </label>
         </div>
       </div>
     </section>

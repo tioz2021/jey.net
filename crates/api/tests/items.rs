@@ -754,6 +754,84 @@ async fn delete_and_restore_respect_ownership() {
 }
 
 #[tokio::test]
+async fn trash_lists_binned_records_and_can_be_purged() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    async fn create(client: &TestClient, cookie: &str, title: &str) -> String {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({ "kind": "movie", "title": title, "status": "done" }),
+                cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201, "body: {}", response.body);
+        response.body["item"]["id"].as_str().expect("id").to_owned()
+    }
+
+    let first = create(&client, &cookie, "First").await;
+    let second = create(&client, &cookie, "Second").await;
+    let alive = create(&client, &cookie, "Alive").await;
+
+    for id in [&first, &second] {
+        let deleted = client
+            .delete(&format!("/api/v1/items/{id}"), json!({}), &cookie)
+            .await;
+        assert_eq!(deleted.status, 204);
+    }
+
+    // Default listing hides the bin; only_deleted lists just the bin.
+    let active = client.get("/api/v1/items", Some(&cookie)).await;
+    assert_eq!(active.body["items"].as_array().expect("array").len(), 1);
+
+    let bin = client
+        .get("/api/v1/items?only_deleted=true", Some(&cookie))
+        .await;
+    assert_eq!(bin.status, 200, "body: {}", bin.body);
+    let bin_items = bin.body["items"].as_array().expect("array");
+    assert_eq!(bin_items.len(), 2);
+    assert!(bin_items.iter().all(|item| item["deleted_at"].is_string()));
+
+    // Purging an active record is not allowed.
+    let not_in_bin = client
+        .delete(&format!("/api/v1/items/{alive}/purge"), json!({}), &cookie)
+        .await;
+    assert_eq!(not_in_bin.status, 404);
+
+    // Purge one record for good.
+    let purged = client
+        .delete(&format!("/api/v1/items/{first}/purge"), json!({}), &cookie)
+        .await;
+    assert_eq!(purged.status, 204);
+
+    let after_one = client
+        .get("/api/v1/items?only_deleted=true", Some(&cookie))
+        .await;
+    assert_eq!(after_one.body["items"].as_array().expect("array").len(), 1);
+
+    // Emptying the bin reports the count and leaves active records alone.
+    let emptied = client.delete("/api/v1/trash", json!({}), &cookie).await;
+    assert_eq!(emptied.status, 200, "body: {}", emptied.body);
+    assert_eq!(emptied.body["purged"], 1);
+
+    let after_empty = client
+        .get("/api/v1/items?only_deleted=true", Some(&cookie))
+        .await;
+    assert_eq!(
+        after_empty.body["items"].as_array().expect("array").len(),
+        0
+    );
+
+    let still_alive = client.get("/api/v1/items", Some(&cookie)).await;
+    assert_eq!(
+        still_alive.body["items"].as_array().expect("array").len(),
+        1
+    );
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
 async fn tags_are_counted_and_deleted_without_touching_items() {
     let (client, email, cookie) = logged_in_client().await;
 

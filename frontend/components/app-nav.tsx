@@ -87,6 +87,16 @@ export function AppNav() {
             </Link>
           );
         })}
+
+        <Link
+          aria-current={pathname === "/trash" ? "page" : undefined}
+          className={`${styles.link} ${styles.trashLink} ${
+            pathname === "/trash" ? styles.active : ""
+          }`}
+          href="/trash"
+        >
+          Корзина
+        </Link>
       </div>
     </aside>
   );

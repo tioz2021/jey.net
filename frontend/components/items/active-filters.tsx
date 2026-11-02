@@ -59,11 +59,6 @@ function buildChips(params: URLSearchParams): Chip[] {
     chips.push({ key: "tag", label: `Тег: ${tag}` });
   }
 
-  const deleted = params.get("deleted");
-  if (deleted === "1") {
-    chips.push({ key: "deleted", label: "Корзина" });
-  }
-
   const sort = params.get("sort");
   if (sort && sort !== "created_desc") {
     chips.push({

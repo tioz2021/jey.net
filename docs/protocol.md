@@ -159,6 +159,8 @@ Origin: http://localhost:3000
 | GET | `/items/{id}/neighbors` | id предыдущей и следующей записи в текущем порядке |
 | PATCH | `/items/{id}` | частичное обновление |
 | DELETE | `/items/{id}` | в корзину (мягкое удаление) |
+| DELETE | `/items/{id}/purge` | удалить из корзины навсегда |
+| DELETE | `/trash` | очистить корзину |
 | POST | `/items/{id}/restore` | восстановление |
 
 Параметры списка:
