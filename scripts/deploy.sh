@@ -70,6 +70,8 @@ say "building web"
     cd frontend
     BACKEND_URL="${BACKEND_URL:-http://127.0.0.1:8080}" npm run build
     cp -R .next/static .next/standalone/.next/static
+    # Standalone does not include public assets (screenshots, icons).
+    cp -R public .next/standalone/public
     tar -C .next/standalone -czf ../jey-web.tar.gz .
 )
 
