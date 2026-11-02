@@ -6,7 +6,10 @@ import { useEffect } from "react";
 
 import styles from "./item-neighbors.module.css";
 
-/** Previous/next links plus the left/right arrow keys. */
+/**
+ * Two fixed slots, so the control never jumps when a neighbour is missing.
+ * Keyboard: ← and →.
+ */
 export function ItemNeighbors({
   prevHref,
   nextHref,
@@ -48,20 +51,25 @@ export function ItemNeighbors({
   }
 
   return (
-    <nav aria-label="Переход между записями" className={styles.pager}>
+    <nav aria-label="Переход между записями (клавиши ← и →)" className={styles.pager}>
       {prevHref ? (
-        <Link className={styles.link} href={prevHref}>
+        <Link className={styles.link} href={prevHref} title="Предыдущая запись (←)">
           ← Предыдущая
         </Link>
       ) : (
-        <span />
+        <span aria-disabled="true" className={styles.disabled}>
+          ← Предыдущая
+        </span>
       )}
+
       {nextHref ? (
-        <Link className={styles.link} href={nextHref}>
+        <Link className={styles.link} href={nextHref} title="Следующая запись (→)">
           Следующая →
         </Link>
       ) : (
-        <span />
+        <span aria-disabled="true" className={styles.disabled}>
+          Следующая →
+        </span>
       )}
     </nav>
   );
