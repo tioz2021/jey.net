@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -7,6 +8,11 @@ import { SiteHeader } from "@/components/site-header";
 import styles from "./layout.module.css";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
+
+// Everything behind the login form is private: no indexing, no following.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Layout for authenticated pages.

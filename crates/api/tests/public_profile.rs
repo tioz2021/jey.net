@@ -127,7 +127,29 @@ async fn public_profile_shows_finished_records_only_and_no_private_fields() {
     assert!(!raw.contains("Черновик"));
     assert!(!raw.contains("Удалённая"));
 
+    let listing = client.get("/api/v1/public/users", None).await;
+    assert_eq!(listing.status, 200);
+    let listed = listing.body["users"].as_array().expect("users array");
+    assert!(
+        listed.iter().any(|user| user["id"] == id.as_str()),
+        "public profile must appear in the sitemap listing"
+    );
+
     purge_test_user(&pool().await, id.parse::<Uuid>().expect("uuid")).await;
+}
+
+#[tokio::test]
+async fn private_profiles_are_not_listed() {
+    let (client, _email, _cookie, _user) = account().await;
+
+    let listing = client.get("/api/v1/public/users", None).await;
+    assert_eq!(listing.status, 200);
+
+    let listed = listing.body["users"].as_array().expect("users array");
+    assert!(
+        listed.iter().all(|user| user["id"] != _user["id"]),
+        "private profile must stay out of the listing"
+    );
 }
 
 #[tokio::test]

@@ -3,16 +3,49 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui";
 import { KIND_LABELS } from "@/lib/labels";
-import { backendFetch } from "@/lib/server-api";
-import type { PublicProfileResponse } from "@/lib/types";
+import { getPublicProfile } from "@/lib/public-profile";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Публичный профиль — jey",
-};
-
 const dateFormat = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" });
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getPublicProfile(id);
+
+  // A private profile must not leak even through its <title>.
+  if (!data) {
+    return { title: "Профиль не найден — jey", robots: { index: false } };
+  }
+
+  const { profile, items } = data;
+  const description =
+    items.length > 0
+      ? `Завершённых записей: ${items.length}. Фильмы, книги и картинки, собранные в jey.`
+      : "Публичный профиль в jey.";
+
+  return {
+    title: `${profile.display_name} — jey`,
+    description,
+    alternates: { canonical: `/u/${id}` },
+    openGraph: {
+      type: "profile",
+      title: profile.display_name,
+      description,
+      url: `/u/${id}`,
+      images: profile.avatar_key ? [`/media/${profile.avatar_key}`] : undefined,
+    },
+    twitter: {
+      card: "summary",
+      title: profile.display_name,
+      description,
+    },
+  };
+}
 
 export default async function PublicProfilePage({
   params,
@@ -20,22 +53,14 @@ export default async function PublicProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const response = await backendFetch(`/public/users/${encodeURIComponent(id)}`);
+  const data = await getPublicProfile(id);
 
   // A private profile and a missing one look the same on purpose.
-  if (response.status === 400 || response.status === 404) {
+  if (!data) {
     notFound();
   }
 
-  if (!response.ok) {
-    return (
-      <p className={styles.muted}>
-        Не удалось загрузить профиль. Попробуйте обновить страницу позже.
-      </p>
-    );
-  }
-
-  const { profile, items } = (await response.json()) as PublicProfileResponse;
+  const { profile, items } = data;
 
   return (
     <article>

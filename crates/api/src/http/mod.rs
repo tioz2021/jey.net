@@ -84,7 +84,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         // Same liveness probe as /health, exposed under the versioned prefix
         // for clients that only talk to /api/v1.
         .route("/health", get(health))
-        // Opt-in public profile; private accounts answer 404 like missing ones.
+        // Opt-in public profiles; private accounts answer 404 like missing ones.
+        .route("/public/users", get(crate::users::public::list))
         .route("/public/users/{id}", get(crate::users::public::profile))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))

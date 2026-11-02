@@ -11,6 +11,7 @@ Next.js собирается в **standalone**-бандл и работает к
 | `PORT` | `jey-web.service` | порт Next (`3000`, слушает только localhost) |
 | `HOSTNAME` | `jey-web.service` | `127.0.0.1` — наружу смотрит Caddy |
 | `NODE_ENV` | `jey-web.service` | `production` |
+| `PUBLIC_URL` | `jey-web.service` | публичный адрес для `metadataBase`, `robots.txt` и `sitemap.xml` |
 
 **Смена адреса API не требует пересборки.** `BACKEND_URL` читается серверными
 компонентами во время запроса, поэтому достаточно поменять строку в юните,

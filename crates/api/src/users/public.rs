@@ -43,6 +43,31 @@ pub struct PublicItemView {
     pub updated_at: DateTime<Utc>,
 }
 
+/// One public profile in the sitemap listing.
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct PublicUserEntry {
+    pub id: Uuid,
+    pub display_name: String,
+}
+
+/// `GET /api/v1/public/users`
+///
+/// Public, opt-in profiles only — enough for a sitemap, nothing private.
+pub async fn list(State(state): State<AppState>) -> Result<Json<Value>, AppError> {
+    let users = sqlx::query_as::<_, PublicUserEntry>(
+        "select id, display_name
+         from users
+         where is_public and deleted_at is null
+         order by created_at desc
+         limit 1000",
+    )
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(Json(json!({ "users": users })))
+}
+
 /// `GET /api/v1/public/users/{id}`
 pub async fn profile(
     State(state): State<AppState>,
