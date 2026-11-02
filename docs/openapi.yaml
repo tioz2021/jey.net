@@ -1,0 +1,938 @@
+openapi: 3.1.0
+info:
+  title: jey.net API
+  version: 0.1.0
+  summary: HTTP API for a personal catalogue of films, books and images.
+  description: |
+    Contract between the web client (and, later, the desktop client) and the
+    Rust backend.
+
+    - JSON everywhere except file upload; field names are `snake_case`.
+    - Timestamps are RFC 3339 in UTC; ids are UUID v4 strings.
+    - Every unsafe method (`POST`, `PUT`, `PATCH`, `DELETE`) requires an
+      `Origin` header that matches `ALLOWED_ORIGINS`, otherwise `403`.
+    - Sessions travel in the `jey_session` cookie (HttpOnly, SameSite=Lax).
+    - The full textual contract is in `docs/protocol.md`; this file is the
+      machine-readable version.
+  license:
+    name: Private project
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: https://129-121-149-16.sslip.io/api/v1
+    description: Production
+  - url: http://localhost:8080/api/v1
+    description: Local development
+tags:
+  - name: System
+    description: Liveness and readiness probes.
+  - name: Auth
+    description: Registration, login and password recovery.
+  - name: Account
+    description: Profile, password, sessions and avatar of the current account.
+  - name: Items
+    description: Records of everything watched, read and saved.
+  - name: Tags
+    description: Free-form labels attached to records.
+  - name: Stats
+    description: Aggregates for the dashboard.
+  - name: Media
+    description: Image uploads and renditions.
+  - name: Transfer
+    description: Export and import of the whole catalogue.
+  - name: Public
+    description: "Opt-in public profiles; no private fields."
+security:
+  - cookieAuth: []
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [System]
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /auth/register:
+    post:
+      operationId: postAuthRegister
+      tags: [Auth]
+      summary: Create an account and start a session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created; `Set-Cookie` carries the session
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/Validation"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auth/login:
+    post:
+      operationId: postAuthLogin
+      tags: [Auth]
+      summary: Start a session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Session started
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auth/logout:
+    post:
+      operationId: postAuthLogout
+      tags: [Auth]
+      summary: End the current session
+      security: []
+      responses:
+        "204":
+          description: Session ended (idempotent)
+  /auth/verify-email:
+    post:
+      operationId: postAuthVerifyEmail
+      tags: [Auth]
+      summary: Confirm an email address with a token from the letter
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string }
+      responses:
+        "204": { description: Address confirmed }
+        "400": { $ref: "#/components/responses/Validation" }
+  /auth/verify-email/resend:
+    post:
+      operationId: postAuthVerifyEmailResend
+      tags: [Auth]
+      summary: Send the verification letter again
+      responses:
+        "204": { description: Letter queued (at most once per ten minutes) }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /auth/password-reset/request:
+    post:
+      operationId: postAuthPasswordResetRequest
+      tags: [Auth]
+      summary: Request a password-reset letter
+      description: Always answers `202`, even for unknown addresses.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "202": { description: Request accepted }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /auth/password-reset/confirm:
+    post:
+      operationId: postAuthPasswordResetConfirm
+      tags: [Auth]
+      summary: Set a new password with a token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, new_password]
+              properties:
+                token: { type: string }
+                new_password: { type: string, minLength: 10, maxLength: 128 }
+      responses:
+        "204":
+          description: "Password changed; all other sessions revoked"
+        "400": { $ref: "#/components/responses/Validation" }
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [Account]
+      summary: Current account
+      responses:
+        "200":
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    patch:
+      operationId: patchMe
+      tags: [Account]
+      summary: Update profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name: { type: string, minLength: 1, maxLength: 60 }
+                locale: { type: string, enum: [ru, en, uk] }
+                is_public: { type: boolean }
+      responses:
+        "200":
+          description: Updated account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    delete:
+      operationId: deleteMe
+      tags: [Account]
+      summary: Delete the account
+      description: |
+        Requires the password. Sessions and devices are removed, the email is
+        anonymised and the public profile disabled. Records are detached from
+        the identity but stay in the database until a future purge task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string }
+      responses:
+        "204": { description: Account deleted }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /me/password:
+    post:
+      operationId: postMePassword
+      tags: [Account]
+      summary: Change the password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password: { type: string }
+                new_password: { type: string, minLength: 10, maxLength: 128 }
+      responses:
+        "204": { description: Password changed; other sessions revoked }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /me/sessions/revoke-all:
+    post:
+      operationId: postMeSessionsRevokeAll
+      tags: [Account]
+      summary: Sign out everywhere
+      responses:
+        "204": { description: All sessions revoked }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /me/avatar:
+    post:
+      operationId: postMeAvatar
+      tags: [Account]
+      summary: Set the avatar from an uploaded image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [upload_id]
+              properties:
+                upload_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Avatar set (128×128 WebP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "415": { $ref: "#/components/responses/UnsupportedMedia" }
+    delete:
+      operationId: deleteMeAvatar
+      tags: [Account]
+      summary: Remove the avatar
+      responses:
+        "200":
+          description: Avatar removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /items:
+    get:
+      operationId: getItems
+      tags: [Items]
+      summary: List records
+      parameters:
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/ItemKind" } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ItemStatus" } }
+        - { name: tag, in: query, schema: { type: string } }
+        - name: q
+          in: query
+          description: "Trigram search over title, subtitle and note"
+          schema: { type: string }
+        - { name: year_from, in: query, schema: { type: integer, minimum: 1800, maximum: 2100 } }
+        - { name: year_to, in: query, schema: { type: integer, minimum: 1800, maximum: 2100 } }
+        - { name: rating_min, in: query, schema: { type: integer, minimum: 1, maximum: 10 } }
+        - { name: rating_max, in: query, schema: { type: integer, minimum: 1, maximum: 10 } }
+        - { name: sort, in: query, schema: { $ref: "#/components/schemas/Sort" } }
+        - { name: include_deleted, in: query, schema: { type: boolean, default: false } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: cursor, in: query, description: Opaque cursor from `next_cursor`, schema: { type: string } }
+      responses:
+        "200":
+          description: A page of records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemList"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+    post:
+      operationId: postItems
+      tags: [Items]
+      summary: Create a record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /items/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      operationId: getItemsId
+      tags: [Items]
+      summary: Read one record
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      operationId: patchItemsId
+      tags: [Items]
+      summary: Partially update a record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemPatch"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+    delete:
+      operationId: deleteItemsId
+      tags: [Items]
+      summary: Move a record to the bin
+      description: Soft delete; the tombstone is kept for synchronisation.
+      responses:
+        "204": { description: Moved to the bin }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /items/{id}/restore:
+    post:
+      operationId: postItemsIdRestore
+      tags: [Items]
+      summary: Restore a record from the bin
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Restored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /items/{id}/cover:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: postItemsIdCover
+      tags: [Items]
+      summary: Attach a cover from an uploaded image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [upload_id]
+              properties:
+                upload_id: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Cover attached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      operationId: deleteItemsIdCover
+      tags: [Items]
+      summary: Remove the cover and its files
+      responses:
+        "200":
+          description: Cover removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /tags:
+    get:
+      operationId: getTags
+      tags: [Tags]
+      summary: Tags with usage counts
+      responses:
+        "200":
+          description: Tags of the account
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tags]
+                properties:
+                  tags:
+                    type: array
+                    items: { $ref: "#/components/schemas/Tag" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /tags/{id}:
+    delete:
+      operationId: deleteTagsId
+      tags: [Tags]
+      summary: Delete a tag
+      description: Removes the tag from the account and detaches it from records.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Deleted }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [Stats]
+      summary: Aggregates for the dashboard
+      responses:
+        "200":
+          description: Counts and averages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /uploads:
+    post:
+      operationId: postUploads
+      tags: [Media]
+      summary: Upload an image
+      description: |
+        `multipart/form-data` with a single `file` field. JPEG, PNG or WebP up
+        to 10 MB; the file is re-encoded into WebP renditions (1200 and 400 px)
+        and counts against the 200 MB per-account quota.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: Upload accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "415": { $ref: "#/components/responses/UnsupportedMedia" }
+
+  /export:
+    get:
+      operationId: getExport
+      tags: [Transfer]
+      summary: Export all records
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [json, csv], default: json } }
+      responses:
+        "200":
+          description: The export file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportFile"
+            text/csv:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /import:
+    post:
+      operationId: postImport
+      tags: [Transfer]
+      summary: Import a JSON export
+      description: Idempotent per record id; runs in one transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportFile"
+      responses:
+        "200":
+          description: Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportReport"
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+
+  /public/users:
+    get:
+      operationId: getPublicUsers
+      tags: [Public]
+      summary: Public profiles (for the sitemap)
+      security: []
+      responses:
+        "200":
+          description: Public, non-deleted accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [users]
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, display_name]
+                      properties:
+                        id: { type: string, format: uuid }
+                        display_name: { type: string }
+  /public/users/{id}:
+    get:
+      operationId: getPublicUsersId
+      tags: [Public]
+      summary: Public profile
+      description: |
+        Only when the owner enabled `is_public`; otherwise `404`, exactly like
+        a missing account. Shows finished (`done`) records only — no notes, no
+        email, no drafts.
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Public profile and finished records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfileResponse"
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jey_session
+
+  parameters: {}
+
+  responses:
+    Validation:
+      description: Request does not satisfy the contract
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: No valid session
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Object does not exist or belongs to another account
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: Duplicate or version conflict
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    PayloadTooLarge:
+      description: Body or file exceeds the limit
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    UnsupportedMedia:
+      description: File type is not supported
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: Too many attempts
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Internal:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Health:
+      type: object
+      required: [status, version]
+      properties:
+        status: { type: string, const: ok }
+        version: { type: string }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code:
+              type: string
+              enum:
+                - validation_error
+                - unauthorized
+                - forbidden
+                - not_found
+                - method_not_allowed
+                - conflict
+                - payload_too_large
+                - unsupported_media_type
+                - rate_limited
+                - internal
+            message: { type: string }
+            details:
+              type: object
+              additionalProperties: true
+            request_id: { type: string, format: uuid }
+    User:
+      type: object
+      required: [id, email, display_name, locale, email_verified, is_public, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        display_name: { type: string }
+        locale: { type: string, enum: [ru, en, uk] }
+        email_verified: { type: boolean }
+        is_public: { type: boolean }
+        avatar_key:
+          type: [string, "null"]
+          description: Media key, or null
+        created_at: { type: string, format: date-time }
+    UserResponse:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+    RegisterRequest:
+      type: object
+      required: [email, password, display_name]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 10, maxLength: 128 }
+        display_name: { type: string, minLength: 1, maxLength: 60 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    ItemKind:
+      type: string
+      enum: [movie, book, image, other]
+    ItemStatus:
+      type: string
+      enum: [planned, in_progress, done, dropped]
+    Sort:
+      type: string
+      enum: [created_desc, created_asc, updated_desc, rating_desc, title_asc, year_desc]
+    Tag:
+      type: object
+      required: [id, name, item_count]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        item_count: { type: integer }
+    ItemInput:
+      type: object
+      required: [kind, title, status]
+      properties:
+        kind: { $ref: "#/components/schemas/ItemKind" }
+        title: { type: string, minLength: 1, maxLength: 300 }
+        subtitle: { type: string, maxLength: 300 }
+        year: { type: integer, minimum: 1800, maximum: 2100 }
+        status: { $ref: "#/components/schemas/ItemStatus" }
+        rating: { type: integer, minimum: 1, maximum: 10 }
+        review: { type: string, maxLength: 20000 }
+        source_url: { type: string, format: uri, maxLength: 2048 }
+        tags:
+          type: array
+          maxItems: 20
+          items: { type: string, minLength: 1, maxLength: 40 }
+    ItemPatch:
+      type: object
+      properties:
+        kind: { $ref: "#/components/schemas/ItemKind" }
+        title: { type: string, minLength: 1, maxLength: 300 }
+        subtitle:
+          type: [string, "null"]
+          maxLength: 300
+        year:
+          type: [integer, "null"]
+          minimum: 1800
+          maximum: 2100
+        status: { $ref: "#/components/schemas/ItemStatus" }
+        rating:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 10
+        review:
+          type: [string, "null"]
+          maxLength: 20000
+        source_url:
+          type: [string, "null"]
+          maxLength: 2048
+        tags:
+          type: [array, "null"]
+          maxItems: 20
+          items: { type: string, minLength: 1, maxLength: 40 }
+    Item:
+      type: object
+      required:
+        - id
+        - kind
+        - title
+        - status
+        - tags
+        - revision
+        - sync_seq
+        - created_at
+        - updated_at
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/ItemKind" }
+        title: { type: string }
+        subtitle: { type: [string, "null"] }
+        year: { type: [integer, "null"] }
+        status: { $ref: "#/components/schemas/ItemStatus" }
+        rating: { type: [integer, "null"] }
+        review: { type: [string, "null"] }
+        source_url: { type: [string, "null"] }
+        cover_key:
+          type: [string, "null"]
+          description: Media key; serve it via `GET /media/{key}`
+        tags:
+          type: array
+          items: { type: string }
+        revision: { type: integer, minimum: 1 }
+        sync_seq: { type: integer, minimum: 0 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        deleted_at: { type: [string, "null"], format: date-time }
+    ItemResponse:
+      type: object
+      required: [item]
+      properties:
+        item: { $ref: "#/components/schemas/Item" }
+    ItemList:
+      type: object
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Item" }
+        next_cursor:
+          type: [string, "null"]
+          description: Pass as `cursor` to get the next page; null means the end
+    Stats:
+      type: object
+      required: [total, by_kind, by_status, average_rating, by_year, by_month]
+      properties:
+        total: { type: integer }
+        by_kind:
+          type: object
+          additionalProperties: { type: integer }
+        by_status:
+          type: object
+          additionalProperties: { type: integer }
+        average_rating: { type: number }
+        by_year:
+          type: array
+          items:
+            type: object
+            required: [year, count]
+            properties:
+              year: { type: integer }
+              count: { type: integer }
+        by_month:
+          type: array
+          description: Last twelve months, including empty ones
+          items:
+            type: object
+            required: [month, count]
+            properties:
+              month: { type: string, example: "2026-11" }
+              count: { type: integer }
+    UploadResponse:
+      type: object
+      required: [upload]
+      properties:
+        upload:
+          type: object
+          required: [id, mime, size_bytes, width, height]
+          properties:
+            id: { type: string, format: uuid }
+            mime: { type: string }
+            size_bytes: { type: integer }
+            width: { type: integer }
+            height: { type: integer }
+    ExportFile:
+      type: object
+      required: [version, exported_at, items]
+      properties:
+        version: { type: integer, const: 1 }
+        exported_at: { type: string, format: date-time }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Item" }
+    ImportReport:
+      type: object
+      required: [created, skipped, failed]
+      properties:
+        created: { type: integer }
+        skipped: { type: integer }
+        failed: { type: integer }
+    PublicProfileResponse:
+      type: object
+      required: [profile, items]
+      properties:
+        profile:
+          type: object
+          required: [id, display_name, locale, created_at]
+          properties:
+            id: { type: string, format: uuid }
+            display_name: { type: string }
+            avatar_key: { type: [string, "null"] }
+            locale: { type: string }
+            created_at: { type: string, format: date-time }
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, kind, title, tags, updated_at]
+            properties:
+              id: { type: string, format: uuid }
+              kind: { $ref: "#/components/schemas/ItemKind" }
+              title: { type: string }
+              subtitle: { type: [string, "null"] }
+              year: { type: [integer, "null"] }
+              rating: { type: [integer, "null"] }
+              cover_key: { type: [string, "null"] }
+              tags:
+                type: array
+                items: { type: string }
+              updated_at: { type: string, format: date-time }

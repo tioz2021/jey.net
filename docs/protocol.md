@@ -93,6 +93,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | GET | `/health` | живость процесса |
 | GET | `/api/v1/health` | то же самое под версионированным префиксом |
 | GET | `/api/v1/public/users/{id}` | публичный профиль: только `done`-записи, без заметок и email; `404`, если профиль закрыт |
+| GET | `/api/v1/public/users` | список публичных профилей (для `sitemap.xml`) |
 | GET | `/health/ready` | готовность: доступна БД |
 
 `GET /health` → `200 {"status":"ok","version":"0.1.0"}`.
@@ -184,7 +185,7 @@ Origin: http://localhost:3000
   "rating": 9,
   "review": "Смотрел второй раз, всё ещё цепляет.",
   "source_url": null,
-  "cover_url": "https://cdn.example.com/u/8a1f0c62/cover.webp",
+  "cover_key": "u/8a1f0c62-…/0b7f…/large.webp",
   "tags": ["sci-fi", "nolan"],
   "revision": 3,
   "sync_seq": 1042,
@@ -209,7 +210,7 @@ Origin: http://localhost:3000
 Правила валидации:
 
 - `title` — 1..300 после trim, обязателен;
-- `kind` — из перечисления, обязателен при создании;
+- `kind` и `status` — из перечислений, обязательны при создании;
 - `year` — 1800..2100, необязателен;
 - `rating` — 1..10, необязателен;
 - `review` — до 20 000 символов;
@@ -228,17 +229,18 @@ Origin: http://localhost:3000
 | Метод | Путь | Описание |
 |---|---|---|
 | POST | `/uploads` | `multipart/form-data`, поле `file`; тип: `image/jpeg`, `image/png`, `image/webp`; до 10 МБ |
-| DELETE | `/uploads/{id}` | удалить файл, если не используется |
 
 Ответ `201`:
 
 ```json
 {
-  "id": "5c2b1f0e-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
-  "url": "https://cdn.example.com/u/5c2b1f0e/preview.webp",
-  "width": 800,
-  "height": 600,
-  "size": 84213
+  "upload": {
+    "id": "5c2b1f0e-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+    "mime": "image/png",
+    "size_bytes": 84213,
+    "width": 800,
+    "height": 600
+  }
 }
 ```
 
@@ -252,7 +254,8 @@ Origin: http://localhost:3000
   "by_kind": { "movie": 80, "book": 30, "image": 10, "other": 3 },
   "by_status": { "planned": 20, "in_progress": 3, "done": 95, "dropped": 5 },
   "average_rating": 7.8,
-  "by_year": [ { "year": 2026, "count": 41 }, { "year": 2025, "count": 33 } ]
+  "by_year": [ { "year": 2026, "count": 41 }, { "year": 2025, "count": 33 } ],
+  "by_month": [ { "month": "2026-11", "count": 12 }, { "month": "2026-10", "count": 8 } ]
 }
 ```
 
@@ -266,7 +269,9 @@ Origin: http://localhost:3000
 
 Ответ импорта: `200 {"created": 40, "skipped": 2, "failed": 0}`.
 
-### 5.8 Устройства
+### 5.8 Устройства (планируется, M8)
+
+Эндпоинты ещё не реализованы; появятся вместе с десктоп-клиентом.
 
 | Метод | Путь | Описание |
 |---|---|---|
@@ -278,7 +283,9 @@ Origin: http://localhost:3000
 { "installation_id": "d3a2…", "name": "Ноутбук", "platform": "linux" }
 ```
 
-### 5.9 Синхронизация
+### 5.9 Синхронизация (планируется, M8)
+
+Ниже — проектный контракт; в текущей версии эндпоинтов `/sync/*` нет.
 
 Полный протокол — в [sync.md](sync.md). Эндпоинты:
 
@@ -346,6 +353,9 @@ Origin: http://localhost:3000
 | 202 | принято в обработку (письмо) |
 | 204 | успех без тела (удаление, выход) |
 | 400 / 401 / 403 / 404 / 405 / 409 / 413 / 415 / 429 / 500 | см. таблицу ошибок |
+
+Машиночитаемая версия контракта: [`openapi.yaml`](openapi.yaml).
+Практическое руководство с примерами: [`api.md`](api.md).
 
 ## 8. Что не входит в v1
 

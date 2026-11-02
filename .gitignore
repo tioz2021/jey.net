@@ -24,8 +24,10 @@ var/
 *.db-wal
 *.sql.gz
 
-# Toolchain installed inside the project
+# Toolchain and package caches installed inside the project
 /.toolchain/
+/.npm-cache/
+**/.npm-cache/
 
 # Editors and OS
 .idea/
