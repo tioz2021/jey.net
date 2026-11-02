@@ -1130,3 +1130,81 @@ async fn create_item_sanitises_control_characters() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn stats_are_empty_for_a_new_account() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let stats = client.get("/api/v1/stats", Some(&cookie)).await;
+    assert_eq!(stats.status, 200, "body: {}", stats.body);
+
+    assert_eq!(stats.body["total"], 0);
+    assert_eq!(stats.body["average_rating"], 0.0);
+    assert_eq!(stats.body["by_year"], json!([]));
+
+    // Every kind and status is present with a zero, never missing or null.
+    for kind in ["movie", "book", "image", "other"] {
+        assert_eq!(stats.body["by_kind"][kind], 0, "kind {kind}");
+    }
+    for status in ["planned", "in_progress", "done", "dropped"] {
+        assert_eq!(stats.body["by_status"][status], 0, "status {status}");
+    }
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn stats_count_only_live_records() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let entries = [
+        ("movie", "Interstellar", "done", Some(8), Some(2014)),
+        ("book", "Dune", "planned", Some(10), Some(1965)),
+        ("image", "Wallpaper", "done", None, None),
+        ("movie", "Tenet", "done", Some(9), Some(2020)),
+    ];
+
+    let mut ids = Vec::new();
+    for (kind, title, status, rating, year) in entries {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({
+                    "kind": kind,
+                    "title": title,
+                    "status": status,
+                    "rating": rating,
+                    "year": year
+                }),
+                &cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201, "body: {}", response.body);
+        ids.push(response.body["item"]["id"].as_str().expect("id").to_owned());
+    }
+
+    // The last movie goes to the bin and must stop counting.
+    client
+        .delete(&format!("/api/v1/items/{}", ids[3]), json!({}), &cookie)
+        .await;
+
+    let stats = client.get("/api/v1/stats", Some(&cookie)).await;
+    assert_eq!(stats.status, 200, "body: {}", stats.body);
+
+    assert_eq!(stats.body["total"], 3);
+    assert_eq!(stats.body["by_kind"]["movie"], 1);
+    assert_eq!(stats.body["by_kind"]["book"], 1);
+    assert_eq!(stats.body["by_kind"]["image"], 1);
+    assert_eq!(stats.body["by_kind"]["other"], 0);
+    assert_eq!(stats.body["by_status"]["done"], 2);
+    assert_eq!(stats.body["by_status"]["planned"], 1);
+    assert_eq!(stats.body["by_status"]["in_progress"], 0);
+    // Average ignores records without a rating: (8 + 10) / 2.
+    assert_eq!(stats.body["average_rating"], 9.0);
+    assert_eq!(
+        stats.body["by_year"],
+        json!([{ "year": 1965, "count": 1 }, { "year": 2014, "count": 1 }])
+    );
+
+    client.cleanup(&email).await;
+}

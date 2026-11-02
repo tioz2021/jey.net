@@ -10,5 +10,6 @@ pub mod error;
 pub mod http;
 pub mod items;
 pub mod mail;
+pub mod stats;
 pub mod telemetry;
 pub mod users;

@@ -34,6 +34,7 @@ use crate::items::list::list_items;
 use crate::items::tags::{delete_tag, list_tags};
 use crate::items::update::update_item;
 use crate::mail::Mailer;
+use crate::stats::stats;
 use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
 
@@ -86,6 +87,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/items/{id}/restore", post(restore_item))
         .route("/tags", get(list_tags))
         .route("/tags/{id}", delete(delete_tag))
+        .route("/stats", get(stats))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public
