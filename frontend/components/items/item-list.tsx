@@ -165,9 +165,11 @@ export function ItemList({
         />
       ) : (
         <>
-          <p aria-live="polite" className={styles.updating} role="status">
-            {showSlowHint ? "Обновляем список…" : "\u00A0"}
-          </p>
+          {showSlowHint ? (
+            <p aria-live="polite" className={styles.updating} role="status">
+              Обновляем список…
+            </p>
+          ) : null}
 
           <ul className={styles.list}>
             {items.map((item) => (

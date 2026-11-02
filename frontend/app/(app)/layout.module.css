@@ -1,11 +1,11 @@
 .shell {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-columns: 200px minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-6);
+  gap: var(--space-4);
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4) var(--space-10);
+  padding: var(--space-4) var(--space-4) var(--space-10);
 }
 
 .content {

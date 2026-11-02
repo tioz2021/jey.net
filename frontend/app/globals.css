@@ -12,6 +12,7 @@
   color-scheme: light dark;
 
   --color-bg: #ffffff;
+  --color-page: #eef1f5;
   --color-surface: #f6f7f9;
   --color-surface-hover: #eceff3;
   --color-text: #14161a;
@@ -91,6 +92,7 @@
 
 :root[data-theme="dark"] {
   --color-bg: #0f1115;
+  --color-page: #0b0d10;
   --color-surface: #171a20;
   --color-surface-hover: #1e222a;
   --color-text: #e8eaed;
@@ -135,7 +137,7 @@ body {
 
 body {
   overflow-wrap: break-word;
-  background: var(--color-bg);
+  background: var(--color-page);
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--text-base);

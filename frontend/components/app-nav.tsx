@@ -45,9 +45,9 @@ export function AppNav() {
 
   return (
     <aside className={styles.nav} aria-label="Типы записей">
-      <p className={styles.groupTitle}>Типы</p>
-
-      {KINDS.map(({ kind, label }) => {
+      <p className={styles.head}>Типы</p>
+      <div className={styles.body}>
+        {KINDS.map(({ kind, label }) => {
         const active =
           onItems && (kind === null ? !activeKind : activeKind === kind);
         const href = kind ? `/items?kind=${kind}` : "/items";
@@ -84,9 +84,10 @@ export function AppNav() {
             }}
           >
             {label}
-          </Link>
-        );
-      })}
+            </Link>
+          );
+        })}
+      </div>
     </aside>
   );
 }

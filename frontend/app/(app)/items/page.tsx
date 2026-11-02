@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { ItemList } from "@/components/items/item-list";
 import { ItemsQueryProvider } from "@/components/items/query-context";
-import { SearchBox } from "@/components/items/search-box";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemList as ItemListResponse } from "@/lib/types";
 
@@ -58,8 +57,7 @@ export default async function ItemsPage({
           boundary here; without the fallback a category switch never collapses
           the list height. */}
       <ItemsQueryProvider initialSearch={search}>
-        <div style={{ display: "grid", gap: "var(--space-5)" }}>
-          <SearchBox />
+        <div style={{ display: "grid", gap: "var(--space-4)" }}>
           <ItemList
             initialCursor={initialCursor}
             initialItems={initialItems}

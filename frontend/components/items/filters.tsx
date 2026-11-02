@@ -8,6 +8,7 @@ import { KIND_LABELS, SORT_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { ItemKind, ItemStatus, Sort, TagCount } from "@/lib/types";
 
 import { useItemsQuery } from "./query-context";
+import { SearchBox } from "./search-box";
 import styles from "./filters.module.css";
 
 const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
@@ -54,8 +55,15 @@ export function ItemsFilters() {
     searchParams.has("sort");
 
   return (
-    <div className={styles.bar}>
-      <div className={styles.row}>
+    <section className={styles.panel} aria-labelledby="filters-title">
+      <h2 className={styles.head} id="filters-title">
+        Фильтры
+      </h2>
+
+      <div className={styles.body}>
+        <SearchBox />
+
+        <div className={styles.row}>
         <Select
           label="Тип"
           value={searchParams.get("kind") ?? ""}
@@ -106,18 +114,19 @@ export function ItemsFilters() {
             </option>
           ))}
         </Select>
-      </div>
+        </div>
 
-      <label className={styles.toggle}>
+        <div className={styles.foot}>
+          <label className={styles.toggle}>
         <input
           type="checkbox"
           checked={searchParams.get("deleted") === "1"}
           onChange={(event) => setParam("deleted", event.target.checked ? "1" : "")}
         />
-        Показать корзину
-      </label>
+            Показать корзину
+          </label>
 
-      <Button
+          <Button
         aria-hidden={!hasFilters}
         disabled={!hasFilters}
         style={{ visibility: hasFilters ? undefined : "hidden" }}
@@ -130,9 +139,11 @@ export function ItemsFilters() {
             }
           })
         }
-      >
-        Сбросить фильтры
-      </Button>
-    </div>
+          >
+            Сбросить фильтры
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }
