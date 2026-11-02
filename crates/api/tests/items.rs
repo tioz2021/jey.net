@@ -1053,3 +1053,53 @@ async fn search_matches_title_subtitle_and_review() {
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
 }
+
+#[tokio::test]
+async fn status_rules_depend_on_kind() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    // Books may be in progress; films may not.
+    let book = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "Dune", "status": "in_progress" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(book.status, 201, "body: {}", book.body);
+    let book_id = book.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let movie = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Interstellar", "status": "in_progress" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(movie.status, 400);
+    assert_eq!(movie.body["error"]["details"]["field"], "status");
+
+    // A legal status change goes through.
+    let finished = client
+        .patch(
+            &format!("/api/v1/items/{book_id}"),
+            json!({ "status": "done" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(finished.status, 200);
+    assert_eq!(finished.body["item"]["status"], "done");
+
+    // Changing the kind together with a status is checked against the new kind.
+    let movie_from_book = client
+        .patch(
+            &format!("/api/v1/items/{book_id}"),
+            json!({ "kind": "movie", "status": "in_progress" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(movie_from_book.status, 400);
+    assert_eq!(movie_from_book.body["error"]["details"]["field"], "status");
+
+    client.cleanup(&email).await;
+}
