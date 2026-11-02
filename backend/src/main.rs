@@ -1,6 +1,7 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
 mod config;
+mod telemetry;
 
 use std::error::Error;
 use std::process::ExitCode;
@@ -9,9 +10,8 @@ use axum::{Json, Router, routing::get};
 use serde::Serialize;
 use tokio::net::TcpListener;
 use tracing::info;
-use tracing_subscriber::EnvFilter;
 
-use crate::config::{Config, LogFormat};
+use crate::config::Config;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -42,7 +42,7 @@ async fn main() -> ExitCode {
         }
     };
 
-    init_tracing(&config);
+    telemetry::init(&config);
 
     info!(
         env = %config.app_env,
@@ -66,26 +66,12 @@ async fn main() -> ExitCode {
 async fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
 
-    axum::serve(listener, app())
+    axum::serve(listener, telemetry::instrument(app()))
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
     info!("shutdown complete");
     Ok(())
-}
-
-fn init_tracing(config: &Config) {
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("jey_api=info,tower_http=info"));
-
-    let builder = tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .with_target(false);
-
-    match config.log_format {
-        LogFormat::Json => builder.json().init(),
-        LogFormat::Pretty => builder.init(),
-    }
 }
 
 async fn shutdown_signal() {
