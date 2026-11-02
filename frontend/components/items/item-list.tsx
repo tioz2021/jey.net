@@ -47,6 +47,8 @@ export function ItemList() {
   // The skeleton is for the very first load only. After that the previous
   // list (even an empty state) stays on screen while filters change.
   const [loadedOnce, setLoadedOnce] = useState(false);
+  // A slow request shows a status line; a fast one changes nothing on screen.
+  const [showSlowHint, setShowSlowHint] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -82,6 +84,17 @@ export function ItemList() {
       cancelled = true;
     };
   }, [filters, reloadToken]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowHint(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setShowSlowHint(true), 250);
+
+    return () => window.clearTimeout(timer);
+  }, [loading]);
 
   async function loadMore() {
     if (!cursor) {
@@ -133,10 +146,10 @@ export function ItemList() {
       ) : (
         <>
           <p aria-live="polite" className={styles.updating} role="status">
-            {loading ? "Обновляем список…" : "\u00A0"}
+            {showSlowHint ? "Обновляем список…" : "\u00A0"}
           </p>
 
-          <ul className={`${styles.list} ${loading ? styles.pending : ""}`}>
+          <ul className={styles.list}>
             {items.map((item) => (
               <li key={item.id}>
                 <ItemCard item={item} query={filters.q} />
