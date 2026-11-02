@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ExportPanel } from "@/components/export-panel";
 import { SettingsForm } from "@/components/forms/settings-form";
 import { Card } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
@@ -33,6 +34,7 @@ export default async function SettingsPage() {
     <main>
       <h1 className={styles.title}>Настройки</h1>
       <SettingsForm initialUser={user} />
+      <ExportPanel />
     </main>
   );
 }
