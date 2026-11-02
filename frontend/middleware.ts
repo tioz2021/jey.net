@@ -12,7 +12,7 @@ import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "jey_session";
 
-const PROTECTED_PREFIXES = ["/items", "/tags", "/stats", "/settings"];
+const PROTECTED_PREFIXES = ["/items", "/tags", "/dashboard", "/settings"];
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -35,5 +35,10 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // `/api` is deliberately absent: the proxy to the Rust server must pass.
-  matcher: ["/items/:path*", "/tags/:path*", "/stats/:path*", "/settings/:path*"],
+  matcher: [
+    "/items/:path*",
+    "/tags/:path*",
+    "/dashboard",
+    "/settings/:path*",
+  ],
 };

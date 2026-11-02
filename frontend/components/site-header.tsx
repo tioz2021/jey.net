@@ -23,6 +23,9 @@ export function SiteHeader() {
         <Link className={styles.navLink} href="/tags">
           Теги
         </Link>
+        <Link className={styles.navLink} href="/dashboard">
+          Статистика
+        </Link>
       </nav>
 
       <div className={styles.right}>

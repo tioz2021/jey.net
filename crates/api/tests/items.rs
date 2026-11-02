@@ -1206,5 +1206,14 @@ async fn stats_count_only_live_records() {
         json!([{ "year": 1965, "count": 1 }, { "year": 2014, "count": 1 }])
     );
 
+    // Twelve months, all present, and the records fall into the current one.
+    let months = stats.body["by_month"].as_array().expect("months array");
+    assert_eq!(months.len(), 12);
+    let total_by_month: i64 = months
+        .iter()
+        .map(|month| month["count"].as_i64().expect("count"))
+        .sum();
+    assert_eq!(total_by_month, 3);
+
     client.cleanup(&email).await;
 }

@@ -92,12 +92,20 @@ export interface YearCount {
   count: number;
 }
 
+export interface MonthCount {
+  /** `YYYY-MM`. */
+  month: string;
+  count: number;
+}
+
 export interface Stats {
   total: number;
   by_kind: Record<ItemKind, number>;
   by_status: Record<ItemStatus, number>;
   average_rating: number;
   by_year: YearCount[];
+  /** The last twelve months, including months without records. */
+  by_month: MonthCount[];
 }
 
 export interface ImportReport {
