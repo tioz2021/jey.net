@@ -102,9 +102,8 @@ export default async function ItemPage({
         }
       />
 
-      <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
-
       <div className={styles.stack}>
+        <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
         <div className={styles.body}>
           <div className={styles.poster}>
             {item.cover_key ? (
