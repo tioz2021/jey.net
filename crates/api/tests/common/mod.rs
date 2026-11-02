@@ -253,6 +253,14 @@ impl TestClient {
             .await;
     }
 
+    /// Moves an item to the bin without going through the API.
+    pub async fn soft_delete_item(&self, id: uuid::Uuid) {
+        let _ = sqlx::query("update items set deleted_at = now() where id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await;
+    }
+
     /// Moves every token of a user into the past, to test expiry.
     pub async fn expire_auth_tokens(&self, id: uuid::Uuid) {
         let _ = sqlx::query(

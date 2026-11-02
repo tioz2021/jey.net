@@ -329,3 +329,54 @@ async fn create_item_reports_validation_errors() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn read_item_endpoint_respects_ownership() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "Dune", "status": "done", "rating": 10 }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(created.status, 201);
+    let item_id = created.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let own = client
+        .get(&format!("/api/v1/items/{item_id}"), Some(&cookie))
+        .await;
+    assert_eq!(own.status, 200, "body: {}", own.body);
+    assert_eq!(own.body["item"]["title"], "Dune");
+
+    // Another account sees nothing.
+    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
+    let foreign = stranger
+        .get(&format!("/api/v1/items/{item_id}"), Some(&stranger_cookie))
+        .await;
+    assert_eq!(foreign.status, 404, "body: {}", foreign.body);
+    assert_eq!(foreign.body["error"]["code"], "not_found");
+
+    // A malformed identifier is a client error.
+    let malformed = client.get("/api/v1/items/not-a-uuid", Some(&cookie)).await;
+    assert_eq!(malformed.status, 400);
+    assert_eq!(malformed.body["error"]["details"]["field"], "id");
+
+    // Deleted records are invisible.
+    client
+        .soft_delete_item(uuid::Uuid::parse_str(&item_id).expect("uuid"))
+        .await;
+
+    let hidden = client
+        .get(&format!("/api/v1/items/{item_id}"), Some(&cookie))
+        .await;
+    assert_eq!(hidden.status, 404);
+
+    // Unauthenticated reads are rejected before the lookup.
+    let anonymous = client.get(&format!("/api/v1/items/{item_id}"), None).await;
+    assert_eq!(anonymous.status, 401);
+
+    client.cleanup(&email).await;
+    stranger.cleanup(&stranger_email).await;
+}
