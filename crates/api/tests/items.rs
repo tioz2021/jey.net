@@ -841,6 +841,105 @@ async fn tags_are_counted_and_deleted_without_touching_items() {
 }
 
 #[tokio::test]
+async fn tags_can_be_renamed_and_merged() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    for (title, tags) in [
+        ("Dune", json!(["dune", "frank-herbert"])),
+        ("Dune Messiah", json!(["dune"])),
+        ("Children of Dune", json!(["frank-herbert"])),
+    ] {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({
+                    "kind": "book",
+                    "title": title,
+                    "status": "done",
+                    "tags": tags
+                }),
+                &cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201, "body: {}", response.body);
+    }
+
+    let tags = client.get("/api/v1/tags", Some(&cookie)).await;
+    let list = tags.body["tags"].as_array().expect("array").clone();
+    let dune = list.iter().find(|tag| tag["name"] == "dune").expect("dune");
+    let herbert = list
+        .iter()
+        .find(|tag| tag["name"] == "frank-herbert")
+        .expect("herbert");
+    let dune_id = dune["id"].as_str().expect("id").to_owned();
+    let herbert_id = herbert["id"].as_str().expect("id").to_owned();
+
+    // Rename keeps both links.
+    let renamed = client
+        .patch(
+            &format!("/api/v1/tags/{dune_id}"),
+            json!({ "name": "dune-saga" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(renamed.status, 200, "body: {}", renamed.body);
+    assert_eq!(renamed.body["tag"]["name"], "dune-saga");
+
+    // A second tag with the same name is a conflict.
+    let duplicate = client
+        .patch(
+            &format!("/api/v1/tags/{herbert_id}"),
+            json!({ "name": "Dune-Saga" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(duplicate.status, 409);
+
+    // Merge moves the links and removes the source tag.
+    let merged = client
+        .post_with_cookie(
+            &format!("/api/v1/tags/{herbert_id}/merge"),
+            json!({ "into_id": dune_id }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(merged.status, 200, "body: {}", merged.body);
+
+    let after = client.get("/api/v1/tags", Some(&cookie)).await;
+    let after_list = after.body["tags"].as_array().expect("array");
+    assert_eq!(after_list.len(), 1);
+    assert_eq!(after_list[0]["name"], "dune-saga");
+    assert_eq!(after_list[0]["item_count"], 3);
+
+    // The records kept both original tags through the rename and merge.
+    let items = client.get("/api/v1/items", Some(&cookie)).await;
+    let first = &items.body["items"][0];
+    let item_tags = first["tags"].as_array().expect("array").clone();
+    assert!(item_tags.iter().any(|tag| tag == "dune-saga"));
+
+    // Merging into itself and into unknown tags is rejected.
+    let same = client
+        .post_with_cookie(
+            &format!("/api/v1/tags/{dune_id}/merge"),
+            json!({ "into_id": dune_id }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(same.status, 400);
+
+    let unknown = client
+        .post_with_cookie(
+            &format!("/api/v1/tags/{dune_id}/merge"),
+            json!({ "into_id": uuid::Uuid::new_v4() }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(unknown.status, 404);
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
 async fn tags_are_private_per_user() {
     let (client, email, cookie) = logged_in_client().await;
     let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;

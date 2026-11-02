@@ -14,7 +14,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{delete, get, post};
+use axum::routing::{delete, get, patch, post};
 use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
@@ -39,7 +39,7 @@ use crate::items::create::create_item;
 use crate::items::delete::{delete_item, restore_item};
 use crate::items::get::get_item;
 use crate::items::list::list_items;
-use crate::items::tags::{delete_tag, list_tags};
+use crate::items::tags::{delete_tag, list_tags, merge_tag, rename_tag};
 use crate::items::update::update_item;
 use crate::mail::Mailer;
 use crate::media::LocalStorage;
@@ -120,7 +120,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/items/{id}/restore", post(restore_item))
         .route("/items/{id}/cover", post(set_cover).delete(clear_cover))
         .route("/tags", get(list_tags))
-        .route("/tags/{id}", delete(delete_tag))
+        .route("/tags/{id}", patch(rename_tag).delete(delete_tag))
+        .route("/tags/{id}/merge", post(merge_tag))
         .route("/stats", get(stats))
         .route("/export", get(export))
         .route(

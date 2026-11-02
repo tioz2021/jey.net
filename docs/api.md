@@ -143,6 +143,8 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | Метод | Путь | Назначение |
 |---|---|---|
 | GET | `/tags` | теги с количеством записей |
+| PATCH | `/tags/{id}` | переименовать тег (`{"name": "..."}`) |
+| POST | `/tags/{id}/merge` | слить в тег `{"into_id": "..."}` |
 | DELETE | `/tags/{id}` | удалить тег |
 | GET | `/stats` | агрегаты для дашборда |
 | GET | `/export?format=json\|csv` | экспорт всех записей |

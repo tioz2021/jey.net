@@ -17,6 +17,7 @@ import type {
   ItemResponse,
   NewItem,
   Stats,
+  TagCount,
   TagsResponse,
   UserResponse,
 } from "./types";
@@ -264,6 +265,18 @@ export const tags = {
   list: () => request<TagsResponse>("/tags"),
 
   remove: (id: string) => request<void>(`/tags/${id}`, { method: "DELETE" }),
+
+  rename: (id: string, name: string) =>
+    request<{ tag: TagCount }>(`/tags/${id}`, {
+      method: "PATCH",
+      body: { name },
+    }),
+
+  merge: (id: string, intoId: string) =>
+    request<{ merged_into: string }>(`/tags/${id}/merge`, {
+      method: "POST",
+      body: { into_id: intoId },
+    }),
 };
 
 export const stats = {

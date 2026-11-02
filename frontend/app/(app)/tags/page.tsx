@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { DeleteTagButton } from "@/components/items/delete-tag-button";
+import { TagActions } from "@/components/items/tag-actions";
 import { EmptyState } from "@/components/empty-state";
 import { Card, PageHeader } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
@@ -64,7 +64,7 @@ export default async function TagsPage() {
                 {tag.item_count}{" "}
                 {plural(tag.item_count, "запись", "записи", "записей")}
               </span>
-              <DeleteTagButton tagId={tag.id} name={tag.name} />
+              <TagActions tag={tag} tags={tags} />
             </li>
           ))}
           </ul>

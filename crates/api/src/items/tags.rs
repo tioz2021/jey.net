@@ -1,9 +1,9 @@
-//! Tags: listing with usage counts and deleting.
+//! Tags: listing with usage counts, renaming, merging and deleting.
 
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -45,6 +45,135 @@ pub async fn delete_tag(
     }
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RenameTag {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MergeTag {
+    pub into_id: Uuid,
+}
+
+/// `PATCH /api/v1/tags/{id}`
+///
+/// Renames a tag in place; the name stays unique per user, case-insensitively.
+pub async fn rename_tag(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(raw_id): Path<String>,
+    Json(body): Json<RenameTag>,
+) -> Result<Json<Value>, AppError> {
+    let id = parse_id(&raw_id)?;
+    let name = body.name.trim();
+
+    if name.is_empty() {
+        return Err(AppError::validation_field("name", "tag must not be empty"));
+    }
+    if name.chars().count() > 40 {
+        return Err(AppError::validation_field(
+            "name",
+            "tag must be at most 40 characters",
+        ));
+    }
+
+    let updated = sqlx::query_as::<_, TagCount>(
+        "update tags set name = $3
+         where id = $1 and user_id = $2
+         returning id, name, 0::bigint as item_count",
+    )
+    .bind(id)
+    .bind(current.user.id)
+    .bind(name)
+    .fetch_optional(&state.pool)
+    .await;
+
+    match updated {
+        Ok(Some(tag)) => Ok(Json(json!({ "tag": tag }))),
+        Ok(None) => Err(AppError::not_found("tag not found")),
+        Err(error) if is_unique_violation(&error) => {
+            Err(AppError::conflict("a tag with this name already exists"))
+        }
+        Err(error) => Err(AppError::internal(error)),
+    }
+}
+
+/// `POST /api/v1/tags/{id}/merge`
+///
+/// Moves every record from one tag to another and removes the source tag.
+pub async fn merge_tag(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(raw_id): Path<String>,
+    Json(body): Json<MergeTag>,
+) -> Result<Json<Value>, AppError> {
+    let source = parse_id(&raw_id)?;
+    if source == body.into_id {
+        return Err(AppError::validation_field(
+            "into_id",
+            "a tag cannot be merged into itself",
+        ));
+    }
+
+    let mut tx = state.pool.begin().await.map_err(AppError::internal)?;
+
+    let target_exists =
+        sqlx::query_scalar::<_, Uuid>("select id from tags where id = $1 and user_id = $2")
+            .bind(body.into_id)
+            .bind(current.user.id)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(AppError::internal)?;
+
+    if target_exists.is_none() {
+        return Err(AppError::not_found("tag not found"));
+    }
+
+    let source_exists =
+        sqlx::query_scalar::<_, Uuid>("select id from tags where id = $1 and user_id = $2")
+            .bind(source)
+            .bind(current.user.id)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(AppError::internal)?;
+
+    if source_exists.is_none() {
+        return Err(AppError::not_found("tag not found"));
+    }
+
+    sqlx::query(
+        "insert into item_tags (item_id, tag_id)
+         select item_id, $2 from item_tags where tag_id = $1
+         on conflict do nothing",
+    )
+    .bind(source)
+    .bind(body.into_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(AppError::internal)?;
+
+    sqlx::query("delete from item_tags where tag_id = $1")
+        .bind(source)
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::internal)?;
+
+    sqlx::query("delete from tags where id = $1 and user_id = $2")
+        .bind(source)
+        .bind(current.user.id)
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::internal)?;
+
+    tx.commit().await.map_err(AppError::internal)?;
+
+    Ok(Json(json!({ "merged_into": body.into_id })))
+}
+
+fn is_unique_violation(error: &sqlx::Error) -> bool {
+    matches!(error, sqlx::Error::Database(db) if db.code().as_deref() == Some("23505"))
 }
 
 async fn count_tags(pool: &PgPool, user_id: Uuid) -> Result<Vec<TagCount>, AppError> {
