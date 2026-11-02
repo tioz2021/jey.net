@@ -19,7 +19,7 @@
 .brand {
   flex: none;
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
 }

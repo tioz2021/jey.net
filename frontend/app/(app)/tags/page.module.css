@@ -39,7 +39,7 @@
 .name {
   flex: 1 1 auto;
   min-width: 8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   overflow-wrap: anywhere;
 }

@@ -6,17 +6,14 @@ export interface DistributionRow {
 }
 
 export function Distribution({
-  title,
   rows,
   total,
 }: {
-  title: string;
   rows: DistributionRow[];
   total: number;
 }) {
   return (
     <section className={styles.section}>
-      <h2 className={styles.title}>{title}</h2>
 
       <ul className={styles.list}>
         {rows.map((row) => {

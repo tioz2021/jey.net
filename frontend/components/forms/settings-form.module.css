@@ -1,8 +1,8 @@
 .sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  max-width: 40rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
 }
 
 .section {

@@ -89,15 +89,11 @@ export default async function DashboardPage() {
       </Card>
 
       <div className={styles.grid}>
-        <Card>
-          <Distribution title="По типам" rows={kindRows} total={stats.total} />
+        <Card title="По типам">
+          <Distribution rows={kindRows} total={stats.total} />
         </Card>
-        <Card>
-          <Distribution
-            title="По статусам"
-            rows={statusRows}
-            total={stats.total}
-          />
+        <Card title="По статусам">
+          <Distribution rows={statusRows} total={stats.total} />
         </Card>
       </div>
     </main>
