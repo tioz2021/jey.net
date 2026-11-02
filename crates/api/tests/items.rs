@@ -752,3 +752,130 @@ async fn delete_and_restore_respect_ownership() {
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
 }
+
+#[tokio::test]
+async fn tags_are_counted_and_deleted_without_touching_items() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    for title in ["Dune", "Dune Messiah"] {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({
+                    "kind": "book",
+                    "title": title,
+                    "status": "done",
+                    "tags": ["dune", "frank-herbert"]
+                }),
+                &cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201);
+    }
+
+    // Reusing a tag must not create a second one.
+    let tags = client.get("/api/v1/tags", Some(&cookie)).await;
+    assert_eq!(tags.status, 200, "body: {}", tags.body);
+    let list = tags.body["tags"].as_array().expect("array");
+    assert_eq!(list.len(), 2, "two distinct tags");
+    let dune = list
+        .iter()
+        .find(|tag| tag["name"] == "dune")
+        .expect("dune tag");
+    assert_eq!(dune["item_count"], 2);
+
+    // Deleting one record lowers the counter but keeps the tag.
+    let items = client.get("/api/v1/items", Some(&cookie)).await;
+    let first_id = items.body["items"][0]["id"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    client
+        .delete(&format!("/api/v1/items/{first_id}"), json!({}), &cookie)
+        .await;
+
+    let after_delete = client.get("/api/v1/tags", Some(&cookie)).await;
+    let dune_after = after_delete.body["tags"]
+        .as_array()
+        .expect("array")
+        .iter()
+        .find(|tag| tag["name"] == "dune")
+        .expect("dune tag");
+    assert_eq!(dune_after["item_count"], 1);
+
+    // Removing the tag detaches it from the record, which stays alive.
+    let tag_id = dune["id"].as_str().expect("tag id").to_owned();
+    let deleted = client
+        .delete(&format!("/api/v1/tags/{tag_id}"), json!({}), &cookie)
+        .await;
+    assert_eq!(deleted.status, 204);
+
+    let remaining = client.get("/api/v1/tags", Some(&cookie)).await;
+    assert_eq!(remaining.body["tags"].as_array().expect("array").len(), 1);
+
+    let items_still_there = client.get("/api/v1/items", Some(&cookie)).await;
+    assert_eq!(
+        items_still_there.body["items"]
+            .as_array()
+            .expect("array")
+            .len(),
+        1
+    );
+
+    // Unknown and foreign tags are 404.
+    let missing = client
+        .delete(
+            &format!("/api/v1/tags/{}", uuid::Uuid::new_v4()),
+            json!({}),
+            &cookie,
+        )
+        .await;
+    assert_eq!(missing.status, 404);
+
+    let malformed = client
+        .delete("/api/v1/tags/not-a-uuid", json!({}), &cookie)
+        .await;
+    assert_eq!(malformed.status, 400);
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn tags_are_private_per_user() {
+    let (client, email, cookie) = logged_in_client().await;
+    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
+
+    client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Interstellar", "status": "done", "tags": ["space"] }),
+            &cookie,
+        )
+        .await;
+
+    let their_tags = stranger.get("/api/v1/tags", Some(&stranger_cookie)).await;
+    assert!(
+        their_tags.body["tags"]
+            .as_array()
+            .expect("array")
+            .is_empty(),
+        "tags of another account are invisible"
+    );
+
+    let tag_id = client.get("/api/v1/tags", Some(&cookie)).await.body["tags"][0]["id"]
+        .as_str()
+        .expect("tag id")
+        .to_owned();
+
+    let foreign_delete = stranger
+        .delete(
+            &format!("/api/v1/tags/{tag_id}"),
+            json!({}),
+            &stranger_cookie,
+        )
+        .await;
+    assert_eq!(foreign_delete.status, 404);
+
+    client.cleanup(&email).await;
+    stranger.cleanup(&stranger_email).await;
+}
