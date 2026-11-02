@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { DeleteTagButton } from "@/components/items/delete-tag-button";
 import { EmptyState } from "@/components/empty-state";
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
 import type { TagsResponse } from "@/lib/types";
 
@@ -33,14 +33,14 @@ export default async function TagsPage() {
 
   return (
     <main>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Теги</h1>
-        <p className={styles.subtitle}>
-          {tags.length === 0
+      <PageHeader
+        subtitle={
+          tags.length === 0
             ? "Теги появятся, когда вы добавите их к записям"
-            : `Всего тегов: ${tags.length}`}
-        </p>
-      </header>
+            : `Всего тегов: ${tags.length}`
+        }
+        title="Теги"
+      />
 
       {tags.length === 0 ? (
         <EmptyState
@@ -50,7 +50,8 @@ export default async function TagsPage() {
           actionLabel="Добавить запись"
         />
       ) : (
-        <ul className={styles.list}>
+        <Card>
+          <ul className={styles.list}>
           {tags.map((tag) => (
             <li key={tag.id} className={styles.row}>
               <Link
@@ -66,7 +67,8 @@ export default async function TagsPage() {
               <DeleteTagButton tagId={tag.id} name={tag.name} />
             </li>
           ))}
-        </ul>
+          </ul>
+        </Card>
       )}
     </main>
   );

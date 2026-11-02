@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ItemForm } from "@/components/forms/item-form";
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemResponse } from "@/lib/types";
 
@@ -45,8 +45,10 @@ export default async function EditItemPage({
       <p className={styles.back}>
         <Link href={`/items/${item.id}`}>← К записи</Link>
       </p>
-      <h1 className={styles.title}>Редактирование</h1>
-      <ItemForm initial={item} itemId={item.id} />
+      <PageHeader title="Редактирование" />
+      <Card>
+        <ItemForm initial={item} itemId={item.id} />
+      </Card>
     </main>
   );
 }

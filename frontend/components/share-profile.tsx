@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { useToast } from "@/components/toasts";
-import { Button } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { useUser } from "@/lib/user-context";
 
 import styles from "./share-profile.module.css";
@@ -50,10 +50,7 @@ export function ShareProfile() {
   }
 
   return (
-    <section className={styles.panel} aria-labelledby="share-heading">
-      <h2 className={styles.title} id="share-heading">
-        Публичный профиль
-      </h2>
+    <Card title="Публичный профиль">
 
       {user.is_public ? (
         <>
@@ -81,6 +78,6 @@ export function ShareProfile() {
           Включите «Публичный профиль» выше и сохраните.
         </p>
       )}
-    </section>
+    </Card>
   );
 }

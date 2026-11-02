@@ -4,11 +4,9 @@ import Link from "next/link";
 import { ExportPanel } from "@/components/export-panel";
 import { ShareProfile } from "@/components/share-profile";
 import { SettingsForm } from "@/components/forms/settings-form";
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
 import type { UserResponse } from "@/lib/types";
-
-import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "Настройки — jey.net",
@@ -33,7 +31,7 @@ export default async function SettingsPage() {
 
   return (
     <main>
-      <h1 className={styles.title}>Настройки</h1>
+      <PageHeader title="Настройки" />
       <SettingsForm initialUser={user} />
       <ShareProfile />
       <ExportPanel />

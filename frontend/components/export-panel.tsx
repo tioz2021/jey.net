@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { useToast } from "@/components/toasts";
-import { Button } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 
 import styles from "./export-panel.module.css";
 
@@ -78,10 +78,7 @@ export function ExportPanel() {
   }
 
   return (
-    <section className={styles.panel} aria-labelledby="export-heading">
-      <h2 className={styles.title} id="export-heading">
-        Экспорт данных
-      </h2>
+    <Card title="Экспорт данных">
       <p className={styles.text}>
         Скачайте все записи одним файлом. Экспорт ничего не удаляет и не меняет
         аккаунт.
@@ -102,6 +99,6 @@ export function ExportPanel() {
           </div>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }

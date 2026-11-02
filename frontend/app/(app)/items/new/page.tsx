@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ItemForm } from "@/components/forms/item-form";
+import { Card, PageHeader } from "@/components/ui";
 
 import styles from "./page.module.css";
 
@@ -15,8 +16,10 @@ export default function NewItemPage() {
       <p className={styles.back}>
         <Link href="/items">← К записям</Link>
       </p>
-      <h1 className={styles.title}>Новая запись</h1>
-      <ItemForm />
+      <PageHeader title="Новая запись" />
+      <Card>
+        <ItemForm />
+      </Card>
     </main>
   );
 }

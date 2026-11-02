@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
-import { Badge, Card } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemResponse } from "@/lib/types";
@@ -31,8 +31,6 @@ export default async function ItemPage({
   const { id } = await params;
   const response = await backendFetch(`/items/${encodeURIComponent(id)}`);
 
-  // 400 means a malformed id, 404 means "no such item or not yours" — both
-  // are a missing page for the visitor.
   if (response.status === 400 || response.status === 404) {
     notFound();
   }
@@ -60,20 +58,18 @@ export default async function ItemPage({
         <Link href="/items">← К записям</Link>
       </p>
 
-      <article className={styles.article}>
-        <header className={styles.header}>
-          <div className={styles.heading}>
-            <h1 className={styles.title}>
-              {item.title}
-              {item.year ? <span className={styles.year}> ({item.year})</span> : null}
-            </h1>
-            {item.subtitle ? (
-              <p className={styles.subtitle}>{item.subtitle}</p>
-            ) : null}
-          </div>
-          <ItemActions itemId={item.id} title={item.title} />
-        </header>
+      <PageHeader
+        action={<ItemActions itemId={item.id} title={item.title} />}
+        subtitle={item.subtitle ?? undefined}
+        title={
+          <>
+            {item.title}
+            {item.year ? <span className={styles.year}> ({item.year})</span> : null}
+          </>
+        }
+      />
 
+      <div className={styles.stack}>
         <div className={styles.body}>
           <div className={styles.poster}>
             {item.cover_key ? (
@@ -88,93 +84,94 @@ export default async function ItemPage({
             )}
           </div>
 
-          <dl className={styles.meta}>
-            <div className={styles.metaRow}>
-              <dt>Тип</dt>
-              <dd>
-                <Badge>{KIND_LABELS[item.kind]}</Badge>
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Статус</dt>
-              <dd>
-                <Badge tone={STATUS_TONES[item.status]}>
-                  {STATUS_LABELS[item.status]}
-                </Badge>
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Оценка</dt>
-              <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Год</dt>
-              <dd>{item.year ?? "—"}</dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Ссылка</dt>
-              <dd>
-                {item.source_url ? (
-                  <a
-                    href={item.source_url}
-                    rel="noreferrer noopener"
-                    target="_blank"
-                  >
-                    {item.source_url}
-                  </a>
-                ) : (
-                  "—"
-                )}
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Теги</dt>
-              <dd>
-                {item.tags.length > 0 ? (
-                  <ul className={styles.tags}>
-                    {item.tags.map((tag) => (
-                      <li key={tag}>
-                        <Badge>{tag}</Badge>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  "—"
-                )}
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Добавлено</dt>
-              <dd>{formatDate(item.created_at)}</dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>Изменено</dt>
-              <dd>{formatDate(item.updated_at)}</dd>
-            </div>
-
-            {item.deleted_at ? (
+          <Card title="Свойства">
+            <dl className={styles.meta}>
               <div className={styles.metaRow}>
-                <dt>В корзине</dt>
-                <dd>{formatDate(item.deleted_at)}</dd>
+                <dt>Тип</dt>
+                <dd>
+                  <Badge>{KIND_LABELS[item.kind]}</Badge>
+                </dd>
               </div>
-            ) : null}
-          </dl>
+
+              <div className={styles.metaRow}>
+                <dt>Статус</dt>
+                <dd>
+                  <Badge tone={STATUS_TONES[item.status]}>
+                    {STATUS_LABELS[item.status]}
+                  </Badge>
+                </dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Оценка</dt>
+                <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Год</dt>
+                <dd>{item.year ?? "—"}</dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Ссылка</dt>
+                <dd>
+                  {item.source_url ? (
+                    <a
+                      href={item.source_url}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      {item.source_url}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Теги</dt>
+                <dd>
+                  {item.tags.length > 0 ? (
+                    <ul className={styles.tags}>
+                      {item.tags.map((tag) => (
+                        <li key={tag}>
+                          <Badge>{tag}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Добавлено</dt>
+                <dd>{formatDate(item.created_at)}</dd>
+              </div>
+
+              <div className={styles.metaRow}>
+                <dt>Изменено</dt>
+                <dd>{formatDate(item.updated_at)}</dd>
+              </div>
+
+              {item.deleted_at ? (
+                <div className={styles.metaRow}>
+                  <dt>В корзине</dt>
+                  <dd>{formatDate(item.deleted_at)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </Card>
         </div>
 
         {item.review ? (
-          <section className={styles.reviewBlock}>
-            <h2 className={styles.sectionTitle}>Заметка</h2>
+          <Card title="Заметка">
             <p className={styles.review}>{item.review}</p>
-          </section>
+          </Card>
         ) : null}
-      </article>
+      </div>
     </main>
   );
 }

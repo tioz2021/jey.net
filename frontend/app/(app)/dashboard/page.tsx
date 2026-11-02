@@ -5,7 +5,7 @@ import { Distribution } from "@/components/stats/distribution";
 import { MonthChart } from "@/components/stats/month-chart";
 import { StatCard } from "@/components/stats/stat-card";
 import { EmptyState } from "@/components/empty-state";
-import { Card } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemKind, ItemStatus, Stats } from "@/lib/types";
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
   if (stats.total === 0) {
     return (
       <main>
-        <h1 className={styles.title}>Статистика</h1>
+        <PageHeader title="Статистика" />
         <div className={styles.cards}>
           <StatCard label="Всего записей" value="0" />
           <StatCard label="Средняя оценка" value="—" />
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <h1 className={styles.title}>Статистика</h1>
+      <PageHeader title="Статистика" />
 
       <section className={styles.cards} aria-label="Итоги">
         <StatCard label="Всего записей" value={String(stats.total)} />

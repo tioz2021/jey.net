@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { CoverPicker } from "@/components/items/cover-picker";
-import { Button, Dialog, Input, Select } from "@/components/ui";
+import { Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
 import { useToast } from "@/components/toasts";
@@ -160,8 +160,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
 
   return (
     <div className={styles.sections}>
-      <section className={styles.section}>
-        <h2 className={styles.title}>Аватар</h2>
+      <Card title="Аватар">
         <CoverPicker
           label="Фотография профиля"
           currentUrl={
@@ -178,10 +177,9 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             router.refresh();
           }}
         />
-      </section>
+      </Card>
 
-      <section className={styles.section}>
-        <h2 className={styles.title}>Профиль</h2>
+      <Card title="Профиль">
         <form className={styles.form} onSubmit={saveProfile} noValidate>
           <Input
             label="Имя"
@@ -228,10 +226,9 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             </Button>
           </div>
         </form>
-      </section>
+      </Card>
 
-      <section className={styles.section}>
-        <h2 className={styles.title}>Пароль</h2>
+      <Card title="Пароль">
         <form className={styles.form} onSubmit={savePassword} noValidate>
           <Input
             label="Текущий пароль"
@@ -279,10 +276,9 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             </Button>
           </div>
         </form>
-      </section>
+      </Card>
 
-      <section className={styles.section}>
-        <h2 className={styles.title}>Сессии и аккаунт</h2>
+      <Card title="Сессии и аккаунт">
         <p className={styles.muted}>
           «Выйти на всех устройствах» завершит все сессии, включая текущую.
         </p>
@@ -356,7 +352,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             ) : null}
           </div>
         </Dialog>
-      </section>
+      </Card>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Badge } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import { KIND_LABELS } from "@/lib/labels";
 import { getPublicProfile } from "@/lib/public-profile";
 
@@ -64,7 +64,8 @@ export default async function PublicProfilePage({
 
   return (
     <article>
-      <header className={styles.header}>
+      <Card>
+        <div className={styles.header}>
         {profile.avatar_key ? (
           // eslint-disable-next-line @next/next/no-img-element -- uploaded avatar
           <img
@@ -90,7 +91,8 @@ export default async function PublicProfilePage({
             на сайте с {dateFormat.format(new Date(profile.created_at))}
           </p>
         </div>
-      </header>
+        </div>
+      </Card>
 
       {items.length > 0 ? (
         <ul className={styles.grid}>
