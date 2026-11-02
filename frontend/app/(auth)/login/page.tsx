@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { LoginForm } from "@/components/forms/login-form";
+import { RedirectIfAuthenticated } from "@/components/redirect-if-authenticated";
 import { Card } from "@/components/ui";
 
 import styles from "./page.module.css";
@@ -20,6 +21,7 @@ export default function LoginPage() {
       <Card title="Вход">
         {/* useSearchParams needs a Suspense boundary during prerendering. */}
         <Suspense fallback={null}>
+          <RedirectIfAuthenticated />
           <LoginForm />
         </Suspense>
       </Card>
