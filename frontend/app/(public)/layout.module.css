@@ -1,0 +1,25 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.brand {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.login {
+  font-size: var(--text-sm);
+}
+
+.main {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-10);
+}

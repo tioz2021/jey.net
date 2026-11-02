@@ -115,6 +115,31 @@ export interface ImportReport {
   total: number;
 }
 
+export interface PublicProfile {
+  id: string;
+  display_name: string;
+  avatar_key: string | null;
+  locale: string;
+  created_at: string;
+}
+
+export interface PublicItem {
+  id: string;
+  kind: ItemKind;
+  title: string;
+  subtitle: string | null;
+  year: number | null;
+  rating: number | null;
+  cover_key: string | null;
+  tags: string[];
+  updated_at: string;
+}
+
+export interface PublicProfileResponse {
+  profile: PublicProfile;
+  items: PublicItem[];
+}
+
 export interface UserResponse {
   user: User;
 }

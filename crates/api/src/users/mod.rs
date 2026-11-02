@@ -3,4 +3,5 @@
 pub mod avatar;
 pub mod delete;
 pub mod profile;
+pub mod public;
 pub mod user;
