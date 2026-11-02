@@ -18,8 +18,7 @@ pub struct CurrentUser {
     pub user: UserView,
     /// Used by logout and password change; also by the sync endpoints (M8).
     pub session_id: Uuid,
-    /// Used by the sync endpoints (M8); kept here so the request carries it.
-    #[allow(dead_code)]
+    /// Used when writing records and by the sync endpoints (M8).
     pub device_id: Option<Uuid>,
 }
 

@@ -3,7 +3,7 @@
 
 mod common;
 
-use common::{create_test_user, pool, purge_test_user};
+use common::{TestClient, create_test_user, pool, purge_test_user, unique_email};
 use jey_api::items::repo;
 use jey_core::items::{ItemKind, ItemPatch, ItemStatus, NewItem};
 use serde_json::json;
@@ -212,4 +212,120 @@ fn json_shape_uses_snake_case() {
     let value = json!(item);
     assert_eq!(value["kind"], "movie");
     assert_eq!(value["status"], "in_progress");
+}
+
+const PASSWORD: &str = "correct horse battery";
+
+async fn logged_in_client() -> (TestClient, String, String) {
+    let client = TestClient::new().await;
+    let email = unique_email();
+    let registered = client
+        .post(
+            "/api/v1/auth/register",
+            json!({ "email": email, "password": PASSWORD, "display_name": "Collector" }),
+        )
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+
+    (client, email, cookie)
+}
+
+#[tokio::test]
+async fn create_item_endpoint_stores_and_normalises() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let anonymous = client
+        .post(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Interstellar", "status": "done" }),
+        )
+        .await;
+    assert_eq!(anonymous.status, 401, "creation requires a session");
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "  Interstellar  ",
+                "subtitle": " Christopher Nolan ",
+                "year": 2014,
+                "status": "done",
+                "rating": 9,
+                "tags": ["Sci-Fi", "sci-fi", " nolan ", ""]
+            }),
+            &cookie,
+        )
+        .await;
+
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    assert_eq!(created.body["item"]["title"], "Interstellar");
+    assert_eq!(created.body["item"]["subtitle"], "Christopher Nolan");
+    assert_eq!(created.body["item"]["rating"], 9);
+    assert_eq!(created.body["item"]["revision"], 1);
+    assert_eq!(created.body["item"]["sync_seq"], 0);
+    assert_eq!(created.body["item"]["tags"], json!(["nolan", "Sci-Fi"]));
+    assert!(
+        created.body["item"]["created_at"]
+            .as_str()
+            .expect("timestamp string")
+            .contains('T'),
+        "timestamps are RFC 3339"
+    );
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn create_item_reports_validation_errors() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let cases = [
+        (
+            json!({ "kind": "movie", "title": "   ", "status": "done" }),
+            "title",
+        ),
+        (
+            json!({ "kind": "movie", "title": "X", "status": "done", "rating": 0 }),
+            "rating",
+        ),
+        (
+            json!({ "kind": "movie", "title": "X", "status": "done", "year": 1500 }),
+            "year",
+        ),
+        (
+            json!({
+                "kind": "movie",
+                "title": "X",
+                "status": "done",
+                "tags": (0..21).map(|index| format!("tag-{index}")).collect::<Vec<_>>()
+            }),
+            "tags",
+        ),
+    ];
+
+    for (body, field) in cases {
+        let response = client
+            .post_with_cookie("/api/v1/items", body.clone(), &cookie)
+            .await;
+
+        assert_eq!(response.status, 400, "body: {body}");
+        assert_eq!(
+            response.body["error"]["details"]["field"], field,
+            "body: {body}"
+        );
+    }
+
+    // Movies cannot be "in progress".
+    let wrong_status = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "X", "status": "in_progress" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(wrong_status.status, 400);
+    assert_eq!(wrong_status.body["error"]["details"]["field"], "status");
+
+    client.cleanup(&email).await;
 }
