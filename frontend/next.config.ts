@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
-// In development the browser talks to Next only: everything under /api is
-// proxied to the Rust server, so cookies stay first-party and no CORS setup
-// is needed.
+// The browser talks to Next only: API, health and media requests are proxied
+// to the Rust server, so cookies stay first-party and no CORS setup is needed.
 const backendUrl = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 
 const nextConfig: NextConfig = {
@@ -20,6 +19,11 @@ const nextConfig: NextConfig = {
       {
         source: "/health/ready",
         destination: `${backendUrl}/health/ready`,
+      },
+      // Covers and avatars are served by the API as well.
+      {
+        source: "/media/:path*",
+        destination: `${backendUrl}/media/:path*`,
       },
     ];
   },
