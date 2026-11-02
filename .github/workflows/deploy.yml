@@ -46,6 +46,7 @@ jobs:
           npm ci
           npm run build
           cp -R .next/static .next/standalone/.next/static
+          cp -R public .next/standalone/public
           tar -C .next/standalone -czf ../jey-web.tar.gz .
 
       - name: Set up SSH
