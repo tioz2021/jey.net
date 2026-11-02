@@ -4,6 +4,10 @@
 }
 
 .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   padding: 7px var(--space-3);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -14,6 +18,11 @@
   margin: 0;
   font-size: var(--text-sm);
   font-weight: 600;
+}
+
+.action {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .body {
