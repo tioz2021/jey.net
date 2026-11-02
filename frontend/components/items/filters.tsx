@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { KIND_LABELS, SORT_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { ItemKind, ItemStatus, Sort, TagCount } from "@/lib/types";
 
+import { ActiveFilters } from "./active-filters";
 import { useItemsQuery } from "./query-context";
 import { SearchBox } from "./search-box";
 import styles from "./filters.module.css";
@@ -49,10 +50,12 @@ export function ItemsFilters() {
   }
 
   const hasFilters =
+    searchParams.has("q") ||
     searchParams.has("kind") ||
     searchParams.has("status") ||
     searchParams.has("tag") ||
-    searchParams.has("sort");
+    searchParams.has("sort") ||
+    searchParams.has("deleted");
 
   return (
     <section className={styles.panel} aria-labelledby="filters-title">
@@ -62,6 +65,8 @@ export function ItemsFilters() {
 
       <div className={styles.body}>
         <SearchBox />
+
+        <ActiveFilters />
 
         <div className={styles.row}>
         <Select
