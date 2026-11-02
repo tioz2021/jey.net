@@ -1,47 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import styles from "./app-nav.module.css";
 
-const MAIN = [
-  { href: "/items", label: "Записи" },
-  { href: "/tags", label: "Теги" },
-  { href: "/dashboard", label: "Статистика" },
-];
-
-const ACCOUNT = [{ href: "/settings", label: "Настройки" }];
+const KINDS = [
+  { kind: null, label: "Все записи" },
+  { kind: "movie", label: "Фильмы" },
+  { kind: "book", label: "Книги" },
+  { kind: "image", label: "Картинки" },
+  { kind: "other", label: "Другое" },
+] as const;
 
 export function AppNav() {
   const pathname = usePathname();
-
-  const link = (href: string, label: string) => {
-    const active = pathname === href || pathname.startsWith(`${href}/`);
-
-    return (
-      <Link
-        aria-current={active ? "page" : undefined}
-        className={`${styles.link} ${active ? styles.active : ""}`}
-        href={href}
-        key={href}
-      >
-        {label}
-      </Link>
-    );
-  };
+  const params = useSearchParams();
+  const activeKind = params.get("kind");
+  const onItems = pathname === "/items";
 
   return (
-    <aside className={styles.nav} aria-label="Навигация по разделам">
-      <p className={styles.groupTitle}>Каталог</p>
-      {MAIN.map((item) => link(item.href, item.label))}
+    <aside className={styles.nav} aria-label="Типы записей">
+      <p className={styles.groupTitle}>Типы</p>
 
-      <Link className={styles.add} href="/items/new">
-        Добавить запись
-      </Link>
+      {KINDS.map(({ kind, label }) => {
+        const active = onItems && (kind === null ? !activeKind : activeKind === kind);
 
-      <p className={styles.groupTitle}>Аккаунт</p>
-      {ACCOUNT.map((item) => link(item.href, item.label))}
+        return (
+          <Link
+            aria-current={active ? "page" : undefined}
+            className={`${styles.link} ${active ? styles.active : ""}`}
+            href={kind ? `/items?kind=${kind}` : "/items"}
+            key={label}
+          >
+            {label}
+          </Link>
+        );
+      })}
     </aside>
   );
 }

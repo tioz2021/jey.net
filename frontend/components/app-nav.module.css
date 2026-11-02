@@ -39,22 +39,6 @@
   border-left-color: var(--color-accent);
 }
 
-.add {
-  display: block;
-  margin: var(--space-3) 0 var(--space-2);
-  padding: 6px var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-on-accent);
-  text-align: center;
-  text-decoration: none;
-  background: var(--color-accent);
-}
-
-.add:hover {
-  background: var(--color-accent-hover);
-}
-
 /* On narrow screens the sidebar becomes a compact horizontal section bar. */
 @media (width <= 900px) {
   .nav {
@@ -82,12 +66,5 @@
   .active {
     background: none;
     border-bottom-color: var(--color-accent);
-  }
-
-  .add {
-    flex: none;
-    margin: 0 0 0 auto;
-    padding: 5px var(--space-3);
-    white-space: nowrap;
   }
 }
