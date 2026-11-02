@@ -14,6 +14,7 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::auth::login::login;
+use crate::auth::logout::logout;
 use crate::auth::middleware::{CurrentUser, require_auth};
 use crate::auth::register::register;
 use crate::config::Config;
@@ -50,7 +51,8 @@ pub fn router(state: AppState) -> Router {
 fn api_v1(state: AppState) -> Router<AppState> {
     let public = Router::new()
         .route("/auth/register", post(register))
-        .route("/auth/login", post(login));
+        .route("/auth/login", post(login))
+        .route("/auth/logout", post(logout));
 
     let protected = Router::new()
         .route("/me", get(me))

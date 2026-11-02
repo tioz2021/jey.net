@@ -78,6 +78,23 @@ pub async fn authenticate(
     })
 }
 
+/// Deletes the session the cookie points at; idempotent by design.
+///
+/// Returns `true` when a session was actually removed.
+pub async fn revoke_by_cookie(pool: &PgPool, headers: &HeaderMap) -> Result<bool, AppError> {
+    let Some(token) = cookie_value(headers, SESSION_COOKIE) else {
+        return Ok(false);
+    };
+
+    let result = sqlx::query("delete from sessions where token_hash = $1")
+        .bind(hash_token(token))
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    Ok(result.rows_affected() > 0)
+}
+
 fn unauthorized() -> AppError {
     AppError::unauthorized("authentication required")
 }
@@ -147,6 +164,13 @@ struct SessionRow {
     device_id: Option<Uuid>,
 }
 
+/// `Set-Cookie` value that makes the browser drop the session cookie.
+pub fn cleared_session_cookie(secure: bool) -> String {
+    let secure = if secure { "; Secure" } else { "" };
+
+    format!("{SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0{secure}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -202,6 +226,16 @@ mod tests {
         let headers = headers_with_cookie("jey_session");
 
         assert_eq!(cookie_value(&headers, SESSION_COOKIE), None);
+    }
+
+    #[test]
+    fn cleared_cookie_expires_immediately() {
+        let cookie = cleared_session_cookie(true);
+
+        assert!(cookie.starts_with("jey_session=;"));
+        assert!(cookie.contains("Max-Age=0"));
+        assert!(cookie.contains("HttpOnly"));
+        assert!(cookie.ends_with("; Secure"));
     }
 
     #[test]
