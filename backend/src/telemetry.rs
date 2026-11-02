@@ -21,6 +21,17 @@ pub const REQUEST_ID_HEADER: &str = "x-request-id";
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RequestId(pub String);
 
+tokio::task_local! {
+    static CURRENT_REQUEST_ID: String;
+}
+
+/// Request id of the request currently being handled, if any.
+///
+/// Used by error responses so the body carries the same id as the header.
+pub fn current_request_id() -> Option<String> {
+    CURRENT_REQUEST_ID.try_with(Clone::clone).ok()
+}
+
 /// Initialises the global tracing subscriber according to the configuration.
 pub fn init(config: &Config) {
     let filter = EnvFilter::try_from_default_env()
@@ -62,7 +73,9 @@ async fn attach_request_id(mut request: Request, next: Next) -> Response {
         .extensions_mut()
         .insert(RequestId(request_id.clone()));
 
-    let mut response = next.run(request).await;
+    let mut response = CURRENT_REQUEST_ID
+        .scope(request_id.clone(), next.run(request))
+        .await;
 
     if let Ok(value) = HeaderValue::from_str(&request_id) {
         response.headers_mut().insert(header_name(), value);

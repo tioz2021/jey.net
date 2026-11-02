@@ -47,7 +47,7 @@
 | **M5 · Деплой** | T69–T79 | VPS, Postgres, Caddy, TLS, бэкапы, мониторинг, регламент миграций |
 | **M6 · Полировка** | T80–T89 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 
-**Текущий статус:** T01–T04 приняты. Следующая — T05.
+**Текущий статус:** T01–T05 приняты. Следующая — T06.
 
 ---
 
@@ -77,7 +77,7 @@
   **Проверить:** запрос к `/health` даёт строку лога с `request_id`, `method`, `status`, `latency_ms`; ответ содержит `x-request-id`; переданный клиентом id сохраняется.
   **Коммит:** `feat(api): add structured logging with request ids`
 
-- [ ] **T05 · Единый формат ошибок**
+- [x] **T05 · Единый формат ошибок**
   **Файлы:** `backend/src/error.rs`, `backend/src/main.rs`
   **Сделать:** `AppError` с вариантами `Validation`, `Unauthorized`, `Forbidden`, `NotFound`, `Conflict`, `RateLimited`, `Internal`; реализация `IntoResponse` по контракту из `docs/protocol.md`; JSON для 404 и 405 вместо пустого тела.
   **Проверить:** неизвестный путь → `404` с `error.code = "not_found"` и `request_id`; неверный метод → `405`; внутренняя ошибка не раскрывает детали, но пишется в лог.

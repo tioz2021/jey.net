@@ -1,6 +1,7 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
 mod config;
+mod error;
 mod telemetry;
 
 use std::error::Error;
@@ -12,6 +13,7 @@ use tokio::net::TcpListener;
 use tracing::info;
 
 use crate::config::Config;
+use crate::error::AppError;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -28,8 +30,19 @@ async fn health() -> Json<Health> {
     })
 }
 
+async fn fallback() -> AppError {
+    AppError::not_found("route not found")
+}
+
+async fn method_not_allowed() -> AppError {
+    AppError::method_not_allowed("method is not allowed for this route")
+}
+
 fn app() -> Router {
-    Router::new().route("/health", get(health))
+    Router::new()
+        .route("/health", get(health))
+        .fallback(fallback)
+        .method_not_allowed_fallback(method_not_allowed)
 }
 
 #[tokio::main]
