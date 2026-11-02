@@ -160,11 +160,9 @@ function validate(values: Values): { errors: Errors; item?: NewItem } {
 export function ItemForm({
   initial,
   itemId,
-  onSaved,
 }: {
   initial?: Item;
   itemId?: string;
-  onSaved?: (id: string) => void;
 }) {
   const router = useRouter();
   const { notifyError } = useToast();
@@ -216,11 +214,7 @@ export function ItemForm({
         await api.items.clearCover(itemId);
       }
 
-      if (onSaved) {
-        onSaved(savedId);
-      } else {
-        router.push(`/items/${savedId}`);
-      }
+      router.push(`/items/${savedId}`);
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError) {

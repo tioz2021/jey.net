@@ -1,5 +1,7 @@
 .button {
   display: inline-flex;
+  color: var(--color-on-accent);
+  text-decoration: none;
   flex: none;
   align-items: center;
   justify-content: center;
