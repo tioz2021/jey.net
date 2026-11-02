@@ -1,0 +1,119 @@
+/**
+ * Wire types, mirroring `docs/protocol.md` and the server's views.
+ *
+ * These are the only place where the JSON shape is described; pages and
+ * components work with these types and never touch raw responses.
+ */
+
+export type ItemKind = "movie" | "book" | "image" | "other";
+
+export type ItemStatus = "planned" | "in_progress" | "done" | "dropped";
+
+export type Sort =
+  | "created_desc"
+  | "created_asc"
+  | "updated_desc"
+  | "rating_desc"
+  | "title_asc"
+  | "year_desc";
+
+export interface User {
+  id: string;
+  email: string;
+  display_name: string;
+  locale: string;
+  email_verified: boolean;
+  is_public: boolean;
+  created_at: string;
+}
+
+export interface Item {
+  id: string;
+  kind: ItemKind;
+  title: string;
+  subtitle: string | null;
+  year: number | null;
+  status: ItemStatus;
+  rating: number | null;
+  review: string | null;
+  source_url: string | null;
+  cover_key: string | null;
+  tags: string[];
+  revision: number;
+  sync_seq: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface NewItem {
+  kind: ItemKind;
+  title: string;
+  subtitle?: string | null;
+  year?: number | null;
+  status: ItemStatus;
+  rating?: number | null;
+  review?: string | null;
+  source_url?: string | null;
+  tags?: string[];
+}
+
+/** Partial update: absent fields are left untouched by the server. */
+export type ItemPatch = Partial<NewItem>;
+
+export interface ItemFilters {
+  kind?: ItemKind;
+  status?: ItemStatus;
+  sort?: Sort;
+  limit?: number;
+  cursor?: string | null;
+  q?: string;
+  tag?: string;
+  year_from?: number;
+  year_to?: number;
+  rating_min?: number;
+  rating_max?: number;
+  include_deleted?: boolean;
+}
+
+export interface ItemList {
+  items: Item[];
+  next_cursor: string | null;
+}
+
+export interface TagCount {
+  id: string;
+  name: string;
+  item_count: number;
+}
+
+export interface YearCount {
+  year: number;
+  count: number;
+}
+
+export interface Stats {
+  total: number;
+  by_kind: Record<ItemKind, number>;
+  by_status: Record<ItemStatus, number>;
+  average_rating: number;
+  by_year: YearCount[];
+}
+
+export interface ImportReport {
+  imported: number;
+  skipped: number;
+  total: number;
+}
+
+export interface UserResponse {
+  user: User;
+}
+
+export interface ItemResponse {
+  item: Item;
+}
+
+export interface TagsResponse {
+  tags: TagCount[];
+}
