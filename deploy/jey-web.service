@@ -2,8 +2,8 @@
 Description=jey.net web client (Next.js)
 Documentation=https://github.com/tioz2021/jey.net
 After=network-online.target jey-api.service
-Wants=network-online.target
-Requires=jey-api.service
+# Wants, not Requires: restarting the API must not tear the web client down.
+Wants=network-online.target jey-api.service
 
 [Service]
 Type=simple

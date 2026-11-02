@@ -267,6 +267,11 @@ systemctl show -p MemoryMax --value jey-api
 дождится кластера Postgres. Проверять стоит через 5–10 секунд после появления
 SSH, а не сразу.
 
+**Почему `Wants`, а не `Requires`:** с `Requires` остановка API тянула за собой
+веб-клиент, а перезапуск Postgres — API, и обратно они сами не поднимались.
+`Wants` + `After` даёт нужный порядок, но не превращает зависимости в жёсткую
+связку; `Restart=always` сам дожидается базы.
+
 ## 8. Caddy: HTTPS и проксирование
 
 Файл `deploy/Caddyfile` копируется в `/etc/caddy/Caddyfile`.

@@ -2,8 +2,9 @@
 Description=jey.net API
 Documentation=https://github.com/tioz2021/jey.net
 After=network-online.target postgresql@18-main.service
-Wants=network-online.target
-Requires=postgresql@18-main.service
+# Wants, not Requires: stopping Postgres during maintenance should not take
+# the API unit down with it; Restart=always reconnects when the database is back.
+Wants=network-online.target postgresql@18-main.service
 
 [Service]
 Type=simple
