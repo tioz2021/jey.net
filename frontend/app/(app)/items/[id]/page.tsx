@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element -- covers are already WebP renditions served by our API */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,7 +63,10 @@ export default async function ItemPage({
       <article className={styles.article}>
         <header className={styles.header}>
           <div className={styles.heading}>
-            <h1 className={styles.title}>{item.title}</h1>
+            <h1 className={styles.title}>
+              {item.title}
+              {item.year ? <span className={styles.year}> ({item.year})</span> : null}
+            </h1>
             {item.subtitle ? (
               <p className={styles.subtitle}>{item.subtitle}</p>
             ) : null}
@@ -72,64 +74,106 @@ export default async function ItemPage({
           <ItemActions itemId={item.id} title={item.title} />
         </header>
 
-        {item.cover_key ? (
-          <img
-            className={styles.cover}
-            src={`/media/${item.cover_key}`}
-            alt={`Обложка записи «${item.title}»`}
-          />
-        ) : null}
+        <div className={styles.body}>
+          <div className={styles.poster}>
+            {item.cover_key ? (
+              // Covers are ready-made WebP renditions served by our API.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/media/${item.cover_key}`}
+                alt={`Обложка записи «${item.title}»`}
+              />
+            ) : (
+              <div className={styles.posterPlaceholder}>Нет обложки</div>
+            )}
+          </div>
 
-        <div className={styles.badges}>
-          <Badge>{KIND_LABELS[item.kind]}</Badge>
-          <Badge tone={STATUS_TONES[item.status]}>
-            {STATUS_LABELS[item.status]}
-          </Badge>
-          {item.year ? <Badge>{item.year}</Badge> : null}
-          {item.rating ? (
-            <Badge tone="accent">Оценка {item.rating} из 10</Badge>
-          ) : null}
+          <dl className={styles.meta}>
+            <div className={styles.metaRow}>
+              <dt>Тип</dt>
+              <dd>
+                <Badge>{KIND_LABELS[item.kind]}</Badge>
+              </dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Статус</dt>
+              <dd>
+                <Badge tone={STATUS_TONES[item.status]}>
+                  {STATUS_LABELS[item.status]}
+                </Badge>
+              </dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Оценка</dt>
+              <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Год</dt>
+              <dd>{item.year ?? "—"}</dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Ссылка</dt>
+              <dd>
+                {item.source_url ? (
+                  <a
+                    href={item.source_url}
+                    rel="noreferrer noopener"
+                    target="_blank"
+                  >
+                    {item.source_url}
+                  </a>
+                ) : (
+                  "—"
+                )}
+              </dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Теги</dt>
+              <dd>
+                {item.tags.length > 0 ? (
+                  <ul className={styles.tags}>
+                    {item.tags.map((tag) => (
+                      <li key={tag}>
+                        <Badge>{tag}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  "—"
+                )}
+              </dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Добавлено</dt>
+              <dd>{formatDate(item.created_at)}</dd>
+            </div>
+
+            <div className={styles.metaRow}>
+              <dt>Изменено</dt>
+              <dd>{formatDate(item.updated_at)}</dd>
+            </div>
+
+            {item.deleted_at ? (
+              <div className={styles.metaRow}>
+                <dt>В корзине</dt>
+                <dd>{formatDate(item.deleted_at)}</dd>
+              </div>
+            ) : null}
+          </dl>
         </div>
 
-        {item.source_url ? (
-          <p className={styles.source}>
-            <a href={item.source_url} rel="noreferrer noopener" target="_blank">
-              {item.source_url}
-            </a>
-          </p>
-        ) : null}
-
         {item.review ? (
-          <section className={styles.section}>
+          <section className={styles.reviewBlock}>
             <h2 className={styles.sectionTitle}>Заметка</h2>
             <p className={styles.review}>{item.review}</p>
           </section>
         ) : null}
-
-        {item.tags.length > 0 ? (
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Теги</h2>
-            <ul className={styles.tags}>
-              {item.tags.map((tag) => (
-                <li key={tag}>
-                  <Badge>{tag}</Badge>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <footer className={styles.footer}>
-          <span>Добавлено: {formatDate(item.created_at)}</span>
-          {item.updated_at !== item.created_at ? (
-            <span>Изменено: {formatDate(item.updated_at)}</span>
-          ) : null}
-          {item.deleted_at ? (
-            <span className={styles.deleted}>
-              В корзине с {formatDate(item.deleted_at)}
-            </span>
-          ) : null}
-        </footer>
       </article>
     </main>
   );

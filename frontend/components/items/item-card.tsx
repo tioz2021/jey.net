@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element -- covers are already WebP renditions served by our API */
+/* eslint-disable @next/next/no-img-element -- covers are ready-made WebP renditions */
 import Link from "next/link";
 
 import { Badge } from "@/components/ui";
@@ -6,6 +6,7 @@ import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
 import type { Item } from "@/lib/types";
 
 import { RestoreButton } from "./restore-button";
+import styles from "./item-card.module.css";
 
 /** Marks the part of the title that matched the search. */
 function Highlight({ text, query }: { text: string; query?: string }) {
@@ -25,8 +26,6 @@ function Highlight({ text, query }: { text: string; query?: string }) {
   );
 }
 
-import styles from "./item-card.module.css";
-
 export function ItemCard({ item, query }: { item: Item; query?: string }) {
   const meta = [
     KIND_LABELS[item.kind],
@@ -36,54 +35,60 @@ export function ItemCard({ item, query }: { item: Item; query?: string }) {
 
   return (
     <article className={styles.card}>
-      {item.cover_key ? (
-        <img
-          className={styles.cover}
-          src={`/media/${item.cover_key}`}
-          alt=""
-          loading="lazy"
-        />
-      ) : null}
-
-      <div className={styles.header}>
-        <h2 className={styles.title}>
-          {item.deleted_at ? (
-            item.title
-          ) : (
-            <Link className={styles.link} href={`/items/${item.id}`}>
-              <Highlight text={item.title} query={query} />
-            </Link>
-          )}
-        </h2>
-        <Badge tone={STATUS_TONES[item.status]}>
-          {STATUS_LABELS[item.status]}
-        </Badge>
+      <div className={styles.poster}>
+        {item.cover_key ? (
+          <img
+            className={styles.cover}
+            src={`/media/${item.cover_key}`}
+            alt=""
+            loading="lazy"
+          />
+        ) : (
+          <div className={styles.placeholder} aria-hidden="true" />
+        )}
       </div>
 
-      {item.subtitle ? (
-        <p className={styles.subtitle}>{item.subtitle}</p>
-      ) : null}
-
-      <p className={styles.meta}>{meta.join(" · ")}</p>
-
-      {item.review ? <p className={styles.review}>{item.review}</p> : null}
-
-      {item.deleted_at ? (
-        <div className={styles.deleted}>
-          <Badge tone="danger">В корзине</Badge>
-          <RestoreButton itemId={item.id} />
+      <div className={styles.body}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>
+            {item.deleted_at ? (
+              item.title
+            ) : (
+              <Link className={styles.link} href={`/items/${item.id}`}>
+                <Highlight text={item.title} query={query} />
+              </Link>
+            )}
+          </h2>
+          <Badge tone={STATUS_TONES[item.status]}>
+            {STATUS_LABELS[item.status]}
+          </Badge>
         </div>
-      ) : null}
 
-      {item.tags.length > 0 ? (
-        <ul className={styles.tags}>
-          {item.tags.map((tag) => (
-            <li key={tag}>
-              <Badge>{tag}</Badge>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+        {item.subtitle ? (
+          <p className={styles.subtitle}>{item.subtitle}</p>
+        ) : null}
+
+        <p className={styles.meta}>{meta.join(" · ")}</p>
+
+        {item.review ? <p className={styles.review}>{item.review}</p> : null}
+
+        {item.deleted_at ? (
+          <div className={styles.deleted}>
+            <Badge tone="danger">В корзине</Badge>
+            <RestoreButton itemId={item.id} />
+          </div>
+        ) : null}
+
+        {item.tags.length > 0 ? (
+          <ul className={styles.tags}>
+            {item.tags.map((tag) => (
+              <li key={tag}>
+                <Badge>{tag}</Badge>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </article>
   );
 }
