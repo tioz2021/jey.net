@@ -10,7 +10,7 @@ import { ApiError, errorMessage } from "@/lib/errors";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
-import { TagsInput } from "./tags-input";
+import { TagInput } from "@/components/items/tag-input";
 import styles from "./item-form.module.css";
 
 const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
@@ -300,7 +300,7 @@ export function ItemForm({
         error={errors.review}
       />
 
-      <TagsInput
+      <TagInput
         tags={values.tags}
         onChange={(tags) => update("tags", tags)}
         error={errors.tags}

@@ -15,6 +15,21 @@
   text-decoration: none;
 }
 
+.nav {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.navLink {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
 .right {
   display: flex;
   align-items: center;

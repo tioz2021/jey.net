@@ -1,0 +1,87 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { DeleteTagButton } from "@/components/items/delete-tag-button";
+import { Card } from "@/components/ui";
+import { backendFetch } from "@/lib/server-api";
+import type { TagsResponse } from "@/lib/types";
+
+import styles from "./page.module.css";
+
+export const metadata: Metadata = {
+  title: "Теги — jey",
+};
+
+export default async function TagsPage() {
+  const response = await backendFetch("/tags");
+
+  if (!response.ok) {
+    return (
+      <main>
+        <Card title="Не удалось загрузить теги">
+          <p className={styles.muted}>Попробуйте обновить страницу позже.</p>
+          <p>
+            <Link href="/items">← К записям</Link>
+          </p>
+        </Card>
+      </main>
+    );
+  }
+
+  const { tags } = (await response.json()) as TagsResponse;
+
+  return (
+    <main>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Теги</h1>
+        <p className={styles.subtitle}>
+          {tags.length === 0
+            ? "Теги появятся, когда вы добавите их к записям"
+            : `Всего тегов: ${tags.length}`}
+        </p>
+      </header>
+
+      {tags.length === 0 ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>Тегов пока нет</p>
+          <p className={styles.muted}>
+            Добавьте теги в форме записи — они появятся здесь.
+          </p>
+          <Link href="/items/new">Добавить запись</Link>
+        </div>
+      ) : (
+        <ul className={styles.list}>
+          {tags.map((tag) => (
+            <li key={tag.id} className={styles.row}>
+              <Link
+                className={styles.name}
+                href={`/items?tag=${encodeURIComponent(tag.name)}`}
+              >
+                {tag.name}
+              </Link>
+              <span className={styles.count}>
+                {tag.item_count}{" "}
+                {plural(tag.item_count, "запись", "записи", "записей")}
+              </span>
+              <DeleteTagButton tagId={tag.id} name={tag.name} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  );
+}
+
+function plural(count: number, one: string, few: string, many: string): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return one;
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return few;
+  }
+
+  return many;
+}

@@ -16,6 +16,15 @@ export function SiteHeader() {
         jey
       </Link>
 
+      <nav className={styles.nav} aria-label="Разделы">
+        <Link className={styles.navLink} href="/items">
+          Записи
+        </Link>
+        <Link className={styles.navLink} href="/tags">
+          Теги
+        </Link>
+      </nav>
+
       <div className={styles.right}>
         {loading ? null : user ? (
           <>
