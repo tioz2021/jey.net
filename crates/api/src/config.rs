@@ -87,6 +87,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// True when the process serves real traffic.
+    pub fn is_production(&self) -> bool {
+        self.app_env == AppEnv::Prod
+    }
+
     /// Loads configuration from `.env` (searched upwards) and the environment.
     ///
     /// Real environment variables always win over values from `.env`.

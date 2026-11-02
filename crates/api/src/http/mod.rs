@@ -1,0 +1,92 @@
+//! HTTP layer: application state, router and service endpoints.
+
+use std::sync::Arc;
+
+use axum::Json;
+use axum::Router;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, post};
+use serde::Serialize;
+use serde_json::json;
+use sqlx::PgPool;
+
+use crate::auth::register::register;
+use crate::config::Config;
+use crate::db;
+use crate::error::AppError;
+
+/// Version reported by `/health` and the startup log.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Uptime checks usually time out after a few seconds, so never let a slow
+/// database keep the readiness call open for the whole pool timeout.
+const READINESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
+
+/// Everything a handler needs, cheap to clone.
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: PgPool,
+    pub config: Arc<Config>,
+}
+
+/// Builds the full application router.
+pub fn router(state: AppState) -> Router {
+    Router::new()
+        .route("/health", get(health))
+        .route("/health/ready", get(readiness))
+        .nest("/api/v1", api_v1())
+        .fallback(fallback)
+        .method_not_allowed_fallback(method_not_allowed)
+        .with_state(state)
+}
+
+fn api_v1() -> Router<AppState> {
+    Router::new().route("/auth/register", post(register))
+}
+
+#[derive(Serialize)]
+struct Health {
+    status: &'static str,
+    version: &'static str,
+}
+
+async fn health() -> Json<Health> {
+    Json(Health {
+        status: "ok",
+        version: VERSION,
+    })
+}
+
+async fn readiness(State(state): State<AppState>) -> Response {
+    let check = tokio::time::timeout(READINESS_TIMEOUT, db::ping(&state.pool)).await;
+
+    match check {
+        Ok(Ok(())) => (StatusCode::OK, Json(json!({ "status": "ready" }))).into_response(),
+        Ok(Err(err)) => {
+            tracing::warn!(error = %err, "readiness check failed");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "unavailable", "reason": "database" })),
+            )
+                .into_response()
+        }
+        Err(_) => {
+            tracing::warn!("readiness check timed out");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "unavailable", "reason": "timeout" })),
+            )
+                .into_response()
+        }
+    }
+}
+
+async fn fallback() -> AppError {
+    AppError::not_found("route not found")
+}
+
+async fn method_not_allowed() -> AppError {
+    AppError::method_not_allowed("method is not allowed for this route")
+}

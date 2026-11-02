@@ -4,101 +4,19 @@ mod auth;
 mod config;
 mod db;
 mod error;
+mod http;
 mod telemetry;
 
 use std::error::Error;
 use std::process::ExitCode;
+use std::sync::Arc;
 
-use axum::Json;
-use axum::Router;
-use axum::extract::State;
-use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use axum::routing::get;
-use serde::Serialize;
-use serde_json::json;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tracing::{info, warn};
 
 use crate::config::Config;
-use crate::error::AppError;
-
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const READINESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
-
-#[derive(Serialize)]
-struct Health {
-    status: &'static str,
-    version: &'static str,
-}
-
-async fn health() -> Json<Health> {
-    Json(Health {
-        status: "ok",
-        version: VERSION,
-    })
-}
-
-async fn readiness(State(pool): State<PgPool>) -> Response {
-    // Uptime checks usually time out after a few seconds, so never let a slow
-    // database keep the readiness call open for the whole pool timeout.
-    let check = tokio::time::timeout(READINESS_TIMEOUT, db::ping(&pool)).await;
-
-    match check {
-        Ok(Ok(())) => (StatusCode::OK, Json(json!({ "status": "ready" }))).into_response(),
-        Ok(Err(err)) => {
-            warn!(error = %err, "readiness check failed");
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(json!({ "status": "unavailable", "reason": "database" })),
-            )
-                .into_response()
-        }
-        Err(_) => {
-            warn!("readiness check timed out");
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(json!({ "status": "unavailable", "reason": "timeout" })),
-            )
-                .into_response()
-        }
-    }
-}
-
-async fn fallback() -> AppError {
-    AppError::not_found("route not found")
-}
-
-async fn method_not_allowed() -> AppError {
-    AppError::method_not_allowed("method is not allowed for this route")
-}
-
-fn app(pool: PgPool) -> Router {
-    Router::new()
-        .route("/health", get(health))
-        .route("/health/ready", get(readiness))
-        .fallback(fallback)
-        .method_not_allowed_fallback(method_not_allowed)
-        .with_state(pool)
-}
-
-/// What the process should do after loading its configuration.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Command {
-    Serve,
-    Migrate,
-}
-
-fn parse_command() -> Result<Command, String> {
-    match std::env::args().nth(1).as_deref() {
-        None => Ok(Command::Serve),
-        Some("migrate") => Ok(Command::Migrate),
-        Some(other) => Err(format!(
-            "unknown command {other:?}; supported commands: migrate"
-        )),
-    }
-}
+use crate::http::{AppState, VERSION, router};
 
 #[tokio::main]
 async fn main() -> ExitCode {
@@ -152,7 +70,7 @@ async fn main() -> ExitCode {
         }
     }
 
-    match tokio::time::timeout(READINESS_TIMEOUT, db::ping(&pool)).await {
+    match tokio::time::timeout(std::time::Duration::from_secs(1), db::ping(&pool)).await {
         Ok(Ok(())) => info!("database connection established"),
         Ok(Err(err)) => warn!(error = %err, "database is not reachable yet"),
         Err(_) => warn!("database connection attempt timed out"),
@@ -164,6 +82,23 @@ async fn main() -> ExitCode {
             eprintln!("fatal error: {err}");
             ExitCode::FAILURE
         }
+    }
+}
+
+/// What the process should do after loading its configuration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Command {
+    Serve,
+    Migrate,
+}
+
+fn parse_command() -> Result<Command, String> {
+    match std::env::args().nth(1).as_deref() {
+        None => Ok(Command::Serve),
+        Some("migrate") => Ok(Command::Migrate),
+        Some(other) => Err(format!(
+            "unknown command {other:?}; supported commands: migrate"
+        )),
     }
 }
 
@@ -182,8 +117,12 @@ async fn migrate_and_exit(pool: &PgPool) -> ExitCode {
 
 async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
+    let state = AppState {
+        pool,
+        config: Arc::new(config),
+    };
 
-    axum::serve(listener, telemetry::instrument(app(pool)))
+    axum::serve(listener, telemetry::instrument(router(state)))
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 
