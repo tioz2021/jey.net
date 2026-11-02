@@ -19,6 +19,7 @@ use sqlx::PgPool;
 use crate::auth::login::login;
 use crate::auth::logout::logout;
 use crate::auth::middleware::{CurrentUser, require_auth};
+use crate::auth::password_change::change_password;
 use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
@@ -60,6 +61,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
 
     let protected = Router::new()
         .route("/me", get(me))
+        .route("/me/password", post(change_password))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public

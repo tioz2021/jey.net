@@ -1,7 +1,10 @@
 //! Shared helpers for integration tests.
 //!
 //! Tests talk to the router directly and need a real PostgreSQL database:
-//! `TEST_DATABASE_URL`, or `DATABASE_URL` when the first one is not set.
+//! `TEST_DATABASE_URL`, or `DATABASE_URL` from `.env` when the first is unset.
+//!
+//! Each test gets its own small pool: `#[tokio::test]` creates a fresh runtime
+//! per test, and a pool created in another test's runtime dies with it.
 
 #![allow(dead_code)]
 
@@ -17,10 +20,8 @@ use jey_api::config::{AppEnv, Config, LogFormat};
 use jey_api::http::{AppState, router};
 use serde_json::Value;
 use sqlx::PgPool;
-use tokio::sync::OnceCell;
+use sqlx::postgres::PgPoolOptions;
 use tower::ServiceExt;
-
-static POOL: OnceCell<PgPool> = OnceCell::const_new();
 
 /// Database for tests: `TEST_DATABASE_URL`, or `.env` as a fallback.
 fn database_url() -> String {
@@ -31,26 +32,24 @@ fn database_url() -> String {
         .expect("TEST_DATABASE_URL or DATABASE_URL must be set for integration tests")
 }
 
-/// Connects to the test database once and applies migrations.
+/// Small pool of its own with the migrations applied.
 pub async fn pool() -> PgPool {
-    POOL.get_or_init(|| async {
-        let pool = PgPool::connect(&database_url())
-            .await
-            .expect("connect to the test database");
+    let pool = PgPoolOptions::new()
+        .max_connections(2)
+        .connect(&database_url())
+        .await
+        .expect("connect to the test database");
 
-        jey_api::db::migrate(&pool).await.expect("apply migrations");
+    jey_api::db::migrate(&pool).await.expect("apply migrations");
 
-        pool
-    })
-    .await
-    .clone()
+    pool
 }
 
-fn test_config(database_url: String) -> Config {
+fn test_config() -> Config {
     Config {
         app_env: AppEnv::Test,
         bind_addr: "127.0.0.1:0".parse().expect("valid address"),
-        database_url,
+        database_url: database_url(),
         run_migrations: false,
         session_ttl_days: 30,
         allowed_origins: vec!["http://localhost:3000".to_owned()],
@@ -61,6 +60,7 @@ fn test_config(database_url: String) -> Config {
 /// A router wired to the test database, with its own fake client address.
 pub struct TestClient {
     app: Router,
+    pool: PgPool,
     ip: String,
 }
 
@@ -88,8 +88,8 @@ impl TestClient {
 
         let pool = pool().await;
         let state = AppState {
-            pool,
-            config: Arc::new(test_config(database_url())),
+            pool: pool.clone(),
+            config: Arc::new(test_config()),
         };
 
         // Every test gets its own client address so rate-limit counters of one
@@ -99,6 +99,7 @@ impl TestClient {
 
         Self {
             app: router(state),
+            pool,
             ip,
         }
     }
@@ -156,7 +157,6 @@ impl TestClient {
         if let Some(origin) = origin {
             builder = builder.header("origin", origin);
         }
-
         if body.is_some() {
             builder = builder.header("content-type", "application/json");
         }
@@ -210,16 +210,14 @@ impl TestClient {
 
     /// Removes everything the test created.
     pub async fn cleanup(&self, email: &str) {
-        let pool = pool().await;
-
         let _ = sqlx::query("delete from users where email = $1")
             .bind(email)
-            .execute(&pool)
+            .execute(&self.pool)
             .await;
 
         let _ = sqlx::query("delete from rate_limits where key like $1")
             .bind(format!("%{}%", self.ip))
-            .execute(&pool)
+            .execute(&self.pool)
             .await;
     }
 }

@@ -16,8 +16,7 @@ use crate::http::AppState;
 #[derive(Debug, Clone)]
 pub struct CurrentUser {
     pub user: UserView,
-    /// Used by logout (T18) and the sync endpoints (M8).
-    #[allow(dead_code)]
+    /// Used by logout and password change; also by the sync endpoints (M8).
     pub session_id: Uuid,
     /// Used by the sync endpoints (M8); kept here so the request carries it.
     #[allow(dead_code)]

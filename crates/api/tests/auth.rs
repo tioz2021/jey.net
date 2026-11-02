@@ -188,3 +188,115 @@ async fn state_changing_requests_require_a_known_origin() {
 
     client.cleanup(&email).await;
 }
+
+const NEW_PASSWORD: &str = "a much better passphrase";
+
+#[tokio::test]
+async fn password_change_keeps_the_current_session_and_drops_others() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let first = registered.session_cookie().expect("registration cookie");
+
+    let login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    let second = login.session_cookie().expect("login cookie");
+    assert_ne!(first, second);
+
+    let changed = client
+        .post_with_cookie(
+            "/api/v1/me/password",
+            json!({ "current_password": PASSWORD, "new_password": NEW_PASSWORD }),
+            &first,
+        )
+        .await;
+    assert_eq!(changed.status, 204, "body: {}", changed.body);
+
+    // The session that changed the password stays valid.
+    assert_eq!(client.get("/api/v1/me", Some(&first)).await.status, 200);
+    // Every other session is gone.
+    assert_eq!(client.get("/api/v1/me", Some(&second)).await.status, 401);
+
+    let old_login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    assert_eq!(old_login.status, 401, "the old password must stop working");
+
+    let new_login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": NEW_PASSWORD }),
+        )
+        .await;
+    assert_eq!(new_login.status, 200, "body: {}", new_login.body);
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn password_change_validates_its_inputs() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+
+    let wrong_current = client
+        .post_with_cookie(
+            "/api/v1/me/password",
+            json!({ "current_password": "not the password", "new_password": NEW_PASSWORD }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(wrong_current.status, 400);
+    assert_eq!(
+        wrong_current.body["error"]["details"]["field"],
+        "current_password"
+    );
+
+    let same_as_old = client
+        .post_with_cookie(
+            "/api/v1/me/password",
+            json!({ "current_password": PASSWORD, "new_password": PASSWORD }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(same_as_old.status, 400);
+    assert_eq!(
+        same_as_old.body["error"]["details"]["field"],
+        "new_password"
+    );
+
+    let too_short = client
+        .post_with_cookie(
+            "/api/v1/me/password",
+            json!({ "current_password": PASSWORD, "new_password": "short" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(too_short.status, 400);
+    assert_eq!(too_short.body["error"]["details"]["field"], "new_password");
+
+    // Nothing changed: the original password still works.
+    let login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    assert_eq!(login.status, 200);
+
+    client.cleanup(&email).await;
+}
