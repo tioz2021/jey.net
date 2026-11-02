@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
-import type { Item } from "@/lib/types";
+import type { ItemKind, ItemStatus } from "@/lib/types";
 
 import { RestoreButton } from "./restore-button";
 import styles from "./item-card.module.css";
@@ -26,7 +26,31 @@ function Highlight({ text, query }: { text: string; query?: string }) {
   );
 }
 
-export function ItemCard({ item, query }: { item: Item; query?: string }) {
+/** Fields a card needs; `Item` satisfies this too. */
+export interface ItemCardData {
+  id: string;
+  kind: ItemKind;
+  title: string;
+  subtitle: string | null;
+  year: number | null;
+  status: ItemStatus;
+  rating: number | null;
+  review: string | null;
+  cover_key: string | null;
+  tags: string[];
+  deleted_at?: string | null;
+}
+
+export function ItemCard({
+  item,
+  query,
+  href,
+}: {
+  item: ItemCardData;
+  query?: string;
+  href?: string;
+}) {
+  const target = href ?? `/items/${item.id}`;
   const meta = [
     KIND_LABELS[item.kind],
     item.year ? String(item.year) : null,
@@ -55,7 +79,7 @@ export function ItemCard({ item, query }: { item: Item; query?: string }) {
             {item.deleted_at ? (
               item.title
             ) : (
-              <Link className={styles.link} href={`/items/${item.id}`}>
+              <Link className={styles.link} href={target}>
                 <Highlight text={item.title} query={query} />
               </Link>
             )}

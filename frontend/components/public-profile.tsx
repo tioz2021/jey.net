@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { ItemCard } from "@/components/items/item-card";
 import { Badge, Card } from "@/components/ui";
-import { KIND_LABELS } from "@/lib/labels";
 import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
 import styles from "./public-profile.module.css";
@@ -166,41 +165,10 @@ function ItemGrid({ items, userId }: { items: PublicItem[]; userId: string }) {
     <ul className={styles.grid}>
       {items.map((item) => (
         <li key={item.id}>
-          <Link className={styles.card} href={`/u/${userId}/${item.id}`}>
-          {item.cover_key ? (
-            // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
-            <img
-              className={styles.cover}
-              src={`/media/${item.cover_key}`}
-              alt=""
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <div className={styles.coverPlaceholder} aria-hidden="true" />
-          )}
-
-          <div className={styles.cardBody}>
-            <p className={styles.kind}>{KIND_LABELS[item.kind]}</p>
-            <h3 className={styles.title}>{item.title}</h3>
-            {item.subtitle ? <p className={styles.subtitle}>{item.subtitle}</p> : null}
-            <p className={styles.cardMeta}>
-              {[item.year, item.rating ? `★ ${item.rating}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-            {item.review ? <p className={styles.review}>{item.review}</p> : null}
-            {item.tags.length > 0 ? (
-              <ul className={styles.tags}>
-                {item.tags.map((tag) => (
-                  <li key={tag}>
-                    <Badge>{tag}</Badge>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-          </Link>
+          <ItemCard
+            href={`/u/${userId}/${item.id}`}
+            item={{ ...item, status: "done", deleted_at: null }}
+          />
         </li>
       ))}
     </ul>

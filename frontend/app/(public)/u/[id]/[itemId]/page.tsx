@@ -133,7 +133,7 @@ export default async function PublicItemPage({
       </div>
 
       {item.review ? (
-        <Card className={styles.reviewCard} title="Рецензия">
+        <Card className={styles.reviewCard} title="Заметка">
           <p className={styles.review}>{item.review}</p>
         </Card>
       ) : null}
