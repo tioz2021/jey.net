@@ -441,3 +441,111 @@ async fn deleting_the_account_removes_access_and_frees_the_email() {
     client.cleanup(&email).await;
     client.purge_user(user_id).await;
 }
+
+fn token_from(message: &str) -> String {
+    let marker = "token=";
+    let start = message.find(marker).expect("link with a token") + marker.len();
+
+    message[start..]
+        .split(|ch: char| ch.is_whitespace())
+        .next()
+        .expect("token value")
+        .to_owned()
+}
+
+#[tokio::test]
+async fn verification_link_confirms_the_email_once() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    assert_eq!(registered.status, 201);
+    let cookie = registered.session_cookie().expect("registration cookie");
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    let message = client.mailer.last().expect("a verification letter");
+    assert_eq!(message.to, email);
+    assert!(message.text.contains("/verify-email?token="));
+
+    let token = token_from(&message.text);
+
+    let verified = client
+        .post("/api/v1/auth/verify-email", json!({ "token": token }))
+        .await;
+    assert_eq!(verified.status, 204, "body: {}", verified.body);
+
+    let me = client.get("/api/v1/me", Some(&cookie)).await;
+    assert_eq!(me.body["user"]["email_verified"], true);
+
+    // The same link cannot be used twice.
+    let again = client
+        .post("/api/v1/auth/verify-email", json!({ "token": token }))
+        .await;
+    assert_eq!(again.status, 400);
+    assert_eq!(again.body["error"]["details"]["field"], "token");
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}
+
+#[tokio::test]
+async fn expired_verification_token_is_rejected() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    let token = token_from(&client.mailer.last().expect("letter").text);
+    client.expire_auth_tokens(user_id).await;
+
+    let response = client
+        .post("/api/v1/auth/verify-email", json!({ "token": token }))
+        .await;
+    assert_eq!(response.status, 400);
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}
+
+#[tokio::test]
+async fn resending_the_letter_is_rate_limited() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    let first = client
+        .post_with_cookie("/api/v1/auth/verify-email/resend", json!({}), &cookie)
+        .await;
+    assert_eq!(first.status, 204, "body: {}", first.body);
+
+    let second = client
+        .post_with_cookie("/api/v1/auth/verify-email/resend", json!({}), &cookie)
+        .await;
+    assert_eq!(second.status, 429);
+    assert_eq!(second.body["error"]["code"], "rate_limited");
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}

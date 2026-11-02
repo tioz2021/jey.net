@@ -12,6 +12,7 @@ use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use serde_json::json;
 
+use crate::auth::email_verify::send_verification;
 use crate::auth::normalise_email;
 use crate::auth::password::{self, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, PasswordError};
 use crate::auth::session;
@@ -72,6 +73,12 @@ pub async fn register(
     )
     .await
     .map_err(AppError::internal)?;
+
+    // A failure here must not fail the registration: the account exists and the
+    // letter can be resent later.
+    if let Err(err) = send_verification(&state, user.id, &user.email).await {
+        tracing::warn!(error = %err, "failed to send the verification email");
+    }
 
     let cookie = session::session_cookie(
         &created.token,

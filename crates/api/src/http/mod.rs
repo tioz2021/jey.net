@@ -16,6 +16,7 @@ use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
 
+use crate::auth::email_verify::{resend_verification, verify_email};
 use crate::auth::login::login;
 use crate::auth::logout::logout;
 use crate::auth::middleware::require_auth;
@@ -61,11 +62,13 @@ fn api_v1(state: AppState) -> Router<AppState> {
     let public = Router::new()
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
-        .route("/auth/logout", post(logout));
+        .route("/auth/logout", post(logout))
+        .route("/auth/verify-email", post(verify_email));
 
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
+        .route("/auth/verify-email/resend", post(resend_verification))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public

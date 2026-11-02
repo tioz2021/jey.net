@@ -239,12 +239,31 @@ impl TestClient {
         }
     }
 
-    /// Deletes a user by id, including anonymised rows that no longer match an email.
+    /// Deletes a user by id, including anonymised rows that no longer match an email,
+    /// plus the rate-limit counters keyed by that id.
     pub async fn purge_user(&self, id: uuid::Uuid) {
         let _ = sqlx::query("delete from users where id = $1")
             .bind(id)
             .execute(&self.pool)
             .await;
+
+        let _ = sqlx::query("delete from rate_limits where key like $1")
+            .bind(format!("%{}%", id))
+            .execute(&self.pool)
+            .await;
+    }
+
+    /// Moves every token of a user into the past, to test expiry.
+    pub async fn expire_auth_tokens(&self, id: uuid::Uuid) {
+        let _ = sqlx::query(
+            "update auth_tokens
+             set created_at = now() - interval '2 days',
+                 expires_at = now() - interval '1 day'
+             where user_id = $1",
+        )
+        .bind(id)
+        .execute(&self.pool)
+        .await;
     }
 
     /// Raw state of a user row, for assertions about soft deletion.

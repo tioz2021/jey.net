@@ -29,6 +29,13 @@ pub const LOGIN: Rule = Rule {
     block: Duration::from_secs(15 * 60),
 };
 
+/// Verification emails per account: one per ten minutes.
+pub const VERIFY_RESEND: Rule = Rule {
+    limit: 1,
+    window: Duration::from_secs(10 * 60),
+    block: Duration::from_secs(10 * 60),
+};
+
 /// Registrations per IP: 3 in an hour.
 pub const REGISTER: Rule = Rule {
     limit: 3,
