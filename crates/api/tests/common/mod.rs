@@ -133,6 +133,50 @@ impl TestClient {
             .await
     }
 
+    /// Fetches raw bytes with response headers, for media and downloads.
+    pub async fn get_bytes(
+        &self,
+        path: &str,
+        cookie: Option<&str>,
+        extra_headers: &[(&str, &str)],
+    ) -> (StatusCode, axum::http::HeaderMap, Vec<u8>) {
+        let mut builder = Request::builder()
+            .method(Method::GET)
+            .uri(path)
+            .header("x-forwarded-for", &self.ip);
+
+        if let Some(cookie) = cookie {
+            builder = builder.header("cookie", cookie);
+        }
+        for (name, value) in extra_headers {
+            builder = builder.header(*name, *value);
+        }
+
+        let mut request = builder.body(Body::empty()).expect("valid request");
+        request
+            .extensions_mut()
+            .insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 4000))));
+
+        let response = self
+            .app
+            .clone()
+            .oneshot(request)
+            .await
+            .expect("router responds");
+
+        let status = response.status();
+        let headers = response.headers().clone();
+        let bytes = response
+            .into_body()
+            .collect()
+            .await
+            .expect("read body")
+            .to_bytes()
+            .to_vec();
+
+        (status, headers, bytes)
+    }
+
     /// Fetches a body that is not JSON (CSV, files) with its content type.
     pub async fn get_raw(
         &self,

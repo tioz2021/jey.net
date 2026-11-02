@@ -1,5 +1,6 @@
 //! HTTP layer: application state, router and service endpoints.
 
+pub mod media;
 pub mod origin;
 pub mod ratelimit;
 mod uploads;
@@ -29,6 +30,7 @@ use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
 use crate::export::export;
+use crate::http::media::serve_media;
 use crate::http::origin::require_allowed_origin;
 use crate::http::uploads::upload;
 use crate::import::import;
@@ -68,6 +70,8 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .route("/health/ready", get(readiness))
+        // Media is public route-wise: the handler checks ownership itself.
+        .route("/media/{*key}", get(serve_media))
         .nest("/api/v1", api_v1(state.clone()))
         .fallback(fallback)
         .method_not_allowed_fallback(method_not_allowed)

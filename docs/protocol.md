@@ -107,6 +107,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | POST | `/me/password` | `{current_password, new_password}` | `204` |
 | DELETE | `/me` | `{password}` | `204` |
 | POST | `/me/sessions/revoke-all` | — | `204`, все сессии завершены |
+| GET | `/media/{key}` | — | `200` файл, `Cache-Control: immutable`, `ETag`; `304` при совпадении; `403` чужой приватный |
 | POST | `/uploads` | `multipart/form-data`, поле `file` | `201 {upload: {id, mime, size_bytes, width, height}}`; `413` больше 10 МБ; `415` не JPEG/PNG/WebP или файл не декодируется |
 | POST | `/items/{id}/cover` | `{upload_id}` | `200 {item}`, `cover_key` = ключ большого WebP |
 | DELETE | `/items/{id}/cover` | — | `200 {item}`, файлы и запись загрузки удалены |
