@@ -17,8 +17,8 @@
 | Бэкенд | Rust (edition 2024), axum, tokio, sqlx |
 | База данных | PostgreSQL |
 | Пароли и сессии | argon2id, непрозрачные токены сессий в БД |
-| Фронтенд | Next.js + TypeScript + Tailwind CSS |
-| Файлы | Cloudflare R2 (S3-совместимое хранилище) |
+| Фронтенд | Next.js + TypeScript + нативный CSS (CSS Modules) |
+| Файлы | локальный диск VPS (Cloudflare R2 — для бэкапов) |
 | Деплой | VPS + Caddy + systemd |
 | CI | GitHub Actions |
 

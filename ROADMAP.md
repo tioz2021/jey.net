@@ -318,14 +318,14 @@
 ## M3 · Интерфейс
 
 - [ ] **T43 · Каркас Next.js**
-  **Файлы:** `frontend/package.json`, `frontend/tsconfig.json`, `frontend/tailwind.config.ts`, `frontend/app/layout.tsx`, `frontend/app/page.tsx`
-  **Сделать:** Next.js (App Router), TypeScript strict, Tailwind; структура `app/`, `components/`, `lib/`; страница-заглушка; проксирование `/api` на бэкенд в dev.
+  **Файлы:** `frontend/package.json`, `frontend/tsconfig.json`, `frontend/app/globals.css`, `frontend/app/layout.tsx`, `frontend/app/page.tsx`
+  **Сделать:** Next.js (App Router), TypeScript strict, нативный CSS + CSS Modules (без Tailwind); структура `app/`, `components/`, `lib/`; глобальные переменные темы; страница-заглушка; проксирование `/api` на бэкенд в dev.
   **Проверить:** `npm run dev` открывает страницу; `npm run build` проходит; `npm run lint` без ошибок; запрос к `/api/v1/health` из браузера доходит до бэкенда.
   **Коммит:** `feat(web): bootstrap next.js application`
 
 - [ ] **T44 · Базовые компоненты**
   **Файлы:** `frontend/components/ui/*`, `frontend/app/globals.css`
-  **Сделать:** токены (цвета, отступы, радиусы, типографика); компоненты `Button`, `Input`, `Textarea`, `Select`, `Card`, `Dialog`, `Badge`, `Skeleton`; тёмная тема через CSS-переменные.
+  **Сделать:** токены (цвета, отступы, радиусы, типографика) в CSS-переменных; компоненты `Button`, `Input`, `Textarea`, `Select`, `Card`, `Dialog`, `Badge`, `Skeleton` на CSS Modules; тёмная тема через переменные.
   **Проверить:** компоненты отображаются на демо-странице; фокус видим; тёмная тема переключается; нет хардкода цветов вне токенов.
   **Коммит:** `feat(web): add design tokens and base components`
 
