@@ -1,0 +1,51 @@
+.page {
+  max-width: 68ch;
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: var(--line-tight);
+}
+
+.updated {
+  margin: 0 0 var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.page h2 {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.page p,
+.page li {
+  color: var(--color-text);
+}
+
+.page p {
+  margin: 0 0 var(--space-3);
+}
+
+.page ul {
+  margin: 0 0 var(--space-3);
+  padding-left: 1.2em;
+}
+
+.page li {
+  margin-bottom: var(--space-1);
+}
+
+.note {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.page a {
+  color: var(--color-accent, #2563eb);
+}

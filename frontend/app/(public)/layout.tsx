@@ -16,6 +16,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         </Link>
       </header>
       <main className={styles.main}>{children}</main>
+      <footer className={styles.footer}>
+        <Link href="/privacy">Политика конфиденциальности</Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms">Условия использования</Link>
+      </footer>
     </>
   );
 }
