@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ItemList } from "@/components/items/item-list";
+import { SearchBox } from "@/components/items/search-box";
 import { Skeleton } from "@/components/ui";
 
 import styles from "./page.module.css";
@@ -30,7 +31,10 @@ export default function ItemsPage() {
           </div>
         }
       >
-        <ItemList />
+        <div style={{ display: "grid", gap: "var(--space-5)" }}>
+          <SearchBox />
+          <ItemList />
+        </div>
       </Suspense>
     </main>
   );

@@ -6,9 +6,27 @@ import type { Item } from "@/lib/types";
 
 import { RestoreButton } from "./restore-button";
 
+/** Marks the part of the title that matched the search. */
+function Highlight({ text, query }: { text: string; query?: string }) {
+  const needle = query?.trim().toLowerCase() ?? "";
+  const index = needle ? text.toLowerCase().indexOf(needle) : -1;
+
+  if (!needle || index === -1) {
+    return <>{text}</>;
+  }
+
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark className={styles.mark}>{text.slice(index, index + needle.length)}</mark>
+      {text.slice(index + needle.length)}
+    </>
+  );
+}
+
 import styles from "./item-card.module.css";
 
-export function ItemCard({ item }: { item: Item }) {
+export function ItemCard({ item, query }: { item: Item; query?: string }) {
   const meta = [
     KIND_LABELS[item.kind],
     item.year ? String(item.year) : null,
@@ -23,7 +41,7 @@ export function ItemCard({ item }: { item: Item }) {
             item.title
           ) : (
             <Link className={styles.link} href={`/items/${item.id}`}>
-              {item.title}
+              <Highlight text={item.title} query={query} />
             </Link>
           )}
         </h2>

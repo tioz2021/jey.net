@@ -57,6 +57,13 @@
   line-clamp: 3;
 }
 
+.mark {
+  padding: 0 0.1em;
+  color: inherit;
+  background: var(--color-mark-bg);
+  border-radius: var(--radius-sm);
+}
+
 .deleted {
   display: flex;
   flex-wrap: wrap;

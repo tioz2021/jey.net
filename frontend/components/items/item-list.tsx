@@ -25,6 +25,7 @@ function parseFilters(params: URLSearchParams): ItemFilters {
     status: status ? (status as ItemStatus) : undefined,
     sort: sort ? (sort as Sort) : undefined,
     tag: tag ?? undefined,
+    q: params.get("q") ?? undefined,
     include_deleted: params.get("deleted") === "1",
     limit: PAGE_SIZE,
   };
@@ -34,7 +35,7 @@ export function ItemList() {
   const searchParams = useSearchParams();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
-  const hasFilters = ["kind", "status", "tag"].some((key) =>
+  const hasFilters = ["kind", "status", "tag", "q"].some((key) =>
     searchParams.has(key),
   );
 
@@ -130,7 +131,7 @@ export function ItemList() {
           <ul className={styles.list}>
             {items.map((item) => (
               <li key={item.id}>
-                <ItemCard item={item} />
+                <ItemCard item={item} query={filters.q} />
               </li>
             ))}
           </ul>

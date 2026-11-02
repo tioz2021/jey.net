@@ -26,6 +26,7 @@
   --color-danger-soft: #fdecea;
   --color-success: #1e7f4f;
   --color-focus-ring: #2f6fed;
+  --color-mark-bg: #fde68a;
   --color-overlay: rgb(10 12 16 / 55%);
 
   --space-1: 0.25rem;
@@ -80,6 +81,7 @@
     --color-danger-soft: #2a1714;
     --color-success: #57c98d;
     --color-focus-ring: #8aadff;
+    --color-mark-bg: #4a3b12;
     --color-overlay: rgb(0 0 0 / 65%);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
     --shadow-md: 0 4px 16px rgb(0 0 0 / 45%);
@@ -102,6 +104,7 @@
   --color-danger-soft: #2a1714;
   --color-success: #57c98d;
   --color-focus-ring: #8aadff;
+  --color-mark-bg: #4a3b12;
   --color-overlay: rgb(0 0 0 / 65%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-md: 0 4px 16px rgb(0 0 0 / 45%);
