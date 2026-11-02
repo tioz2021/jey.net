@@ -29,19 +29,6 @@ export function SiteHeader() {
           jey.net
         </Link>
 
-        <form action="/items" className={styles.search} method="get" role="search">
-          <label className="visually-hidden" htmlFor="global-search">
-            Поиск по записям
-          </label>
-          <input
-            className={styles.searchInput}
-            id="global-search"
-            name="q"
-            placeholder="Поиск по записям"
-            type="search"
-          />
-        </form>
-
         <nav className={styles.nav} aria-label="Разделы">
           {SECTIONS.map((section) => {
             const active =
@@ -61,20 +48,35 @@ export function SiteHeader() {
         </nav>
 
         <div className={styles.right}>
-          {loading ? null : user ? <QuickAdd /> : null}
-          <span className={styles.theme}>
-            <ThemeToggle />
-          </span>
           {loading ? null : user ? (
             <>
-              <Link className={styles.user} href="/settings">
-                <Avatar
-                  url={user.avatar_key ? `/media/${user.avatar_key}` : null}
-                  name={user.display_name}
-                />
-                <span className={styles.name}>{user.display_name}</span>
-              </Link>
-              <LogoutButton />
+              <div className={styles.tools}>
+                <form action="/items" className={styles.search} method="get" role="search">
+                  <label className="visually-hidden" htmlFor="global-search">
+                    Поиск по записям
+                  </label>
+                  <input
+                    className={styles.searchInput}
+                    id="global-search"
+                    name="q"
+                    placeholder="Поиск"
+                    type="search"
+                  />
+                </form>
+                <QuickAdd />
+                <ThemeToggle />
+              </div>
+
+              <div className={styles.account}>
+                <Link className={styles.user} href="/settings">
+                  <Avatar
+                    url={user.avatar_key ? `/media/${user.avatar_key}` : null}
+                    name={user.display_name}
+                  />
+                  <span className={styles.name}>{user.display_name}</span>
+                </Link>
+                <LogoutButton />
+              </div>
             </>
           ) : (
             <Link className={styles.link} href="/login">
