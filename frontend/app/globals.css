@@ -119,6 +119,14 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Classic look and stable width: the scrollbar is always there, so short
+     and long pages have the same layout width and navigation does not shift
+     the content sideways. */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 html,
 body {
   margin: 0;
