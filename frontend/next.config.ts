@@ -5,6 +5,9 @@ import type { NextConfig } from "next";
 const backendUrl = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 
 const nextConfig: NextConfig = {
+  // The production server ships as a self-contained bundle: node server.js.
+  output: "standalone",
+
   async rewrites() {
     return [
       {

@@ -22,15 +22,30 @@ export function middleware(request: NextRequest) {
   );
 
   if (isProtected && !request.cookies.has(SESSION_COOKIE)) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.search = "";
+    // Behind Caddy the request reaches Next on 127.0.0.1:3000, so the
+    // internal origin is not the public one. Public host comes from the
+    // forwarded headers; without them the browser would be sent to localhost.
+    const loginUrl = publicUrl(request, "/login");
     loginUrl.searchParams.set("next", `${pathname}${search}`);
 
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
+}
+
+function publicUrl(request: NextRequest, path: string): URL {
+  const first = (value: string | null) => value?.split(",")[0]?.trim() ?? "";
+
+  const protocol =
+    first(request.headers.get("x-forwarded-proto")) ||
+    request.nextUrl.protocol.replace(":", "");
+  const host =
+    first(request.headers.get("x-forwarded-host")) ||
+    request.headers.get("host") ||
+    request.nextUrl.host;
+
+  return new URL(path, `${protocol}://${host}`);
 }
 
 export const config = {
