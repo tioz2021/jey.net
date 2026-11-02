@@ -11,6 +11,20 @@ interface Chip {
   label: string;
 }
 
+const monthFormat = new Intl.DateTimeFormat("ru-RU", {
+  month: "long",
+  year: "numeric",
+});
+
+function monthLabel(value: string): string {
+  const [year, month] = value.split("-").map(Number);
+  if (!year || !month) {
+    return value;
+  }
+
+  return monthFormat.format(new Date(year, month - 1, 1));
+}
+
 function buildChips(params: URLSearchParams): Chip[] {
   const chips: Chip[] = [];
 
@@ -33,6 +47,11 @@ function buildChips(params: URLSearchParams): Chip[] {
       key: "status",
       label: STATUS_LABELS[status as ItemStatus] ?? status,
     });
+  }
+
+  const month = params.get("month");
+  if (month) {
+    chips.push({ key: "month", label: `Месяц: ${monthLabel(month)}` });
   }
 
   const tag = params.get("tag");

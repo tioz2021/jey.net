@@ -21,6 +21,8 @@
 
 .row {
   display: grid;
+  color: inherit;
+  text-decoration: none;
   grid-template-columns: minmax(7rem, 10rem) 1fr auto;
   align-items: center;
   gap: var(--space-3);
@@ -66,4 +68,8 @@
     grid-column: 1 / -1;
     order: 3;
   }
+}
+
+.row:hover .label {
+  color: var(--color-accent);
 }

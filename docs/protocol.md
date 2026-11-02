@@ -170,6 +170,7 @@ Origin: http://localhost:3000
 | `q` | поиск по `title`, `subtitle`, `review` |
 | `year_from`, `year_to` | целые |
 | `rating_min`, `rating_max` | 1..10 |
+| `month` | `YYYY-MM` — месяц добавления записи |
 | `sort` | `created_desc` (по умолчанию), `created_asc`, `updated_desc`, `rating_desc`, `title_asc`, `year_desc` |
 | `include_deleted` | `true` — показать корзину |
 

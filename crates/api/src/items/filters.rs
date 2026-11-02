@@ -24,6 +24,8 @@ pub struct Filters {
     pub year_to: Option<i32>,
     pub rating_min: Option<u8>,
     pub rating_max: Option<u8>,
+    /// Calendar month the record was added, `YYYY-MM`.
+    pub month: Option<String>,
 }
 
 impl Filters {
@@ -38,6 +40,7 @@ impl Filters {
 
         let (year_from, year_to) = parse_year_range(query.year_from, query.year_to)?;
         let (rating_min, rating_max) = parse_rating_range(query.rating_min, query.rating_max)?;
+        let month = parse_month(query.month.as_deref())?;
 
         Ok(Self {
             kind,
@@ -47,8 +50,29 @@ impl Filters {
             year_to,
             rating_min,
             rating_max,
+            month,
         })
     }
+}
+
+fn parse_month(raw: Option<&str>) -> Result<Option<String>, AppError> {
+    let Some(raw) = raw.map(str::trim).filter(|value| !value.is_empty()) else {
+        return Ok(None);
+    };
+
+    let mut parts = raw.split('-');
+    let year = parts.next().and_then(|value| value.parse::<i32>().ok());
+    let month = parts.next().and_then(|value| value.parse::<u32>().ok());
+    let extra = parts.next();
+
+    if extra.is_some() || year.is_none() || month.is_none() || !(1..=12).contains(&month.unwrap()) {
+        return Err(AppError::validation_field(
+            "month",
+            "month must look like YYYY-MM",
+        ));
+    }
+
+    Ok(Some(raw.to_owned()))
 }
 
 fn parse_year_range(

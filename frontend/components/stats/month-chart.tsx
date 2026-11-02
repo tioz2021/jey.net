@@ -1,8 +1,14 @@
+import Link from "next/link";
+
 import type { MonthCount } from "@/lib/types";
 
 import styles from "./month-chart.module.css";
 
 const monthFormat = new Intl.DateTimeFormat("ru-RU", { month: "short" });
+const longMonthFormat = new Intl.DateTimeFormat("ru-RU", {
+  month: "long",
+  year: "numeric",
+});
 
 function shortMonth(value: string): string {
   const [year, month] = value.split("-").map(Number);
@@ -11,6 +17,15 @@ function shortMonth(value: string): string {
   }
 
   return monthFormat.format(new Date(year, month - 1, 1));
+}
+
+function longMonth(value: string): string {
+  const [year, month] = value.split("-").map(Number);
+  if (!year || !month) {
+    return value;
+  }
+
+  return longMonthFormat.format(new Date(year, month - 1, 1));
 }
 
 /**
@@ -25,13 +40,19 @@ export function MonthChart({ data }: { data: MonthCount[] }) {
       <ul className={styles.chart} aria-label="Записи по месяцам">
         {data.map((item) => (
           <li key={item.month} className={styles.bar}>
-            <span className={styles.count}>{item.count}</span>
-            <span
-              className={styles.column}
-              style={{ height: `${Math.round((item.count / max) * 100)}%` }}
-              title={`${shortMonth(item.month)}: ${item.count}`}
-            />
-            <span className={styles.month}>{shortMonth(item.month)}</span>
+            <Link
+              aria-label={`Записи за ${longMonth(item.month)}: ${item.count}`}
+              className={styles.link}
+              href={`/items?month=${item.month}`}
+              title={`${longMonth(item.month)}: ${item.count}`}
+            >
+              <span className={styles.count}>{item.count}</span>
+              <span
+                className={styles.column}
+                style={{ height: `${Math.round((item.count / max) * 100)}%` }}
+              />
+              <span className={styles.month}>{shortMonth(item.month)}</span>
+            </Link>
           </li>
         ))}
       </ul>

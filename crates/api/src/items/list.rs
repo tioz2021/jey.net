@@ -36,6 +36,8 @@ pub struct ListQuery {
     pub year_to: Option<i32>,
     pub rating_min: Option<u8>,
     pub rating_max: Option<u8>,
+    /// `YYYY-MM`: limits the list to records added in that month.
+    pub month: Option<String>,
     pub q: Option<String>,
 }
 

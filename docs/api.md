@@ -134,7 +134,8 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | DELETE | `/items/{id}/cover` | убрать обложку |
 
 Параметры списка: `kind`, `status`, `tag`, `q`, `year_from`, `year_to`,
-`rating_min`, `rating_max`, `sort`, `include_deleted`, `limit`, `cursor`.
+`rating_min`, `rating_max`, `month` (`YYYY-MM`, месяц добавления), `sort`,
+`include_deleted`, `limit`, `cursor`.
 
 ### Теги, статистика, экспорт
 

@@ -57,12 +57,14 @@ export default async function DashboardPage() {
   const kindRows = (Object.keys(KIND_LABELS) as ItemKind[]).map((kind) => ({
     label: KIND_LABELS[kind],
     count: stats.by_kind[kind] ?? 0,
+    href: `/items?kind=${kind}`,
   }));
 
   const statusRows = (Object.keys(STATUS_LABELS) as ItemStatus[]).map(
     (status) => ({
       label: STATUS_LABELS[status],
       count: stats.by_status[status] ?? 0,
+      href: `/items?status=${status}`,
     }),
   );
 

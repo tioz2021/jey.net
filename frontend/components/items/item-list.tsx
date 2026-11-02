@@ -28,6 +28,7 @@ function parseFilters(params: URLSearchParams): ItemFilters {
     sort: sort ? (sort as Sort) : undefined,
     tag: tag ?? undefined,
     q: params.get("q") ?? undefined,
+    month: params.get("month") ?? undefined,
     include_deleted: params.get("deleted") === "1",
     limit: PAGE_SIZE,
   };

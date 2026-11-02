@@ -59,6 +59,7 @@ pub async fn search(
            and ($6::int is null or i.year <= $6)
            and ($7::int is null or i.rating >= $7)
            and ($8::int is null or i.rating <= $8)
+           and ($12::text is null or to_char(date_trunc('month', i.created_at), 'YYYY-MM') = $12)
            and (
                i.title ilike $9 escape '\\'
                or i.subtitle ilike $9 escape '\\'
@@ -83,6 +84,7 @@ pub async fn search(
     .bind(pattern)
     .bind(query)
     .bind(limit)
+    .bind(filters.month.as_deref())
     .fetch_all(pool)
     .await
     .map_err(AppError::internal)?;

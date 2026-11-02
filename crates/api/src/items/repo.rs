@@ -267,6 +267,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
                and ($10::int is null or i.year <= $10)
                and ($11::int is null or i.rating >= $11)
                and ($12::int is null or i.rating <= $12)
+               and ($13::text is null or to_char(date_trunc('month', i.created_at), 'YYYY-MM') = $13)
                and {cursor_predicate}
              order by {order}
              limit $6
@@ -305,6 +306,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
         .bind(filters.year_to)
         .bind(filters.rating_min.map(i32::from))
         .bind(filters.rating_max.map(i32::from))
+        .bind(filters.month.as_deref())
         .fetch_all(pool)
         .await
         .map_err(AppError::internal)?;

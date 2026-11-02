@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 import styles from "./distribution.module.css";
 
 export interface DistributionRow {
   label: string;
   count: number;
+  href?: string;
 }
 
 export function Distribution({
@@ -20,22 +23,36 @@ export function Distribution({
           const share = total > 0 ? Math.round((row.count / total) * 100) : 0;
 
           return (
-            <li key={row.label} className={styles.row}>
-              <span className={styles.label}>{row.label}</span>
-              <span
-                className={styles.track}
-                role="img"
-                aria-label={`${row.label}: ${row.count} (${share}%)`}
-              >
-                <span
-                  className={styles.fill}
-                  style={{ width: `${share}%` }}
-                />
-              </span>
-              <span className={styles.count}>
-                {row.count}
-                <span className={styles.share}> · {share}%</span>
-              </span>
+            <li key={row.label}>
+              {(() => {
+                const content = (
+                  <>
+                    <span className={styles.label}>{row.label}</span>
+                    <span
+                      className={styles.track}
+                      role="img"
+                      aria-label={`${row.label}: ${row.count} (${share}%)`}
+                    >
+                      <span
+                        className={styles.fill}
+                        style={{ width: `${share}%` }}
+                      />
+                    </span>
+                    <span className={styles.count}>
+                      {row.count}
+                      <span className={styles.share}> · {share}%</span>
+                    </span>
+                  </>
+                );
+
+                return row.href ? (
+                  <Link className={styles.row} href={row.href}>
+                    {content}
+                  </Link>
+                ) : (
+                  <div className={styles.row}>{content}</div>
+                );
+              })()}
             </li>
           );
         })}

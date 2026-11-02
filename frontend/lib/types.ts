@@ -74,6 +74,7 @@ export interface ItemFilters {
   year_to?: number;
   rating_min?: number;
   rating_max?: number;
+  month?: string;
   include_deleted?: boolean;
 }
 
