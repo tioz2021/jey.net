@@ -39,6 +39,7 @@ use crate::items::list::list_items;
 use crate::items::tags::{delete_tag, list_tags};
 use crate::items::update::update_item;
 use crate::mail::Mailer;
+use crate::media::LocalStorage;
 use crate::stats::stats;
 use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
@@ -56,6 +57,7 @@ pub struct AppState {
     pub pool: PgPool,
     pub config: Arc<Config>,
     pub mailer: Arc<dyn Mailer>,
+    pub storage: Arc<LocalStorage>,
 }
 
 /// Builds the full application router.

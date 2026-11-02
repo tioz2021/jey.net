@@ -9,7 +9,7 @@ use image::{DynamicImage, ImageFormat};
 use serde_json::json;
 
 const PASSWORD: &str = "correct horse battery";
-const MEDIA_DIR: &str = "var/test-uploads";
+const MEDIA_DIR: &str = "var/test-media";
 
 fn encoded(format: ImageFormat, width: u32, height: u32) -> Vec<u8> {
     let image = DynamicImage::new_rgb8(width, height);
@@ -41,7 +41,7 @@ async fn logged_in() -> (TestClient, String, String, uuid::Uuid) {
 }
 
 fn cleanup_files(user_id: uuid::Uuid) {
-    let _ = std::fs::remove_dir_all(format!("{MEDIA_DIR}/{user_id}"));
+    let _ = std::fs::remove_dir_all(format!("{MEDIA_DIR}/u/{user_id}"));
 }
 
 #[tokio::test]
@@ -69,8 +69,8 @@ async fn accepts_png_jpeg_and_webp_and_creates_renditions() {
         assert_eq!(response.body["upload"]["height"], 600);
 
         let id = response.body["upload"]["id"].as_str().expect("id");
-        for suffix in ["_large.webp", "_preview.webp"] {
-            let path = format!("{MEDIA_DIR}/{user_id}/{id}{suffix}");
+        for suffix in ["large.webp", "preview.webp"] {
+            let path = format!("{MEDIA_DIR}/u/{user_id}/{id}/{suffix}");
             let size = std::fs::metadata(&path)
                 .unwrap_or_else(|_| panic!("missing rendition {path}"))
                 .len();
@@ -183,8 +183,8 @@ async fn downscales_a_large_photo_and_keeps_the_large_rendition_small() {
     assert_eq!(response.body["upload"]["height"], 2000);
 
     let id = response.body["upload"]["id"].as_str().expect("id");
-    let large_path = format!("{MEDIA_DIR}/{user_id}/{id}_large.webp");
-    let preview_path = format!("{MEDIA_DIR}/{user_id}/{id}_preview.webp");
+    let large_path = format!("{MEDIA_DIR}/u/{user_id}/{id}/large.webp");
+    let preview_path = format!("{MEDIA_DIR}/u/{user_id}/{id}/preview.webp");
 
     let large = image::open(&large_path).expect("large rendition is a valid image");
     assert_eq!((large.width(), large.height()), (1200, 800));

@@ -156,7 +156,7 @@ impl Config {
 
         let media_dir = match var("MEDIA_DIR") {
             Some(raw) => PathBuf::from(raw),
-            None => PathBuf::from("var/uploads"),
+            None => PathBuf::from("var/media"),
         };
 
         let allowed_origins = match var("ALLOWED_ORIGINS") {

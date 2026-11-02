@@ -11,6 +11,7 @@ use tracing::{info, warn};
 
 use jey_api::config::Config;
 use jey_api::http::{AppState, VERSION, router};
+use jey_api::media::LocalStorage;
 use jey_api::{db, mail, telemetry};
 
 #[tokio::main]
@@ -112,9 +113,12 @@ async fn migrate_and_exit(pool: &PgPool) -> ExitCode {
 
 async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
+    let storage = Arc::new(LocalStorage::new(config.media_dir.clone()));
+
     let state = AppState {
         pool,
         mailer: mail::from_config(&config),
+        storage,
         config: Arc::new(config),
     };
 

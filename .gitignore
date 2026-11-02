@@ -18,7 +18,7 @@ pnpm-debug.log*
 
 # Local data (uploads, mail, sqlite, dumps)
 /data/
-/var/
+var/
 *.db
 *.db-shm
 *.db-wal

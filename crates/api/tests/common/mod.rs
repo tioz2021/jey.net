@@ -58,7 +58,7 @@ fn test_config() -> Config {
         public_url: "http://localhost:3000".to_owned(),
         mail_from: "jey@localhost".to_owned(),
         mail_dir: std::path::PathBuf::from("var/mail"),
-        media_dir: std::path::PathBuf::from("var/test-uploads"),
+        media_dir: std::path::PathBuf::from("var/test-media"),
     }
 }
 
@@ -95,10 +95,14 @@ impl TestClient {
 
         let pool = pool().await;
         let mailer = Arc::new(MemoryMailer::new());
+        let config = test_config();
+        let storage = Arc::new(jey_api::media::LocalStorage::new(config.media_dir.clone()));
+
         let state = AppState {
             pool: pool.clone(),
-            config: Arc::new(test_config()),
+            config: Arc::new(config),
             mailer: mailer.clone(),
+            storage,
         };
 
         // Every test gets its own client address so rate-limit counters of one

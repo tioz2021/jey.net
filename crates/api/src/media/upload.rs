@@ -1,11 +1,10 @@
 //! Image uploads: the format is decided by the bytes, never by the name.
 
-use std::path::Path;
-
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::error::AppError;
+use crate::media::storage::{self, LocalStorage, Variant};
 use crate::media::transform;
 
 /// Largest accepted file.
@@ -69,8 +68,12 @@ pub struct StoredUpload {
     pub preview_key: String,
 }
 
-/// Validates the bytes and writes them under the media root.
-pub async fn save(media_dir: &Path, user_id: Uuid, bytes: &[u8]) -> Result<StoredUpload, AppError> {
+/// Validates the bytes and writes the original plus both renditions.
+pub async fn save(
+    storage: &LocalStorage,
+    user_id: Uuid,
+    bytes: &[u8],
+) -> Result<StoredUpload, AppError> {
     if bytes.is_empty() {
         return Err(AppError::validation_field("file", "file is empty"));
     }
@@ -90,24 +93,23 @@ pub async fn save(media_dir: &Path, user_id: Uuid, bytes: &[u8]) -> Result<Store
     let processed = transform::process(bytes)?;
 
     let id = Uuid::new_v4();
-    let storage_key = format!("{user_id}/{id}.{}", format.extension());
-    let large_key = format!("{user_id}/{id}_large.webp");
-    let preview_key = format!("{user_id}/{id}_preview.webp");
+    let storage_key = storage::upload_key(user_id, id, Variant::Original, format.extension());
+    let large_key = storage::upload_key(user_id, id, Variant::Large, format.extension());
+    let preview_key = storage::upload_key(user_id, id, Variant::Preview, format.extension());
 
-    if let Some(parent) = media_dir.join(&storage_key).parent() {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .map_err(AppError::internal)?;
+    // Write one by one and roll back on failure: a half-stored upload is
+    // worse than no upload at all.
+    storage.put(&storage_key, bytes).await?;
+
+    if let Err(error) = storage.put(&large_key, &processed.large).await {
+        let _ = storage.delete(&storage_key).await;
+        return Err(error);
     }
 
-    for (key, contents) in [
-        (&storage_key, bytes),
-        (&large_key, processed.large.as_slice()),
-        (&preview_key, processed.preview.as_slice()),
-    ] {
-        tokio::fs::write(media_dir.join(key), contents)
-            .await
-            .map_err(AppError::internal)?;
+    if let Err(error) = storage.put(&preview_key, &processed.preview).await {
+        let _ = storage.delete(&storage_key).await;
+        let _ = storage.delete(&large_key).await;
+        return Err(error);
     }
 
     let mut hasher = Sha256::new();

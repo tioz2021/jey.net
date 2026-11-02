@@ -30,7 +30,7 @@
 | Веб | Next.js + TypeScript + нативный CSS (CSS Modules) |
 | Пароли и сессии | argon2id, непрозрачные токены сессий в БД |
 | Синхронизация | push/pull по `sync_seq`, конфликтные копии |
-| Файлы | локальный диск VPS (Cloudflare R2 — для бэкапов) |
+| Файлы | локальный диск VPS (`var/media/`) |
 | Деплой | VPS + Caddy + systemd |
 | CI | GitHub Actions |
 

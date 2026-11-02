@@ -41,7 +41,7 @@ pub async fn upload(
 
     let bytes = bytes.ok_or_else(|| AppError::validation_field(FILE_FIELD, "file is required"))?;
 
-    let stored = media::save(&state.config.media_dir, current.user.id, &bytes).await?;
+    let stored = media::save(&state.storage, current.user.id, &bytes).await?;
 
     sqlx::query(
         "insert into uploads
