@@ -49,7 +49,7 @@
 | **M7 · Полировка** | T82–T91 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T29 приняты. Следующая — T30.
+**Текущий статус:** T01–T30 приняты. Следующая — T31.
 
 ---
 
@@ -241,8 +241,8 @@
   **Проверить:** дубликат тега в другом регистре отклоняется; удаление записи удаляет связи; удаление тега не удаляет записи.
   **Коммит:** `feat(db): add tags and item_tags`
 
-- [ ] **T30 · Домен записей**
-  **Файлы:** `crates/api/src/items/mod.rs`, `crates/api/src/items/model.rs`, `crates/api/src/items/repo.rs`
+- [x] **T30 · Домен записей**
+  **Файлы:** `crates/core/src/items/mod.rs`, `crates/core/src/items/model.rs`, `crates/api/src/items/mod.rs`, `crates/api/src/items/repo.rs`
   **Сделать:** типы `Item`, `ItemKind`, `ItemStatus`, `NewItem`, `ItemPatch`; маппинг из строк БД; репозиторий с методами `create`, `get`, `list`, `update`, `soft_delete`, `restore`; все запросы ограничены `user_id`.
   **Проверить:** `cargo test items::repo` зелёный; попытка получить чужую запись возвращает `None`; `ItemKind::from_str` отвергает неизвестные значения.
   **Коммит:** `feat(items): add domain model and repository`

@@ -295,6 +295,32 @@ impl TestClient {
     }
 }
 
+/// Creates a user directly in the database, for repository tests.
+pub async fn create_test_user(pool: &PgPool) -> uuid::Uuid {
+    let id = uuid::Uuid::new_v4();
+    let email = format!("repo-{}@example.com", id);
+
+    sqlx::query(
+        "insert into users (id, email, password_hash, display_name)
+         values ($1, $2, 'not-a-real-hash', 'Repo Tester')",
+    )
+    .bind(id)
+    .bind(email)
+    .execute(pool)
+    .await
+    .expect("test user is created");
+
+    id
+}
+
+/// Removes a user created by `create_test_user`.
+pub async fn purge_test_user(pool: &PgPool, id: uuid::Uuid) {
+    let _ = sqlx::query("delete from users where id = $1")
+        .bind(id)
+        .execute(pool)
+        .await;
+}
+
 /// Unique email per test so runs never collide.
 pub fn unique_email() -> String {
     format!("test-{}@example.com", uuid::Uuid::new_v4())

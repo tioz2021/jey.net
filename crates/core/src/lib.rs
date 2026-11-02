@@ -4,6 +4,7 @@
 //! or stored: it must not depend on `axum` or `sqlx`.
 
 pub mod error;
+pub mod items;
 pub mod sync;
 
 pub use error::DomainError;
