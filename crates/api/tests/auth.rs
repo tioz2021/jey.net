@@ -549,3 +549,184 @@ async fn resending_the_letter_is_rate_limited() {
     client.cleanup(&email).await;
     client.purge_user(user_id).await;
 }
+
+#[tokio::test]
+async fn password_reset_changes_the_password_and_ends_every_session() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let first_cookie = registered.session_cookie().expect("registration cookie");
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    let login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    let second_cookie = login.session_cookie().expect("login cookie");
+
+    let requested = client
+        .post(
+            "/api/v1/auth/password-reset/request",
+            json!({ "email": email }),
+        )
+        .await;
+    assert_eq!(requested.status, 202, "body: {}", requested.body);
+
+    let message = client.mailer.last().expect("reset letter");
+    assert!(message.text.contains("/reset-password?token="));
+    let token = token_from(&message.text);
+
+    let confirmed = client
+        .post(
+            "/api/v1/auth/password-reset/confirm",
+            json!({ "token": token, "new_password": NEW_PASSWORD }),
+        )
+        .await;
+    assert_eq!(confirmed.status, 204, "body: {}", confirmed.body);
+
+    // Every session is gone, including the one that registered.
+    assert_eq!(
+        client.get("/api/v1/me", Some(&first_cookie)).await.status,
+        401
+    );
+    assert_eq!(
+        client.get("/api/v1/me", Some(&second_cookie)).await.status,
+        401
+    );
+
+    let old_login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    assert_eq!(old_login.status, 401);
+
+    let new_login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": NEW_PASSWORD }),
+        )
+        .await;
+    assert_eq!(new_login.status, 200, "body: {}", new_login.body);
+
+    // The link cannot be reused.
+    let again = client
+        .post(
+            "/api/v1/auth/password-reset/confirm",
+            json!({ "token": token, "new_password": NEW_PASSWORD }),
+        )
+        .await;
+    assert_eq!(again.status, 400);
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}
+
+#[tokio::test]
+async fn password_reset_request_does_not_reveal_accounts() {
+    let client = TestClient::new().await;
+    let known = unique_email();
+    let unknown = unique_email();
+
+    client
+        .post("/api/v1/auth/register", register_body(&known))
+        .await;
+
+    let before = client.mailer.sent().len();
+    let for_unknown = client
+        .post(
+            "/api/v1/auth/password-reset/request",
+            json!({ "email": unknown }),
+        )
+        .await;
+    let after_unknown = client.mailer.sent().len();
+
+    let for_known = client
+        .post(
+            "/api/v1/auth/password-reset/request",
+            json!({ "email": known }),
+        )
+        .await;
+    let after_known = client.mailer.sent().len();
+
+    assert_eq!(for_unknown.status, 202);
+    assert_eq!(for_known.status, 202);
+    assert_eq!(after_unknown, before, "no letter for an unknown address");
+    assert_eq!(after_known, before + 1, "one letter for a known address");
+
+    client.cleanup(&known).await;
+    client.cleanup(&unknown).await;
+}
+
+#[tokio::test]
+async fn password_reset_requests_are_rate_limited() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    for _ in 0..3 {
+        let response = client
+            .post(
+                "/api/v1/auth/password-reset/request",
+                json!({ "email": email }),
+            )
+            .await;
+        assert_eq!(response.status, 202);
+    }
+
+    let fourth = client
+        .post(
+            "/api/v1/auth/password-reset/request",
+            json!({ "email": email }),
+        )
+        .await;
+    assert_eq!(fourth.status, 429);
+    assert_eq!(fourth.body["error"]["code"], "rate_limited");
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn expired_reset_token_is_rejected() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    client
+        .post(
+            "/api/v1/auth/password-reset/request",
+            json!({ "email": email }),
+        )
+        .await;
+    let token = token_from(&client.mailer.last().expect("reset letter").text);
+    client.expire_auth_tokens(user_id).await;
+
+    let response = client
+        .post(
+            "/api/v1/auth/password-reset/confirm",
+            json!({ "token": token, "new_password": NEW_PASSWORD }),
+        )
+        .await;
+    assert_eq!(response.status, 400);
+    assert_eq!(response.body["error"]["details"]["field"], "token");
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}

@@ -285,8 +285,11 @@ impl TestClient {
             .execute(&self.pool)
             .await;
 
-        let _ = sqlx::query("delete from rate_limits where key like $1")
+        // Counters are keyed either by address (`login:ip:email`) or by email
+        // (`pwreset:email`), so both patterns have to go.
+        let _ = sqlx::query("delete from rate_limits where key like $1 or key like $2")
             .bind(format!("%{}%", self.ip))
+            .bind(format!("%{}%", email))
             .execute(&self.pool)
             .await;
     }

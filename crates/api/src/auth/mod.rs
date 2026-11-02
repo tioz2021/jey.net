@@ -6,6 +6,7 @@ pub mod logout;
 pub mod middleware;
 pub mod password;
 pub mod password_change;
+pub mod password_reset;
 pub mod register;
 pub mod session;
 pub mod tokens;

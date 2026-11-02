@@ -29,6 +29,13 @@ pub const LOGIN: Rule = Rule {
     block: Duration::from_secs(15 * 60),
 };
 
+/// Password reset requests per address: three per hour.
+pub const PASSWORD_RESET_REQUEST: Rule = Rule {
+    limit: 3,
+    window: Duration::from_secs(60 * 60),
+    block: Duration::from_secs(60 * 60),
+};
+
 /// Verification emails per account: one per ten minutes.
 pub const VERIFY_RESEND: Rule = Rule {
     limit: 1,
