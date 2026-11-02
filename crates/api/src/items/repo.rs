@@ -176,17 +176,30 @@ pub async fn list(
     rows.into_iter().map(Item::try_from).collect()
 }
 
-/// Lists one page of live records, strictly after the cursor when given.
-pub async fn list_page(
-    pool: &PgPool,
-    user_id: Uuid,
-    kind: Option<ItemKind>,
-    status: Option<ItemStatus>,
-    sort: crate::items::list::Sort,
-    limit: i64,
-    cursor: Option<(String, Uuid)>,
-) -> Result<Vec<Item>, AppError> {
+/// Everything a page request needs.
+pub struct ListPage {
+    pub user_id: Uuid,
+    pub kind: Option<ItemKind>,
+    pub status: Option<ItemStatus>,
+    pub sort: crate::items::list::Sort,
+    pub limit: i64,
+    pub cursor: Option<(String, Uuid)>,
+    pub include_deleted: bool,
+}
+
+/// Lists one page of records, strictly after the cursor when given.
+pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppError> {
     use crate::items::list::Sort;
+
+    let ListPage {
+        user_id,
+        kind,
+        status,
+        sort,
+        limit,
+        cursor,
+        include_deleted,
+    } = page;
 
     let (cursor_predicate, order) = match sort {
         Sort::CreatedDesc => (
@@ -229,7 +242,7 @@ pub async fn list_page(
          left join item_tags it on it.item_id = i.id
          left join tags t on t.id = it.tag_id
          where i.user_id = $1
-           and i.deleted_at is null
+           and ($7::boolean or i.deleted_at is null)
            and ($2::text is null or i.kind = $2)
            and ($3::text is null or i.status = $3)
            and {cursor_predicate}
@@ -250,6 +263,7 @@ pub async fn list_page(
         .bind(cursor_value)
         .bind(cursor_id)
         .bind(limit)
+        .bind(include_deleted)
         .fetch_all(pool)
         .await
         .map_err(AppError::internal)?;

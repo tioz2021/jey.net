@@ -27,6 +27,8 @@ pub struct ListQuery {
     pub sort: Option<String>,
     pub limit: Option<i64>,
     pub cursor: Option<String>,
+    /// `true` shows records from the bin as well.
+    pub include_deleted: Option<bool>,
 }
 
 /// `GET /api/v1/items`
@@ -52,12 +54,15 @@ pub async fn list_items(
     // One extra row tells us whether another page exists.
     let mut items = repo::list_page(
         &state.pool,
-        current.user.id,
-        kind,
-        status,
-        sort,
-        limit + 1,
-        cursor,
+        repo::ListPage {
+            user_id: current.user.id,
+            kind,
+            status,
+            sort,
+            limit: limit + 1,
+            cursor,
+            include_deleted: query.include_deleted.unwrap_or(false),
+        },
     )
     .await?;
 

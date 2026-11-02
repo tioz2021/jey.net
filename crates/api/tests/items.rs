@@ -648,3 +648,107 @@ async fn update_item_replaces_tags_and_validates_input() {
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
 }
+
+#[tokio::test]
+async fn delete_moves_to_bin_and_restore_brings_back() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Interstellar", "status": "done" }),
+            &cookie,
+        )
+        .await;
+    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let deleted = client
+        .delete(&format!("/api/v1/items/{id}"), json!({}), &cookie)
+        .await;
+    assert_eq!(deleted.status, 204, "body: {}", deleted.body);
+
+    // Hidden from reads and from the normal list.
+    assert_eq!(
+        client
+            .get(&format!("/api/v1/items/{id}"), Some(&cookie))
+            .await
+            .status,
+        404
+    );
+    let visible = client.get("/api/v1/items", Some(&cookie)).await;
+    assert!(visible.body["items"].as_array().expect("array").is_empty());
+
+    // The bin shows it, with the tombstone timestamp.
+    let bin = client
+        .get("/api/v1/items?include_deleted=true", Some(&cookie))
+        .await;
+    let items = bin.body["items"].as_array().expect("array");
+    assert_eq!(items.len(), 1);
+    assert!(items[0]["deleted_at"].is_string(), "deleted_at is set");
+
+    // A second delete is a 404: for the API the record is gone.
+    let again = client
+        .delete(&format!("/api/v1/items/{id}"), json!({}), &cookie)
+        .await;
+    assert_eq!(again.status, 404);
+
+    // Restore puts it back.
+    let restored = client
+        .post_with_cookie(&format!("/api/v1/items/{id}/restore"), json!({}), &cookie)
+        .await;
+    assert_eq!(restored.status, 200, "body: {}", restored.body);
+    assert_eq!(restored.body["item"]["title"], "Interstellar");
+
+    let back = client.get("/api/v1/items", Some(&cookie)).await;
+    assert_eq!(back.body["items"].as_array().expect("array").len(), 1);
+
+    // Restoring a live record is a 404 as well.
+    let restore_again = client
+        .post_with_cookie(&format!("/api/v1/items/{id}/restore"), json!({}), &cookie)
+        .await;
+    assert_eq!(restore_again.status, 404);
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn delete_and_restore_respect_ownership() {
+    let (client, email, cookie) = logged_in_client().await;
+    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "Dune", "status": "done" }),
+            &cookie,
+        )
+        .await;
+    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let foreign_delete = stranger
+        .delete(&format!("/api/v1/items/{id}"), json!({}), &stranger_cookie)
+        .await;
+    assert_eq!(foreign_delete.status, 404);
+
+    client
+        .delete(&format!("/api/v1/items/{id}"), json!({}), &cookie)
+        .await;
+
+    let foreign_restore = stranger
+        .post_with_cookie(
+            &format!("/api/v1/items/{id}/restore"),
+            json!({}),
+            &stranger_cookie,
+        )
+        .await;
+    assert_eq!(foreign_restore.status, 404);
+
+    // The owner still has the record in the bin.
+    let bin = client
+        .get("/api/v1/items?include_deleted=true", Some(&cookie))
+        .await;
+    assert_eq!(bin.body["items"].as_array().expect("array").len(), 1);
+
+    client.cleanup(&email).await;
+    stranger.cleanup(&stranger_email).await;
+}
