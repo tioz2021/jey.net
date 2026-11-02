@@ -1,21 +1,30 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
 mod config;
+mod db;
 mod error;
 mod telemetry;
 
 use std::error::Error;
 use std::process::ExitCode;
 
-use axum::{Json, Router, routing::get};
+use axum::Json;
+use axum::Router;
+use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::routing::get;
 use serde::Serialize;
+use serde_json::json;
+use sqlx::PgPool;
 use tokio::net::TcpListener;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::config::Config;
 use crate::error::AppError;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const READINESS_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
 
 #[derive(Serialize)]
 struct Health {
@@ -30,6 +39,32 @@ async fn health() -> Json<Health> {
     })
 }
 
+async fn readiness(State(pool): State<PgPool>) -> Response {
+    // Uptime checks usually time out after a few seconds, so never let a slow
+    // database keep the readiness call open for the whole pool timeout.
+    let check = tokio::time::timeout(READINESS_TIMEOUT, db::ping(&pool)).await;
+
+    match check {
+        Ok(Ok(())) => (StatusCode::OK, Json(json!({ "status": "ready" }))).into_response(),
+        Ok(Err(err)) => {
+            warn!(error = %err, "readiness check failed");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "unavailable", "reason": "database" })),
+            )
+                .into_response()
+        }
+        Err(_) => {
+            warn!("readiness check timed out");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "unavailable", "reason": "timeout" })),
+            )
+                .into_response()
+        }
+    }
+}
+
 async fn fallback() -> AppError {
     AppError::not_found("route not found")
 }
@@ -38,11 +73,13 @@ async fn method_not_allowed() -> AppError {
     AppError::method_not_allowed("method is not allowed for this route")
 }
 
-fn app() -> Router {
+fn app(pool: PgPool) -> Router {
     Router::new()
         .route("/health", get(health))
+        .route("/health/ready", get(readiness))
         .fallback(fallback)
         .method_not_allowed_fallback(method_not_allowed)
+        .with_state(pool)
 }
 
 #[tokio::main]
@@ -63,11 +100,24 @@ async fn main() -> ExitCode {
         version = VERSION,
         session_ttl_days = config.session_ttl_days,
         allowed_origins = config.allowed_origins.len(),
-        database_configured = config.database_url.is_some(),
         "starting jey-api"
     );
 
-    match run(config).await {
+    let pool = match db::create_pool(&config) {
+        Ok(pool) => pool,
+        Err(err) => {
+            eprintln!("database configuration error: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match tokio::time::timeout(READINESS_TIMEOUT, db::ping(&pool)).await {
+        Ok(Ok(())) => info!("database connection established"),
+        Ok(Err(err)) => warn!(error = %err, "database is not reachable yet"),
+        Err(_) => warn!("database connection attempt timed out"),
+    }
+
+    match run(config, pool).await {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("fatal error: {err}");
@@ -76,10 +126,10 @@ async fn main() -> ExitCode {
     }
 }
 
-async fn run(config: Config) -> Result<(), Box<dyn Error>> {
+async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
 
-    axum::serve(listener, telemetry::instrument(app()))
+    axum::serve(listener, telemetry::instrument(app(pool)))
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 

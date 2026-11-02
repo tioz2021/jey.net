@@ -78,8 +78,7 @@ impl fmt::Display for LogFormat {
 pub struct Config {
     pub app_env: AppEnv,
     pub bind_addr: SocketAddr,
-    /// Required once the database layer lands; `None` keeps the server bootable.
-    pub database_url: Option<String>,
+    pub database_url: String,
     pub session_ttl_days: u32,
     pub allowed_origins: Vec<String>,
     pub log_format: LogFormat,
@@ -114,6 +113,10 @@ impl Config {
             None => DEFAULT_SESSION_TTL_DAYS,
         };
 
+        let database_url = var("DATABASE_URL").ok_or(ConfigError::Missing {
+            key: "DATABASE_URL",
+        })?;
+
         let allowed_origins = match var("ALLOWED_ORIGINS") {
             Some(raw) => parse_origins(&raw)?,
             None => vec![DEFAULT_ORIGIN.to_owned()],
@@ -130,7 +133,7 @@ impl Config {
         Ok(Self {
             app_env,
             bind_addr,
-            database_url: var("DATABASE_URL"),
+            database_url,
             session_ttl_days,
             allowed_origins,
             log_format,
@@ -236,6 +239,9 @@ fn find_dotenv() -> Result<Option<PathBuf>, ConfigError> {
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
+    #[error("{key} is not set; copy .env.example to .env and fill it in")]
+    Missing { key: &'static str },
+
     #[error("{key}: {message} (got {value:?})")]
     InvalidValue {
         key: &'static str,
