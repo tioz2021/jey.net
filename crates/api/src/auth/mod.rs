@@ -1,6 +1,7 @@
 //! Authentication building blocks.
 
 pub mod login;
+pub mod middleware;
 pub mod password;
 pub mod register;
 pub mod session;

@@ -6,6 +6,7 @@ use axum::Json;
 use axum::Router;
 use axum::extract::State;
 use axum::http::StatusCode;
+use axum::middleware;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use serde::Serialize;
@@ -13,6 +14,7 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::auth::login::login;
+use crate::auth::middleware::{CurrentUser, require_auth};
 use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
@@ -39,16 +41,26 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .route("/health/ready", get(readiness))
-        .nest("/api/v1", api_v1())
+        .nest("/api/v1", api_v1(state.clone()))
         .fallback(fallback)
         .method_not_allowed_fallback(method_not_allowed)
         .with_state(state)
 }
 
-fn api_v1() -> Router<AppState> {
-    Router::new()
+fn api_v1(state: AppState) -> Router<AppState> {
+    let public = Router::new()
         .route("/auth/register", post(register))
-        .route("/auth/login", post(login))
+        .route("/auth/login", post(login));
+
+    let protected = Router::new()
+        .route("/me", get(me))
+        .route_layer(middleware::from_fn_with_state(state, require_auth));
+
+    public.merge(protected)
+}
+
+async fn me(current: CurrentUser) -> Json<serde_json::Value> {
+    Json(json!({ "user": current.user }))
 }
 
 #[derive(Serialize)]

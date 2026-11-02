@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::error::AppError;
 
 /// What the API returns about a user. Never contains the password hash.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UserView {
     pub id: Uuid,
     pub email: String,
@@ -84,6 +84,20 @@ pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>
          where email = $1 and deleted_at is null",
     )
     .bind(email)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)
+}
+
+/// Finds a live user by identifier.
+pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserRow>, AppError> {
+    sqlx::query_as::<_, UserRow>(
+        "select id, email::text as email, display_name, locale,
+                email_verified_at, is_public, created_at, password_hash
+         from users
+         where id = $1 and deleted_at is null",
+    )
+    .bind(id)
     .fetch_optional(pool)
     .await
     .map_err(AppError::internal)
