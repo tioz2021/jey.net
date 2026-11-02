@@ -116,9 +116,86 @@ swap, firewall, sshd-настройки и вход по ключу восста
 и исправить `sshd_config` или вернуть ключ. Поэтому root-сессию не закрываем
 до проверки входа под `jey`.
 
+## 6. PostgreSQL
+
+Ставим PostgreSQL 18 из PGDG: в Ubuntu 24.04 штатно идёт 16, а нам нужен 18.
+
+```bash
+install -d /usr/share/postgresql-common/pgdg
+curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+  https://www.postgresql.org/media/keys/ACCC4CF8.asc
+echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+  https://apt.postgresql.org/pub/repos/apt noble-pgdg main" \
+  > /etc/apt/sources.list.d/pgdg.list
+apt-get update && apt-get install -y postgresql-18 postgresql-contrib-18
+```
+
+### Настройки под 2 ГБ
+
+`/etc/postgresql/18/main/conf.d/99-jey.conf`:
+
+```ini
+listen_addresses = 'localhost'
+shared_buffers = 256MB
+work_mem = 4MB
+effective_cache_size = 768MB
+maintenance_work_mem = 64MB
+max_connections = 30
+
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%a.log'
+log_rotation_age = 1d
+log_rotation_size = 50MB
+log_truncate_on_rotation = on
+log_min_duration_statement = 500
+```
+
+Почему так: `shared_buffers` — четверть памяти; `work_mem` маленький, чтобы
+сортировки не съели RAM; `max_connections = 30` — у нас один API с пулом
+в 10 соединений; ротация логов не даёт диску закончиться.
+
+### Пользователь и база
+
+Пароль генерируется один раз и живёт только в `/etc/jey/api.env`:
+
+```bash
+install -d -m 700 /etc/jey
+PW=$(openssl rand -hex 24)
+printf "DATABASE_URL=postgres://jey:%s@localhost:5432/jey\n" "$PW" > /etc/jey/api.env
+chmod 600 /etc/jey/api.env
+
+sudo -u postgres psql -c "create role jey login password '$PW'"
+sudo -u postgres psql -c "create database jey owner jey"
+sudo -u postgres psql -d jey -c "create extension if not exists citext; create extension if not exists pg_trgm;"
+```
+
+`citext` нужен для регистронезависимых email, `pg_trgm` — для поиска.
+
+### Проверки
+
+```bash
+# настройки применились (значения в страницах/КБ)
+sudo -u postgres psql -tAc "show shared_buffers; show work_mem; show max_connections"
+
+# сервис реально слушает только localhost
+ss -ltn | grep 5432
+
+# снаружи порт закрыт (должно быть «закрыт»)
+timeout 5 bash -c 'cat < /dev/null > /dev/tcp/<IP>/5432'
+
+# миграции применяются бинарником API
+set -a; . /etc/jey/api.env; set +a
+/opt/jey/jey-api migrate
+psql "$DATABASE_URL" -tAc "select count(*) from _sqlx_migrations"
+```
+
+Замечание: `systemctl is-active postgresql` показывает `inactive` — это
+**мета-юнит**, он запускает кластер и завершается. Проверять надо
+`systemctl is-active postgresql@18-main` или `pg_isready`.
+
 ## Что дальше
 
-- T72 — Caddy и домен;
 - T73 — systemd-юнит для API;
 - T74–T75 — деплой фронтенда;
 - T76 — секреты;
