@@ -59,7 +59,7 @@ jey.net/
 ├── frontend/         # Next.js-приложение (веб-клиент)
 ├── docs/             # проектная документация
 ├── migrations/       # серверные миграции
-├── scripts/          # db.sh, check.sh
+├── scripts/          # db.sh, seed.sh, check.sh
 ├── ROADMAP.md
 └── README.md
 ```
@@ -71,6 +71,7 @@ jey.net/
 
 ```bash
 cargo test --workspace          # unit-тесты и интеграционные тесты API
+bash scripts/seed.sh            # демо-аккаунт и 200 записей для разработки
 bash scripts/check.sh           # то же плюс fmt, clippy и release-сборка
 ```
 
