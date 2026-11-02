@@ -164,6 +164,9 @@ export const auth = {
 
   logout: () => request<void>("/auth/logout", { method: "POST" }),
 
+  /** Ends every session of the account, including the current one. */
+  logoutAll: () => request<void>("/me/sessions/revoke-all", { method: "POST" }),
+
   me: (options: { redirectOnUnauthorized?: boolean } = {}) =>
     request<UserResponse>("/me", {
       redirectOnUnauthorized: options.redirectOnUnauthorized,

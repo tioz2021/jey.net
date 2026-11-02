@@ -30,3 +30,28 @@ pub async fn logout(
 
     Ok(response)
 }
+
+/// `POST /api/v1/me/sessions/revoke-all`
+///
+/// Ends every session of the account, including the current one: the person is
+/// asked to log in again. Used after a password leak or on a shared device.
+pub async fn revoke_all_sessions(
+    State(state): State<AppState>,
+    current: crate::auth::middleware::CurrentUser,
+) -> Result<Response, AppError> {
+    sqlx::query("delete from sessions where user_id = $1")
+        .bind(current.user.id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    let cookie = session::cleared_session_cookie(state.config.is_production());
+
+    let mut response = StatusCode::NO_CONTENT.into_response();
+    response.headers_mut().insert(
+        SET_COOKIE,
+        HeaderValue::from_str(&cookie).map_err(AppError::internal)?,
+    );
+
+    Ok(response)
+}

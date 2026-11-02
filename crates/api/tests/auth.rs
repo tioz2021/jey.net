@@ -730,3 +730,39 @@ async fn expired_reset_token_is_rejected() {
     client.cleanup(&email).await;
     client.purge_user(user_id).await;
 }
+
+#[tokio::test]
+async fn revoke_all_sessions_ends_every_session() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let first_cookie = registered.session_cookie().expect("registration cookie");
+
+    let login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    let second_cookie = login.session_cookie().expect("login cookie");
+
+    let response = client
+        .post_with_cookie("/api/v1/me/sessions/revoke-all", json!({}), &first_cookie)
+        .await;
+    assert_eq!(response.status, 204, "body: {}", response.body);
+
+    // Both sessions are gone, including the one that made the request.
+    assert_eq!(
+        client.get("/api/v1/me", Some(&first_cookie)).await.status,
+        401
+    );
+    assert_eq!(
+        client.get("/api/v1/me", Some(&second_cookie)).await.status,
+        401
+    );
+
+    client.cleanup(&email).await;
+}

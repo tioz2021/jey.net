@@ -19,7 +19,7 @@ use sqlx::PgPool;
 
 use crate::auth::email_verify::{resend_verification, verify_email};
 use crate::auth::login::login;
-use crate::auth::logout::logout;
+use crate::auth::logout::{logout, revoke_all_sessions};
 use crate::auth::middleware::require_auth;
 use crate::auth::password_change::change_password;
 use crate::auth::password_reset::{confirm_reset, request_reset};
@@ -81,6 +81,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
+        .route("/me/sessions/revoke-all", post(revoke_all_sessions))
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/items", post(create_item).get(list_items))
         .route(

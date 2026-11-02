@@ -26,6 +26,9 @@ export function SiteHeader() {
         <Link className={styles.navLink} href="/dashboard">
           Статистика
         </Link>
+        <Link className={styles.navLink} href="/settings">
+          Настройки
+        </Link>
       </nav>
 
       <div className={styles.right}>

@@ -106,6 +106,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | PATCH | `/me` | `{display_name?, locale?, is_public?}` | `200 {user}` |
 | POST | `/me/password` | `{current_password, new_password}` | `204` |
 | DELETE | `/me` | `{password}` | `204` |
+| POST | `/me/sessions/revoke-all` | — | `204`, все сессии завершены |
 | POST | `/auth/verify-email` | `{token}` | `204` |
 | POST | `/auth/verify-email/resend` | — | `204`, не чаще раза в 10 минут на аккаунт |
 | POST | `/auth/password-reset/request` | `{email}` | `202` (всегда) |
