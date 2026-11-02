@@ -11,7 +11,14 @@
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# No third-party assets are used, so everything is same-origin.
+		# 'unsafe-inline' is needed because Next.js inlines its bootstrap and
+		# the theme script; a nonce-based policy is the next step.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 		-Server
+		-X-Powered-By
 	}
 
 	# The API enforces tighter per-endpoint limits; this is only a backstop.
@@ -29,6 +36,11 @@
 
 	handle /health* {
 		reverse_proxy 127.0.0.1:8080
+	}
+
+	# The component playground is a development tool, not part of the product.
+	handle /dev* {
+		respond "Not found" 404
 	}
 
 	# Everything else is the Next.js web client.
