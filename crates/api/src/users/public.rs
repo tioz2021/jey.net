@@ -43,6 +43,22 @@ pub struct PublicItemView {
     pub updated_at: DateTime<Utc>,
 }
 
+/// One public record page: unlike the listing it includes the author's note,
+/// because sharing the impression is the point of a public record.
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct PublicItemDetail {
+    pub id: Uuid,
+    pub kind: String,
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub year: Option<i32>,
+    pub rating: Option<i16>,
+    pub review: Option<String>,
+    pub cover_key: Option<String>,
+    pub tags: Vec<String>,
+    pub updated_at: DateTime<Utc>,
+}
+
 /// One public profile in the sitemap listing.
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct PublicUserEntry {
@@ -110,13 +126,14 @@ pub async fn item(
 ) -> Result<Json<Value>, AppError> {
     load_public_user(&state.pool, user_id).await?;
 
-    let item = sqlx::query_as::<_, PublicItemView>(
+    let item = sqlx::query_as::<_, PublicItemDetail>(
         "select i.id,
                 i.kind,
                 i.title,
                 i.subtitle,
                 i.year,
                 i.rating,
+                i.review,
                 i.cover_key,
                 i.updated_at,
                 coalesce(

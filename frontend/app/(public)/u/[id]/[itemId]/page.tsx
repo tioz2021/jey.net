@@ -132,8 +132,15 @@ export default async function PublicItemPage({
         </Card>
       </div>
 
+      {item.review ? (
+        <Card title="Рецензия">
+          <p className={styles.review}>{item.review}</p>
+        </Card>
+      ) : null}
+
       <p className={styles.note}>
-        Заметки и планы видны только владельцу. Здесь — лишь завершённая запись.
+        Здесь — завершённая запись с оценкой и заметкой автора. Черновики и планы
+        скрыты.
       </p>
     </article>
   );

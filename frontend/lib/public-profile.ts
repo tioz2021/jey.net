@@ -1,7 +1,7 @@
 import { cache } from "react";
 
 import { BACKEND_URL } from "./server-api";
-import type { PublicItem, PublicProfileResponse } from "./types";
+import type { PublicItemDetail, PublicProfileResponse } from "./types";
 
 /**
  * Loads a public profile once per request.
@@ -26,7 +26,7 @@ export const getPublicProfile = cache(
 
 /** One finished record of a public profile. */
 export const getPublicItem = cache(
-  async (userId: string, itemId: string): Promise<PublicItem | null> => {
+  async (userId: string, itemId: string): Promise<PublicItemDetail | null> => {
     const response = await fetch(
       `${BACKEND_URL}/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}`,
       { cache: "no-store" },
@@ -36,7 +36,7 @@ export const getPublicItem = cache(
       return null;
     }
 
-    const body = (await response.json()) as { item: PublicItem };
+    const body = (await response.json()) as { item: PublicItemDetail };
     return body.item;
   },
 );

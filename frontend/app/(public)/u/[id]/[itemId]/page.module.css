@@ -75,6 +75,13 @@
   list-style: none;
 }
 
+.review {
+  margin: 0;
+  max-width: 70ch;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 .note {
   margin: var(--space-4) 0 0;
   font-size: var(--text-sm);

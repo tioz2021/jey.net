@@ -135,6 +135,10 @@ export interface PublicItem {
   updated_at: string;
 }
 
+export interface PublicItemDetail extends PublicItem {
+  review: string | null;
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];

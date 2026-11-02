@@ -173,7 +173,7 @@ async fn public_record_is_readable_without_private_fields() {
         .await;
     assert_eq!(response.status, 200, "body: {}", response.body);
     assert_eq!(response.body["item"]["title"], "Открытая");
-    assert!(response.body["item"].get("review").is_none());
+    assert_eq!(response.body["item"]["review"], "секрет");
     assert!(!response.body.to_string().contains(&email));
 
     let planned_id = hidden["id"].as_str().expect("item id");
