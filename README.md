@@ -4,20 +4,32 @@
 фильмы, книги, картинки и «всякое такое» — в одном месте, со своими оценками,
 заметками, тегами и статистикой.
 
+Работает по модели **local-first**: десктопное приложение хранит данные
+локально и работает без интернета, сервер синхронизирует устройства
+и обслуживает веб-версию.
+
 Проект в активной разработке. Публичного релиза пока нет.
 
 ## Что уже есть
 
-Пока ничего, кроме документации и плана работ. Первый коммит — каркас.
+- HTTP-сервер на axum: `/health`, `/health/ready`, логи с `request_id`,
+  единый JSON-формат ошибок;
+- конфигурация из окружения с валидацией;
+- подключение к PostgreSQL и миграции, встроенные в бинарник;
+- CI на GitHub Actions и локальный `scripts/check.sh`.
+
+Десктоп и синхронизация — этап M8 из [ROADMAP.md](ROADMAP.md).
 
 ## Стек
 
 | Слой | Технология |
 |---|---|
-| Бэкенд | Rust (edition 2024), axum, tokio, sqlx |
-| База данных | PostgreSQL |
+| Ядро | Rust (edition 2024), крейт `jey-core` — домен и правила синхронизации |
+| Сервер | axum, tokio, sqlx, PostgreSQL |
+| Десктоп | Tauri 2 + SQLite |
+| Веб | Next.js + TypeScript + нативный CSS (CSS Modules) |
 | Пароли и сессии | argon2id, непрозрачные токены сессий в БД |
-| Фронтенд | Next.js + TypeScript + нативный CSS (CSS Modules) |
+| Синхронизация | push/pull по `sync_seq`, конфликтные копии |
 | Файлы | локальный диск VPS (Cloudflare R2 — для бэкапов) |
 | Деплой | VPS + Caddy + systemd |
 | CI | GitHub Actions |
@@ -31,6 +43,7 @@
 | [docs/spec.md](docs/spec.md) | Что за продукт, для кого, какие функции и требования |
 | [docs/architecture.md](docs/architecture.md) | Компоненты, модель данных, безопасность, деплой |
 | [docs/protocol.md](docs/protocol.md) | Контракт HTTP API: эндпоинты, форматы, коды ошибок |
+| [docs/sync.md](docs/sync.md) | Протокол синхронизации устройств и правила конфликтов |
 | [docs/stack.md](docs/stack.md) | Выбор технологий и почему именно они |
 | [docs/workflow.md](docs/workflow.md) | Как мы работаем: задача → код → ревью → коммит |
 | [ROADMAP.md](ROADMAP.md) | Пошаговый план работ по задачам |
@@ -39,14 +52,19 @@
 
 ```
 jey.net/
-├── backend/          # Rust-сервис (axum, sqlx)
-├── frontend/         # Next.js-приложение
+├── crates/
+│   ├── core/         # jey-core: домен, репозитории, синхронизация
+│   ├── api/          # jey-api: HTTP-сервер (axum, sqlx, PostgreSQL)
+│   └── desktop/      # Tauri-приложение с локальной SQLite
+├── frontend/         # Next.js-приложение (веб-клиент)
 ├── docs/             # проектная документация
-├── migrations/       # SQL-миграции
-├── scripts/          # локальные скрипты проверки
+├── migrations/       # серверные миграции
+├── scripts/          # db.sh, check.sh
 ├── ROADMAP.md
 └── README.md
 ```
+
+На этапе M1 код сервера переезжает из `backend/` в `crates/api/`.
 
 Каталоги появятся по мере выполнения задач из ROADMAP.
 

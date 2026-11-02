@@ -20,6 +20,7 @@
 | `Cookie: jey_session=...` | оба | сессия пользователя |
 | `Origin` | запрос | обязателен для POST/PATCH/DELETE |
 | `X-Request-Id` | запрос/ответ | сквозной идентификатор для логов |
+| `X-Device-Id` | запрос | устройство, от которого идёт синхронизация |
 | `Retry-After` | ответ | при `429` |
 
 ## 2. Аутентификация и сессии
@@ -30,6 +31,8 @@
 - В базе хранится только `sha256(token)`.
 - Любой запрос без валидной сессии к защищённым маршрутам → `401`.
 - Выход удаляет текущую сессию; смена пароля — все остальные сессии.
+- Синхронизация требует `X-Device-Id`; устройство регистрируется при первом
+  входе (`POST /devices`).
 
 ## 3. Формат ошибок
 
@@ -173,6 +176,8 @@ Origin: http://localhost:3000
   "source_url": null,
   "cover_url": "https://cdn.example.com/u/8a1f0c62/cover.webp",
   "tags": ["sci-fi", "nolan"],
+  "revision": 3,
+  "sync_seq": 1042,
   "created_at": "2026-11-02T11:00:00Z",
   "updated_at": "2026-11-02T11:30:00Z"
 }
@@ -250,6 +255,66 @@ Origin: http://localhost:3000
 | POST | `/import` | импорт JSON-экспорта, идемпотентно по `id` |
 
 Ответ импорта: `200 {"created": 40, "skipped": 2, "failed": 0}`.
+
+### 5.8 Устройства
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/devices` | регистрация устройства, идемпотентно по `installation_id` |
+| GET | `/devices` | список устройств пользователя |
+| DELETE | `/devices/{id}` | забыть устройство (сессии устройства завершаются) |
+
+```json
+{ "installation_id": "d3a2…", "name": "Ноутбук", "platform": "linux" }
+```
+
+### 5.9 Синхронизация
+
+Полный протокол — в [sync.md](sync.md). Эндпоинты:
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/sync/push` | принять пачку локальных изменений |
+| GET | `/sync/pull?since=N&limit=500` | отдать изменения после `N`, включая надгробия |
+| GET | `/sync/status?since=N` | сколько изменений появилось после `N` |
+
+Все три требуют `X-Device-Id` и действуют в пределах текущего пользователя.
+
+`POST /sync/push`:
+
+```json
+{
+  "batch_id": "b7f1…",
+  "changes": [
+    { "entity": "item", "id": "8a1f…", "revision": 4,
+      "updated_at": "2026-11-02T12:00:00Z", "deleted_at": null,
+      "payload": { "title": "Interstellar", "rating": 9 } }
+  ]
+}
+```
+
+```json
+{ "applied": ["8a1f…"], "conflicts": [], "last_seq": 1042 }
+```
+
+`GET /sync/pull`:
+
+```json
+{
+  "changes": [
+    { "entity": "item", "id": "8a1f…", "revision": 5, "sync_seq": 1043,
+      "deleted_at": null, "payload": { "title": "Interstellar", "rating": 9 } }
+  ],
+  "next_since": 1043,
+  "has_more": false
+}
+```
+
+`GET /sync/status`:
+
+```json
+{ "last_seq": 1045, "changes_after": 3 }
+```
 
 ## 6. Лимиты запросов
 
