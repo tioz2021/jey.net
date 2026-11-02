@@ -1,9 +1,0 @@
-.text {
-  margin: 0;
-}
-
-.error {
-  margin: var(--space-3) 0 0;
-  font-size: var(--text-sm);
-  color: var(--color-danger);
-}

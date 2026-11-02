@@ -5,9 +5,9 @@ import { useState } from "react";
 
 import { Button, Dialog } from "@/components/ui";
 import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 
-import styles from "./delete-dialog.module.css";
+
 
 export function DeleteDialog({
   itemId,
@@ -21,24 +21,18 @@ export function DeleteDialog({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const { notifyError } = useToast();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function close() {
-    setError(null);
-    onClose();
-  }
 
   async function remove() {
     setPending(true);
-    setError(null);
 
     try {
       await api.items.remove(itemId);
       router.push("/items");
       router.refresh();
     } catch (cause) {
-      setError(errorMessage(cause));
+      notifyError(cause);
       setPending(false);
     }
   }
@@ -47,10 +41,10 @@ export function DeleteDialog({
     <Dialog
       open={open}
       title="Удалить запись?"
-      onClose={close}
+      onClose={onClose}
       footer={
         <>
-          <Button variant="secondary" onClick={close} disabled={pending}>
+          <Button variant="secondary" onClick={onClose} disabled={pending}>
             Отмена
           </Button>
           <Button variant="danger" loading={pending} onClick={remove}>
@@ -59,15 +53,10 @@ export function DeleteDialog({
         </>
       }
     >
-      <p className={styles.text}>
+      <p>
         «{title}» переедет в корзину: запись можно будет вернуть, она не
         удаляется навсегда.
       </p>
-      {error ? (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      ) : null}
     </Dialog>
   );
 }

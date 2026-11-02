@@ -6,7 +6,8 @@ import type { FormEvent } from "react";
 
 import { Button, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
-import { ApiError, errorMessage } from "@/lib/errors";
+import { ApiError } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
 import type { User } from "@/lib/types";
 
@@ -21,6 +22,7 @@ const LOCALES: [string, string][] = [
 export function SettingsForm({ initialUser }: { initialUser: User }) {
   const router = useRouter();
   const { setUser } = useUser();
+  const { notifyError } = useToast();
 
   // Profile, prefilled from the server so the page needs no loading state.
   const [displayName, setDisplayName] = useState(initialUser.display_name);
@@ -66,9 +68,11 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
       setUser(response.user);
       setProfileMessage("Сохранено");
     } catch (error) {
-      setProfileError(
-        error instanceof ApiError ? error.message : "Не удалось сохранить",
-      );
+      if (error instanceof ApiError && error.field === "display_name") {
+        setProfileError(error.message);
+      } else {
+        notifyError(error);
+      }
     } finally {
       setSavingProfile(false);
     }
@@ -107,8 +111,10 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
     } catch (error) {
       if (error instanceof ApiError && error.field === "current_password") {
         setPasswordErrors({ current: "Неверный текущий пароль" });
+      } else if (error instanceof ApiError && error.field === "new_password") {
+        setPasswordErrors({ new: error.message });
       } else {
-        setPasswordErrors({ form: errorMessage(error) });
+        notifyError(error);
       }
     } finally {
       setSavingPassword(false);
@@ -138,7 +144,12 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
       router.push("/");
       router.refresh();
     } catch (error) {
-      setDeleteError(errorMessage(error));
+      if (error instanceof ApiError && error.field === "password") {
+        setDeleteError("Неверный пароль");
+      } else {
+        setDeleteError(null);
+        notifyError(error);
+      }
       setDeleting(false);
     }
   }

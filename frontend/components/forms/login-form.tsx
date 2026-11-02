@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Button, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
 
 import styles from "./login-form.module.css";
@@ -34,6 +35,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useUser();
+  const { notifyError } = useToast();
 
   const [values, setValues] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Errors>({});
@@ -72,6 +74,8 @@ export function LoginForm() {
       // The server does not say whether the email exists, and neither do we.
       if (error instanceof ApiError && error.status === 401) {
         setErrors({ form: "Неверный email или пароль" });
+      } else if (error instanceof ApiError && error.code === "rate_limited") {
+        notifyError(error);
       } else if (error instanceof ApiError) {
         setErrors({ form: error.message });
       } else {

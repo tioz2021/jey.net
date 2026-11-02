@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Button, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
 
 import styles from "./register-form.module.css";
@@ -34,6 +35,7 @@ const FIELDS: readonly Field[] = ["email", "display_name", "password"];
 export function RegisterForm() {
   const router = useRouter();
   const { setUser } = useUser();
+  const { notifyError } = useToast();
   const [values, setValues] = useState({
     email: "",
     display_name: "",
@@ -77,6 +79,8 @@ export function RegisterForm() {
           setErrors({ [field]: error.message });
         } else if (error.status === 409) {
           setErrors({ email: "Аккаунт с таким email уже существует" });
+        } else if (error.code === "rate_limited") {
+          notifyError(error);
         } else {
           setErrors({ form: error.message });
         }

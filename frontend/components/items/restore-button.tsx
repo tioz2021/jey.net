@@ -5,24 +5,23 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 
 import styles from "./restore-button.module.css";
 
 export function RestoreButton({ itemId }: { itemId: string }) {
   const router = useRouter();
+  const { notifyError } = useToast();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function restore() {
     setPending(true);
-    setError(null);
 
     try {
       await api.items.restore(itemId);
       router.refresh();
     } catch (cause) {
-      setError(errorMessage(cause));
+      notifyError(cause);
     } finally {
       setPending(false);
     }
@@ -33,11 +32,6 @@ export function RestoreButton({ itemId }: { itemId: string }) {
       <Button size="sm" variant="secondary" loading={pending} onClick={restore}>
         Восстановить
       </Button>
-      {error ? (
-        <span className={styles.error} role="alert">
-          {error}
-        </span>
-      ) : null}
     </span>
   );
 }

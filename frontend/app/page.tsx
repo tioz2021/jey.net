@@ -13,8 +13,64 @@ import {
   Textarea,
 } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useToast } from "@/components/toasts";
+import { ApiError } from "@/lib/errors";
 
 import styles from "./page.module.css";
+
+function ToastDemo() {
+  const { notify, notifyError } = useToast();
+
+  return (
+    <div className={styles.row}>
+      <Button
+        variant="secondary"
+        onClick={() =>
+          notifyError(
+            new ApiError(
+              429,
+              "rate_limited",
+              "too many attempts",
+              { retry_after_secs: 75 },
+              "demo-request-rate-limit",
+            ),
+          )
+        }
+      >
+        Лимит запросов
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={() =>
+          notifyError(
+            new ApiError(
+              400,
+              "validation_error",
+              "rating must be between 1 and 10",
+              { field: "rating" },
+              "demo-request-validation",
+            ),
+          )
+        }
+      >
+        Ошибка поля
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={() =>
+          notify({
+            tone: "success",
+            title: "Готово",
+            text: "Запись сохранена",
+            requestId: null,
+          })
+        }
+      >
+        Успех
+      </Button>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -114,6 +170,10 @@ export default function HomePage() {
               содержимого диалога.
             </p>
           </Dialog>
+        </Card>
+
+        <Card title="Уведомления">
+          <ToastDemo />
         </Card>
 
         <Card title="Скелетоны">

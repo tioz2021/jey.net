@@ -6,11 +6,12 @@ import type { FormEvent } from "react";
 
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
-import { ApiError, errorMessage } from "@/lib/errors";
+import { ApiError } from "@/lib/errors";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
 import { TagInput } from "@/components/items/tag-input";
+import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
 const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
@@ -163,6 +164,7 @@ export function ItemForm({
   itemId?: string;
 }) {
   const router = useRouter();
+  const { notifyError } = useToast();
   const [values, setValues] = useState<Values>(() => toValues(initial));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -209,10 +211,10 @@ export function ItemForm({
         if (field && field !== "kind" && field !== "status") {
           setErrors({ [field]: error.message });
         } else {
-          setErrors({ form: errorMessage(error) });
+          notifyError(error);
         }
       } else {
-        setErrors({ form: "Не удалось сохранить запись" });
+        notifyError(error);
       }
       setSubmitting(false);
     }

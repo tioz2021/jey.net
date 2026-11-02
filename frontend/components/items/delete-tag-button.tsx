@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button, Dialog } from "@/components/ui";
 import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { useToast } from "@/components/toasts";
 
 export function DeleteTagButton({
   tagId,
@@ -15,25 +15,23 @@ export function DeleteTagButton({
   name: string;
 }) {
   const router = useRouter();
+  const { notifyError } = useToast();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function close() {
     setOpen(false);
-    setError(null);
   }
 
   async function remove() {
     setPending(true);
-    setError(null);
 
     try {
       await api.tags.remove(tagId);
       setOpen(false);
       router.refresh();
     } catch (cause) {
-      setError(errorMessage(cause));
+      notifyError(cause);
     } finally {
       setPending(false);
     }
@@ -61,11 +59,6 @@ export function DeleteTagButton({
         }
       >
         <p>Тег исчезнет у всех записей. Сами записи останутся на месте.</p>
-        {error ? (
-          <p role="alert" style={{ color: "var(--color-danger)" }}>
-            {error}
-          </p>
-        ) : null}
       </Dialog>
     </>
   );
