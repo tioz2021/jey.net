@@ -55,6 +55,17 @@ export function SiteHeader() {
                   <label className="visually-hidden" htmlFor="global-search">
                     Поиск по записям
                   </label>
+                  <svg
+                    aria-hidden="true"
+                    className={styles.searchIcon}
+                    fill="none"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    width="14"
+                  >
+                    <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="2" />
+                    <path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
                   <input
                     className={styles.searchInput}
                     id="global-search"

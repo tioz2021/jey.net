@@ -64,12 +64,20 @@
 
 .search {
   display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+}
+
+.searchIcon {
+  flex: none;
+  color: var(--color-text-muted);
 }
 
 .searchInput {
-  width: 11rem;
+  width: 10.5rem;
   height: 28px;
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-2) 0 0;
   font: inherit;
   font-size: var(--text-sm);
   color: var(--color-text);
