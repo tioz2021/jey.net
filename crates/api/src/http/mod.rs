@@ -1,5 +1,7 @@
 //! HTTP layer: application state, router and service endpoints.
 
+pub mod origin;
+
 use std::sync::Arc;
 
 use axum::Json;
@@ -20,6 +22,7 @@ use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
+use crate::http::origin::require_allowed_origin;
 
 /// Version reported by `/health` and the startup log.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -56,9 +59,14 @@ fn api_v1(state: AppState) -> Router<AppState> {
 
     let protected = Router::new()
         .route("/me", get(me))
-        .route_layer(middleware::from_fn_with_state(state, require_auth));
+        .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
-    public.merge(protected)
+    public
+        .merge(protected)
+        .route_layer(middleware::from_fn_with_state(
+            state,
+            require_allowed_origin,
+        ))
 }
 
 async fn me(current: CurrentUser) -> Json<serde_json::Value> {
