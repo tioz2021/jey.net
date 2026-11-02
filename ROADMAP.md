@@ -47,7 +47,7 @@
 | **M5 · Деплой** | T69–T79 | VPS, Postgres, Caddy, TLS, бэкапы, мониторинг, регламент миграций |
 | **M6 · Полировка** | T80–T89 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 
-**Текущий статус:** T01–T06 приняты. Следующая — T07.
+**Текущий статус:** T01–T07 приняты. Следующая — T08.
 
 ---
 
@@ -89,10 +89,10 @@
   **Проверить:** без `DATABASE_URL` приложение падает на старте с понятным сообщением; с рабочей БД `/health/ready` → `200`; при остановленной БД → `503`; `/health` при этом остаётся `200`.
   **Коммит:** `feat(api): connect to postgres via sqlx pool`
 
-- [ ] **T07 · Миграции и sqlx-cli**
-  **Файлы:** `migrations/`, `scripts/db.sh`, `backend/src/main.rs`
-  **Сделать:** установка `sqlx-cli`; каталог `migrations/`; скрипт `db.sh` с командами `create`, `migrate`, `drop`, `reset`; применение миграций при старте в dev (флаг `RUN_MIGRATIONS`).
-  **Проверить:** `bash scripts/db.sh migrate` применяет миграции и создаёт служебную таблицу; повторный запуск ничего не ломает; `db.sh reset` пересоздаёт чистую БД.
+- [x] **T07 · Миграции и sqlx-cli**
+  **Файлы:** `migrations/0001_init.sql`, `scripts/db.sh`, `backend/src/db.rs`, `backend/src/config.rs`, `backend/src/main.rs`
+  **Сделать:** миграции встроены в бинарник через `sqlx::migrate!` (внешний `sqlx-cli` не нужен); каталог `migrations/`; скрипт `db.sh` с командами `create`, `migrate`, `drop`, `reset`; подкоманда `jey-api migrate`; применение миграций при старте с флагом `RUN_MIGRATIONS` (по умолчанию включён вне продакшена).
+  **Проверить:** `bash scripts/db.sh migrate` применяет миграции и создаёт служебную таблицу `_sqlx_migrations`; повторный запуск ничего не ломает; `db.sh reset` пересоздаёт чистую БД.
   **Коммит:** `feat(db): introduce migrations workflow`
 
 - [ ] **T08 · CI: сборка и тесты**
@@ -112,13 +112,13 @@
 ## M1 · Аккаунты
 
 - [ ] **T10 · Схема users**
-  **Файлы:** `migrations/0001_users.sql`
+  **Файлы:** `migrations/0002_users.sql`
   **Сделать:** расширение `citext`; таблица `users`: `id uuid pk`, `email citext unique not null`, `email_verified_at timestamptz`, `password_hash text not null`, `display_name text not null`, `locale text not null default 'ru'`, `is_public boolean not null default false`, `created_at`, `updated_at`, `deleted_at`; CHECK на длину `display_name`; индекс по `deleted_at`.
   **Проверить:** миграция применяется на чистой БД; дубликат email (в другом регистре) отклоняется; `display_name` длиной 61 символ отклоняется; `updated_at` обновляется триггером.
   **Коммит:** `feat(db): add users table`
 
 - [ ] **T11 · Схема sessions**
-  **Файлы:** `migrations/0002_sessions.sql`
+  **Файлы:** `migrations/0003_sessions.sql`
   **Сделать:** таблица `sessions`: `id uuid pk`, `user_id uuid not null references users(id) on delete cascade`, `token_hash bytea not null unique`, `created_at`, `last_seen_at`, `expires_at not null`, `ip inet`, `user_agent text`; индексы по `user_id` и `expires_at`.
   **Проверить:** удаление пользователя удаляет его сессии; вставка дубликата `token_hash` отклоняется; запрос «активные сессии пользователя» использует индекс.
   **Коммит:** `feat(db): add sessions table`
@@ -196,7 +196,7 @@
   **Коммит:** `feat(mail): add mailer abstraction with dev transport`
 
 - [ ] **T24 · Подтверждение email**
-  **Файлы:** `migrations/0003_auth_tokens.sql`, `backend/src/auth/email_verify.rs`, `backend/src/http/mod.rs`
+  **Файлы:** `migrations/0004_auth_tokens.sql`, `backend/src/auth/email_verify.rs`, `backend/src/http/mod.rs`
   **Сделать:** одноразовые токены (хеш в БД, срок 24 ч); отправка письма при регистрации; `POST /api/v1/auth/verify-email`; повторная отправка — не чаще раза в 10 минут.
   **Проверить:** письмо содержит рабочую ссылку; после подтверждения `email_verified_at` заполнен; повторное использование токена → `400`; просроченный токен → `400`; частый повторный запрос → `429`.
   **Коммит:** `feat(auth): verify email addresses`
@@ -212,13 +212,13 @@
 ## M2 · Записи
 
 - [ ] **T26 · Схема items**
-  **Файлы:** `migrations/0004_items.sql`
+  **Файлы:** `migrations/0005_items.sql`
   **Сделать:** таблица `items` по `docs/architecture.md`; CHECK на `kind`, `status`, `rating` (1–10), `year` (1800–2100); индексы `(user_id, created_at desc)`, `(user_id, kind)`, `(user_id, status)`; `updated_at` триггером.
   **Проверить:** миграция применяется; вставка с `rating = 11` отклоняется; `kind = 'game'` отклоняется; `deleted_at` по умолчанию `NULL`; индекс используется (`EXPLAIN`).
   **Коммит:** `feat(db): add items table`
 
 - [ ] **T27 · Схема тегов**
-  **Файлы:** `migrations/0005_tags.sql`
+  **Файлы:** `migrations/0006_tags.sql`
   **Сделать:** `tags(id, user_id, name, created_at)` с уникальностью `(user_id, lower(name))`; `item_tags(item_id, tag_id)` с каскадным удалением; индексы.
   **Проверить:** дубликат тега в другом регистре отклоняется; удаление записи удаляет связи; удаление тега не удаляет записи.
   **Коммит:** `feat(db): add tags and item_tags`
@@ -272,7 +272,7 @@
   **Коммит:** `feat(items): filter item list`
 
 - [ ] **T36 · Поиск**
-  **Файлы:** `migrations/0006_search.sql`, `backend/src/items/search.rs`
+  **Файлы:** `migrations/0007_search.sql`, `backend/src/items/search.rs`
   **Сделать:** расширение `pg_trgm`; GIN-индексы; поиск по `title`, `subtitle`, `review` с ранжированием; учёт регистра и раскладки не требуется, но `ILIKE` и триграммы должны работать.
   **Проверить:** поиск «интер» находит «Interstellar»; поиск по слову из заметки находит запись; пустой `q` игнорируется; поиск не возвращает чужие записи; время на 10 000 записей < 100 мс.
   **Коммит:** `feat(items): search by title and review`
@@ -296,7 +296,7 @@
   **Коммит:** `feat(stats): aggregate user statistics`
 
 - [ ] **T40 · Индексы и планы запросов**
-  **Файлы:** `migrations/0007_indexes.sql`, `docs/perf.md`
+  **Файлы:** `migrations/0008_indexes.sql`, `docs/perf.md`
   **Сделать:** прогнать `EXPLAIN ANALYZE` на списке, фильтрах и поиске с 10 000 записей; добавить недостающие индексы; записать планы и замеры в `docs/perf.md`.
   **Проверить:** ни один ключевой запрос не делает `Seq Scan`; время списка < 50 мс; документ содержит дату, конфигурацию и цифры до/после.
   **Коммит:** `perf(db): add indexes for item queries`
@@ -430,7 +430,7 @@
 ## M4 · Медиа
 
 - [ ] **T61 · Приём загрузок**
-  **Файлы:** `backend/src/media/upload.rs`, `backend/src/http/uploads.rs`, `migrations/0008_uploads.sql`
+  **Файлы:** `backend/src/media/upload.rs`, `backend/src/http/uploads.rs`, `migrations/0009_uploads.sql`
   **Сделать:** `POST /api/v1/uploads`, `multipart/form-data`; лимит 10 МБ; проверка MIME по сигнатуре, а не по расширению; запись в `uploads`.
   **Проверить:** JPEG/PNG/WebP принимаются; `.txt` с расширением `.jpg` отклоняется `415`; файл 11 МБ → `413`; без сессии → `401`.
   **Коммит:** `feat(media): accept image uploads`

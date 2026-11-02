@@ -82,8 +82,33 @@ fn app(pool: PgPool) -> Router {
         .with_state(pool)
 }
 
+/// What the process should do after loading its configuration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Command {
+    Serve,
+    Migrate,
+}
+
+fn parse_command() -> Result<Command, String> {
+    match std::env::args().nth(1).as_deref() {
+        None => Ok(Command::Serve),
+        Some("migrate") => Ok(Command::Migrate),
+        Some(other) => Err(format!(
+            "unknown command {other:?}; supported commands: migrate"
+        )),
+    }
+}
+
 #[tokio::main]
 async fn main() -> ExitCode {
+    let command = match parse_command() {
+        Ok(command) => command,
+        Err(message) => {
+            eprintln!("{message}");
+            return ExitCode::FAILURE;
+        }
+    };
+
     let config = match Config::load() {
         Ok(config) => config,
         Err(err) => {
@@ -98,6 +123,7 @@ async fn main() -> ExitCode {
         env = %config.app_env,
         address = %config.bind_addr,
         version = VERSION,
+        run_migrations = config.run_migrations,
         session_ttl_days = config.session_ttl_days,
         allowed_origins = config.allowed_origins.len(),
         "starting jey-api"
@@ -111,6 +137,20 @@ async fn main() -> ExitCode {
         }
     };
 
+    if command == Command::Migrate {
+        return migrate_and_exit(&pool).await;
+    }
+
+    if config.run_migrations {
+        match db::migrate(&pool).await {
+            Ok(()) => info!("migrations applied"),
+            Err(err) => {
+                eprintln!("migration failed: {err}");
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+
     match tokio::time::timeout(READINESS_TIMEOUT, db::ping(&pool)).await {
         Ok(Ok(())) => info!("database connection established"),
         Ok(Err(err)) => warn!(error = %err, "database is not reachable yet"),
@@ -121,6 +161,19 @@ async fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("fatal error: {err}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+async fn migrate_and_exit(pool: &PgPool) -> ExitCode {
+    match db::migrate(pool).await {
+        Ok(()) => {
+            println!("migrations applied");
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("migration failed: {err}");
             ExitCode::FAILURE
         }
     }

@@ -79,6 +79,8 @@ pub struct Config {
     pub app_env: AppEnv,
     pub bind_addr: SocketAddr,
     pub database_url: String,
+    /// Apply pending migrations when the server starts.
+    pub run_migrations: bool,
     pub session_ttl_days: u32,
     pub allowed_origins: Vec<String>,
     pub log_format: LogFormat,
@@ -122,6 +124,11 @@ impl Config {
             None => vec![DEFAULT_ORIGIN.to_owned()],
         };
 
+        let run_migrations = match var("RUN_MIGRATIONS") {
+            Some(raw) => parse_bool("RUN_MIGRATIONS", &raw)?,
+            None => app_env != AppEnv::Prod,
+        };
+
         let log_format = match var("LOG_FORMAT") {
             Some(raw) => LogFormat::parse(&raw)?,
             None => match app_env {
@@ -134,6 +141,7 @@ impl Config {
             app_env,
             bind_addr,
             database_url,
+            run_migrations,
             session_ttl_days,
             allowed_origins,
             log_format,
@@ -150,6 +158,18 @@ fn var(key: &'static str) -> Option<String> {
         .ok()
         .map(|value| value.trim().to_owned())
         .filter(|value| !value.is_empty())
+}
+
+fn parse_bool(key: &'static str, raw: &str) -> Result<bool, ConfigError> {
+    match raw.trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" | "on" => Ok(true),
+        "0" | "false" | "no" | "off" => Ok(false),
+        _ => Err(ConfigError::invalid_value(
+            key,
+            raw,
+            "must be one of: true, false, 1, 0, yes, no, on, off",
+        )),
+    }
 }
 
 fn parse_session_ttl(raw: &str) -> Result<u32, ConfigError> {

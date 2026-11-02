@@ -22,6 +22,12 @@ pub fn create_pool(config: &Config) -> Result<PgPool, sqlx::Error> {
         .connect_lazy(&config.database_url)
 }
 
+/// Applies pending migrations. They are compiled into the binary, so the
+/// deployed artefact always carries the schema it expects.
+pub async fn migrate(pool: &PgPool) -> Result<(), sqlx::migrate::MigrateError> {
+    sqlx::migrate!("../migrations").run(pool).await
+}
+
 /// Cheap round-trip used both at startup and by the readiness endpoint.
 pub async fn ping(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query_scalar::<_, i32>("SELECT 1")
