@@ -1,6 +1,7 @@
 //! HTTP layer: application state, router and service endpoints.
 
 pub mod origin;
+pub mod ratelimit;
 
 use std::sync::Arc;
 

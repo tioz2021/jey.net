@@ -49,7 +49,7 @@
 | **M7 · Полировка** | T82–T91 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T19 приняты. Следующая — T20.
+**Текущий статус:** T01–T20 приняты. Следующая — T21.
 
 ---
 
@@ -177,9 +177,9 @@
   **Проверить:** запрос с чужим `Origin` → `403`; со своим → проходит; без заголовка → `403`; `curl` с `Origin: http://localhost:3000` работает при соответствующей настройке.
   **Коммит:** `feat(auth): enforce origin checks for state changes`
 
-- [ ] **T20 · Ограничение частоты попыток**
-  **Файлы:** `crates/api/src/http/ratelimit.rs`, `crates/api/src/http/mod.rs`
-  **Сделать:** лимиты из `docs/protocol.md`: вход 5/мин на IP+email, регистрация 3/час на IP, сброс пароля 3/час на email; `429` с `Retry-After`.
+- [x] **T20 · Ограничение частоты попыток**
+  **Файлы:** `migrations/0004_rate_limits.sql`, `crates/api/src/http/ratelimit.rs`, `crates/api/src/http/mod.rs`, `crates/api/src/auth/login.rs`, `crates/api/src/auth/register.rs`
+  **Сделать:** счётчики в PostgreSQL (fixed window, переживают рестарт); лимиты из `docs/protocol.md`: вход 5/мин на IP+email, регистрация 3/час на IP, сброс пароля 3/час на email; `429` с `Retry-After`; IP берётся из `X-Forwarded-For`, иначе из peer-адреса.
   **Проверить:** 6-й вход за минуту → `429` и `Retry-After`; после окна запрос снова проходит; разные IP не мешают друг другу; лимит не влияет на `GET /me`.
   **Коммит:** `feat(auth): rate limit credential endpoints`
 
@@ -214,7 +214,7 @@
   **Коммит:** `feat(mail): add mailer abstraction with dev transport`
 
 - [ ] **T26 · Подтверждение email**
-  **Файлы:** `migrations/0004_auth_tokens.sql`, `crates/api/src/auth/email_verify.rs`, `crates/api/src/http/mod.rs`
+  **Файлы:** `migrations/0005_auth_tokens.sql`, `crates/api/src/auth/email_verify.rs`, `crates/api/src/http/mod.rs`
   **Сделать:** одноразовые токены (хеш в БД, срок 24 ч); отправка письма при регистрации; `POST /api/v1/auth/verify-email`; повторная отправка — не чаще раза в 10 минут.
   **Проверить:** письмо содержит рабочую ссылку; после подтверждения `email_verified_at` заполнен; повторное использование токена → `400`; просроченный токен → `400`; частый повторный запрос → `429`.
   **Коммит:** `feat(auth): verify email addresses`
@@ -230,13 +230,13 @@
 ## M3 · Записи
 
 - [ ] **T28 · Схема items**
-  **Файлы:** `migrations/0005_items.sql`
+  **Файлы:** `migrations/0006_items.sql`
   **Сделать:** таблица `items` по `docs/architecture.md`; CHECK на `kind`, `status`, `rating` (1–10), `year` (1800–2100); индексы `(user_id, created_at desc)`, `(user_id, kind)`, `(user_id, status)`; `updated_at` триггером.
   **Проверить:** миграция применяется; вставка с `rating = 11` отклоняется; `kind = 'game'` отклоняется; `deleted_at` по умолчанию `NULL`; индекс используется (`EXPLAIN`).
   **Коммит:** `feat(db): add items table`
 
 - [ ] **T29 · Схема тегов**
-  **Файлы:** `migrations/0006_tags.sql`
+  **Файлы:** `migrations/0007_tags.sql`
   **Сделать:** `tags(id, user_id, name, created_at)` с уникальностью `(user_id, lower(name))`; `item_tags(item_id, tag_id)` с каскадным удалением; индексы.
   **Проверить:** дубликат тега в другом регистре отклоняется; удаление записи удаляет связи; удаление тега не удаляет записи.
   **Коммит:** `feat(db): add tags and item_tags`
@@ -290,7 +290,7 @@
   **Коммит:** `feat(items): filter item list`
 
 - [ ] **T38 · Поиск**
-  **Файлы:** `migrations/0007_search.sql`, `crates/api/src/items/search.rs`
+  **Файлы:** `migrations/0008_search.sql`, `crates/api/src/items/search.rs`
   **Сделать:** расширение `pg_trgm`; GIN-индексы; поиск по `title`, `subtitle`, `review` с ранжированием; учёт регистра и раскладки не требуется, но `ILIKE` и триграммы должны работать.
   **Проверить:** поиск «интер» находит «Interstellar»; поиск по слову из заметки находит запись; пустой `q` игнорируется; поиск не возвращает чужие записи; время на 10 000 записей < 100 мс.
   **Коммит:** `feat(items): search by title and review`
@@ -314,7 +314,7 @@
   **Коммит:** `feat(stats): aggregate user statistics`
 
 - [ ] **T42 · Индексы и планы запросов**
-  **Файлы:** `migrations/0008_indexes.sql`, `docs/perf.md`
+  **Файлы:** `migrations/0009_indexes.sql`, `docs/perf.md`
   **Сделать:** прогнать `EXPLAIN ANALYZE` на списке, фильтрах и поиске с 10 000 записей; добавить недостающие индексы; записать планы и замеры в `docs/perf.md`.
   **Проверить:** ни один ключевой запрос не делает `Seq Scan`; время списка < 50 мс; документ содержит дату, конфигурацию и цифры до/после.
   **Коммит:** `perf(db): add indexes for item queries`
@@ -448,7 +448,7 @@
 ## M5 · Медиа
 
 - [ ] **T63 · Приём загрузок**
-  **Файлы:** `crates/api/src/media/upload.rs`, `crates/api/src/http/uploads.rs`, `migrations/0009_uploads.sql`
+  **Файлы:** `crates/api/src/media/upload.rs`, `crates/api/src/http/uploads.rs`, `migrations/0010_uploads.sql`
   **Сделать:** `POST /api/v1/uploads`, `multipart/form-data`; лимит 10 МБ; проверка MIME по сигнатуре, а не по расширению; запись в `uploads`.
   **Проверить:** JPEG/PNG/WebP принимаются; `.txt` с расширением `.jpg` отклоняется `415`; файл 11 МБ → `413`; без сессии → `401`.
   **Коммит:** `feat(media): accept image uploads`
@@ -664,7 +664,7 @@
   **Коммит:** `feat(sync): register devices`
 
 - [ ] **T97 · Присвоение sync_seq на сервере**
-  **Файлы:** `migrations/0011_sync_seq.sql`, `crates/api/src/sync/seq.rs`
+  **Файлы:** `migrations/0012_sync_seq.sql`, `crates/api/src/sync/seq.rs`
   **Сделать:** последовательность на пользователя, присвоение `sync_seq` при каждом изменении (включая удаление), индексы `(user_id, sync_seq)`.
   **Проверить:** каждое изменение получает уникальный возрастающий номер; надгробия тоже; `EXPLAIN` показывает использование индекса.
   **Коммит:** `feat(sync): assign server sequence numbers`

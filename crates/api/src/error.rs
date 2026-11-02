@@ -4,7 +4,9 @@
 //! its variants onto the wire format described in `docs/protocol.md`.
 
 use axum::Json;
+use axum::http::HeaderValue;
 use axum::http::StatusCode;
+use axum::http::header::RETRY_AFTER;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -139,6 +141,13 @@ impl From<DomainError> for AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
+        let retry_after = match &self.0 {
+            DomainError::RateLimited {
+                retry_after_secs, ..
+            } => Some(*retry_after_secs),
+            _ => None,
+        };
+
         let (status, code, message, details) = self.parts();
 
         let body = ErrorBody {
@@ -150,7 +159,15 @@ impl IntoResponse for AppError {
             },
         };
 
-        (status, Json(body)).into_response()
+        let mut response = (status, Json(body)).into_response();
+
+        if let Some(seconds) = retry_after
+            && let Ok(value) = HeaderValue::from_str(&seconds.to_string())
+        {
+            response.headers_mut().insert(RETRY_AFTER, value);
+        }
+
+        response
     }
 }
 

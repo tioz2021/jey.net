@@ -2,9 +2,11 @@
 
 use std::sync::OnceLock;
 
+use std::net::SocketAddr;
+
 use axum::Json;
-use axum::extract::State;
 use axum::extract::rejection::JsonRejection;
+use axum::extract::{ConnectInfo, State};
 use axum::http::StatusCode;
 use axum::http::header::{SET_COOKIE, USER_AGENT};
 use axum::http::{HeaderMap, HeaderValue};
@@ -18,6 +20,7 @@ use crate::auth::password;
 use crate::auth::session;
 use crate::auth::user::{self, UserView};
 use crate::error::AppError;
+use crate::http::ratelimit;
 
 #[derive(Debug, Deserialize)]
 pub struct LoginRequest {
@@ -28,12 +31,21 @@ pub struct LoginRequest {
 /// `POST /api/v1/auth/login`
 pub async fn login(
     State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
     payload: Result<Json<LoginRequest>, JsonRejection>,
 ) -> Result<Response, AppError> {
     let Json(payload) = payload.map_err(|rejection| AppError::validation(rejection.body_text()))?;
 
     let email = normalise_email(&payload.email);
+
+    let ip = ratelimit::client_ip(&headers, peer);
+    ratelimit::enforce(
+        &state.pool,
+        ratelimit::LOGIN,
+        &format!("login:{ip}:{email}"),
+    )
+    .await?;
 
     let Some(record) = user::find_by_email(&state.pool, &email).await? else {
         // Spend roughly the same time as a real verification so the response

@@ -8,6 +8,7 @@ mod http;
 mod telemetry;
 
 use std::error::Error;
+use std::net::SocketAddr;
 use std::process::ExitCode;
 use std::sync::Arc;
 
@@ -122,7 +123,10 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         config: Arc::new(config),
     };
 
-    axum::serve(listener, telemetry::instrument(router(state)))
+    let service =
+        telemetry::instrument(router(state)).into_make_service_with_connect_info::<SocketAddr>();
+
+    axum::serve(listener, service)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 

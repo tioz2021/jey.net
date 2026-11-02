@@ -112,6 +112,14 @@ scripts/                db.sh, check.sh
 Проигравшие версии при синхронизации: `id`, `user_id`, `entity`, `entity_id`,
 `payload jsonb`, `winning_revision`, `created_at`, `resolved_at`.
 
+### rate_limits
+
+Счётчики защиты от перебора: `key text primary key`, `window_started_at`,
+`attempts`, `blocked_until`, `updated_at`. Ключ включает действие и адрес
+(`login:{ip}:{email}`, `register:{ip}`). Живут в PostgreSQL, поэтому переживают
+перезапуск и работают при нескольких инстансах; старые строки удаляются
+самим лимитером.
+
 ### uploads, auth_tokens
 
 Медиа и одноразовые токены почты. Не синхронизируются между устройствами.

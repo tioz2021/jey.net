@@ -1,8 +1,10 @@
 //! Registration: creates an account and signs the user in right away.
 
+use std::net::SocketAddr;
+
 use axum::Json;
-use axum::extract::State;
 use axum::extract::rejection::JsonRejection;
+use axum::extract::{ConnectInfo, State};
 use axum::http::StatusCode;
 use axum::http::header::{SET_COOKIE, USER_AGENT};
 use axum::http::{HeaderMap, HeaderValue};
@@ -16,6 +18,7 @@ use crate::auth::password::{self, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, Pass
 use crate::auth::session;
 use crate::auth::user;
 use crate::error::AppError;
+use crate::http::ratelimit;
 
 /// Longest accepted email address, per RFC 5321.
 const MAX_EMAIL_LENGTH: usize = 254;
@@ -32,11 +35,15 @@ pub struct RegisterRequest {
 /// `POST /api/v1/auth/register`
 pub async fn register(
     State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
     payload: Result<Json<RegisterRequest>, JsonRejection>,
 ) -> Result<Response, AppError> {
     // A broken body must still use the API error format, not axum's plain text.
     let Json(payload) = payload.map_err(|rejection| AppError::validation(rejection.body_text()))?;
+
+    let ip = ratelimit::client_ip(&headers, peer);
+    ratelimit::enforce(&state.pool, ratelimit::REGISTER, &format!("register:{ip}")).await?;
 
     let email = normalise_email(&payload.email);
     validate_email(&email)?;
