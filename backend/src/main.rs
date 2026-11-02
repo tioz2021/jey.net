@@ -1,7 +1,9 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
-use std::env;
+mod config;
+
 use std::error::Error;
+use std::process::ExitCode;
 
 use axum::{Json, Router, routing::get};
 use serde::Serialize;
@@ -9,8 +11,9 @@ use tokio::net::TcpListener;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
+use crate::config::{Config, LogFormat};
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const DEFAULT_BIND_ADDR: &str = "127.0.0.1:8080";
 
 #[derive(Serialize)]
 struct Health {
@@ -30,13 +33,38 @@ fn app() -> Router {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    init_tracing();
+async fn main() -> ExitCode {
+    let config = match Config::load() {
+        Ok(config) => config,
+        Err(err) => {
+            eprintln!("configuration error: {err}");
+            return ExitCode::FAILURE;
+        }
+    };
 
-    let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| DEFAULT_BIND_ADDR.to_owned());
-    let listener = TcpListener::bind(&bind_addr).await?;
+    init_tracing(&config);
 
-    info!(address = %bind_addr, version = VERSION, "starting jey-api");
+    info!(
+        env = %config.app_env,
+        address = %config.bind_addr,
+        version = VERSION,
+        session_ttl_days = config.session_ttl_days,
+        allowed_origins = config.allowed_origins.len(),
+        database_configured = config.database_url.is_some(),
+        "starting jey-api"
+    );
+
+    match run(config).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("fatal error: {err}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+async fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let listener = TcpListener::bind(config.bind_addr).await?;
 
     axum::serve(listener, app())
         .with_graceful_shutdown(shutdown_signal())
@@ -46,14 +74,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn init_tracing() {
+fn init_tracing(config: &Config) {
     let filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("jey_api=info,tower_http=info"));
 
-    tracing_subscriber::fmt()
+    let builder = tracing_subscriber::fmt()
         .with_env_filter(filter)
-        .with_target(false)
-        .init();
+        .with_target(false);
+
+    match config.log_format {
+        LogFormat::Json => builder.json().init(),
+        LogFormat::Pretty => builder.init(),
+    }
 }
 
 async fn shutdown_signal() {
