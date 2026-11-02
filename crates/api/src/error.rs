@@ -123,6 +123,14 @@ impl AppError {
     }
 }
 
+impl std::fmt::Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl std::error::Error for AppError {}
+
 impl From<DomainError> for AppError {
     fn from(error: DomainError) -> Self {
         Self(error)

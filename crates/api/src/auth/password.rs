@@ -4,9 +4,6 @@
 //! hashing must be slow enough to make guessing expensive and fast enough to
 //! keep logins responsive on a small VPS.
 
-// Handlers start using this module in T15 and T16.
-#![allow(dead_code)]
-
 use argon2::password_hash::{PasswordHasher, PasswordVerifier, phc::PasswordHash};
 use argon2::{Algorithm, Argon2, Params, Version};
 

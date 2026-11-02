@@ -12,6 +12,7 @@ use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
 
+use crate::auth::login::login;
 use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
@@ -33,6 +34,8 @@ pub struct AppState {
 
 /// Builds the full application router.
 pub fn router(state: AppState) -> Router {
+    crate::auth::login::warm_up();
+
     Router::new()
         .route("/health", get(health))
         .route("/health/ready", get(readiness))
@@ -43,7 +46,9 @@ pub fn router(state: AppState) -> Router {
 }
 
 fn api_v1() -> Router<AppState> {
-    Router::new().route("/auth/register", post(register))
+    Router::new()
+        .route("/auth/register", post(register))
+        .route("/auth/login", post(login))
 }
 
 #[derive(Serialize)]
