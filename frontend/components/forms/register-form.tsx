@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Button, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
+import { useUser } from "@/lib/user-context";
 
 import styles from "./register-form.module.css";
 
@@ -32,6 +33,7 @@ const FIELDS: readonly Field[] = ["email", "display_name", "password"];
 
 export function RegisterForm() {
   const router = useRouter();
+  const { setUser } = useUser();
   const [values, setValues] = useState({
     email: "",
     display_name: "",
@@ -65,7 +67,8 @@ export function RegisterForm() {
     setErrors({});
 
     try {
-      await api.auth.register(parsed.data);
+      const response = await api.auth.register(parsed.data);
+      setUser(response.user);
       router.push("/items");
     } catch (error) {
       if (error instanceof ApiError) {

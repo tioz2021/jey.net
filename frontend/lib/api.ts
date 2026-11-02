@@ -164,7 +164,10 @@ export const auth = {
 
   logout: () => request<void>("/auth/logout", { method: "POST" }),
 
-  me: () => request<UserResponse>("/me"),
+  me: (options: { redirectOnUnauthorized?: boolean } = {}) =>
+    request<UserResponse>("/me", {
+      redirectOnUnauthorized: options.redirectOnUnauthorized,
+    }),
 
   updateMe: (patch: ProfilePatch) =>
     request<UserResponse>("/me", { method: "PATCH", body: patch }),

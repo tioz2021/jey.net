@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 
+import { UserProvider } from "@/lib/user-context";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,7 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT}
         </Script>
-        {children}
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
   );
