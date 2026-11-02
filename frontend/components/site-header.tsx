@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Avatar } from "@/components/profile/avatar";
 import { HeaderSearch } from "@/components/header-search";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useUser } from "@/lib/user-context";
 
-import { LogoutButton } from "./logout-button";
+import { UserMenu } from "@/components/user-menu";
 import styles from "./site-header.module.css";
 
 const SECTIONS = [
@@ -57,16 +56,7 @@ export function SiteHeader() {
                 <ThemeToggle />
               </div>
 
-              <div className={styles.account}>
-                <Link className={styles.user} href="/settings">
-                  <Avatar
-                    url={user.avatar_key ? `/media/${user.avatar_key}` : null}
-                    name={user.display_name}
-                  />
-                  <span className={styles.name}>{user.display_name}</span>
-                </Link>
-                <LogoutButton />
-              </div>
+              <UserMenu user={user} />
             </>
           ) : (
             <Link className={styles.link} href="/login">

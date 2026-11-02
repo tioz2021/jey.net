@@ -66,32 +66,12 @@
   border-left: 1px solid var(--color-border);
 }
 
-.account {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.name {
-  font-size: var(--text-sm);
-}
-
 .link {
   font-size: var(--text-sm);
 }
 
 @media (width <= 900px) {
-  .nav,
-  .name,
-  .search {
+  .nav {
     display: none;
   }
 
