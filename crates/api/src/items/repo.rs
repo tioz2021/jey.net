@@ -49,7 +49,7 @@ const SELECT_LIST: &str = r#"
 "#;
 
 #[derive(Debug, sqlx::FromRow)]
-struct ItemRow {
+pub struct ItemRow {
     id: Uuid,
     user_id: Uuid,
     kind: String,

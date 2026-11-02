@@ -968,3 +968,88 @@ async fn list_filters_combine_with_and() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn search_matches_title_subtitle_and_review() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    for (kind, title, subtitle, review) in [
+        (
+            ItemKind::Movie,
+            "Interstellar",
+            "Christopher Nolan",
+            "Смотрел в IMAX, очень громко",
+        ),
+        (ItemKind::Movie, "Интерстеллар", "Кристофер Нолан", ""),
+        (
+            ItemKind::Book,
+            "Dune",
+            "Frank Herbert",
+            "Про пустыню и специи",
+        ),
+    ] {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({
+                    "kind": kind,
+                    "title": title,
+                    "subtitle": subtitle,
+                    "status": "done",
+                    "review": if review.is_empty() { serde_json::Value::Null } else { json!(review) }
+                }),
+                &cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201, "body: {}", response.body);
+    }
+
+    let titles = |body: &serde_json::Value| -> Vec<String> {
+        body["items"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .map(|item| item["title"].as_str().expect("title").to_owned())
+            .collect()
+    };
+
+    let by_title = client.get("/api/v1/items?q=inter", Some(&cookie)).await;
+    assert_eq!(by_title.status, 200, "body: {}", by_title.body);
+    assert_eq!(titles(&by_title.body), vec!["Interstellar"]);
+
+    let by_cyrillic = client
+        .get("/api/v1/items?q=интерстеллар", Some(&cookie))
+        .await;
+    assert_eq!(titles(&by_cyrillic.body), vec!["Интерстеллар"]);
+
+    let by_review = client.get("/api/v1/items?q=пустыню", Some(&cookie)).await;
+    assert_eq!(titles(&by_review.body), vec!["Dune"]);
+
+    let by_subtitle = client.get("/api/v1/items?q=herbert", Some(&cookie)).await;
+    assert_eq!(titles(&by_subtitle.body), vec!["Dune"]);
+
+    // Wildcards are matched literally, not as wildcards.
+    let wildcard = client.get("/api/v1/items?q=100%25", Some(&cookie)).await;
+    assert_eq!(wildcard.status, 200);
+    assert!(titles(&wildcard.body).is_empty());
+
+    // An empty query falls back to the plain list.
+    let empty = client.get("/api/v1/items?q=%20", Some(&cookie)).await;
+    assert_eq!(titles(&empty.body).len(), 3);
+
+    // Another user's records never leak into search.
+    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
+    stranger
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Interstellar", "status": "done" }),
+            &stranger_cookie,
+        )
+        .await;
+
+    let isolated = client.get("/api/v1/items?q=inter", Some(&cookie)).await;
+    assert_eq!(titles(&isolated.body), vec!["Interstellar"]);
+
+    client.cleanup(&email).await;
+    stranger.cleanup(&stranger_email).await;
+}

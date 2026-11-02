@@ -19,6 +19,7 @@ use crate::error::AppError;
 use crate::http::AppState;
 use crate::items::filters::Filters;
 use crate::items::repo;
+use crate::items::search;
 use crate::items::view::ItemView;
 
 #[derive(Debug, Default, Deserialize)]
@@ -35,6 +36,7 @@ pub struct ListQuery {
     pub year_to: Option<i32>,
     pub rating_min: Option<u8>,
     pub rating_max: Option<u8>,
+    pub q: Option<String>,
 }
 
 /// `GET /api/v1/items`
@@ -51,6 +53,30 @@ pub async fn list_items(
         None => Sort::CreatedDesc,
     };
     let limit = parse_limit(query.limit)?;
+
+    // A non-empty `q` switches to relevance-ordered search.
+    let search_query = query
+        .q
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned);
+
+    if let Some(search_query) = search_query {
+        if search_query.chars().count() > search::MAX_QUERY_LENGTH {
+            return Err(AppError::validation_field(
+                "q",
+                format!("q must be at most {} characters", search::MAX_QUERY_LENGTH),
+            ));
+        }
+
+        let items =
+            search::search(&state.pool, current.user.id, &filters, &search_query, limit).await?;
+        let views: Vec<ItemView> = items.into_iter().map(ItemView::from).collect();
+
+        return Ok(Json(json!({ "items": views, "next_cursor": Value::Null })));
+    }
+
     let cursor = match query.cursor.as_deref() {
         Some(raw) => Some(decode_cursor(raw)?),
         None => None,
