@@ -6,7 +6,7 @@ import styles from "./layout.module.css";
 /** Public pages (landing, shared profiles, legal) have a light classic header. */
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.inner}>
           <Link className={styles.brand} href="/">
@@ -14,11 +14,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className={styles.nav} aria-label="Основное">
-            <Link className={styles.navLink} href="/#features">
-              Возможности
-            </Link>
-            <Link className={styles.navLink} href="/#screenshots">
-              Как выглядит
+            <Link className={styles.navLink} href="/">
+              Главная
             </Link>
             <Link className={styles.navLink} href="/login">
               Войти
@@ -37,6 +34,6 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <span aria-hidden="true">·</span>
         <Link href="/terms">Условия использования</Link>
       </footer>
-    </>
+    </div>
   );
 }

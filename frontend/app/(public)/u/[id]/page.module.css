@@ -2,6 +2,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  max-width: 56rem;
 }
 
 .avatar,
@@ -52,8 +53,9 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
   gap: var(--space-4);
+  max-width: 56rem;
   margin: 0;
   padding: 0;
   list-style: none;

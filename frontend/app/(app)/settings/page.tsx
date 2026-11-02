@@ -8,6 +8,8 @@ import { Card, PageHeader } from "@/components/ui";
 import { backendFetch } from "@/lib/server-api";
 import type { UserResponse } from "@/lib/types";
 
+import styles from "./page.module.css";
+
 export const metadata: Metadata = {
   title: "Настройки — jey.net",
 };
@@ -32,9 +34,11 @@ export default async function SettingsPage() {
   return (
     <main>
       <PageHeader title="Настройки" />
-      <SettingsForm initialUser={user} />
-      <ShareProfile />
-      <ExportPanel />
+      <div className={styles.stack}>
+        <SettingsForm initialUser={user} />
+        <ShareProfile />
+        <ExportPanel />
+      </div>
     </main>
   );
 }
