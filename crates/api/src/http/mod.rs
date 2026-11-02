@@ -81,6 +81,9 @@ pub fn router(state: AppState) -> Router {
 
 fn api_v1(state: AppState) -> Router<AppState> {
     let public = Router::new()
+        // Same liveness probe as /health, exposed under the versioned prefix
+        // for clients that only talk to /api/v1.
+        .route("/health", get(health))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/auth/logout", post(logout))

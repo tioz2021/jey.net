@@ -91,6 +91,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | Метод | Путь | Описание |
 |---|---|---|
 | GET | `/health` | живость процесса |
+| GET | `/api/v1/health` | то же самое под версионированным префиксом |
 | GET | `/health/ready` | готовность: доступна БД |
 
 `GET /health` → `200 {"status":"ok","version":"0.1.0"}`.
