@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::Router;
+use axum::extract::DefaultBodyLimit;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::middleware;
@@ -26,7 +27,9 @@ use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
+use crate::export::export;
 use crate::http::origin::require_allowed_origin;
+use crate::import::import;
 use crate::items::create::create_item;
 use crate::items::delete::{delete_item, restore_item};
 use crate::items::get::get_item;
@@ -88,6 +91,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/tags", get(list_tags))
         .route("/tags/{id}", delete(delete_tag))
         .route("/stats", get(stats))
+        .route("/export", get(export))
+        .route(
+            "/import",
+            post(import).layer(DefaultBodyLimit::max(32 * 1024 * 1024)),
+        )
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public

@@ -31,55 +31,76 @@ struct ErrorPayload {
 
 /// Thin wrapper that turns a domain failure into an HTTP response.
 #[derive(Debug)]
-pub struct AppError(DomainError);
+pub struct AppError {
+    source: DomainError,
+    /// Replaces the default `details` object when a handler has more to say.
+    details: Option<Value>,
+}
 
 // Handlers start using these constructors in M2; until then only a few are hit.
 #[allow(dead_code)]
 impl AppError {
+    fn new(source: DomainError) -> Self {
+        Self {
+            source,
+            details: None,
+        }
+    }
+
+    /// A validation failure that reports several problems at once.
+    pub fn validation_with_details(message: impl Into<String>, details: Value) -> Self {
+        Self {
+            source: DomainError::validation(message),
+            details: Some(details),
+        }
+    }
+
     pub fn validation(message: impl Into<String>) -> Self {
-        Self(DomainError::validation(message))
+        Self::new(DomainError::validation(message))
     }
 
     pub fn validation_field(field: impl Into<String>, message: impl Into<String>) -> Self {
-        Self(DomainError::validation_field(field, message))
+        Self::new(DomainError::validation_field(field, message))
     }
 
     pub fn unauthorized(message: impl Into<String>) -> Self {
-        Self(DomainError::unauthorized(message))
+        Self::new(DomainError::unauthorized(message))
     }
 
     pub fn forbidden(message: impl Into<String>) -> Self {
-        Self(DomainError::forbidden(message))
+        Self::new(DomainError::forbidden(message))
     }
 
     pub fn not_found(message: impl Into<String>) -> Self {
-        Self(DomainError::not_found(message))
+        Self::new(DomainError::not_found(message))
     }
 
     pub fn method_not_allowed(message: impl Into<String>) -> Self {
-        Self(DomainError::method_not_allowed(message))
+        Self::new(DomainError::method_not_allowed(message))
     }
 
     pub fn conflict(message: impl Into<String>) -> Self {
-        Self(DomainError::conflict(message))
+        Self::new(DomainError::conflict(message))
     }
 
     pub fn rate_limited(message: impl Into<String>, retry_after_secs: u64) -> Self {
-        Self(DomainError::rate_limited(message, retry_after_secs))
+        Self::new(DomainError::rate_limited(message, retry_after_secs))
     }
 
     pub fn internal(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> Self {
-        Self(DomainError::internal(error))
+        Self::new(DomainError::internal(error))
     }
 
     /// Status, stable code, public message and optional details.
     fn parts(&self) -> (StatusCode, &'static str, String, Option<Value>) {
-        match &self.0 {
+        match &self.source {
             DomainError::Validation { message, field } => (
                 StatusCode::BAD_REQUEST,
                 "validation_error",
                 message.clone(),
-                field.as_ref().map(|field| json!({ "field": field })),
+                self.details
+                    .clone()
+                    .or_else(|| field.as_ref().map(|field| json!({ "field": field }))),
             ),
             DomainError::Unauthorized(message) => (
                 StatusCode::UNAUTHORIZED,
@@ -127,7 +148,7 @@ impl AppError {
 
 impl std::fmt::Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        self.source.fmt(f)
     }
 }
 
@@ -135,13 +156,13 @@ impl std::error::Error for AppError {}
 
 impl From<DomainError> for AppError {
     fn from(error: DomainError) -> Self {
-        Self(error)
+        Self::new(error)
     }
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let retry_after = match &self.0 {
+        let retry_after = match &self.source {
             DomainError::RateLimited {
                 retry_after_secs, ..
             } => Some(*retry_after_secs),

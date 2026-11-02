@@ -128,6 +128,66 @@ impl TestClient {
             .await
     }
 
+    /// Fetches a body that is not JSON (CSV, files) with its content type.
+    pub async fn get_raw(
+        &self,
+        path: &str,
+        cookie: Option<&str>,
+    ) -> (StatusCode, Option<String>, String) {
+        let mut builder = Request::builder()
+            .method(Method::GET)
+            .uri(path)
+            .header("x-forwarded-for", &self.ip);
+
+        if let Some(cookie) = cookie {
+            builder = builder.header("cookie", cookie);
+        }
+
+        let mut request = builder.body(Body::empty()).expect("valid request");
+        request
+            .extensions_mut()
+            .insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 4000))));
+
+        let response = self
+            .app
+            .clone()
+            .oneshot(request)
+            .await
+            .expect("router responds");
+
+        let status = response.status();
+        let content_type = response
+            .headers()
+            .get("content-type")
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
+
+        let bytes = response
+            .into_body()
+            .collect()
+            .await
+            .expect("read body")
+            .to_bytes();
+
+        (
+            status,
+            content_type,
+            String::from_utf8_lossy(&bytes).into_owned(),
+        )
+    }
+
+    /// Sends a raw body, for tests that need malformed JSON.
+    pub async fn post_raw_with_cookie(&self, path: &str, body: &str, cookie: &str) -> TestResponse {
+        self.send_request(
+            Method::POST,
+            path,
+            Some(body.to_owned()),
+            Some(cookie),
+            Some("http://localhost:3000"),
+        )
+        .await
+    }
+
     pub async fn post_with_cookie(&self, path: &str, body: Value, cookie: &str) -> TestResponse {
         self.send(
             Method::POST,
@@ -180,6 +240,24 @@ impl TestClient {
         cookie: Option<&str>,
         origin: Option<&str>,
     ) -> TestResponse {
+        self.send_request(
+            method,
+            path,
+            body.map(|value| value.to_string()),
+            cookie,
+            origin,
+        )
+        .await
+    }
+
+    async fn send_request(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<String>,
+        cookie: Option<&str>,
+        origin: Option<&str>,
+    ) -> TestResponse {
         let mut builder = Request::builder()
             .method(method)
             .uri(path)
@@ -196,7 +274,7 @@ impl TestClient {
         }
 
         let body = match body {
-            Some(value) => Body::from(value.to_string()),
+            Some(value) => Body::from(value),
             None => Body::empty(),
         };
 

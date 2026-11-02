@@ -27,6 +27,23 @@ const SELECT_BY_ID: &str = r#"
     group by i.id
 "#;
 
+const SELECT_ALL: &str = r#"
+    select
+        i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+        i.review, i.source_url, i.cover_key, i.revision, i.sync_seq, i.device_id,
+        i.created_at, i.updated_at, i.deleted_at,
+        coalesce(
+            array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
+            '{}'
+        ) as tags
+    from items i
+    left join item_tags it on it.item_id = i.id
+    left join tags t on t.id = it.tag_id
+    where i.user_id = $1
+    group by i.id
+    order by i.created_at asc, i.id asc
+"#;
+
 const SELECT_LIST: &str = r#"
     select
         i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
@@ -382,8 +399,105 @@ pub async fn restore(pool: &PgPool, user_id: Uuid, id: Uuid) -> Result<bool, App
     Ok(result.rows_affected() > 0)
 }
 
+/// All records of a user, including the bin, for export.
+pub async fn export_all(pool: &PgPool, user_id: Uuid) -> Result<Vec<Item>, AppError> {
+    let rows = sqlx::query_as::<_, ItemRow>(SELECT_ALL)
+        .bind(user_id)
+        .fetch_all(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    rows.into_iter().map(Item::try_from).collect()
+}
+
+/// Inserts imported records, skipping ones this account already has.
+///
+/// An id that belongs to another account cannot be kept (ids are global), so a
+/// fresh one is generated; repeated imports are then caught by comparing the
+/// record's content. Runs in one transaction: all of the file or none of it.
+pub async fn import_items(
+    pool: &PgPool,
+    user_id: Uuid,
+    records: &[(Uuid, DateTime<Utc>, NewItem)],
+) -> Result<usize, AppError> {
+    let mut transaction = pool.begin().await.map_err(AppError::internal)?;
+    let mut created = 0;
+
+    for (id, created_at, item) in records {
+        // Already imported into this account under the same id.
+        let already_ours = sqlx::query_scalar::<_, bool>(
+            "select exists(select 1 from items where id = $1 and user_id = $2)",
+        )
+        .bind(id)
+        .bind(user_id)
+        .fetch_one(&mut *transaction)
+        .await
+        .map_err(AppError::internal)?;
+
+        if already_ours {
+            continue;
+        }
+
+        // Same content, imported before under a different id.
+        let duplicate = sqlx::query_scalar::<_, bool>(
+            "select exists(
+                 select 1 from items
+                 where user_id = $1 and kind = $2 and title = $3 and created_at = $4
+             )",
+        )
+        .bind(user_id)
+        .bind(item.kind.as_str())
+        .bind(&item.title)
+        .bind(created_at)
+        .fetch_one(&mut *transaction)
+        .await
+        .map_err(AppError::internal)?;
+
+        if duplicate {
+            continue;
+        }
+
+        let id_taken =
+            sqlx::query_scalar::<_, bool>("select exists(select 1 from items where id = $1)")
+                .bind(id)
+                .fetch_one(&mut *transaction)
+                .await
+                .map_err(AppError::internal)?;
+
+        let new_id = if id_taken { Uuid::new_v4() } else { *id };
+
+        sqlx::query(
+            "insert into items
+                 (id, user_id, kind, title, subtitle, year, status, rating, review,
+                  source_url, created_at)
+             values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        )
+        .bind(new_id)
+        .bind(user_id)
+        .bind(item.kind.as_str())
+        .bind(&item.title)
+        .bind(&item.subtitle)
+        .bind(item.year)
+        .bind(item.status.as_str())
+        .bind(item.rating.map(i16::from))
+        .bind(&item.review)
+        .bind(&item.source_url)
+        .bind(created_at)
+        .execute(&mut *transaction)
+        .await
+        .map_err(AppError::internal)?;
+
+        link_tags(&mut transaction, user_id, new_id, &item.tags).await?;
+        created += 1;
+    }
+
+    transaction.commit().await.map_err(AppError::internal)?;
+
+    Ok(created)
+}
+
 /// Upserts tags for a user and links them to an item.
-async fn link_tags(
+pub(crate) async fn link_tags(
     transaction: &mut Transaction<'_, Postgres>,
     user_id: Uuid,
     item_id: Uuid,
