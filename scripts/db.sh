@@ -51,7 +51,7 @@ cmd_drop() {
 }
 
 cmd_migrate() {
-    RUST_LOG=error cargo run --quiet --manifest-path "${ROOT_DIR}/backend/Cargo.toml" -- migrate
+    RUST_LOG=error cargo run --quiet --manifest-path "${ROOT_DIR}/crates/api/Cargo.toml" -- migrate
 }
 
 cmd_reset() {

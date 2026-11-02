@@ -49,7 +49,7 @@
 | **M7 · Полировка** | T82–T91 | Экспорт в UI, приватность, SEO, безопасность, релиз 0.1.0 |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T09 приняты. Каркас закрыт. Следующая — T10.
+**Текущий статус:** T01–T10 приняты. Следующая — T11.
 
 ---
 
@@ -113,7 +113,7 @@
 
 ## M1 · Ядро
 
-- [ ] **T10 · Cargo workspace: core и api**
+- [x] **T10 · Cargo workspace: core и api**
   **Файлы:** `Cargo.toml` (воркспейс в корне), `crates/core/Cargo.toml`, `crates/core/src/lib.rs`, `crates/api/Cargo.toml`, перенос `backend/*` → `crates/api/*`
   **Сделать:** воркспейс с членами `crates/core` (крейт `jey-core`) и `crates/api` (крейт `jey-api`); `core` содержит доменные типы, ошибки и правила и не зависит от `axum` и `sqlx`; `api` — текущий бинарник, зависит от `core`; обновить пути в `scripts/db.sh`, `scripts/check.sh` и CI.
   **Проверить:** `cargo build --workspace` и `cargo test --workspace` из корня проходят; `bash scripts/check.sh` зелёный; `/health` и `/health/ready` отвечают как раньше; в `crates/core/Cargo.toml` нет `axum` и `sqlx`.

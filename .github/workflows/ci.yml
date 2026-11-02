@@ -21,9 +21,6 @@ jobs:
     name: Backend
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: backend
     env:
       DATABASE_URL: postgres://jey:jey@localhost:5432/jey
     services:
@@ -53,19 +50,19 @@ jobs:
       - name: Cache cargo artifacts
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: backend
+          workspaces: .
 
       - name: Check formatting
         run: cargo fmt --all -- --check
 
       - name: Lint
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Build
-        run: cargo build --all-targets
+        run: cargo build --workspace --all-targets
 
       - name: Run tests
-        run: cargo test
+        run: cargo test --workspace
 
       - name: Apply migrations
-        run: cargo run --quiet -- migrate
+        run: cargo run --quiet -p jey-api -- migrate

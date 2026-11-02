@@ -1,0 +1,13 @@
+[package]
+name = "jey-core"
+description = "Domain model, errors and sync rules shared by the server and the desktop client"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+uuid.workspace = true

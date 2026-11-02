@@ -1,15 +1,15 @@
-//! Unified error type shared by every API handler.
+//! HTTP representation of domain errors.
 //!
-//! The JSON shape produced here is the contract described in `docs/protocol.md`:
-//! a stable `code`, a human-readable `message`, optional `details` and the
-//! `request_id` of the request being answered.
+//! The domain (`jey-core`) knows nothing about status codes; this module maps
+//! its variants onto the wire format described in `docs/protocol.md`.
 
 use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
 use serde_json::{Value, json};
-use thiserror::Error;
+
+use jey_core::DomainError;
 
 use crate::telemetry::current_request_id;
 
@@ -27,117 +27,80 @@ struct ErrorPayload {
     request_id: String,
 }
 
-/// Everything a handler can fail with.
-///
-/// The contract is defined in full here so handlers written later (M1 and on)
-/// do not have to invent their own error shapes; until then most variants are
-/// only exercised by tests.
-#[allow(dead_code)]
-#[derive(Debug, Error)]
-pub enum AppError {
-    #[error("validation failed: {message}")]
-    Validation {
-        message: String,
-        field: Option<String>,
-    },
+/// Thin wrapper that turns a domain failure into an HTTP response.
+#[derive(Debug)]
+pub struct AppError(DomainError);
 
-    #[error("unauthorized: {0}")]
-    Unauthorized(String),
-
-    #[error("forbidden: {0}")]
-    Forbidden(String),
-
-    #[error("not found: {0}")]
-    NotFound(String),
-
-    #[error("method not allowed: {0}")]
-    MethodNotAllowed(String),
-
-    #[error("conflict: {0}")]
-    Conflict(String),
-
-    #[error("rate limited: {message}")]
-    RateLimited {
-        message: String,
-        retry_after_secs: u64,
-    },
-
-    #[error("internal error: {0}")]
-    Internal(Box<dyn std::error::Error + Send + Sync>),
-}
-
+// Handlers start using these constructors in M2; until then only a few are hit.
 #[allow(dead_code)]
 impl AppError {
     pub fn validation(message: impl Into<String>) -> Self {
-        Self::Validation {
-            message: message.into(),
-            field: None,
-        }
+        Self(DomainError::validation(message))
     }
 
     pub fn validation_field(field: impl Into<String>, message: impl Into<String>) -> Self {
-        Self::Validation {
-            message: message.into(),
-            field: Some(field.into()),
-        }
+        Self(DomainError::validation_field(field, message))
     }
 
     pub fn unauthorized(message: impl Into<String>) -> Self {
-        Self::Unauthorized(message.into())
+        Self(DomainError::unauthorized(message))
     }
 
     pub fn forbidden(message: impl Into<String>) -> Self {
-        Self::Forbidden(message.into())
+        Self(DomainError::forbidden(message))
     }
 
     pub fn not_found(message: impl Into<String>) -> Self {
-        Self::NotFound(message.into())
+        Self(DomainError::not_found(message))
     }
 
     pub fn method_not_allowed(message: impl Into<String>) -> Self {
-        Self::MethodNotAllowed(message.into())
+        Self(DomainError::method_not_allowed(message))
     }
 
     pub fn conflict(message: impl Into<String>) -> Self {
-        Self::Conflict(message.into())
+        Self(DomainError::conflict(message))
     }
 
     pub fn rate_limited(message: impl Into<String>, retry_after_secs: u64) -> Self {
-        Self::RateLimited {
-            message: message.into(),
-            retry_after_secs,
-        }
+        Self(DomainError::rate_limited(message, retry_after_secs))
     }
 
     pub fn internal(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> Self {
-        Self::Internal(error.into())
+        Self(DomainError::internal(error))
     }
 
     /// Status, stable code, public message and optional details.
     fn parts(&self) -> (StatusCode, &'static str, String, Option<Value>) {
-        match self {
-            Self::Validation { message, field } => (
+        match &self.0 {
+            DomainError::Validation { message, field } => (
                 StatusCode::BAD_REQUEST,
                 "validation_error",
                 message.clone(),
                 field.as_ref().map(|field| json!({ "field": field })),
             ),
-            Self::Unauthorized(message) => (
+            DomainError::Unauthorized(message) => (
                 StatusCode::UNAUTHORIZED,
                 "unauthorized",
                 message.clone(),
                 None,
             ),
-            Self::Forbidden(message) => (StatusCode::FORBIDDEN, "forbidden", message.clone(), None),
-            Self::NotFound(message) => (StatusCode::NOT_FOUND, "not_found", message.clone(), None),
-            Self::MethodNotAllowed(message) => (
+            DomainError::Forbidden(message) => {
+                (StatusCode::FORBIDDEN, "forbidden", message.clone(), None)
+            }
+            DomainError::NotFound(message) => {
+                (StatusCode::NOT_FOUND, "not_found", message.clone(), None)
+            }
+            DomainError::MethodNotAllowed(message) => (
                 StatusCode::METHOD_NOT_ALLOWED,
                 "method_not_allowed",
                 message.clone(),
                 None,
             ),
-            Self::Conflict(message) => (StatusCode::CONFLICT, "conflict", message.clone(), None),
-            Self::RateLimited {
+            DomainError::Conflict(message) => {
+                (StatusCode::CONFLICT, "conflict", message.clone(), None)
+            }
+            DomainError::RateLimited {
                 message,
                 retry_after_secs,
             } => (
@@ -146,7 +109,7 @@ impl AppError {
                 message.clone(),
                 Some(json!({ "retry_after_secs": retry_after_secs })),
             ),
-            Self::Internal(error) => {
+            DomainError::Internal(error) => {
                 // Details stay in the log; the client gets a generic message.
                 tracing::error!(error = %error, "unhandled internal error");
                 (
@@ -157,6 +120,12 @@ impl AppError {
                 )
             }
         }
+    }
+}
+
+impl From<DomainError> for AppError {
+    fn from(error: DomainError) -> Self {
+        Self(error)
     }
 }
 
@@ -247,5 +216,14 @@ mod tests {
         assert_eq!(code, "internal");
         assert_eq!(message, "internal server error");
         assert_eq!(details, None);
+    }
+
+    #[test]
+    fn domain_errors_convert_into_app_errors() {
+        let error: AppError = DomainError::not_found("item").into();
+        let (status, code, _, _) = error.parts();
+
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        assert_eq!(code, "not_found");
     }
 }

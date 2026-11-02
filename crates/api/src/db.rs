@@ -25,7 +25,7 @@ pub fn create_pool(config: &Config) -> Result<PgPool, sqlx::Error> {
 /// Applies pending migrations. They are compiled into the binary, so the
 /// deployed artefact always carries the schema it expects.
 pub async fn migrate(pool: &PgPool) -> Result<(), sqlx::migrate::MigrateError> {
-    sqlx::migrate!("../migrations").run(pool).await
+    sqlx::migrate!("../../migrations").run(pool).await
 }
 
 /// Cheap round-trip used both at startup and by the readiness endpoint.

@@ -9,7 +9,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "${ROOT_DIR}/backend"
+cd "${ROOT_DIR}"
 
 started_at=$(date +%s)
 
@@ -26,13 +26,13 @@ step "cargo fmt --check"
 cargo fmt --all -- --check || fail "formatting (run: cargo fmt)"
 
 step "cargo clippy --all-targets -- -D warnings"
-cargo clippy --locked --all-targets -- -D warnings || fail "clippy"
+cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 
 step "cargo test"
-cargo test --locked || fail "tests"
+cargo test --locked --workspace || fail "tests"
 
 step "cargo build --release"
-cargo build --locked --release || fail "release build"
+cargo build --locked --release --workspace || fail "release build"
 
 elapsed=$(( $(date +%s) - started_at ))
 printf '\nAll checks passed in %ss\n' "${elapsed}"
