@@ -34,7 +34,9 @@
 }
 
 .body {
+  max-height: min(70vh, 42rem);
   padding: var(--space-5);
+  overflow-y: auto;
 }
 
 .footer {

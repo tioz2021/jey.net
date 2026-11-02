@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Avatar } from "@/components/profile/avatar";
+import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useUser } from "@/lib/user-context";
 
@@ -60,6 +61,7 @@ export function SiteHeader() {
         </nav>
 
         <div className={styles.right}>
+          {loading ? null : user ? <QuickAdd /> : null}
           <span className={styles.theme}>
             <ThemeToggle />
           </span>
