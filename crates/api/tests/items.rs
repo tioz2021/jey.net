@@ -380,3 +380,158 @@ async fn read_item_endpoint_respects_ownership() {
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
 }
+
+#[tokio::test]
+async fn list_paginates_without_gaps_or_duplicates() {
+    let (client, email, cookie) = logged_in_client().await;
+    let pool = pool().await;
+    let user_id = common::user_id_by_email(&pool, &email).await;
+
+    for index in 0..60 {
+        repo::create(
+            &pool,
+            user_id,
+            None,
+            &NewItem {
+                kind: ItemKind::Movie,
+                title: format!("Item {index:02}"),
+                subtitle: None,
+                year: Some(2000 + index),
+                status: ItemStatus::Done,
+                rating: Some((index % 10 + 1) as u8),
+                review: None,
+                source_url: None,
+                tags: vec![],
+            },
+        )
+        .await
+        .expect("item is created");
+    }
+
+    let mut ids = Vec::new();
+    let mut cursor: Option<String> = None;
+    let mut pages = 0;
+
+    loop {
+        let mut url = "/api/v1/items?limit=20".to_owned();
+        if let Some(cursor) = &cursor {
+            url.push_str(&format!("&cursor={cursor}"));
+        }
+
+        let page = client.get(&url, Some(&cookie)).await;
+        assert_eq!(page.status, 200, "body: {}", page.body);
+        pages += 1;
+
+        for item in page.body["items"].as_array().expect("array") {
+            ids.push(item["id"].as_str().expect("id").to_owned());
+        }
+
+        cursor = page.body["next_cursor"].as_str().map(str::to_owned);
+        if cursor.is_none() {
+            break;
+        }
+    }
+
+    assert_eq!(pages, 3, "60 items with limit 20 is three pages");
+    assert_eq!(ids.len(), 60, "every item is returned exactly once");
+
+    let unique: std::collections::HashSet<_> = ids.iter().collect();
+    assert_eq!(unique.len(), 60, "no duplicates across pages");
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn list_rejects_bad_parameters() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    for (url, field) in [
+        ("/api/v1/items?limit=0", "limit"),
+        ("/api/v1/items?limit=101", "limit"),
+        ("/api/v1/items?cursor=not-a-cursor", "cursor"),
+        ("/api/v1/items?sort=random", "sort"),
+        ("/api/v1/items?kind=game", "kind"),
+        ("/api/v1/items?status=lost", "status"),
+    ] {
+        let response = client.get(url, Some(&cookie)).await;
+        assert_eq!(response.status, 400, "url: {url}");
+        assert_eq!(
+            response.body["error"]["details"]["field"], field,
+            "url: {url}"
+        );
+    }
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn list_sorts_by_rating_and_filters_by_kind() {
+    let (client, email, cookie) = logged_in_client().await;
+    let pool = pool().await;
+    let user_id = common::user_id_by_email(&pool, &email).await;
+
+    for (title, rating) in [("Low", 3), ("High", 10), ("Middle", 7)] {
+        repo::create(
+            &pool,
+            user_id,
+            None,
+            &NewItem {
+                kind: ItemKind::Movie,
+                title: title.to_owned(),
+                subtitle: None,
+                year: None,
+                status: ItemStatus::Done,
+                rating: Some(rating),
+                review: None,
+                source_url: None,
+                tags: vec![],
+            },
+        )
+        .await
+        .expect("movie");
+    }
+
+    repo::create(
+        &pool,
+        user_id,
+        None,
+        &NewItem {
+            kind: ItemKind::Book,
+            title: "Book".to_owned(),
+            subtitle: None,
+            year: None,
+            status: ItemStatus::Done,
+            rating: Some(9),
+            review: None,
+            source_url: None,
+            tags: vec![],
+        },
+    )
+    .await
+    .expect("book");
+
+    let sorted = client
+        .get("/api/v1/items?sort=rating_desc", Some(&cookie))
+        .await;
+    assert_eq!(sorted.status, 200);
+    let titles: Vec<&str> = sorted.body["items"]
+        .as_array()
+        .expect("array")
+        .iter()
+        .map(|item| item["title"].as_str().expect("title"))
+        .collect();
+    assert_eq!(titles, vec!["High", "Book", "Middle", "Low"]);
+
+    let movies_only = client
+        .get("/api/v1/items?kind=movie&sort=rating_desc", Some(&cookie))
+        .await;
+    let movie_titles: Vec<&str> = movies_only.body["items"]
+        .as_array()
+        .expect("array")
+        .iter()
+        .map(|item| item["title"].as_str().expect("title"))
+        .collect();
+    assert_eq!(movie_titles, vec!["High", "Middle", "Low"]);
+
+    client.cleanup(&email).await;
+}

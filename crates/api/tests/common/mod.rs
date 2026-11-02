@@ -321,6 +321,15 @@ pub async fn create_test_user(pool: &PgPool) -> uuid::Uuid {
     id
 }
 
+/// Finds a user id by email, for tests that need the raw identifier.
+pub async fn user_id_by_email(pool: &PgPool, email: &str) -> uuid::Uuid {
+    sqlx::query_scalar::<_, uuid::Uuid>("select id from users where email = $1")
+        .bind(email)
+        .fetch_one(pool)
+        .await
+        .expect("user exists")
+}
+
 /// Removes a user created by `create_test_user`.
 pub async fn purge_test_user(pool: &PgPool, id: uuid::Uuid) {
     let _ = sqlx::query("delete from users where id = $1")

@@ -6,7 +6,7 @@
 use chrono::{DateTime, Utc};
 use jey_core::items::{Item, ItemKind, ItemPatch, ItemStatus, NewItem};
 use jey_core::sync::{DeviceId, Revision, SyncSeq, Timestamp};
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::{AssertSqlSafe, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::error::AppError;
@@ -168,6 +168,87 @@ pub async fn list(
         .bind(user_id)
         .bind(kind)
         .bind(status)
+        .bind(limit)
+        .fetch_all(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    rows.into_iter().map(Item::try_from).collect()
+}
+
+/// Lists one page of live records, strictly after the cursor when given.
+pub async fn list_page(
+    pool: &PgPool,
+    user_id: Uuid,
+    kind: Option<ItemKind>,
+    status: Option<ItemStatus>,
+    sort: crate::items::list::Sort,
+    limit: i64,
+    cursor: Option<(String, Uuid)>,
+) -> Result<Vec<Item>, AppError> {
+    use crate::items::list::Sort;
+
+    let (cursor_predicate, order) = match sort {
+        Sort::CreatedDesc => (
+            "($4::text is null or (i.created_at, i.id) < (to_timestamp(($4)::bigint / 1000.0), $5::uuid))",
+            "i.created_at desc, i.id desc",
+        ),
+        Sort::CreatedAsc => (
+            "($4::text is null or (i.created_at, i.id) > (to_timestamp(($4)::bigint / 1000.0), $5::uuid))",
+            "i.created_at asc, i.id asc",
+        ),
+        Sort::UpdatedDesc => (
+            "($4::text is null or (i.updated_at, i.id) < (to_timestamp(($4)::bigint / 1000.0), $5::uuid))",
+            "i.updated_at desc, i.id desc",
+        ),
+        Sort::RatingDesc => (
+            "($4::text is null or (coalesce(i.rating, 0), i.id) < (($4)::int, $5::uuid))",
+            "coalesce(i.rating, 0) desc, i.id desc",
+        ),
+        Sort::YearDesc => (
+            "($4::text is null or (coalesce(i.year, 0), i.id) < (($4)::int, $5::uuid))",
+            "coalesce(i.year, 0) desc, i.id desc",
+        ),
+        Sort::TitleAsc => (
+            "($4::text is null or (lower(i.title), i.id) > (lower($4), $5::uuid))",
+            "lower(i.title) asc, i.id asc",
+        ),
+    };
+
+    // Only static fragments are interpolated: the cursor travels as parameters.
+    let sql = format!(
+        "select
+             i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+             i.review, i.source_url, i.cover_key, i.revision, i.sync_seq, i.device_id,
+             i.created_at, i.updated_at, i.deleted_at,
+             coalesce(
+                 array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
+                 '{{}}'
+             ) as tags
+         from items i
+         left join item_tags it on it.item_id = i.id
+         left join tags t on t.id = it.tag_id
+         where i.user_id = $1
+           and i.deleted_at is null
+           and ($2::text is null or i.kind = $2)
+           and ($3::text is null or i.status = $3)
+           and {cursor_predicate}
+         group by i.id
+         order by {order}
+         limit $6"
+    );
+
+    let (cursor_value, cursor_id) = match cursor {
+        Some((value, id)) => (Some(value), Some(id)),
+        None => (None, None),
+    };
+
+    let rows = sqlx::query_as::<_, ItemRow>(AssertSqlSafe(sql))
+        .bind(user_id)
+        .bind(kind.map(ItemKind::as_str))
+        .bind(status.map(ItemStatus::as_str))
+        .bind(cursor_value)
+        .bind(cursor_id)
         .bind(limit)
         .fetch_all(pool)
         .await
