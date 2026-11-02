@@ -1,5 +1,6 @@
 //! jey.net HTTP API: entry point and process lifecycle.
 
+mod auth;
 mod config;
 mod db;
 mod error;
