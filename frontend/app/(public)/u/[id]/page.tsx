@@ -71,6 +71,7 @@ export default async function PublicProfilePage({
             className={styles.avatar}
             src={`/media/${profile.avatar_key}`}
             alt=""
+            decoding="async"
           />
         ) : (
           <div className={styles.avatarPlaceholder} aria-hidden="true">
@@ -102,6 +103,7 @@ export default async function PublicProfilePage({
                   src={`/media/${item.cover_key}`}
                   alt=""
                   loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className={styles.coverPlaceholder} aria-hidden="true" />

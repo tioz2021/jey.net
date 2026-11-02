@@ -42,6 +42,7 @@ export function ItemCard({ item, query }: { item: Item; query?: string }) {
             src={`/media/${item.cover_key}`}
             alt=""
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className={styles.placeholder} aria-hidden="true" />
