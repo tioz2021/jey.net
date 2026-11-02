@@ -879,3 +879,92 @@ async fn tags_are_private_per_user() {
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
 }
+
+#[tokio::test]
+async fn list_filters_combine_with_and() {
+    let (client, email, cookie) = logged_in_client().await;
+    let pool = pool().await;
+    let user_id = common::user_id_by_email(&pool, &email).await;
+
+    let samples = [
+        ("Interstellar", ItemKind::Movie, 9, 2014, vec!["sci-fi"]),
+        ("First Man", ItemKind::Movie, 5, 2020, vec!["drama"]),
+        ("Dune", ItemKind::Book, 10, 2015, vec!["sci-fi"]),
+    ];
+
+    for (title, kind, rating, year, tags) in samples {
+        repo::create(
+            &pool,
+            user_id,
+            None,
+            &NewItem {
+                kind,
+                title: title.to_owned(),
+                subtitle: None,
+                year: Some(year),
+                status: ItemStatus::Done,
+                rating: Some(rating),
+                review: None,
+                source_url: None,
+                tags: tags.into_iter().map(str::to_owned).collect(),
+            },
+        )
+        .await
+        .expect("item is created");
+    }
+
+    let titles = |body: &serde_json::Value| -> Vec<String> {
+        body["items"]
+            .as_array()
+            .expect("array")
+            .iter()
+            .map(|item| item["title"].as_str().expect("title").to_owned())
+            .collect()
+    };
+
+    let movies_rated = client
+        .get("/api/v1/items?kind=movie&rating_min=8", Some(&cookie))
+        .await;
+    assert_eq!(movies_rated.status, 200);
+    assert_eq!(titles(&movies_rated.body), vec!["Interstellar"]);
+
+    let unknown_tag = client
+        .get("/api/v1/items?tag=does-not-exist", Some(&cookie))
+        .await;
+    assert_eq!(unknown_tag.status, 200, "an unknown tag is not an error");
+    assert!(titles(&unknown_tag.body).is_empty());
+
+    let sci_fi = client.get("/api/v1/items?tag=SCI-FI", Some(&cookie)).await;
+    assert_eq!(titles(&sci_fi.body).len(), 2, "tag matching ignores case");
+
+    let years = client
+        .get("/api/v1/items?year_from=2015&year_to=2020", Some(&cookie))
+        .await;
+    let mut year_titles = titles(&years.body);
+    year_titles.sort();
+    assert_eq!(year_titles, vec!["Dune", "First Man"]);
+
+    let ratings = client
+        .get("/api/v1/items?rating_min=9&rating_max=10", Some(&cookie))
+        .await;
+    let mut rating_titles = titles(&ratings.body);
+    rating_titles.sort();
+    assert_eq!(rating_titles, vec!["Dune", "Interstellar"]);
+
+    for (url, field) in [
+        ("/api/v1/items?rating_min=11", "rating_min"),
+        ("/api/v1/items?rating_max=0", "rating_max"),
+        ("/api/v1/items?year_from=1500", "year_from"),
+        ("/api/v1/items?year_from=2020&year_to=2000", "year_from"),
+        ("/api/v1/items?rating_min=9&rating_max=5", "rating_min"),
+    ] {
+        let response = client.get(url, Some(&cookie)).await;
+        assert_eq!(response.status, 400, "url: {url}");
+        assert_eq!(
+            response.body["error"]["details"]["field"], field,
+            "url: {url}"
+        );
+    }
+
+    client.cleanup(&email).await;
+}

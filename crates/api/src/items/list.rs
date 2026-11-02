@@ -17,10 +17,11 @@ use uuid::Uuid;
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::items::filters::Filters;
 use crate::items::repo;
 use crate::items::view::ItemView;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 pub struct ListQuery {
     pub kind: Option<String>,
     pub status: Option<String>,
@@ -29,6 +30,11 @@ pub struct ListQuery {
     pub cursor: Option<String>,
     /// `true` shows records from the bin as well.
     pub include_deleted: Option<bool>,
+    pub tag: Option<String>,
+    pub year_from: Option<i32>,
+    pub year_to: Option<i32>,
+    pub rating_min: Option<u8>,
+    pub rating_max: Option<u8>,
 }
 
 /// `GET /api/v1/items`
@@ -39,8 +45,7 @@ pub async fn list_items(
 ) -> Result<Json<Value>, AppError> {
     let Query(query) = query.map_err(|rejection| AppError::validation(rejection.body_text()))?;
 
-    let kind = parse_kind(query.kind.as_deref())?;
-    let status = parse_status(query.status.as_deref())?;
+    let filters = Filters::parse(&query)?;
     let sort = match query.sort.as_deref() {
         Some(raw) => Sort::parse(raw)?,
         None => Sort::CreatedDesc,
@@ -56,8 +61,7 @@ pub async fn list_items(
         &state.pool,
         repo::ListPage {
             user_id: current.user.id,
-            kind,
-            status,
+            filters,
             sort,
             limit: limit + 1,
             cursor,

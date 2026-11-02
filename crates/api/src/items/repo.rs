@@ -179,8 +179,7 @@ pub async fn list(
 /// Everything a page request needs.
 pub struct ListPage {
     pub user_id: Uuid,
-    pub kind: Option<ItemKind>,
-    pub status: Option<ItemStatus>,
+    pub filters: crate::items::filters::Filters,
     pub sort: crate::items::list::Sort,
     pub limit: i64,
     pub cursor: Option<(String, Uuid)>,
@@ -193,8 +192,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
 
     let ListPage {
         user_id,
-        kind,
-        status,
+        filters,
         sort,
         limit,
         cursor,
@@ -245,6 +243,18 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
            and ($7::boolean or i.deleted_at is null)
            and ($2::text is null or i.kind = $2)
            and ($3::text is null or i.status = $3)
+           and ($8::text is null or exists (
+               select 1
+               from item_tags it2
+               join tags t2 on t2.id = it2.tag_id
+               where it2.item_id = i.id
+                 and t2.user_id = $1
+                 and lower(t2.name) = lower($8)
+           ))
+           and ($9::int is null or i.year >= $9)
+           and ($10::int is null or i.year <= $10)
+           and ($11::int is null or i.rating >= $11)
+           and ($12::int is null or i.rating <= $12)
            and {cursor_predicate}
          group by i.id
          order by {order}
@@ -258,12 +268,17 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
 
     let rows = sqlx::query_as::<_, ItemRow>(AssertSqlSafe(sql))
         .bind(user_id)
-        .bind(kind.map(ItemKind::as_str))
-        .bind(status.map(ItemStatus::as_str))
+        .bind(filters.kind.map(ItemKind::as_str))
+        .bind(filters.status.map(ItemStatus::as_str))
         .bind(cursor_value)
         .bind(cursor_id)
         .bind(limit)
         .bind(include_deleted)
+        .bind(filters.tag)
+        .bind(filters.year_from)
+        .bind(filters.year_to)
+        .bind(filters.rating_min.map(i32::from))
+        .bind(filters.rating_max.map(i32::from))
         .fetch_all(pool)
         .await
         .map_err(AppError::internal)?;
