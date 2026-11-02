@@ -40,3 +40,11 @@
 .cta:hover {
   background: var(--color-accent-hover);
 }
+
+.cta:active {
+  transform: translateY(1px);
+}
+
+.cta {
+  transition: transform var(--transition-fast);
+}

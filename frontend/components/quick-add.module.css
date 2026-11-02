@@ -21,3 +21,11 @@
 .button:hover {
   background: var(--color-accent-hover);
 }
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button {
+  transition: transform var(--transition-fast);
+}

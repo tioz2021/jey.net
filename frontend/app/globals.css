@@ -195,6 +195,11 @@ a {
   }
 }
 
+/* Every real button presses, including the ones that are not our <Button>. */
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
 /* Motion is decoration: never let it get in the way of accessibility. */
 @media (prefers-reduced-motion: reduce) {
   *,

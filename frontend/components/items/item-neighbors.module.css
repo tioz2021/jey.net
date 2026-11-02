@@ -40,3 +40,11 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
+
+.link:active {
+  transform: translateY(1px);
+}
+
+.link {
+  transition: transform var(--transition-fast);
+}

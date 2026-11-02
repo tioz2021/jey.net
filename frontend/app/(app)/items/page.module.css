@@ -33,3 +33,7 @@
 .add:hover {
   background: var(--color-accent-hover);
 }
+
+.add:active {
+  transform: translateY(1px);
+}
