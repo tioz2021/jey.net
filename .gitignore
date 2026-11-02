@@ -16,8 +16,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
-# Local data (uploads, sqlite, dumps)
+# Local data (uploads, mail, sqlite, dumps)
 /data/
+/var/
 *.db
 *.db-shm
 *.db-wal

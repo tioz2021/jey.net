@@ -226,9 +226,35 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
         ),
     };
 
+    // Two phases: the inner query picks the page using indexes and stops at
+    // `limit`, the outer query joins tags only for those few rows. Doing it in
+    // one pass forces PostgreSQL to aggregate tags for every candidate row.
     // Only static fragments are interpolated: the cursor travels as parameters.
     let sql = format!(
-        "select
+        "with page as (
+             select i.id
+             from items i
+             where i.user_id = $1
+               and ($7::boolean or i.deleted_at is null)
+               and ($2::text is null or i.kind = $2)
+               and ($3::text is null or i.status = $3)
+               and ($8::text is null or exists (
+                   select 1
+                   from item_tags it2
+                   join tags t2 on t2.id = it2.tag_id
+                   where it2.item_id = i.id
+                     and t2.user_id = $1
+                     and lower(t2.name) = lower($8)
+               ))
+               and ($9::int is null or i.year >= $9)
+               and ($10::int is null or i.year <= $10)
+               and ($11::int is null or i.rating >= $11)
+               and ($12::int is null or i.rating <= $12)
+               and {cursor_predicate}
+             order by {order}
+             limit $6
+         )
+         select
              i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
              i.review, i.source_url, i.cover_key, i.revision, i.sync_seq, i.device_id,
              i.created_at, i.updated_at, i.deleted_at,
@@ -237,28 +263,11 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
                  '{{}}'
              ) as tags
          from items i
+         join page p on p.id = i.id
          left join item_tags it on it.item_id = i.id
          left join tags t on t.id = it.tag_id
-         where i.user_id = $1
-           and ($7::boolean or i.deleted_at is null)
-           and ($2::text is null or i.kind = $2)
-           and ($3::text is null or i.status = $3)
-           and ($8::text is null or exists (
-               select 1
-               from item_tags it2
-               join tags t2 on t2.id = it2.tag_id
-               where it2.item_id = i.id
-                 and t2.user_id = $1
-                 and lower(t2.name) = lower($8)
-           ))
-           and ($9::int is null or i.year >= $9)
-           and ($10::int is null or i.year <= $10)
-           and ($11::int is null or i.rating >= $11)
-           and ($12::int is null or i.rating <= $12)
-           and {cursor_predicate}
          group by i.id
-         order by {order}
-         limit $6"
+         order by {order}"
     );
 
     let (cursor_value, cursor_id) = match cursor {
