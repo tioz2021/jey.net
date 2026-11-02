@@ -1,0 +1,31 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-5);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.text {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.hint {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 0.9375rem;
+}
+
+.hint code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
