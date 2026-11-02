@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Button, Dialog } from "@/components/ui";
-import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { Button } from "@/components/ui";
 
+import { DeleteDialog } from "./delete-dialog";
 import styles from "./item-actions.module.css";
 
 export function ItemActions({
@@ -18,27 +17,6 @@ export function ItemActions({
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function close() {
-    setConfirming(false);
-    setError(null);
-  }
-
-  async function remove() {
-    setPending(true);
-    setError(null);
-
-    try {
-      await api.items.remove(itemId);
-      router.push("/items");
-      router.refresh();
-    } catch (cause) {
-      setError(errorMessage(cause));
-      setPending(false);
-    }
-  }
 
   return (
     <div className={styles.actions}>
@@ -53,31 +31,12 @@ export function ItemActions({
         Удалить
       </Button>
 
-      <Dialog
+      <DeleteDialog
+        itemId={itemId}
+        title={title}
         open={confirming}
-        title="Удалить запись?"
-        onClose={close}
-        footer={
-          <>
-            <Button variant="secondary" onClick={close} disabled={pending}>
-              Отмена
-            </Button>
-            <Button variant="danger" loading={pending} onClick={remove}>
-              Удалить
-            </Button>
-          </>
-        }
-      >
-        <p className={styles.text}>
-          «{title}» переедет в корзину: запись можно будет вернуть, она не
-          удаляется навсегда.
-        </p>
-        {error ? (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        ) : null}
-      </Dialog>
+        onClose={() => setConfirming(false)}
+      />
     </div>
   );
 }

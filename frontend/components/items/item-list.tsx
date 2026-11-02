@@ -25,6 +25,7 @@ function parseFilters(params: URLSearchParams): ItemFilters {
     status: status ? (status as ItemStatus) : undefined,
     sort: sort ? (sort as Sort) : undefined,
     tag: tag ?? undefined,
+    include_deleted: params.get("deleted") === "1",
     limit: PAGE_SIZE,
   };
 }

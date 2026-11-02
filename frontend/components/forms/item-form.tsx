@@ -8,7 +8,7 @@ import { Button, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError, errorMessage } from "@/lib/errors";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
-import type { ItemKind, ItemStatus, NewItem } from "@/lib/types";
+import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
 import { TagsInput } from "./tags-input";
 import styles from "./item-form.module.css";
@@ -65,6 +65,24 @@ const INITIAL: Values = {
   source_url: "",
   tags: [],
 };
+
+function toValues(item?: Item): Values {
+  if (!item) {
+    return INITIAL;
+  }
+
+  return {
+    kind: item.kind,
+    title: item.title,
+    subtitle: item.subtitle ?? "",
+    year: item.year === null ? "" : String(item.year),
+    status: item.status,
+    rating: item.rating === null ? "" : String(item.rating),
+    review: item.review ?? "",
+    source_url: item.source_url ?? "",
+    tags: [...item.tags],
+  };
+}
 
 function parseNumber(value: string, field: string, errors: Errors): number | null {
   const trimmed = value.trim();
@@ -137,9 +155,15 @@ function validate(values: Values): { errors: Errors; item?: NewItem } {
   };
 }
 
-export function ItemForm() {
+export function ItemForm({
+  initial,
+  itemId,
+}: {
+  initial?: Item;
+  itemId?: string;
+}) {
   const router = useRouter();
-  const [values, setValues] = useState<Values>(INITIAL);
+  const [values, setValues] = useState<Values>(() => toValues(initial));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -173,8 +197,12 @@ export function ItemForm() {
 
     setSubmitting(true);
     try {
-      const response = await api.items.create(result.item);
+      const response = itemId
+        ? await api.items.update(itemId, result.item)
+        : await api.items.create(result.item);
+
       router.push(`/items/${response.item.id}`);
+      router.refresh();
     } catch (error) {
       if (error instanceof ApiError) {
         const field = error.field;
@@ -286,7 +314,7 @@ export function ItemForm() {
 
       <div className={styles.actions}>
         <Button type="submit" loading={submitting}>
-          Сохранить
+          {itemId ? "Сохранить изменения" : "Сохранить"}
         </Button>
         <Button
           variant="secondary"

@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
 import type { Item } from "@/lib/types";
 
+import { RestoreButton } from "./restore-button";
+
 import styles from "./item-card.module.css";
 
 export function ItemCard({ item }: { item: Item }) {
@@ -17,9 +19,13 @@ export function ItemCard({ item }: { item: Item }) {
     <article className={styles.card}>
       <div className={styles.header}>
         <h2 className={styles.title}>
-          <Link className={styles.link} href={`/items/${item.id}`}>
-            {item.title}
-          </Link>
+          {item.deleted_at ? (
+            item.title
+          ) : (
+            <Link className={styles.link} href={`/items/${item.id}`}>
+              {item.title}
+            </Link>
+          )}
         </h2>
         <Badge tone={STATUS_TONES[item.status]}>
           {STATUS_LABELS[item.status]}
@@ -33,6 +39,13 @@ export function ItemCard({ item }: { item: Item }) {
       <p className={styles.meta}>{meta.join(" · ")}</p>
 
       {item.review ? <p className={styles.review}>{item.review}</p> : null}
+
+      {item.deleted_at ? (
+        <div className={styles.deleted}>
+          <Badge tone="danger">В корзине</Badge>
+          <RestoreButton itemId={item.id} />
+        </div>
+      ) : null}
 
       {item.tags.length > 0 ? (
         <ul className={styles.tags}>

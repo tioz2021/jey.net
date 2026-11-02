@@ -112,6 +112,15 @@ export function ItemsFilters() {
         </Select>
       </div>
 
+      <label className={styles.toggle}>
+        <input
+          type="checkbox"
+          checked={searchParams.get("deleted") === "1"}
+          onChange={(event) => setParam("deleted", event.target.checked ? "1" : "")}
+        />
+        Показать корзину
+      </label>
+
       {hasFilters ? (
         <Button
           variant="ghost"

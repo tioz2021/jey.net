@@ -13,6 +13,15 @@
   flex: 1 1 32rem;
 }
 
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
 @media (width <= 480px) {
   .row {
     grid-template-columns: 1fr;
