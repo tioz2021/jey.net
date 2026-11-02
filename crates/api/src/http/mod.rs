@@ -25,6 +25,7 @@ use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
 use crate::http::origin::require_allowed_origin;
+use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
 
 /// Version reported by `/health` and the startup log.
@@ -61,7 +62,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/logout", post(logout));
 
     let protected = Router::new()
-        .route("/me", get(me).patch(update_me))
+        .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 

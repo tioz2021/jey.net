@@ -141,6 +141,17 @@ impl TestClient {
         .await
     }
 
+    pub async fn delete(&self, path: &str, body: Value, cookie: &str) -> TestResponse {
+        self.send(
+            Method::DELETE,
+            path,
+            Some(body),
+            Some(cookie),
+            Some("http://localhost:3000"),
+        )
+        .await
+    }
+
     pub async fn get(&self, path: &str, cookie: Option<&str>) -> TestResponse {
         self.send(
             Method::GET,
@@ -217,6 +228,26 @@ impl TestClient {
             body,
             set_cookie,
         }
+    }
+
+    /// Deletes a user by id, including anonymised rows that no longer match an email.
+    pub async fn purge_user(&self, id: uuid::Uuid) {
+        let _ = sqlx::query("delete from users where id = $1")
+            .bind(id)
+            .execute(&self.pool)
+            .await;
+    }
+
+    /// Raw state of a user row, for assertions about soft deletion.
+    pub async fn user_state(&self, id: uuid::Uuid) -> Option<(String, bool)> {
+        sqlx::query_as::<_, (String, bool)>(
+            "select email::text, deleted_at is not null from users where id = $1",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await
+        .ok()
+        .flatten()
     }
 
     /// Removes everything the test created.

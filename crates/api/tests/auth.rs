@@ -377,3 +377,67 @@ async fn profile_update_validates_input() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn deleting_the_account_removes_access_and_frees_the_email() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+    let user_id: uuid::Uuid = registered.body["user"]["id"]
+        .as_str()
+        .expect("user id")
+        .parse()
+        .expect("valid uuid");
+
+    let wrong_password = client
+        .delete(
+            "/api/v1/me",
+            json!({ "password": "not the password" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(wrong_password.status, 400);
+    assert_eq!(wrong_password.body["error"]["details"]["field"], "password");
+
+    let deleted = client
+        .delete("/api/v1/me", json!({ "password": PASSWORD }), &cookie)
+        .await;
+    assert_eq!(deleted.status, 204, "body: {}", deleted.body);
+
+    // The old session and the old credentials are dead.
+    assert_eq!(client.get("/api/v1/me", Some(&cookie)).await.status, 401);
+    let login = client
+        .post(
+            "/api/v1/auth/login",
+            json!({ "email": email, "password": PASSWORD }),
+        )
+        .await;
+    assert_eq!(login.status, 401);
+
+    // A second deletion attempt is just an unauthenticated request.
+    let again = client
+        .delete("/api/v1/me", json!({ "password": PASSWORD }), &cookie)
+        .await;
+    assert_eq!(again.status, 401);
+
+    // The row is anonymised but kept.
+    let (stored_email, is_deleted) = client.user_state(user_id).await.expect("row exists");
+    assert!(is_deleted, "deleted_at must be set");
+    assert!(
+        stored_email.starts_with("deleted-") && stored_email.ends_with("@invalid"),
+        "unexpected email: {stored_email}"
+    );
+
+    // The address itself is free again.
+    let fresh = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    assert_eq!(fresh.status, 201, "body: {}", fresh.body);
+
+    client.cleanup(&email).await;
+    client.purge_user(user_id).await;
+}
