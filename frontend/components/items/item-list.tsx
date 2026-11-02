@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
@@ -33,7 +33,17 @@ function parseFilters(params: URLSearchParams): ItemFilters {
   };
 }
 
-export function ItemList() {
+export function ItemList({
+  initialItems = [],
+  initialCursor = null,
+  initialLoaded = false,
+  initialQuery = "",
+}: {
+  initialItems?: Item[];
+  initialCursor?: string | null;
+  initialLoaded?: boolean;
+  initialQuery?: string;
+}) {
   const { params: searchParams } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
@@ -41,12 +51,14 @@ export function ItemList() {
     searchParams.has(key),
   );
 
-  const [items, setItems] = useState<Item[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<Item[]>(initialItems);
+  const [cursor, setCursor] = useState<string | null>(initialCursor);
+  const [loading, setLoading] = useState(!initialLoaded);
   // The skeleton is for the very first load only. After that the previous
   // list (even an empty state) stays on screen while filters change.
-  const [loadedOnce, setLoadedOnce] = useState(false);
+  const [loadedOnce, setLoadedOnce] = useState(initialLoaded);
+  // The server already rendered this exact query; do not fetch it again.
+  const skipQuery = useRef<string | null>(initialLoaded ? initialQuery : null);
   // A slow request shows a status line; a fast one changes nothing on screen.
   const [showSlowHint, setShowSlowHint] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -54,6 +66,14 @@ export function ItemList() {
   const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    if (skipQuery.current !== null) {
+      const skip = skipQuery.current === query;
+      skipQuery.current = null;
+      if (skip) {
+        return;
+      }
+    }
+
     let cancelled = false;
 
     setLoading(true);
@@ -83,7 +103,7 @@ export function ItemList() {
     return () => {
       cancelled = true;
     };
-  }, [filters, reloadToken]);
+  }, [filters, query, reloadToken]);
 
   useEffect(() => {
     if (!loading) {

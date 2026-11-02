@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ItemList } from "@/components/items/item-list";
 import { ItemsQueryProvider } from "@/components/items/query-context";
 import { SearchBox } from "@/components/items/search-box";
+import { backendFetch } from "@/lib/server-api";
+import type { ItemList as ItemListResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
@@ -25,6 +27,24 @@ export default async function ItemsPage({
     }
   }
 
+  // The first page is rendered on the server, so entering "Записи" shows the
+  // list immediately instead of an empty shell that fetches on mount.
+  const search = initial.toString();
+  const response = await backendFetch(`/items${search ? `?${search}` : ""}`, {
+    cache: "no-store",
+  });
+
+  let initialItems: ItemListResponse["items"] = [];
+  let initialCursor: string | null = null;
+  let initialLoaded = false;
+
+  if (response.ok) {
+    const page = (await response.json()) as ItemListResponse;
+    initialItems = page.items;
+    initialCursor = page.next_cursor;
+    initialLoaded = true;
+  }
+
   return (
     <main>
       <header className={styles.header}>
@@ -37,10 +57,15 @@ export default async function ItemsPage({
       {/* The page renders dynamically, so useSearchParams needs no Suspense
           boundary here; without the fallback a category switch never collapses
           the list height. */}
-      <ItemsQueryProvider initialSearch={initial.toString()}>
+      <ItemsQueryProvider initialSearch={search}>
         <div style={{ display: "grid", gap: "var(--space-5)" }}>
           <SearchBox />
-          <ItemList />
+          <ItemList
+            initialCursor={initialCursor}
+            initialItems={initialItems}
+            initialLoaded={initialLoaded}
+            initialQuery={search}
+          />
         </div>
       </ItemsQueryProvider>
     </main>
