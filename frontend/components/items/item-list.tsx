@@ -44,6 +44,9 @@ export function ItemList() {
   const [items, setItems] = useState<Item[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // The skeleton is for the very first load only. After that the previous
+  // list (even an empty state) stays on screen while filters change.
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -71,6 +74,7 @@ export function ItemList() {
       .finally(() => {
         if (!cancelled) {
           setLoading(false);
+          setLoadedOnce(true);
         }
       });
 
@@ -113,7 +117,7 @@ export function ItemList() {
             </Button>
           }
         />
-      ) : loading && items.length === 0 ? (
+      ) : loading && !loadedOnce ? (
         <ListSkeleton />
       ) : items.length === 0 ? (
         <EmptyState
