@@ -535,3 +535,116 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn update_item_changes_only_the_given_fields() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "Interstellar",
+                "subtitle": "Christopher Nolan",
+                "year": 2014,
+                "status": "done",
+                "rating": 7,
+                "tags": ["sci-fi", "space"]
+            }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(created.status, 201);
+
+    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
+    let created_at = created.body["item"]["created_at"]
+        .as_str()
+        .expect("timestamp")
+        .to_owned();
+
+    let patched = client
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "rating": 10 }),
+            &cookie,
+        )
+        .await;
+
+    assert_eq!(patched.status, 200, "body: {}", patched.body);
+    let item = &patched.body["item"];
+
+    assert_eq!(item["rating"], 10);
+    assert_eq!(item["title"], "Interstellar", "title is untouched");
+    assert_eq!(item["subtitle"], "Christopher Nolan");
+    assert_eq!(item["year"], 2014);
+    assert_eq!(item["status"], "done");
+    assert_eq!(item["tags"], json!(["sci-fi", "space"]));
+    assert_eq!(item["revision"], 2, "the revision is bumped");
+
+    let updated_at = chrono::DateTime::parse_from_rfc3339(item["updated_at"].as_str().expect("ts"))
+        .expect("valid timestamp");
+    let created_at = chrono::DateTime::parse_from_rfc3339(&created_at).expect("valid timestamp");
+    assert!(updated_at >= created_at, "updated_at moves forward");
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn update_item_replaces_tags_and_validates_input() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "Dune", "status": "done", "tags": ["old"] }),
+            &cookie,
+        )
+        .await;
+    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let retagged = client
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "tags": ["  New  ", "another"] }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(retagged.status, 200);
+    assert_eq!(retagged.body["item"]["tags"], json!(["another", "New"]));
+
+    let empty = client
+        .patch(&format!("/api/v1/items/{id}"), json!({}), &cookie)
+        .await;
+    assert_eq!(empty.status, 400);
+
+    let bad_rating = client
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "rating": 0 }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(bad_rating.status, 400);
+    assert_eq!(bad_rating.body["error"]["details"]["field"], "rating");
+
+    let malformed = client
+        .patch("/api/v1/items/not-a-uuid", json!({ "rating": 5 }), &cookie)
+        .await;
+    assert_eq!(malformed.status, 400);
+    assert_eq!(malformed.body["error"]["details"]["field"], "id");
+
+    // Another account cannot touch the record.
+    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
+    let foreign = stranger
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "title": "Hijacked" }),
+            &stranger_cookie,
+        )
+        .await;
+    assert_eq!(foreign.status, 404);
+
+    client.cleanup(&email).await;
+    stranger.cleanup(&stranger_email).await;
+}

@@ -30,6 +30,7 @@ use crate::http::origin::require_allowed_origin;
 use crate::items::create::create_item;
 use crate::items::get::get_item;
 use crate::items::list::list_items;
+use crate::items::update::update_item;
 use crate::mail::Mailer;
 use crate::users::delete::delete_me;
 use crate::users::profile::{me, update_me};
@@ -76,7 +77,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me/password", post(change_password))
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/items", post(create_item).get(list_items))
-        .route("/items/{id}", get(get_item))
+        .route("/items/{id}", get(get_item).patch(update_item))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public

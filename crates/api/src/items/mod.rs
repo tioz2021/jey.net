@@ -4,4 +4,5 @@ pub mod create;
 pub mod get;
 pub mod list;
 pub mod repo;
+pub mod update;
 pub mod view;
