@@ -63,7 +63,7 @@ export default async function PublicProfilePage({
   const { profile, items } = data;
 
   return (
-    <article>
+    <article className={styles.page}>
       <Card>
         <div className={styles.header}>
         {profile.avatar_key ? (
