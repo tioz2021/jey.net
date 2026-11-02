@@ -7,7 +7,6 @@ pub mod password;
 pub mod password_change;
 pub mod register;
 pub mod session;
-pub mod user;
 
 /// Trims and lower-cases an email address before any lookup or storage.
 pub fn normalise_email(raw: &str) -> String {

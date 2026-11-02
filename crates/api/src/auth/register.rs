@@ -15,16 +15,13 @@ use serde_json::json;
 use crate::auth::normalise_email;
 use crate::auth::password::{self, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, PasswordError};
 use crate::auth::session;
-use crate::auth::user;
 use crate::error::AppError;
 use crate::http::AppState;
 use crate::http::ratelimit;
+use crate::users::user::{self, validate_display_name};
 
 /// Longest accepted email address, per RFC 5321.
 const MAX_EMAIL_LENGTH: usize = 254;
-/// Longest accepted display name.
-const MAX_DISPLAY_NAME_LENGTH: usize = 60;
-
 #[derive(Debug, Deserialize)]
 pub struct RegisterRequest {
     pub email: String,
@@ -48,8 +45,7 @@ pub async fn register(
     let email = normalise_email(&payload.email);
     validate_email(&email)?;
 
-    let display_name = payload.display_name.trim().to_owned();
-    validate_display_name(&display_name)?;
+    let display_name = validate_display_name(&payload.display_name)?;
 
     let password_hash = password::hash_password(&payload.password).map_err(|err| match err {
         PasswordError::InvalidLength => AppError::validation_field(
@@ -124,19 +120,6 @@ fn validate_email(email: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-fn validate_display_name(display_name: &str) -> Result<(), AppError> {
-    let length = display_name.chars().count();
-
-    if !(1..=MAX_DISPLAY_NAME_LENGTH).contains(&length) {
-        return Err(AppError::validation_field(
-            "display_name",
-            format!("display name must be between 1 and {MAX_DISPLAY_NAME_LENGTH} characters"),
-        ));
-    }
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -159,13 +142,5 @@ mod tests {
         ] {
             assert!(validate_email(email).is_err(), "{email} should be rejected");
         }
-    }
-
-    #[test]
-    fn display_name_bounds() {
-        assert!(validate_display_name("Jey").is_ok());
-        assert!(validate_display_name(&"a".repeat(60)).is_ok());
-        assert!(validate_display_name("").is_err());
-        assert!(validate_display_name(&"a".repeat(61)).is_err());
     }
 }

@@ -10,8 +10,8 @@ use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::auth::user::{self, UserRow};
 use crate::error::AppError;
+use crate::users::user::{self, UserRow};
 
 /// Length of the raw session token in bytes.
 const TOKEN_BYTES: usize = 32;

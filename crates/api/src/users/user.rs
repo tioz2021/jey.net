@@ -7,6 +7,12 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 
+/// Locales the interface supports right now.
+pub const SUPPORTED_LOCALES: &[&str] = &["ru", "en", "uk"];
+
+/// Longest accepted display name.
+pub const MAX_DISPLAY_NAME_LENGTH: usize = 60;
+
 /// What the API returns about a user. Never contains the password hash.
 #[derive(Debug, Clone, Serialize)]
 pub struct UserView {
@@ -103,8 +109,59 @@ pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserRow>, AppE
     .map_err(AppError::internal)
 }
 
+/// Trims and validates a display name.
+pub fn validate_display_name(display_name: &str) -> Result<String, AppError> {
+    let trimmed = display_name.trim();
+    let length = trimmed.chars().count();
+
+    if !(1..=MAX_DISPLAY_NAME_LENGTH).contains(&length) {
+        return Err(AppError::validation_field(
+            "display_name",
+            format!("display name must be between 1 and {MAX_DISPLAY_NAME_LENGTH} characters"),
+        ));
+    }
+
+    Ok(trimmed.to_owned())
+}
+
+/// Checks that a locale is one the interface knows about.
+pub fn validate_locale(locale: &str) -> Result<(), AppError> {
+    if SUPPORTED_LOCALES.contains(&locale) {
+        return Ok(());
+    }
+
+    Err(AppError::validation_field(
+        "locale",
+        format!("locale must be one of: {}", SUPPORTED_LOCALES.join(", ")),
+    ))
+}
+
 fn is_unique_violation(err: &sqlx::Error) -> bool {
     err.as_database_error()
         .and_then(|db| db.code())
         .is_some_and(|code| code == "23505")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_name_is_trimmed_and_bounded() {
+        assert_eq!(validate_display_name("  Jey  ").unwrap(), "Jey");
+        assert!(validate_display_name("").is_err());
+        assert!(validate_display_name(&"a".repeat(61)).is_err());
+        assert!(validate_display_name(&"a".repeat(60)).is_ok());
+    }
+
+    #[test]
+    fn only_supported_locales_pass() {
+        assert!(validate_locale("ru").is_ok());
+        assert!(validate_locale("en").is_ok());
+        assert!(validate_locale("uk").is_ok());
+
+        for bad in ["de", "russian", "RU", ""] {
+            assert!(validate_locale(bad).is_err(), "{bad} must be rejected");
+        }
+    }
 }

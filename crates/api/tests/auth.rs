@@ -300,3 +300,80 @@ async fn password_change_validates_its_inputs() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn profile_can_be_read_and_updated() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+
+    let before = client.get("/api/v1/me", Some(&cookie)).await;
+    assert_eq!(before.status, 200);
+    assert_eq!(before.body["user"]["display_name"], "Test User");
+    assert_eq!(before.body["user"]["locale"], "ru");
+    assert_eq!(before.body["user"]["is_public"], false);
+
+    let updated = client
+        .patch(
+            "/api/v1/me",
+            json!({ "display_name": "  New Name  ", "locale": "en", "is_public": true }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(updated.status, 200, "body: {}", updated.body);
+    assert_eq!(updated.body["user"]["display_name"], "New Name");
+    assert_eq!(updated.body["user"]["locale"], "en");
+    assert_eq!(updated.body["user"]["is_public"], true);
+
+    let after = client.get("/api/v1/me", Some(&cookie)).await;
+    assert_eq!(after.body["user"]["display_name"], "New Name");
+    assert_eq!(after.body["user"]["locale"], "en");
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn profile_update_validates_input() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post("/api/v1/auth/register", register_body(&email))
+        .await;
+    let cookie = registered.session_cookie().expect("registration cookie");
+
+    let empty = client.patch("/api/v1/me", json!({}), &cookie).await;
+    assert_eq!(empty.status, 400);
+
+    let blank = client
+        .patch("/api/v1/me", json!({ "display_name": "   " }), &cookie)
+        .await;
+    assert_eq!(blank.status, 400);
+    assert_eq!(blank.body["error"]["details"]["field"], "display_name");
+
+    let too_long = client
+        .patch(
+            "/api/v1/me",
+            json!({ "display_name": "a".repeat(61) }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(too_long.status, 400);
+
+    let bad_locale = client
+        .patch("/api/v1/me", json!({ "locale": "de" }), &cookie)
+        .await;
+    assert_eq!(bad_locale.status, 400);
+    assert_eq!(bad_locale.body["error"]["details"]["field"], "locale");
+
+    // Nothing changed.
+    let me = client.get("/api/v1/me", Some(&cookie)).await;
+    assert_eq!(me.body["user"]["display_name"], "Test User");
+    assert_eq!(me.body["user"]["locale"], "ru");
+
+    client.cleanup(&email).await;
+}

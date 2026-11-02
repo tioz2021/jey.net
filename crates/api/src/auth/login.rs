@@ -17,10 +17,10 @@ use serde_json::json;
 use crate::auth::normalise_email;
 use crate::auth::password;
 use crate::auth::session;
-use crate::auth::user::{self, UserView};
 use crate::error::AppError;
 use crate::http::AppState;
 use crate::http::ratelimit;
+use crate::users::user::{self, UserView};
 
 #[derive(Debug, Deserialize)]
 pub struct LoginRequest {

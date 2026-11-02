@@ -8,9 +8,9 @@ use axum::response::Response;
 use uuid::Uuid;
 
 use crate::auth::session::{self, AuthenticatedSession};
-use crate::auth::user::UserView;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::users::user::UserView;
 
 /// The authenticated caller of the current request.
 #[derive(Debug, Clone)]

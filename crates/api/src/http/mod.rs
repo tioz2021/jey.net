@@ -18,13 +18,14 @@ use sqlx::PgPool;
 
 use crate::auth::login::login;
 use crate::auth::logout::logout;
-use crate::auth::middleware::{CurrentUser, require_auth};
+use crate::auth::middleware::require_auth;
 use crate::auth::password_change::change_password;
 use crate::auth::register::register;
 use crate::config::Config;
 use crate::db;
 use crate::error::AppError;
 use crate::http::origin::require_allowed_origin;
+use crate::users::profile::{me, update_me};
 
 /// Version reported by `/health` and the startup log.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -60,7 +61,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/logout", post(logout));
 
     let protected = Router::new()
-        .route("/me", get(me))
+        .route("/me", get(me).patch(update_me))
         .route("/me/password", post(change_password))
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
@@ -70,10 +71,6 @@ fn api_v1(state: AppState) -> Router<AppState> {
             state,
             require_allowed_origin,
         ))
-}
-
-async fn me(current: CurrentUser) -> Json<serde_json::Value> {
-    Json(json!({ "user": current.user }))
 }
 
 #[derive(Serialize)]

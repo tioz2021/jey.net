@@ -8,9 +8,9 @@ use serde::Deserialize;
 
 use crate::auth::middleware::CurrentUser;
 use crate::auth::password::{self, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH, PasswordError};
-use crate::auth::user;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::users::user;
 
 #[derive(Debug, Deserialize)]
 pub struct ChangePasswordRequest {
