@@ -194,9 +194,81 @@ psql "$DATABASE_URL" -tAc "select count(*) from _sqlx_migrations"
 **мета-юнит**, он запускает кластер и завершается. Проверять надо
 `systemctl is-active postgresql@18-main` или `pg_isready`.
 
+## 7. API как systemd-сервис
+
+Юнит лежит в репозитории: `deploy/jey-api.service`. Устанавливается копированием
+в `/etc/systemd/system/` и `systemctl daemon-reload`.
+
+Ключевое в юните:
+
+| Параметр | Зачем |
+|---|---|
+| `User=jey`, `Group=jey` | процесс не работает под root |
+| `EnvironmentFile=/etc/jey/api.env` | все секреты и настройки в одном файле с правами `600` |
+| `Restart=always`, `RestartSec=2` | падение процесса лечится само |
+| `MemoryMax=512M` | на 2 ГБ сервере утечка не съест память у Postgres |
+| `ProtectSystem=strict`, `ReadWritePaths=/var/lib/jey` | файловая система только для чтения, кроме каталога данных |
+| `NoNewPrivileges`, `PrivateTmp`, `ProtectHome` | базовое ужесточение |
+
+Перед первым запуском создаются каталоги данных:
+
+```bash
+install -d -o jey -g jey -m 750 /var/lib/jey/media /var/lib/jey/mail
+```
+
+В `/etc/jey/api.env` кроме `DATABASE_URL` добавляются:
+
+```ini
+APP_ENV=prod
+BIND_ADDR=127.0.0.1:8080
+LOG_FORMAT=json
+RUN_MIGRATIONS=false
+SESSION_TTL_DAYS=30
+PUBLIC_URL=https://129-121-149-16.sslip.io
+ALLOWED_ORIGINS=https://129-121-149-16.sslip.io
+MEDIA_DIR=/var/lib/jey/media
+MAIL_DIR=/var/lib/jey/mail
+MAIL_FROM=jey@129-121-149-16.sslip.io
+```
+
+`RUN_MIGRATIONS=false`: миграции применяются отдельным шагом при деплое, а не
+при каждом старте сервиса.
+
+### Деплой новой версии
+
+```bash
+cargo build --release -p jey-api --bin jey-api
+rsync -av --chmod=755 target/release/jey-api root@<IP>:/opt/jey/jey-api.new
+
+ssh root@<IP> '
+  set -a; . /etc/jey/api.env; set +a
+  /opt/jey/jey-api.new migrate
+  mv /opt/jey/jey-api.new /opt/jey/jey-api
+  systemctl restart jey-api
+'
+```
+
+Порядок важен: миграции применяются **до** подмены бинарника, чтобы старый
+процесс не работал с новой схемой дольше пары секунд.
+
+### Проверки
+
+```bash
+systemctl is-active jey-api
+curl -fsS http://127.0.0.1:8080/health
+curl -fsS http://127.0.0.1:8080/health/ready
+journalctl -u jey-api --since "5 min ago" --no-pager | tail
+systemctl show -p MemoryMax --value jey-api
+```
+
+После `kill -9` главного процесса systemd перезапускает его через 2 секунды.
+
+После перезагрузки сервис стартует сам, но **не мгновенно**: `jey-api`
+дождится кластера Postgres. Проверять стоит через 5–10 секунд после появления
+SSH, а не сразу.
+
 ## Что дальше
 
-- T73 — systemd-юнит для API;
 - T74–T75 — деплой фронтенда;
 - T76 — секреты;
 - T78 — мониторинг.

@@ -1,0 +1,34 @@
+[Unit]
+Description=jey.net API
+Documentation=https://github.com/tioz2021/jey.net
+After=network-online.target postgresql@18-main.service
+Wants=network-online.target
+Requires=postgresql@18-main.service
+
+[Service]
+Type=simple
+User=jey
+Group=jey
+WorkingDirectory=/opt/jey
+EnvironmentFile=/etc/jey/api.env
+ExecStart=/opt/jey/jey-api
+Restart=always
+RestartSec=2
+
+# The API itself is small; the cap catches leaks before they hurt.
+MemoryMax=512M
+
+# Hardening: the process needs nothing but its own state directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/jey
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
