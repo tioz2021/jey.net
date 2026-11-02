@@ -130,13 +130,10 @@ export interface PublicItem {
   subtitle: string | null;
   year: number | null;
   rating: number | null;
+  review: string | null;
   cover_key: string | null;
   tags: string[];
   updated_at: string;
-}
-
-export interface PublicItemDetail extends PublicItem {
-  review: string | null;
 }
 
 export interface PublicProfileResponse {

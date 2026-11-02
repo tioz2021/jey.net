@@ -189,6 +189,7 @@ function ItemGrid({ items, userId }: { items: PublicItem[]; userId: string }) {
                 .filter(Boolean)
                 .join(" · ")}
             </p>
+            {item.review ? <p className={styles.review}>{item.review}</p> : null}
             {item.tags.length > 0 ? (
               <ul className={styles.tags}>
                 {item.tags.map((tag) => (

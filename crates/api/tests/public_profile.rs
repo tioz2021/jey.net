@@ -119,10 +119,12 @@ async fn public_profile_shows_finished_records_only_and_no_private_fields() {
     assert_eq!(items.len(), 1, "only finished records: {}", public.body);
     assert_eq!(items[0]["title"], "Виден");
     assert_eq!(items[0]["kind"], "movie");
-    assert!(items[0].get("review").is_none(), "notes must not leak");
+    assert_eq!(
+        items[0]["review"], "секретная заметка",
+        "the author's note is part of a public record"
+    );
 
     let raw = public.body.to_string();
-    assert!(!raw.contains("секретная заметка"));
     assert!(!raw.contains(&email));
     assert!(!raw.contains("Черновик"));
     assert!(!raw.contains("Удалённая"));

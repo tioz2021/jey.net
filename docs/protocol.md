@@ -92,7 +92,7 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 |---|---|---|
 | GET | `/health` | живость процесса |
 | GET | `/api/v1/health` | то же самое под версионированным префиксом |
-| GET | `/api/v1/public/users/{id}` | публичный профиль: только `done`-записи, без заметок и email; `404`, если профиль закрыт |
+| GET | `/api/v1/public/users/{id}` | публичный профиль: только `done`-записи с заметками автора, без email; `404`, если профиль закрыт |
 | GET | `/api/v1/public/users` | список публичных профилей (для `sitemap.xml`) |
 | GET | `/api/v1/public/users/{id}/items/{item_id}` | одна публичная запись: только `done`, с заметкой автора; иначе `404` |
 | GET | `/health/ready` | готовность: доступна БД |

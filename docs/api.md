@@ -171,7 +171,7 @@ curl -sS -b jar.txt -X POST "$BASE/uploads" -H "Origin: $ORIGIN" \
 | Метод | Путь | Назначение |
 |---|---|---|
 | GET | `/public/users` | список публичных профилей (для sitemap) |
-| GET | `/public/users/{id}` | публичный профиль: только `done`, без заметок |
+| GET | `/public/users/{id}` | публичный профиль: только `done`, с заметками автора |
 | GET | `/public/users/{id}/items/{item_id}` | одна публичная запись с заметкой автора (без email) |
 
 Приватный профиль отвечает `404` — так же, как несуществующий.

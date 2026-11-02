@@ -38,6 +38,7 @@ pub struct PublicItemView {
     pub subtitle: Option<String>,
     pub year: Option<i32>,
     pub rating: Option<i16>,
+    pub review: Option<String>,
     pub cover_key: Option<String>,
     pub tags: Vec<String>,
     pub updated_at: DateTime<Utc>,
@@ -167,6 +168,7 @@ async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicIte
                 i.subtitle,
                 i.year,
                 i.rating,
+                i.review,
                 i.cover_key,
                 i.updated_at,
                 coalesce(

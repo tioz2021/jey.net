@@ -199,6 +199,18 @@
   color: var(--color-text-muted);
 }
 
+.review {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
