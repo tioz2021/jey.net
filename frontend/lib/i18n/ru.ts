@@ -447,4 +447,5 @@ export const ru = {
   'tvEpisodes.readOnly': 'Прогресс виден гостям только для чтения.',
   'tvEpisodes.watched': 'Просмотрено',
   'tvEpisodes.notWatched': 'Не просмотрено',
+  'filters.titleCount': 'Фильтры · {count}',
 } as const;

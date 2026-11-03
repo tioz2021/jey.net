@@ -448,4 +448,5 @@ export const en = {
   'tvEpisodes.readOnly': 'Guests can view this progress, but cannot change it.',
   'tvEpisodes.watched': 'Watched',
   'tvEpisodes.notWatched': 'Not watched',
+  'filters.titleCount': 'Filters · {count}',
 } satisfies Record<keyof typeof ru, string>;

@@ -448,4 +448,5 @@ export const uk = {
   'tvEpisodes.readOnly': 'Прогрес видно гостям лише для читання.',
   'tvEpisodes.watched': 'Переглянуто',
   'tvEpisodes.notWatched': 'Не переглянуто',
+  'filters.titleCount': 'Фільтри · {count}',
 } satisfies Record<keyof typeof ru, string>;

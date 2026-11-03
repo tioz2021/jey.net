@@ -21,6 +21,7 @@ export function ItemsFilters() {
   const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const [tags, setTags] = useState<TagCount[]>([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,23 +52,59 @@ export function ItemsFilters() {
     });
   }
 
-  const hasFilters =
-    searchParams.has("q") ||
-    searchParams.has("kind") ||
-    searchParams.has("status") ||
-    searchParams.has("tag") ||
-    searchParams.has("sort");
+  const activeCount = [
+    "q",
+    "kind",
+    "status",
+    "tag",
+    "month",
+  ].filter((key) => searchParams.has(key)).length +
+    (searchParams.has("sort") && searchParams.get("sort") !== "created_desc"
+      ? 1
+      : 0);
+  const hasFilters = activeCount > 0;
 
   return (
-    <section className={styles.panel} aria-labelledby="filters-title">
+    <section
+      aria-label={t("filters.title")}
+      className={`${styles.panel} ${open ? styles.open : ""}`}
+    >
       <h2 className={styles.head} id="filters-title">
         {t("filters.title")}
       </h2>
 
-      <div className={styles.body}>
-        <SearchBox />
+      <button
+        aria-controls="filters-body"
+        aria-expanded={open}
+        className={styles.toggle}
+        onClick={() => setOpen((value) => !value)}
+        type="button"
+      >
+        <span>
+          {activeCount > 0
+            ? t("filters.titleCount", { count: activeCount })
+            : t("filters.title")}
+        </span>
+        <svg
+          aria-hidden="true"
+          className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`}
+          fill="none"
+          height="10"
+          viewBox="0 0 24 24"
+          width="10"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+          />
+        </svg>
+      </button>
 
-        <ActiveFilters />
+      <div className={styles.body} id="filters-body">
+        <SearchBox />
 
         <div className={styles.row}>
         <Select
@@ -143,6 +180,10 @@ export function ItemsFilters() {
           </Button>
 
         </div>
+      </div>
+
+      <div className={styles.chips}>
+        <ActiveFilters />
       </div>
     </section>
   );
