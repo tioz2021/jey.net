@@ -100,6 +100,8 @@ pub struct Config {
     pub google_redirect_url: Option<String>,
     /// TMDB v4 read token; movie search is disabled when absent.
     pub tmdb_read_token: Option<String>,
+    /// Days a deleted account is kept for recovery before the purge task.
+    pub purge_retention_days: i32,
 }
 
 impl Config {
@@ -199,6 +201,11 @@ impl Config {
             },
         };
 
+        let purge_retention_days = match var("PURGE_RETENTION_DAYS") {
+            Some(raw) => parse_purge_retention(&raw)?,
+            None => 30,
+        };
+
         let google_client_id = var("GOOGLE_CLIENT_ID");
         let google_client_secret = var("GOOGLE_CLIENT_SECRET");
         let google_redirect_url = var("GOOGLE_REDIRECT_URL");
@@ -221,6 +228,7 @@ impl Config {
             google_client_secret,
             google_redirect_url,
             tmdb_read_token,
+            purge_retention_days,
         })
     }
 }
@@ -278,6 +286,26 @@ fn parse_session_ttl(raw: &str) -> Result<u32, ConfigError> {
             "SESSION_TTL_DAYS",
             raw,
             "must be a number between 1 and 365",
+        ));
+    }
+
+    Ok(days)
+}
+
+fn parse_purge_retention(raw: &str) -> Result<i32, ConfigError> {
+    let days: i32 = raw.trim().parse().map_err(|_| {
+        ConfigError::invalid_value(
+            "PURGE_RETENTION_DAYS",
+            raw,
+            "must be a number between 1 and 3650",
+        )
+    })?;
+
+    if !(1..=3650).contains(&days) {
+        return Err(ConfigError::invalid_value(
+            "PURGE_RETENTION_DAYS",
+            raw,
+            "must be a number between 1 and 3650",
         ));
     }
 

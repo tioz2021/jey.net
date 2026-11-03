@@ -64,6 +64,7 @@ fn test_config() -> Config {
         google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
         google_redirect_url: std::env::var("GOOGLE_REDIRECT_URL").ok(),
         tmdb_read_token: None,
+        purge_retention_days: 30,
     }
 }
 
@@ -122,6 +123,11 @@ impl TestClient {
             ip,
             mailer,
         }
+    }
+
+    /// Direct database access for tests that exercise maintenance tasks.
+    pub fn pool(&self) -> &PgPool {
+        &self.pool
     }
 
     pub async fn post(&self, path: &str, body: Value) -> TestResponse {

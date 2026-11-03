@@ -118,6 +118,8 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         config.tmdb_read_token.clone(),
     ));
 
+    jey_api::users::purge::spawn(pool.clone(), storage.clone(), config.purge_retention_days);
+
     let state = AppState {
         pool,
         mailer: mail::from_config(&config),

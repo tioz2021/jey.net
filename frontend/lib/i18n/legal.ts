@@ -82,7 +82,7 @@ const PRIVACY_RU: LegalPage = {
       items: [
         "сессии — до 30 дней, затем перестают действовать;",
         "счётчики попыток и запросов — в пределах окна и блокировки (до часа);",
-        "записи и файлы — пока вы их не удалите или не удалите аккаунт;",
+        "записи и файлы — пока вы их не удалите; после удаления аккаунта они хранятся обезличенными 30 дней;",
         "резервных копий базы сейчас не делается;",
       ],
     },
@@ -97,7 +97,7 @@ const PRIVACY_RU: LegalPage = {
       items: [
         "все сессии и устройства завершаются;",
         "адрес электронной почты заменяется анонимным, имя — на «Deleted user», публичный профиль выключается;",
-        "записи и загруженные файлы обезличиваются, но остаются в базе: сейчас они не связаны с вами;",
+        "записи и загруженные файлы обезличиваются и хранятся ещё 30 дней, после чего удаляются вместе с аккаунтом;",
         "восстановить аккаунт после удаления нельзя.",
       ],
     },
@@ -197,7 +197,7 @@ const PRIVACY_UK: LegalPage = {
       items: [
         "сесії — до 30 днів, потім перестають діяти;",
         "лічильники спроб і запитів — у межах вікна й блокування (до години);",
-        "записи й файли — доки ви їх не видалите або не видалите акаунт;",
+        "записи й файли — доки ви їх не видалите; після видалення акаунта вони зберігаються знеособленими 30 днів;",
         "резервних копій бази зараз не робиться.",
       ],
     },
@@ -212,7 +212,7 @@ const PRIVACY_UK: LegalPage = {
       items: [
         "усі сесії та пристрої завершуються;",
         "адреса електронної пошти замінюється анонімною, ім'я — на «Deleted user», публічний профіль вимикається;",
-        "записи й завантажені файли знеособлюються, але залишаються в базі: зараз вони не пов'язані з вами;",
+        "записи й завантажені файли знеособлюються та зберігаються ще 30 днів, після чого видаляються разом з акаунтом;",
         "відновити акаунт після видалення неможливо.",
       ],
     },
@@ -312,7 +312,7 @@ const PRIVACY_EN: LegalPage = {
       items: [
         "sessions — up to 30 days, then they stop working;",
         "rate-limit counters — within the window and block (up to an hour);",
-        "records and files — until you delete them or the account;",
+        "records and files — until you delete them; after account deletion they are kept anonymized for 30 days;",
         "the database is not backed up at the moment.",
       ],
     },
@@ -327,7 +327,7 @@ const PRIVACY_EN: LegalPage = {
       items: [
         "all sessions and devices are revoked;",
         "the email is replaced with an anonymous one, the name becomes “Deleted user”, the public profile is turned off;",
-        "records and uploaded files are anonymized but remain in the database: they are no longer linked to you;",
+        "records and uploaded files are anonymized and kept for another 30 days, then deleted together with the account;",
         "an account cannot be restored after deletion.",
       ],
     },
@@ -434,7 +434,7 @@ const TERMS_RU: LegalPage = {
     {
       kind: "p",
       text:
-        "Вы можете удалить аккаунт в настройках в любой момент: сессии и устройства завершатся, профиль обезличится. Записи и файлы при этом обезличиваются, но пока остаются в базе — подробности описаны в политике конфиденциальности.",
+        "Вы можете удалить аккаунт в настройках в любой момент: сессии и устройства завершатся, профиль обезличится. Записи и файлы обезличиваются и хранятся ещё 30 дней, после чего удаляются вместе с аккаунтом — подробности в политике конфиденциальности.",
     },
     { kind: "h2", text: "8. Применимое право" },
     {
@@ -529,7 +529,7 @@ const TERMS_UK: LegalPage = {
     {
       kind: "p",
       text:
-        "Ви можете видалити акаунт у налаштуваннях будь-коли: сесії та пристрої завершаться, профіль знеособиться. Записи й файли при цьому знеособлюються, але поки залишаються в базі — подробиці в політиці конфіденційності.",
+        "Ви можете видалити акаунт у налаштуваннях будь-коли: сесії та пристрої завершаться, профіль знеособиться. Записи й файли знеособлюються та зберігаються ще 30 днів, після чого видаляються разом з акаунтом — подробиці в політиці конфіденційності.",
     },
     { kind: "h2", text: "8. Застосовне право" },
     {
@@ -623,7 +623,7 @@ const TERMS_EN: LegalPage = {
     {
       kind: "p",
       text:
-        "You can delete the account in settings at any time: sessions and devices are revoked and the profile is anonymized. Records and files are anonymized but remain in the database for now — details are in the privacy policy.",
+        "You can delete the account in settings at any time: sessions and devices are revoked and the profile is anonymized. Records and files are anonymized and kept for another 30 days, then deleted together with the account — details are in the privacy policy.",
     },
     { kind: "h2", text: "8. Governing law" },
     {

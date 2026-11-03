@@ -5,4 +5,5 @@ pub mod banner;
 pub mod delete;
 pub mod profile;
 pub mod public;
+pub mod purge;
 pub mod user;
