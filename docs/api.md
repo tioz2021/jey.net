@@ -127,6 +127,10 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET | `/items` | список с фильтрами и курсором (`only_deleted=true` — только корзина) |
 | GET | `/movies/search?q=` | поиск фильмов в TMDB (прокси, ключ на сервере) |
 | GET | `/movies/{id}` | детали фильма: режиссёр, актёры, жанры, длительность |
+| GET | `/tv/search` | поиск сериалов в TMDB |
+| GET | `/tv/{id}` | карточка сериала: сезоны, эпизоды, создатели |
+| GET | `/items/{id}/episodes?season=N` | эпизоды сезона и отметки просмотра |
+| POST | `/items/{id}/episodes/{season}/{episode}` | отметить эпизод просмотренным |
 | GET | `/movies/image` | прокси постеров и портретов TMDB (публичный) |
 | POST | `/items` | создать |
 | GET | `/items/{id}` | одна запись |
