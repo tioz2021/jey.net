@@ -4,12 +4,12 @@ import { notFound } from "next/navigation";
 
 import { MovieInfo } from "@/components/items/movie-info";
 import { Badge, Card, PageHeader } from "@/components/ui";
-import { KIND_LABELS } from "@/lib/labels";
+import { KIND_KEYS } from "@/lib/i18n/labels";
+import { formatDate, translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { getPublicItem } from "@/lib/public-profile";
 
 import styles from "./page.module.css";
-
-const dateFormat = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" });
 
 export async function generateMetadata({
   params,
@@ -17,13 +17,18 @@ export async function generateMetadata({
   params: Promise<{ id: string; itemId: string }>;
 }): Promise<Metadata> {
   const { id, itemId } = await params;
+  const locale = await getServerLocale();
   const item = await getPublicItem(id, itemId);
 
   if (!item) {
     return { title: "Запись не найдена — jey.net", robots: { index: false } };
   }
 
-  const description = [item.subtitle, item.year, KIND_LABELS[item.kind]]
+  const description = [
+    item.subtitle,
+    item.year,
+    translate(locale, KIND_KEYS[item.kind]),
+  ]
     .filter(Boolean)
     .join(" · ");
 
@@ -47,6 +52,11 @@ export default async function PublicItemPage({
   params: Promise<{ id: string; itemId: string }>;
 }) {
   const { id, itemId } = await params;
+  const locale = await getServerLocale();
+  const t = (
+    key: Parameters<typeof translate>[1],
+    values?: Record<string, string | number>,
+  ) => translate(locale, key, values);
   const item = await getPublicItem(id, itemId);
 
   if (!item) {
@@ -56,7 +66,7 @@ export default async function PublicItemPage({
   return (
     <article className={styles.article}>
       <p className={styles.back}>
-        <Link href={`/u/${id}`}>← К профилю</Link>
+        <Link href={`/u/${id}`}>{t("item.backProfile")}</Link>
       </p>
 
       <PageHeader
@@ -83,34 +93,34 @@ export default async function PublicItemPage({
           )}
         </div>
 
-        <Card title="Свойства">
+        <Card title={t("item.properties")}>
           <dl className={styles.meta}>
             <div className={styles.metaRow}>
-              <dt>Тип</dt>
+              <dt>{t("item.type")}</dt>
               <dd>
-                <Badge>{KIND_LABELS[item.kind]}</Badge>
+                <Badge>{t(KIND_KEYS[item.kind])}</Badge>
               </dd>
             </div>
 
             <div className={styles.metaRow}>
-              <dt>Статус</dt>
+              <dt>{t("item.status")}</dt>
               <dd>
-                <Badge tone="success">Готово</Badge>
+                <Badge tone="success">{t("public.done")}</Badge>
               </dd>
             </div>
 
             <div className={styles.metaRow}>
-              <dt>Оценка</dt>
-              <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
+              <dt>{t("item.rating")}</dt>
+              <dd>{item.rating ? t("item.ratingOf", { rating: item.rating }) : "—"}</dd>
             </div>
 
             <div className={styles.metaRow}>
-              <dt>Год</dt>
+              <dt>{t("item.year")}</dt>
               <dd>{item.year ?? "—"}</dd>
             </div>
 
             <div className={styles.metaRow}>
-              <dt>Теги</dt>
+              <dt>{t("item.tags")}</dt>
               <dd>
                 {item.tags.length > 0 ? (
                   <ul className={styles.tags}>
@@ -127,8 +137,8 @@ export default async function PublicItemPage({
             </div>
 
             <div className={styles.metaRow}>
-              <dt>Обновлено</dt>
-              <dd>{dateFormat.format(new Date(item.updated_at))}</dd>
+              <dt>{t("public.updated")}</dt>
+              <dd>{formatDate(locale, item.updated_at, { dateStyle: "long" })}</dd>
             </div>
           </dl>
         </Card>
@@ -142,7 +152,7 @@ export default async function PublicItemPage({
       ) : null}
 
       {item.review ? (
-        <Card title="Заметка">
+        <Card title={t("public.itemNote")}>
           <p className={styles.review}>{item.review}</p>
         </Card>
       ) : null}

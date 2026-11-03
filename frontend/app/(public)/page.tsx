@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { translate, type TranslationKey } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
+
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -14,86 +17,57 @@ export const metadata: Metadata = {
   },
 };
 
-const FEATURES = [
-  {
-    title: "Один список на всё",
-    text: "Фильмы, книги, картинки и свои категории. Отмечайте статус, ставьте оценку, оставляйте заметку.",
-  },
-  {
-    title: "Поиск и теги",
-    text: "Находите по названию, автору и тексту заметки. Фильтры по типу, году, оценке и тегам.",
-  },
-  {
-    title: "Приватность по умолчанию",
-    text: "Профиль закрыт, пока вы сами его не откроете. В публичном видны только завершённые записи — без заметок и планов.",
-  },
-  {
-    title: "Данные остаются вашими",
-    text: "Экспорт всех записей в JSON или CSV в один клик. Без рекламы, трекеров и продажи данных.",
-  },
+const FEATURE_KEYS: Array<{ title: TranslationKey; text: TranslationKey }> = [
+  { title: "landing.f1.title", text: "landing.f1.text" },
+  { title: "landing.f2.title", text: "landing.f2.text" },
+  { title: "landing.f3.title", text: "landing.f3.text" },
+  { title: "landing.f4.title", text: "landing.f4.text" },
 ];
 
-const SCREENSHOTS = [
-  {
-    src: "/screenshots/items.webp",
-    alt: "Список записей с обложками, статусами и тегами",
-    caption: "Каталог: обложки, статусы, оценки и теги",
-    width: 1000,
-    height: 667,
-  },
-  {
-    src: "/screenshots/item.webp",
-    alt: "Карточка записи: постер слева, свойства справа",
-    caption: "Карточка: заметка, свойства и обложка",
-    width: 1000,
-    height: 667,
-  },
-  {
-    src: "/screenshots/profile.webp",
-    alt: "Публичный профиль с завершёнными записями",
-    caption: "Публичный профиль — только то, что вы разрешили",
-    width: 1000,
-    height: 667,
-  },
-];
+const SCREENSHOT_KEYS = [
+  { src: "/screenshots/items.webp", alt: "landing.shot1.alt", caption: "landing.shot1.caption", width: 1000, height: 667 },
+  { src: "/screenshots/item.webp", alt: "landing.shot2.alt", caption: "landing.shot2.caption", width: 1000, height: 667 },
+  { src: "/screenshots/profile.webp", alt: "landing.shot3.alt", caption: "landing.shot3.caption", width: 1000, height: 667 },
+] as const;
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const locale = await getServerLocale();
+  const t = (key: TranslationKey) => translate(locale, key);
+
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
-        <p className={styles.kicker}>Личный портал</p>
+        <p className={styles.kicker}>{t("landing.kicker")}</p>
         <h1 className={styles.title} id="hero-title">
-          Фильмы, книги и картинки — в одном списке
+          {t("landing.title")}
         </h1>
         <p className={styles.lead}>
-          Записывайте, что посмотрели, прочитали и сохранили. Ставьте оценки,
-          добавляйте заметки и теги, находите нужное поиском — и делитесь только
-          тем, чем хотите.
+          {t("landing.lead")}
         </p>
 
         <div className={styles.actions}>
           <Link className={styles.primary} href="/api/v1/auth/google/start">
-            Войти через Google
+            {t("landing.google")}
           </Link>
           <Link className={styles.secondary} href="/#features">
-            Что внутри
+            {t("landing.features")}
           </Link>
         </div>
 
         <p className={styles.note}>
-          Бесплатно, без рекламы. Экспорт данных доступен с первого дня.
+          {t("landing.note")}
         </p>
       </section>
 
       <section className={styles.features} id="features" aria-labelledby="features-title">
         <h2 className={styles.sectionTitle} id="features-title">
-          Что внутри
+          {t("landing.features")}
         </h2>
         <ul className={styles.featureGrid}>
-          {FEATURES.map((feature) => (
+          {FEATURE_KEYS.map((feature) => (
             <li className={styles.feature} key={feature.title}>
-              <h3 className={styles.featureTitle}>{feature.title}</h3>
-              <p className={styles.featureText}>{feature.text}</p>
+              <h3 className={styles.featureTitle}>{t(feature.title)}</h3>
+              <p className={styles.featureText}>{t(feature.text)}</p>
             </li>
           ))}
         </ul>
@@ -101,22 +75,24 @@ export default function LandingPage() {
 
       <section className={styles.shots} id="screenshots" aria-labelledby="shots-title">
         <h2 className={styles.sectionTitle} id="shots-title">
-          Как это выглядит
+          {t("landing.shots")}
         </h2>
         <div className={styles.shotGrid}>
-          {SCREENSHOTS.map((shot) => (
+          {SCREENSHOT_KEYS.map((shot) => (
             <figure className={styles.figure} key={shot.src}>
               {/* eslint-disable-next-line @next/next/no-img-element -- static WebP asset */}
               <img
                 className={styles.shot}
                 src={shot.src}
-                alt={shot.alt}
+                alt={t(shot.alt)}
                 width={shot.width}
                 height={shot.height}
                 loading="lazy"
                 decoding="async"
               />
-              <figcaption className={styles.caption}>{shot.caption}</figcaption>
+              <figcaption className={styles.caption}>
+                {t(shot.caption)}
+              </figcaption>
             </figure>
           ))}
         </div>
@@ -124,14 +100,13 @@ export default function LandingPage() {
 
       <section className={styles.final} aria-labelledby="final-title">
         <h2 className={styles.finalTitle} id="final-title">
-          Начните с одной записи
+          {t("landing.finalTitle")}
         </h2>
         <p className={styles.finalText}>
-          Вход через Google занимает полминуты: без пароля и подтверждений.
-          Ник вы выберете сразу после входа.
+          {t("landing.finalText")}
         </p>
         <Link className={styles.primary} href="/api/v1/auth/google/start">
-          Войти через Google
+          {t("landing.google")}
         </Link>
       </section>
     </div>

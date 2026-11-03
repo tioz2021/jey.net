@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useToast } from "@/components/toasts";
 import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 
 import styles from "./banner-picker.module.css";
 
@@ -17,6 +18,7 @@ export function BannerPicker({
   onUploaded: (uploadId: string) => Promise<void>;
   onCleared: () => Promise<void>;
 }) {
+  const { t } = useI18n();
   const { notifyError } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
@@ -58,7 +60,7 @@ export function BannerPicker({
           // eslint-disable-next-line @next/next/no-img-element -- user upload
           <img alt="" decoding="async" src={currentUrl} />
         ) : (
-          <div className={styles.placeholder}>Баннер не выбран</div>
+          <div className={styles.placeholder}>{t("settings.bannerNone")}</div>
         )}
       </div>
 
@@ -76,17 +78,17 @@ export function BannerPicker({
           variant="secondary"
           onClick={() => inputRef.current?.click()}
         >
-          {currentUrl ? "Заменить" : "Загрузить"}
+          {currentUrl ? t("settings.bannerReplace") : t("settings.bannerUpload")}
         </Button>
         {currentUrl ? (
           <Button disabled={pending} size="sm" variant="ghost" onClick={clear}>
-            Убрать
+            {t("settings.bannerRemove")}
           </Button>
         ) : null}
       </div>
 
       <p className={styles.hint}>
-        Широкая картинка, рекомендуется от 1200×300. Видна на публичном профиле.
+        {t("settings.bannerHint")}
       </p>
     </div>
   );

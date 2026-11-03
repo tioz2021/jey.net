@@ -4,23 +4,13 @@ import { useState } from "react";
 
 import { useToast } from "@/components/toasts";
 import { Button, Card } from "@/components/ui";
+import { useI18n } from "@/lib/locale-context";
 
 import styles from "./export-panel.module.css";
 
 type Format = "json" | "csv";
 
-const FORMATS: { format: Format; label: string; description: string }[] = [
-  {
-    format: "json",
-    label: "Экспорт JSON",
-    description: "Все записи с тегами и датами — для резервной копии.",
-  },
-  {
-    format: "csv",
-    label: "Экспорт CSV",
-    description: "Таблица для Excel, Numbers или Google Sheets.",
-  },
-];
+
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) {
@@ -38,7 +28,20 @@ function fileName(format: Format): string {
 }
 
 export function ExportPanel() {
+  const { t } = useI18n();
   const { notify, notifyError } = useToast();
+  const formats: { format: Format; label: string; description: string }[] = [
+    {
+      format: "json",
+      label: t("settings.exportJson"),
+      description: t("settings.exportJsonHint"),
+    },
+    {
+      format: "csv",
+      label: t("settings.exportCsv"),
+      description: t("settings.exportCsvHint"),
+    },
+  ];
   const [busy, setBusy] = useState<Format | null>(null);
 
   async function exportAs(format: Format) {
@@ -66,7 +69,7 @@ export function ExportPanel() {
 
       notify({
         tone: "success",
-        title: "Файл готов",
+        title: t("settings.exportReady"),
         text: `${fileName(format)} · ${formatSize(blob.size)}`,
         requestId: null,
       });
@@ -78,14 +81,11 @@ export function ExportPanel() {
   }
 
   return (
-    <Card title="Экспорт данных">
-      <p className={styles.text}>
-        Скачайте все записи одним файлом. Экспорт ничего не удаляет и не меняет
-        аккаунт.
-      </p>
+    <Card title={t("settings.export")}>
+      <p className={styles.text}>{t("settings.exportText")}</p>
 
       <div className={styles.actions}>
-        {FORMATS.map(({ format, label, description }) => (
+        {formats.map(({ format, label, description }) => (
           <div className={styles.option} key={format}>
             <Button
               disabled={busy !== null && busy !== format}

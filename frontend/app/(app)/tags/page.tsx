@@ -4,6 +4,8 @@ import Link from "next/link";
 import { TagActions } from "@/components/items/tag-actions";
 import { EmptyState } from "@/components/empty-state";
 import { Card, PageHeader } from "@/components/ui";
+import { plural, translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { TagsResponse } from "@/lib/types";
 
@@ -14,15 +16,18 @@ export const metadata: Metadata = {
 };
 
 export default async function TagsPage() {
+  const locale = await getServerLocale();
+  const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
+    translate(locale, key, values);
   const response = await backendFetch("/tags");
 
   if (!response.ok) {
     return (
       <main>
-        <Card title="Не удалось загрузить теги">
-          <p className={styles.muted}>Попробуйте обновить страницу позже.</p>
+        <Card title={t("tags.errorTitle")}>
+          <p className={styles.muted}>{t("tags.errorText")}</p>
           <p>
-            <Link href="/items">← К записям</Link>
+            <Link href="/items">{t("item.back")}</Link>
           </p>
         </Card>
       </main>
@@ -36,18 +41,18 @@ export default async function TagsPage() {
       <PageHeader
         subtitle={
           tags.length === 0
-            ? "Теги появятся, когда вы добавите их к записям"
-            : `Всего тегов: ${tags.length}`
+            ? t("tags.subtitleEmpty")
+            : t("tags.subtitle", { count: tags.length })
         }
-        title="Теги"
+        title={t("tags.title")}
       />
 
       {tags.length === 0 ? (
         <EmptyState
-          title="Тегов пока нет"
-          text="Добавьте теги в форме записи — они появятся здесь."
+          title={t("tags.emptyTitle")}
+          text={t("tags.emptyText")}
           actionHref="/items/new"
-          actionLabel="Добавить запись"
+          actionLabel={t("tags.emptyAction")}
           variant="tags"
         />
       ) : (
@@ -62,8 +67,14 @@ export default async function TagsPage() {
                 {tag.name}
               </Link>
               <span className={styles.count}>
-                {tag.item_count}{" "}
-                {plural(tag.item_count, "запись", "записи", "записей")}
+                {t("tags.records", {
+                  count: tag.item_count,
+                  forms: plural(locale, tag.item_count, {
+                    one: t("tags.record.one"),
+                    few: t("tags.record.few"),
+                    many: t("tags.record.many"),
+                  }),
+                })}
               </span>
               <TagActions tag={tag} tags={tags} />
             </li>
@@ -73,18 +84,4 @@ export default async function TagsPage() {
       )}
     </main>
   );
-}
-
-function plural(count: number, one: string, few: string, many: string): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-
-  if (mod10 === 1 && mod100 !== 11) {
-    return one;
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return few;
-  }
-
-  return many;
 }

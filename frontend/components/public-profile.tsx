@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
+
+import { useI18n } from "@/lib/locale-context";
 import { Badge, Card } from "@/components/ui";
 import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
@@ -11,11 +13,11 @@ import styles from "./public-profile.module.css";
 const ORDER: ItemKind[] = ["movie", "book", "image", "other"];
 const PAGE_LIMIT = 12;
 
-const KIND_PLURALS: Record<ItemKind, string> = {
-  movie: "Фильмы",
-  book: "Книги",
-  image: "Картинки",
-  other: "Другое",
+const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.books" | "nav.images" | "nav.other"> = {
+  movie: "nav.movies",
+  book: "nav.books",
+  image: "nav.images",
+  other: "nav.other",
 };
 
 export function PublicProfileView({
@@ -25,6 +27,7 @@ export function PublicProfileView({
   profile: PublicProfile;
   items: PublicItem[];
 }) {
+  const { t, date } = useI18n();
   const [active, setActive] = useState<ItemKind | "all">("all");
   const [expanded, setExpanded] = useState(false);
 
@@ -44,7 +47,7 @@ export function PublicProfileView({
   const groups = kinds
     .map((kind) => ({
       kind,
-      label: KIND_PLURALS[kind],
+      label: t(KIND_TABS[kind]),
       count: counts.get(kind) ?? 0,
       items: shown.filter((item) => item.kind === kind),
     }))
@@ -82,9 +85,11 @@ export function PublicProfileView({
             <h1 className={styles.name}>{profile.display_name}</h1>
             <p className={styles.meta}>
               {items.length > 0
-                ? `Завершённых записей: ${items.length}`
-                : "Пока нет завершённых записей"}{" "}
-              · на сайте с {new Date(profile.created_at).toLocaleDateString("ru-RU", { dateStyle: "long" })}
+                ? t("public.finished", { count: items.length })
+                : t("public.none")}{" "}
+              · {t("public.onSite", {
+                date: date(profile.created_at, { dateStyle: "long" }),
+              })}
             </p>
 
             {kinds.length > 0 ? (
@@ -106,13 +111,13 @@ export function PublicProfileView({
         action={
           items.length > 0 ? <span className={styles.total}>{items.length}</span> : null
         }
-        title="Записи"
+        title={t("public.items")}
       >
         {items.length === 0 ? (
-          <p className={styles.empty}>Пользователь пока не добавил завершённых записей.</p>
+          <p className={styles.empty}>{t("public.empty")}</p>
         ) : (
           <>
-            <div className={styles.tabs} role="tablist" aria-label="Типы записей">
+            <div className={styles.tabs} role="tablist" aria-label={t("public.types")}>
               <button
                 aria-selected={active === "all"}
                 className={`${styles.tab} ${active === "all" ? styles.tabActive : ""}`}
@@ -120,7 +125,7 @@ export function PublicProfileView({
                 role="tab"
                 type="button"
               >
-                Все ({items.length})
+                {t("public.all")} ({items.length})
               </button>
               {groups.map((group) => (
                 <button
@@ -155,7 +160,9 @@ export function PublicProfileView({
                 onClick={() => setExpanded((value) => !value)}
                 type="button"
               >
-                {expanded ? "Свернуть" : `Показать все (${items.length})`}
+                {expanded
+                  ? t("public.collapse")
+                  : t("public.more", { count: items.length })}
               </button>
             ) : null}
           </>

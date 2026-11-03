@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useToast } from "@/components/toasts";
 import { Button, Card } from "@/components/ui";
+import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 
 import styles from "./share-profile.module.css";
@@ -16,6 +17,7 @@ import styles from "./share-profile.module.css";
  */
 export function ShareProfile() {
   const { user } = useUser();
+  const { t } = useI18n();
   const { notify } = useToast();
   const [origin, setOrigin] = useState("");
 
@@ -35,48 +37,42 @@ export function ShareProfile() {
       await navigator.clipboard.writeText(`${window.location.origin}/u/${userId}`);
       notify({
         tone: "success",
-        title: "Ссылка скопирована",
-        text: "Можно отправлять её кому угодно.",
+        title: t("settings.copied"),
+        text: t("settings.shareOpen"),
         requestId: null,
       });
     } catch {
       notify({
         tone: "error",
-        title: "Не удалось скопировать",
-        text: "Выделите ссылку и скопируйте вручную.",
+        title: t("settings.copyFailed"),
+        text: t("settings.copyFailedText"),
         requestId: null,
       });
     }
   }
 
   return (
-    <Card title="Публичный профиль">
+    <Card title={t("settings.share")}>
 
       {user.is_public ? (
         <>
-          <p className={styles.text}>
-            По ссылке видны только завершённые записи. Заметки, планы и черновики
-            остаются приватными.
-          </p>
+          <p className={styles.text}>{t("settings.shareBody")}</p>
 
           <div className={styles.row}>
             <input
-              aria-label="Ссылка на публичный профиль"
+              aria-label={t("settings.share")}
               className={styles.input}
               onFocus={(event) => event.target.select()}
               readOnly
               value={link}
             />
             <Button onClick={copyLink} variant="secondary">
-              Копировать
+              {t("settings.copy")}
             </Button>
           </div>
         </>
       ) : (
-        <p className={styles.text}>
-          Профиль закрыт: ссылка не работает, а страница отвечает «не найдено».
-          Включите «Публичный профиль» выше и сохраните.
-        </p>
+        <p className={styles.text}>{t("settings.shareClosed")}</p>
       )}
     </Card>
   );

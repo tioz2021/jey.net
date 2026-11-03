@@ -8,6 +8,7 @@ import { CoverPicker } from "@/components/items/cover-picker";
 import { BannerPicker } from "@/components/profile/banner-picker";
 import { Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 import { ApiError } from "@/lib/errors";
 import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
@@ -24,6 +25,7 @@ const LOCALES: [string, string][] = [
 export function SettingsForm({ initialUser }: { initialUser: User }) {
   const router = useRouter();
   const { setUser, user: currentUser } = useUser();
+  const { t } = useI18n();
   const { notifyError } = useToast();
 
   // Profile, prefilled from the server so the page needs no loading state.
@@ -55,7 +57,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         is_public: isPublic,
       });
       setUser(response.user);
-      setProfileMessage("Сохранено");
+      setProfileMessage(t("settings.saved"));
     } catch (error) {
       if (error instanceof ApiError && error.field === "display_name") {
         setProfileError(error.message);
@@ -104,13 +106,13 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
 
   const deleteReady =
     (!initialUser.has_password || deletePassword.length > 0) &&
-    confirmWord.trim().toLowerCase() === "удалить";
+    confirmWord.trim().toLowerCase() === t("settings.deleteWordValue");
 
   return (
     <div className={styles.sections}>
-      <Card title="Аватар">
+      <Card title={t("settings.avatar")}>
         <CoverPicker
-          label="Фотография профиля"
+          label={t("settings.photo")}
           currentUrl={
             initialUser.avatar_key ? `/media/${initialUser.avatar_key}` : null
           }
@@ -127,7 +129,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         />
       </Card>
 
-      <Card title="Баннер профиля">
+      <Card title={t("settings.banner")}>
         <BannerPicker
           currentUrl={
             (currentUser?.banner_key ?? initialUser.banner_key)
@@ -147,17 +149,17 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         />
       </Card>
 
-      <Card title="Профиль">
+      <Card title={t("settings.profile")}>
         <form className={styles.form} onSubmit={saveProfile} noValidate>
           <Input
-            label="Имя"
+            label={t("settings.name")}
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
             required
           />
 
           <Select
-            label="Язык"
+            label={t("settings.language")}
             value={locale}
             onChange={(event) => setLocale(event.target.value)}
           >
@@ -174,7 +176,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
               checked={isPublic}
               onChange={(event) => setIsPublic(event.target.checked)}
             />
-            Публичный профиль
+            {t("settings.public")}
           </label>
 
           {profileError ? (
@@ -190,15 +192,15 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
 
           <div>
             <Button type="submit" loading={savingProfile}>
-              Сохранить профиль
+              {t("settings.saveProfile")}
             </Button>
           </div>
         </form>
       </Card>
 
-      <Card title="Сессии и аккаунт">
+      <Card title={t("settings.sessions")}>
         <p className={styles.muted}>
-          «Выйти на всех устройствах» завершит все сессии, включая текущую.
+          {t("settings.sessionsText")}
         </p>
 
         <div>
@@ -207,24 +209,24 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             loading={revoking}
             onClick={revokeAll}
           >
-            Выйти на всех устройствах
+            {t("settings.logoutAll")}
           </Button>
         </div>
 
         <hr className={styles.divider} />
 
         <p className={styles.danger}>
-          Удаление аккаунта необратимо: записи и теги будут стёрты.
+          {t("settings.deleteHint")}
         </p>
         <div>
           <Button variant="danger" onClick={() => setDeleteOpen(true)}>
-            Удалить аккаунт
+            {t("settings.deleteAccount")}
           </Button>
         </div>
 
         <Dialog
           open={deleteOpen}
-          title="Удалить аккаунт?"
+          title={t("settings.deleteTitle")}
           onClose={() => setDeleteOpen(false)}
           footer={
             <>
@@ -233,7 +235,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
                 onClick={() => setDeleteOpen(false)}
                 disabled={deleting}
               >
-                Отмена
+                {t("common.cancel")}
               </Button>
               <Button
                 variant="danger"
@@ -241,19 +243,18 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
                 disabled={!deleteReady}
                 onClick={deleteAccount}
               >
-                Удалить навсегда
+                {t("settings.deleteForever")}
               </Button>
             </>
           }
         >
           <div className={styles.form}>
             <p className={styles.danger}>
-              Это действие нельзя отменить. Все записи, теги и настройки будут
-              удалены.
+              {t("settings.deleteText")}
             </p>
             {initialUser.has_password ? (
               <Input
-                label="Пароль"
+                label={t("settings.password")}
                 type="password"
                 autoComplete="current-password"
                 value={deletePassword}
@@ -261,7 +262,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
               />
             ) : null}
             <Input
-              label="Введите слово «удалить»"
+              label={t("settings.deleteWord")}
               value={confirmWord}
               onChange={(event) => setConfirmWord(event.target.value)}
             />

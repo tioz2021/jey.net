@@ -6,7 +6,10 @@ import { MonthChart } from "@/components/stats/month-chart";
 import { StatCard } from "@/components/stats/stat-card";
 import { EmptyState } from "@/components/empty-state";
 import { Card, PageHeader } from "@/components/ui";
-import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
+
+import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemKind, ItemStatus, Stats } from "@/lib/types";
 
@@ -17,13 +20,16 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
+  const locale = await getServerLocale();
+  const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
+    translate(locale, key, values);
   const response = await backendFetch("/stats");
 
   if (!response.ok) {
     return (
       <main>
-        <Card title="Не удалось загрузить статистику">
-          <p className={styles.muted}>Попробуйте обновить страницу позже.</p>
+        <Card title={t("dashboard.errorTitle")}>
+          <p className={styles.muted}>{t("dashboard.errorText")}</p>
           <p>
             <Link href="/items">← К записям</Link>
           </p>
@@ -37,16 +43,16 @@ export default async function DashboardPage() {
   if (stats.total === 0) {
     return (
       <main>
-        <PageHeader title="Статистика" />
+        <PageHeader title={t("dashboard.title")} />
         <div className={styles.cards}>
-          <StatCard label="Всего записей" value="0" />
-          <StatCard label="Средняя оценка" value="—" />
-          <StatCard label="Готово" value="0" />
-          <StatCard label="Запланировано" value="0" />
+          <StatCard label={t("dashboard.total")} value="0" />
+          <StatCard label={t("dashboard.avg")} value="—" />
+          <StatCard label={t("dashboard.done")} value="0" />
+          <StatCard label={t("dashboard.planned")} value="0" />
         </div>
         <EmptyState
-          title="Пока нечего считать"
-          text="Добавьте первую запись — здесь появятся графики по месяцам, типам и статусам."
+          title={t("dashboard.emptyTitle")}
+          text={t("dashboard.emptyText")}
           actionHref="/items/new"
           actionLabel="Добавить запись"
           variant="stats"
@@ -55,15 +61,15 @@ export default async function DashboardPage() {
     );
   }
 
-  const kindRows = (Object.keys(KIND_LABELS) as ItemKind[]).map((kind) => ({
-    label: KIND_LABELS[kind],
+  const kindRows = (Object.keys(KIND_KEYS) as ItemKind[]).map((kind) => ({
+    label: t(KIND_KEYS[kind]),
     count: stats.by_kind[kind] ?? 0,
     href: `/items?kind=${kind}`,
   }));
 
-  const statusRows = (Object.keys(STATUS_LABELS) as ItemStatus[]).map(
+  const statusRows = (Object.keys(STATUS_KEYS) as ItemStatus[]).map(
     (status) => ({
-      label: STATUS_LABELS[status],
+      label: t(STATUS_KEYS[status]),
       count: stats.by_status[status] ?? 0,
       href: `/items?status=${status}`,
     }),
@@ -71,31 +77,34 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <PageHeader title="Статистика" />
+      <PageHeader title={t("dashboard.title")} />
 
-      <section className={styles.cards} aria-label="Итоги">
-        <StatCard label="Всего записей" value={String(stats.total)} />
+      <section className={styles.cards} aria-label={t("dashboard.title")}>
+        <StatCard label={t("dashboard.total")} value={String(stats.total)} />
         <StatCard
-          label="Средняя оценка"
+          label={t("dashboard.avg")}
           value={stats.average_rating > 0 ? stats.average_rating.toFixed(1) : "—"}
-          hint="по записям с оценкой"
+          hint={t("dashboard.avgHint")}
         />
-        <StatCard label="Готово" value={String(stats.by_status.done ?? 0)} />
         <StatCard
-          label="Запланировано"
+          label={t("dashboard.done")}
+          value={String(stats.by_status.done ?? 0)}
+        />
+        <StatCard
+          label={t("dashboard.planned")}
           value={String(stats.by_status.planned ?? 0)}
         />
       </section>
 
-      <Card title="Добавлено по месяцам">
+      <Card title={t("dashboard.byMonth")}>
         <MonthChart data={stats.by_month} />
       </Card>
 
       <div className={styles.grid}>
-        <Card title="По типам">
+        <Card title={t("dashboard.byKind")}>
           <Distribution rows={kindRows} total={stats.total} />
         </Card>
-        <Card title="По статусам">
+        <Card title={t("dashboard.byStatus")}>
           <Distribution rows={statusRows} total={stats.total} />
         </Card>
       </div>

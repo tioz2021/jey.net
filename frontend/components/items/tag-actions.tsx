@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/components/toasts";
 import { Button, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 import { ApiError } from "@/lib/errors";
 import type { TagCount } from "@/lib/types";
 
@@ -15,6 +16,7 @@ type Mode = "rename" | "merge" | "delete" | null;
 
 export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
   const router = useRouter();
+  const { t } = useI18n();
   const { notify, notifyError } = useToast();
   const [mode, setMode] = useState<Mode>(null);
   const [pending, setPending] = useState(false);
@@ -47,7 +49,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Тег переименован",
+        title: t("tags.renamed"),
         text: `Теперь он называется «${name.trim()}».`,
         requestId: null,
       });
@@ -75,8 +77,8 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Теги объединены",
-        text: `Записи из «${tag.name}» перешли в другой тег.`,
+        title: t("tags.merged"),
+        text: t("tags.mergedText", { name: tag.name }),
         requestId: null,
       });
     } catch (cause) {
@@ -104,7 +106,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
     <>
       <div className={styles.actions}>
         <Button variant="ghost" size="sm" onClick={() => open("rename")}>
-          Переименовать
+          {t("tags.rename")}
         </Button>
         <Button
           disabled={others.length === 0}
@@ -112,16 +114,16 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
           size="sm"
           onClick={() => open("merge")}
         >
-          Объединить
+          {t("tags.merge")}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => open("delete")}>
-          Удалить
+          {t("tags.delete")}
         </Button>
       </div>
 
       <Dialog
         open={mode === "rename"}
-        title={`Переименовать «${tag.name}»`}
+        title={t("tags.renameTitle", { name: tag.name })}
         onClose={close}
         footer={
           <>
@@ -141,7 +143,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
         <Input
           autoFocus
           error={nameError ?? undefined}
-          label="Новое имя"
+          label={t("tags.newName")}
           maxLength={40}
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -150,7 +152,7 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
 
       <Dialog
         open={mode === "merge"}
-        title={`Объединить «${tag.name}» с другим тегом`}
+        title={t("tags.mergeTitle", { name: tag.name })}
         onClose={close}
         footer={
           <>
@@ -158,17 +160,17 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
               Отмена
             </Button>
             <Button disabled={!target} loading={pending} onClick={merge}>
-              Объединить
+              {t("tags.merge")}
             </Button>
           </>
         }
       >
         <Select
-          label="Куда перенести записи"
+          label={t("tags.mergeTarget")}
           value={target}
           onChange={(event) => setTarget(event.target.value)}
         >
-          <option value="">Выберите тег</option>
+          <option value="">{t("tags.mergeChoose")}</option>
           {others.map((candidate) => (
             <option key={candidate.id} value={candidate.id}>
               {candidate.name} ({candidate.item_count})
@@ -176,13 +178,13 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
           ))}
         </Select>
         <p className={styles.hint}>
-          Записи останутся на месте, а «{tag.name}» исчезнет после объединения.
+          {t("tags.mergeHint", { name: tag.name })}
         </p>
       </Dialog>
 
       <Dialog
         open={mode === "delete"}
-        title={`Удалить тег «${tag.name}»?`}
+        title={t("tags.deleteTitle", { name: tag.name })}
         onClose={close}
         footer={
           <>
@@ -190,13 +192,13 @@ export function TagActions({ tag, tags }: { tag: TagCount; tags: TagCount[] }) {
               Отмена
             </Button>
             <Button variant="danger" loading={pending} onClick={remove}>
-              Удалить
+              {t("tags.delete")}
             </Button>
           </>
         }
       >
         <p className={styles.hint}>
-          Тег исчезнет у всех записей. Сами записи останутся на месте.
+          {t("tags.deleteText")}
         </p>
       </Dialog>
     </>
