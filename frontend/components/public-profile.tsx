@@ -52,7 +52,19 @@ export function PublicProfileView({
 
   return (
     <div className={styles.stack}>
-      <Card>
+      <section className={styles.profile}>
+        <div
+          aria-hidden="true"
+          className={styles.banner}
+          style={
+            items[0]?.cover_key
+              ? {
+                  backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.45)), url(/media/${items[0].cover_key})`,
+                }
+              : undefined
+          }
+        />
+
         <div className={styles.identity}>
           {profile.avatar_key ? (
             // eslint-disable-next-line @next/next/no-img-element -- uploaded avatar
@@ -90,7 +102,7 @@ export function PublicProfileView({
             ) : null}
           </div>
         </div>
-      </Card>
+      </section>
 
       <Card
         action={

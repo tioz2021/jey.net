@@ -6,10 +6,25 @@
   margin: 0 auto;
 }
 
+.profile {
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.banner {
+  height: 88px;
+  background:
+    linear-gradient(120deg, var(--color-accent), #1d3f8f);
+  background-position: center;
+  background-size: cover;
+}
+
 .identity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .avatar,
@@ -18,14 +33,16 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 6.5rem;
+  height: 6.5rem;
+  margin-top: -2.25rem;
   border-radius: 0;
   object-fit: cover;
+  border: 3px solid var(--color-bg);
 }
 
 .avatar {
-  border: 1px solid var(--color-border);
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .avatarPlaceholder {
@@ -38,6 +55,7 @@
 
 .identityText {
   min-width: 0;
+  padding-top: var(--space-2);
 }
 
 .name {
@@ -150,4 +168,22 @@
 
 .more:hover {
   background: var(--color-surface-hover);
+}
+
+@media (width <= 640px) {
+  .banner {
+    height: 64px;
+  }
+
+  .avatar,
+  .avatarPlaceholder {
+    width: 5rem;
+    height: 5rem;
+    margin-top: -1.5rem;
+  }
+
+  .identity {
+    gap: var(--space-3);
+    padding: 0 var(--space-3) var(--space-3);
+  }
 }
