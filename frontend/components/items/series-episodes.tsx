@@ -198,7 +198,7 @@ export function SeriesEpisodes({
                           ? t("tvEpisodes.watched")
                           : t("tvEpisodes.notWatched")
                       }
-                      className={styles.check}
+                      className={`${styles.check} ${styles.readOnly}`}
                     >
                       <span
                         aria-hidden="true"
@@ -212,7 +212,7 @@ export function SeriesEpisodes({
                       <span className={styles.name}>{episode.name}</span>
                     </span>
                   ) : (
-                    <label className={styles.check}>
+                    <label className={`${styles.check} ${styles.interactive}`}>
                       <input
                         checked={checked}
                         disabled={pending.has(episode.episode_number)}
