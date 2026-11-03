@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { HeaderSearch } from "@/components/header-search";
+import { Logo } from "@/components/logo";
 import {
   IconList,
   IconSettings,
@@ -32,7 +33,8 @@ export function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link className={styles.brand} href="/items">
-          jey.net
+          <Logo size={22} />
+          <span>jey.net</span>
         </Link>
 
         <nav className={styles.nav} aria-label="Разделы">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Logo } from "@/components/logo";
 import { useUser } from "@/lib/user-context";
 
 import { SiteHeader } from "./site-header";
@@ -25,7 +26,8 @@ export function PublicHeader() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link className={styles.brand} href="/">
-          jey.net
+          <Logo size={22} />
+          <span>jey.net</span>
         </Link>
 
         <nav className={styles.nav} aria-label="Основное">

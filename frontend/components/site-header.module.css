@@ -17,7 +17,10 @@
 }
 
 .brand {
+  display: flex;
   flex: none;
+  align-items: center;
+  gap: 6px;
   font-size: var(--text-lg);
   font-weight: 600;
   color: var(--color-text);
