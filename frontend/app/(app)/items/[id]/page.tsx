@@ -8,7 +8,14 @@ import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import {
+  IconBook,
+  IconFilm,
+  IconImage,
+  IconOther,
+  IconTv,
+} from "@/components/icons";
+import { Badge, Card } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import { STATUS_TONES } from "@/lib/labels";
 import { formatDate as formatDateI18n, translate } from "@/lib/i18n";
@@ -22,6 +29,14 @@ import { backendFetch } from "@/lib/server-api";
 import type { ItemNeighbors as ItemNeighborsResponse, ItemResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
+
+const KIND_ICONS = {
+  movie: IconFilm,
+  tv: IconTv,
+  book: IconBook,
+  image: IconImage,
+  other: IconOther,
+} as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
@@ -84,6 +99,7 @@ export default async function ItemPage({
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
   const displayTags = localizedTags(item, locale);
+  const KindIcon = KIND_ICONS[item.kind];
 
   let prevHref: string | null = null;
   let nextHref: string | null = null;
@@ -109,28 +125,20 @@ export default async function ItemPage({
         <Link href={backHref}>{t("item.back")}</Link>
       </p>
 
-      <PageHeader
-        action={
-          <>
-            {item.external_source === "tmdb" ? (
-              <RefreshMovieButton itemId={item.id} />
-            ) : null}
-            <ItemActions itemId={item.id} title={displayTitle} />
-          </>
-        }
-        subtitle={displaySubtitle ?? undefined}
-        title={
-          <>
-            {displayTitle}
-            {item.year ? <span className={styles.year}> ({item.year})</span> : null}
-          </>
-        }
-      />
+      <header className={styles.heading}>
+        <p className={styles.kicker}>{t(KIND_KEYS[item.kind])}</p>
+        <h1 className={styles.title}>
+          {displayTitle}
+          {item.year ? <span className={styles.year}> ({item.year})</span> : null}
+        </h1>
+        {displaySubtitle ? (
+          <p className={styles.subtitle}>{displaySubtitle}</p>
+        ) : null}
+      </header>
 
-      <div className={styles.stack}>
-        <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
-        <div className={styles.body}>
-          <div className={styles.poster}>
+      <div className={styles.layout}>
+        <aside className={styles.rail}>
+          <div className={styles.cover}>
             {item.cover_key ? (
               // Covers are ready-made WebP renditions served by our API.
               // eslint-disable-next-line @next/next/no-img-element
@@ -139,20 +147,23 @@ export default async function ItemPage({
                 alt={t("cover.altTitle", { title: displayTitle })}
               />
             ) : (
-              <div className={styles.posterPlaceholder}>{t("cover.none")}</div>
+              <div className={styles.coverPlaceholder}>
+                <KindIcon size={36} />
+                <span>{t(KIND_KEYS[item.kind])}</span>
+              </div>
             )}
           </div>
 
-          <Card title={t("item.properties")}>
-            <dl className={styles.meta}>
-              <div className={styles.metaRow}>
-                <dt>{t("item.type")}</dt>
-                <dd>
-                  <Badge>{t(KIND_KEYS[item.kind])}</Badge>
-                </dd>
-              </div>
+          <div className={styles.railPanel}>
+            <div className={styles.actions}>
+              {item.external_source === "tmdb" ? (
+                <RefreshMovieButton itemId={item.id} />
+              ) : null}
+              <ItemActions itemId={item.id} title={displayTitle} />
+            </div>
 
-              <div className={styles.metaRow}>
+            <dl className={styles.facts}>
+              <div className={styles.fact}>
                 <dt>{t("item.status")}</dt>
                 <dd>
                   <Badge tone={STATUS_TONES[item.status]}>
@@ -161,7 +172,7 @@ export default async function ItemPage({
                 </dd>
               </div>
 
-              <div className={styles.metaRow}>
+              <div className={styles.fact}>
                 <dt>{t("item.rating")}</dt>
                 <dd>
                   {item.rating ? (
@@ -176,32 +187,10 @@ export default async function ItemPage({
                 </dd>
               </div>
 
-              <div className={styles.metaRow}>
-                <dt>{t("item.year")}</dt>
-                <dd>{item.year ?? "—"}</dd>
-              </div>
-
-              <div className={styles.metaRow}>
-                <dt>{t("item.link")}</dt>
-                <dd>
-                  {item.source_url ? (
-                    <a
-                      href={item.source_url}
-                      rel="noreferrer noopener"
-                      target="_blank"
-                    >
-                      {item.source_url}
-                    </a>
-                  ) : (
-                    "—"
-                  )}
-                </dd>
-              </div>
-
-              <div className={styles.metaRow}>
-                <dt>{t("item.tags")}</dt>
-                <dd>
-                  {item.tags.length > 0 ? (
+              {displayTags.length > 0 ? (
+                <div className={styles.fact}>
+                  <dt>{t("item.tags")}</dt>
+                  <dd>
                     <ul className={styles.tags}>
                       {displayTags.map((tag) => (
                         <li key={tag}>
@@ -209,69 +198,85 @@ export default async function ItemPage({
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    "—"
-                  )}
-                </dd>
-              </div>
+                  </dd>
+                </div>
+              ) : null}
 
-              <div className={styles.metaRow}>
+              {item.source_url ? (
+                <div className={styles.fact}>
+                  <dt>{t("item.link")}</dt>
+                  <dd>
+                    <a
+                      className={styles.source}
+                      href={item.source_url}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      {t("item.link")} ↗
+                    </a>
+                  </dd>
+                </div>
+              ) : null}
+
+              <div className={styles.fact}>
                 <dt>{t("item.added")}</dt>
                 <dd>
                   {formatDateI18n(locale, item.created_at, {
-                    dateStyle: "long",
-                    timeStyle: "short",
+                    dateStyle: "medium",
                   })}
                 </dd>
               </div>
 
-              <div className={styles.metaRow}>
+              <div className={styles.fact}>
                 <dt>{t("item.changed")}</dt>
                 <dd>
                   {formatDateI18n(locale, item.updated_at, {
-                    dateStyle: "long",
-                    timeStyle: "short",
+                    dateStyle: "medium",
                   })}
                 </dd>
               </div>
 
               {item.deleted_at ? (
-                <div className={styles.metaRow}>
-                  <dt>В корзине</dt>
+                <div className={styles.fact}>
+                  <dt>{t("card.deleted")}</dt>
                   <dd>{formatDate(item.deleted_at)}</dd>
                 </div>
               ) : null}
             </dl>
-          </Card>
+          </div>
+        </aside>
+
+        <div className={styles.main}>
+          <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
+
+          {item.review ? (
+            <Card title={t("item.note")}>
+              <p className={styles.review}>{item.review}</p>
+            </Card>
+          ) : null}
+
+          {item.details ? (
+            <MovieInfo
+              details={item.details}
+              kind={item.kind}
+              locale={locale}
+              tmdbId={
+                item.external_source === "tmdb" ? item.external_id : null
+              }
+            />
+          ) : null}
+
+          {item.kind === "tv" &&
+          item.details?.seasons &&
+          item.details.seasons.length > 0 ? (
+            <SeriesEpisodes
+              itemId={item.id}
+              seasons={item.details.seasons}
+              totalEpisodes={item.details.number_of_episodes}
+              watched={item.details.watched_episodes ?? []}
+            />
+          ) : null}
         </div>
-
-        {item.review ? (
-          <Card title={t("item.note")}>
-            <p className={styles.review}>{item.review}</p>
-          </Card>
-        ) : null}
-
-        {item.details ? (
-          <MovieInfo
-            details={item.details}
-            kind={item.kind}
-            locale={locale}
-            tmdbId={
-              item.external_source === "tmdb" ? item.external_id : null
-            }
-          />
-        ) : null}
-
-        {item.kind === "tv" &&
-        item.details?.seasons &&
-        item.details.seasons.length > 0 ? (
-          <SeriesEpisodes
-            itemId={item.id}
-            seasons={item.details.seasons}
-            totalEpisodes={item.details.number_of_episodes}
-            watched={item.details.watched_episodes ?? []}
-          />
-        ) : null}
       </div>
     </main>
   );
