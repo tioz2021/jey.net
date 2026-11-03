@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { MovieInfo } from "@/components/items/movie-info";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS } from "@/lib/labels";
 import { getPublicItem } from "@/lib/public-profile";
@@ -131,6 +132,13 @@ export default async function PublicItemPage({
           </dl>
         </Card>
       </div>
+
+      {item.details ? (
+        <MovieInfo
+          details={item.details}
+          tmdbId={item.external_source === "tmdb" ? item.external_id : null}
+        />
+      ) : null}
 
       {item.review ? (
         <Card className={styles.reviewCard} title="Заметка">

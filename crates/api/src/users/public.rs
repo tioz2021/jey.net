@@ -57,6 +57,9 @@ pub struct PublicItemDetail {
     pub rating: Option<i16>,
     pub review: Option<String>,
     pub cover_key: Option<String>,
+    pub external_source: Option<String>,
+    pub external_id: Option<String>,
+    pub details: Option<Value>,
     pub tags: Vec<String>,
     pub updated_at: DateTime<Utc>,
 }
@@ -138,6 +141,9 @@ pub async fn item(
                 i.rating,
                 i.review,
                 i.cover_key,
+                i.external_source,
+                i.external_id,
+                i.details,
                 i.updated_at,
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
@@ -172,6 +178,9 @@ async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicIte
                 i.rating,
                 i.review,
                 i.cover_key,
+                i.external_source,
+                i.external_id,
+                i.details,
                 i.updated_at,
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),

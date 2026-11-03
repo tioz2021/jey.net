@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
+import { MovieInfo } from "@/components/items/movie-info";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
@@ -199,6 +200,15 @@ export default async function ItemPage({
             </dl>
           </Card>
         </div>
+
+        {item.details ? (
+          <MovieInfo
+            details={item.details}
+            tmdbId={
+              item.external_source === "tmdb" ? item.external_id : null
+            }
+          />
+        ) : null}
 
         {item.review ? (
           <Card title="Заметка">

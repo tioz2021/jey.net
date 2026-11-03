@@ -174,6 +174,9 @@ export interface PublicItem {
   rating: number | null;
   review: string | null;
   cover_key: string | null;
+  external_source: string | null;
+  external_id: string | null;
+  details: MovieDetails | null;
   tags: string[];
   updated_at: string;
 }
