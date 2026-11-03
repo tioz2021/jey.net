@@ -25,6 +25,7 @@ export interface User {
   email_verified: boolean;
   is_public: boolean;
   avatar_key: string | null;
+  banner_key: string | null;
   created_at: string;
 }
 
@@ -126,6 +127,7 @@ export interface PublicProfile {
   id: string;
   display_name: string;
   avatar_key: string | null;
+  banner_key: string | null;
   locale: string;
   created_at: string;
 }

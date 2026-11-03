@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { CoverPicker } from "@/components/items/cover-picker";
+import { BannerPicker } from "@/components/profile/banner-picker";
 import { Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
@@ -22,7 +23,7 @@ const LOCALES: [string, string][] = [
 
 export function SettingsForm({ initialUser }: { initialUser: User }) {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser, user: currentUser } = useUser();
   const { notifyError } = useToast();
 
   // Profile, prefilled from the server so the page needs no loading state.
@@ -173,6 +174,26 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
           }}
           onCleared={async () => {
             const response = await api.auth.clearAvatar();
+            setUser(response.user);
+            router.refresh();
+          }}
+        />
+      </Card>
+
+      <Card title="Баннер профиля">
+        <BannerPicker
+          currentUrl={
+            (currentUser?.banner_key ?? initialUser.banner_key)
+              ? `/media/${currentUser?.banner_key ?? initialUser.banner_key}`
+              : null
+          }
+          onUploaded={async (uploadId) => {
+            const response = await api.auth.setBanner(uploadId);
+            setUser(response.user);
+            router.refresh();
+          }}
+          onCleared={async () => {
+            const response = await api.auth.clearBanner();
             setUser(response.user);
             router.refresh();
           }}

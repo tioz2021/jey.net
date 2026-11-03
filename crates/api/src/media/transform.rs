@@ -19,6 +19,9 @@ pub const PREVIEW_MAX_SIDE: u32 = 400;
 const WEBP_QUALITY: f32 = 78.0;
 /// Avatars are square and small: they appear in the header and profile.
 pub const AVATAR_SIZE: u32 = 128;
+/// Profile banner: wide, cropped to a 4:1 strip.
+pub const BANNER_WIDTH: u32 = 1200;
+pub const BANNER_HEIGHT: u32 = 300;
 
 /// Original dimensions (after orientation) and the two WebP renditions.
 #[derive(Debug)]
@@ -88,6 +91,36 @@ pub fn avatar(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
     );
 
     to_webp(&square)
+}
+
+/// Crops the centre strip and resizes it to 1200×300.
+pub fn banner(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
+    let reader = ImageReader::new(Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|_| undecodable())?;
+
+    let mut decoder = reader.into_decoder().map_err(|_| undecodable())?;
+    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
+
+    let mut image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+    image.apply_orientation(orientation);
+
+    let target_ratio = BANNER_WIDTH as f32 / BANNER_HEIGHT as f32;
+    let ratio = image.width() as f32 / image.height() as f32;
+
+    let image = if ratio > target_ratio {
+        let width = (image.height() as f32 * target_ratio).round() as u32;
+        let x = (image.width() - width) / 2;
+        image.crop_imm(x, 0, width, image.height())
+    } else {
+        let height = (image.width() as f32 / target_ratio).round() as u32;
+        let y = (image.height() - height) / 2;
+        image.crop_imm(0, y, image.width(), height)
+    };
+
+    let resized = image.resize_exact(BANNER_WIDTH, BANNER_HEIGHT, FilterType::Lanczos3);
+
+    to_webp(&resized)
 }
 
 fn undecodable() -> AppError {

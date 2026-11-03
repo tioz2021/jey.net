@@ -24,6 +24,7 @@ struct PublicUserRow {
     id: Uuid,
     display_name: String,
     avatar_key: Option<String>,
+    banner_key: Option<String>,
     locale: String,
     created_at: DateTime<Utc>,
 }
@@ -98,6 +99,7 @@ pub async fn profile(
             "id": user.id,
             "display_name": user.display_name,
             "avatar_key": user.avatar_key,
+            "banner_key": user.banner_key,
             "locale": user.locale,
             "created_at": user.created_at,
         },
@@ -107,7 +109,7 @@ pub async fn profile(
 
 async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppError> {
     sqlx::query_as::<_, PublicUserRow>(
-        "select id, display_name, avatar_key, locale, created_at
+        "select id, display_name, avatar_key, banner_key, locale, created_at
          from users
          where id = $1 and is_public and deleted_at is null",
     )

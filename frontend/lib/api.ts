@@ -196,6 +196,15 @@ export const auth = {
   clearAvatar: () =>
     request<UserResponse>("/me/avatar", { method: "DELETE" }),
 
+  setBanner: (uploadId: string) =>
+    request<UserResponse>("/me/banner", {
+      method: "POST",
+      body: { upload_id: uploadId },
+    }),
+
+  clearBanner: () =>
+    request<UserResponse>("/me/banner", { method: "DELETE" }),
+
   changePassword: (input: PasswordChangeInput) =>
     request<void>("/me/password", { method: "PATCH", body: input }),
 

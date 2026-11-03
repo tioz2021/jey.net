@@ -57,10 +57,8 @@ export function PublicProfileView({
           aria-hidden="true"
           className={styles.banner}
           style={
-            items[0]?.cover_key
-              ? {
-                  backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.45)), url(/media/${items[0].cover_key})`,
-                }
+            profile.banner_key
+              ? { backgroundImage: `url(/media/${profile.banner_key})` }
               : undefined
           }
         />

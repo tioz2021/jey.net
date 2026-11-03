@@ -164,3 +164,42 @@ async fn another_accounts_upload_cannot_become_an_avatar() {
         let _ = std::fs::remove_dir_all(format!("{MEDIA_DIR}/u/{id}"));
     }
 }
+
+#[tokio::test]
+async fn banner_is_wide_and_can_be_removed() {
+    let (client, email, cookie, user_id) = logged_in().await;
+    let upload_id = upload(&client, &cookie, 900, 300).await;
+
+    let set = client
+        .post_with_cookie(
+            "/api/v1/me/banner",
+            json!({ "upload_id": upload_id }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(set.status, 200, "body: {}", set.body);
+
+    let key = set.body["user"]["banner_key"]
+        .as_str()
+        .expect("banner key")
+        .to_owned();
+    assert!(key.contains("/banner/"));
+
+    let decoded = image::open(format!("{MEDIA_DIR}/{key}")).expect("banner file");
+    assert_eq!((decoded.width(), decoded.height()), (1200, 300));
+
+    let (status, headers, _) = client
+        .get_bytes(&format!("/media/{key}"), Some(&cookie), &[])
+        .await;
+    assert_eq!(status, 200);
+    assert_eq!(headers["content-type"], "image/webp");
+
+    let cleared = client.delete("/api/v1/me/banner", json!({}), &cookie).await;
+    assert_eq!(cleared.status, 200);
+    assert!(cleared.body["user"]["banner_key"].is_null());
+    let path = format!("{MEDIA_DIR}/{key}");
+    assert!(!std::path::Path::new(&path).exists());
+
+    client.cleanup(&email).await;
+    let _ = std::fs::remove_dir_all(format!("{MEDIA_DIR}/u/{user_id}"));
+}
