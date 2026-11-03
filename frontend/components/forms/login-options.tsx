@@ -4,17 +4,18 @@ import { useSearchParams } from "next/navigation";
 
 import { GoogleSignIn } from "@/components/google-sign-in";
 import { useI18n } from "@/lib/locale-context";
+import type { TranslationKey } from "@/lib/i18n";
 
 import styles from "./login-options.module.css";
 
-const ERRORS: Record<string, string> = {
-  unavailable: "Вход через Google пока не настроен.",
-  cancelled: "Вход отменён.",
-  state: "Сессия входа истекла, попробуйте ещё раз.",
-  code: "Google не вернул код входа.",
-  token: "Не удалось подтвердить вход у Google.",
-  claims: "Google не подтвердил email этого аккаунта.",
-  linked: "Этот email уже привязан к другому Google-аккаунту.",
+const ERROR_KEYS: Record<string, TranslationKey> = {
+  unavailable: "auth.googleErrorUnavailable",
+  cancelled: "auth.googleErrorCancelled",
+  state: "auth.googleErrorState",
+  code: "auth.googleErrorCode",
+  token: "auth.googleErrorToken",
+  claims: "auth.googleErrorClaims",
+  linked: "auth.googleErrorLinked",
 };
 
 export function LoginOptions() {
@@ -26,7 +27,7 @@ export function LoginOptions() {
     <div className={styles.wrapper}>
       {error ? (
         <p className={styles.error} role="alert">
-          {ERRORS[error] ?? "Не удалось войти через Google."}
+          {ERROR_KEYS[error] ? t(ERROR_KEYS[error]) : t("auth.googleErrorGeneric")}
         </p>
       ) : null}
 

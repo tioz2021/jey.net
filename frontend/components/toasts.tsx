@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 
 import { describeError } from "@/lib/messages";
+import { useI18n } from "@/lib/locale-context";
 
 import styles from "./toasts.module.css";
 
@@ -34,6 +35,7 @@ const MAX_TOASTS = 3;
 const AUTO_HIDE_MS = 6000;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const i18n = useI18n();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
 
@@ -52,10 +54,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const notifyError = useCallback(
     (error: unknown) => {
-      const described = describeError(error);
+      const described = describeError(error, i18n);
       notify({ tone: "error", ...described });
     },
-    [notify],
+    [notify, i18n],
   );
 
   return (

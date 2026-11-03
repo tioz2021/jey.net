@@ -105,7 +105,12 @@ function toValues(item?: Item): Values {
   };
 }
 
-function parseNumber(value: string, field: string, errors: Errors): number | null {
+function parseNumber(
+  value: string,
+  field: string,
+  errors: Errors,
+  t: ReturnType<typeof useI18n>["t"],
+): number | null {
   const trimmed = value.trim();
   if (trimmed === "") {
     return null;
@@ -113,47 +118,50 @@ function parseNumber(value: string, field: string, errors: Errors): number | nul
 
   const parsed = Number(trimmed);
   if (!Number.isInteger(parsed)) {
-    errors[field as Field] = "Введите целое число";
+    errors[field as Field] = t("validation.integer");
     return null;
   }
 
   return parsed;
 }
 
-function validate(values: Values): { errors: Errors; item?: NewItem } {
+function validate(
+  values: Values,
+  t: ReturnType<typeof useI18n>["t"],
+): { errors: Errors; item?: NewItem } {
   const errors: Errors = {};
 
   const title = values.title.trim();
   if (!title) {
-    errors.title = "Название обязательно";
+    errors.title = t("validation.titleRequired");
   } else if (title.length > 300) {
-    errors.title = "Не больше 300 символов";
+    errors.title = t("validation.max300");
   }
 
   const subtitle = values.subtitle.trim();
   if (subtitle.length > 300) {
-    errors.subtitle = "Не больше 300 символов";
+    errors.subtitle = t("validation.max300");
   }
 
-  const year = parseNumber(values.year, "year", errors);
+  const year = parseNumber(values.year, "year", errors, t);
   if (year !== null && (year < 1800 || year > 2100)) {
-    errors.year = "Год от 1800 до 2100";
+    errors.year = t("validation.yearRange");
   }
 
-  const rating = parseNumber(values.rating, "rating", errors);
+  const rating = parseNumber(values.rating, "rating", errors, t);
   if (rating !== null && (rating < 1 || rating > 10)) {
-    errors.rating = "Оценка от 1 до 10";
+    errors.rating = t("validation.ratingRange");
   }
 
   if (values.review.length > 20_000) {
-    errors.review = "Не больше 20 000 символов";
+    errors.review = t("validation.max20000");
   }
 
   const sourceUrl = values.source_url.trim();
   if (sourceUrl && !/^https?:\/\//.test(sourceUrl)) {
-    errors.source_url = "Ссылка должна начинаться с http:// или https://";
+    errors.source_url = t("validation.url");
   } else if (sourceUrl.length > 2048) {
-    errors.source_url = "Не больше 2048 символов";
+    errors.source_url = t("validation.max2048");
   }
 
   if (Object.keys(errors).length > 0) {
@@ -267,7 +275,7 @@ export function ItemForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const result = validate(values);
+    const result = validate(values, t);
     setErrors(result.errors);
     if (!result.item) {
       return;

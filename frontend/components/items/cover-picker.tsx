@@ -6,7 +6,7 @@ import type { ChangeEvent } from "react";
 
 import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { describeError } from "@/lib/messages";
 
 import { useI18n } from "@/lib/locale-context";
 
@@ -29,7 +29,8 @@ export function CoverPicker({
   onCleared: () => void;
   label?: string;
 }) {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,7 @@ export function CoverPicker({
       setPreview(URL.createObjectURL(file));
       onUploaded(response.upload.id);
     } catch (cause) {
-      setError(errorMessage(cause));
+      setError(describeError(cause, i18n).text);
     } finally {
       setUploading(false);
     }

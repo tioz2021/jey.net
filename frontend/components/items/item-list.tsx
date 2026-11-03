@@ -8,7 +8,7 @@ import { Onboarding } from "@/components/onboarding";
 import { useI18n } from "@/lib/locale-context";
 import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
-import { errorMessage } from "@/lib/errors";
+import { describeError } from "@/lib/messages";
 import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types";
 
 import { ItemsFilters } from "./filters";
@@ -46,7 +46,8 @@ export function ItemList({
   initialLoaded?: boolean;
   initialQuery?: string;
 }) {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
   const { params: searchParams, update } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
@@ -93,7 +94,7 @@ export function ItemList({
       })
       .catch((cause) => {
         if (!cancelled) {
-          setError(errorMessage(cause));
+          setError(describeError(cause, i18n).text);
         }
       })
       .finally(() => {
@@ -106,7 +107,7 @@ export function ItemList({
     return () => {
       cancelled = true;
     };
-  }, [filters, query, reloadToken]);
+  }, [filters, query, reloadToken, i18n]);
 
   useEffect(() => {
     if (!loading) {
@@ -130,7 +131,7 @@ export function ItemList({
       setItems((current) => [...current, ...page.items]);
       setCursor(page.next_cursor);
     } catch (cause) {
-      setError(errorMessage(cause));
+      setError(describeError(cause, i18n).text);
     } finally {
       setLoadingMore(false);
     }

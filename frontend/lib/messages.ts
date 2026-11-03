@@ -1,36 +1,35 @@
 /**
- * Turns API errors into short Russian messages a person can act on.
+ * Turns API errors into short messages a person can act on.
  *
- * The server's `code` decides the wording; `details.field` names the input to
- * highlight, and `request_id` is kept so a failure can be traced in the logs.
+ * The server's stable `code` decides the wording; `details.field` names the
+ * input to highlight. Server messages stay in English on purpose: the client
+ * owns the user-facing language.
  */
 
-import { errorMessage, isApiError } from "./errors";
+import type { PluralForms, TranslationKey } from "./i18n";
+import { isApiError } from "./errors";
 
-/** Human names for the fields the API reports. */
-export const FIELD_LABELS: Record<string, string> = {
-  email: "Email",
-  password: "Пароль",
-  current_password: "Текущий пароль",
-  new_password: "Новый пароль",
-  display_name: "Имя",
-  title: "Название",
-  subtitle: "Подзаголовок",
-  year: "Год",
-  rating: "Оценка",
-  review: "Заметка",
-  source_url: "Ссылка",
-  tags: "Теги",
-  kind: "Тип",
-  status: "Статус",
-  locale: "Язык",
-  q: "Поиск",
-  cursor: "Курсор страницы",
-  limit: "Размер страницы",
-  sort: "Сортировка",
-  format: "Формат файла",
-  token: "Токен",
-  id: "Идентификатор",
+export interface ErrorTranslator {
+  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
+  plural: (count: number, forms: PluralForms) => string;
+}
+
+const FIELD_KEYS: Record<string, TranslationKey> = {
+  email: "field.email",
+  display_name: "field.display_name",
+  title: "form.title",
+  subtitle: "field.subtitle",
+  year: "form.year",
+  rating: "form.rating",
+  review: "form.note",
+  source_url: "field.source_url",
+  tags: "form.tags",
+  kind: "form.kind",
+  status: "form.status",
+  locale: "field.locale",
+  q: "field.q",
+  external_id: "field.external_id",
+  details: "field.details",
 };
 
 export interface DescribedError {
@@ -39,11 +38,14 @@ export interface DescribedError {
   requestId: string | null;
 }
 
-export function describeError(error: unknown): DescribedError {
+export function describeError(
+  error: unknown,
+  x: ErrorTranslator,
+): DescribedError {
   if (!isApiError(error)) {
     return {
-      title: "Не получилось",
-      text: errorMessage(error),
+      title: x.t("error.fallbackTitle"),
+      text: x.t("error.fallbackText"),
       requestId: null,
     };
   }
@@ -54,98 +56,115 @@ export function describeError(error: unknown): DescribedError {
     case "rate_limited": {
       const seconds = error.details?.retry_after_secs;
       return {
-        title: "Слишком много запросов",
+        title: x.t("error.rateTitle"),
         text: seconds
-          ? `Повторите через ${formatDuration(seconds)}.`
-          : "Подождите немного и попробуйте снова.",
+          ? x.t("error.rateRetry", { duration: duration(seconds, x) })
+          : x.t("error.rateText"),
         requestId,
       };
     }
 
     case "validation_error": {
       const field = error.field;
-      const label = field ? (FIELD_LABELS[field] ?? field) : null;
+      const label = field ? FIELD_KEYS[field] : null;
 
       return {
-        title: "Проверьте данные",
+        title: x.t("error.validationTitle"),
         text: label
-          ? `Поле «${label}»: ${error.message}`
-          : error.message,
+          ? x.t("error.validationField", { field: x.t(label) })
+          : x.t("error.validationText"),
         requestId,
       };
     }
 
     case "unauthorized":
       return {
-        title: "Нужно войти",
-        text: "Сессия истекла. Войдите снова.",
+        title: x.t("error.unauthorizedTitle"),
+        text: x.t("error.unauthorizedText"),
         requestId,
       };
 
     case "forbidden":
       return {
-        title: "Нет доступа",
-        text: "У этого действия нет прав.",
+        title: x.t("error.forbiddenTitle"),
+        text: x.t("error.forbiddenText"),
         requestId,
       };
 
     case "not_found":
       return {
-        title: "Не найдено",
-        text: "Запись уже удалена или принадлежит другому аккаунту.",
+        title: x.t("error.notFoundTitle"),
+        text: x.t("error.notFoundText"),
         requestId,
       };
 
     case "conflict":
       return {
-        title: "Уже существует",
-        text: error.message,
+        title: x.t("error.conflictTitle"),
+        text: x.t("error.conflictText"),
         requestId,
       };
 
     case "method_not_allowed":
       return {
-        title: "Действие недоступно",
-        text: "Этот способ запроса не поддерживается.",
+        title: x.t("error.methodTitle"),
+        text: x.t("error.methodText"),
+        requestId,
+      };
+
+    case "payload_too_large":
+      return {
+        title: x.t("error.tooLargeTitle"),
+        text: x.t("error.tooLargeText"),
+        requestId,
+      };
+
+    case "unsupported_media_type":
+      return {
+        title: x.t("error.mediaTitle"),
+        text: x.t("error.mediaText"),
+        requestId,
+      };
+
+    case "unavailable":
+      return {
+        title: x.t("error.unavailableTitle"),
+        text: x.t("error.unavailableText"),
         requestId,
       };
 
     case "internal":
       return {
-        title: "Ошибка на сервере",
-        text: "Мы записали её в журнал. Попробуйте ещё раз чуть позже.",
+        title: x.t("error.internalTitle"),
+        text: x.t("error.internalText"),
         requestId,
       };
 
     default:
       return {
-        title: "Не получилось",
-        text: error.message,
+        title: x.t("error.fallbackTitle"),
+        text: x.t("error.fallbackText"),
         requestId,
       };
   }
 }
 
-function formatDuration(seconds: number): string {
+function duration(seconds: number, x: ErrorTranslator): string {
   if (seconds < 60) {
-    return `${seconds} ${plural(seconds, "секунду", "секунды", "секунд")}`;
+    return x.plural(seconds, {
+      one: x.t("error.seconds.one", { n: seconds }),
+      few: x.t("error.seconds.few", { n: seconds }),
+      many: x.t("error.seconds.many", { n: seconds }),
+      other: x.t("error.seconds.many", { n: seconds }),
+    });
   }
 
   const minutes = Math.ceil(seconds / 60);
 
-  return `${minutes} ${plural(minutes, "минуту", "минуты", "минут")}`;
-}
-
-function plural(count: number, one: string, few: string, many: string): string {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-
-  if (mod10 === 1 && mod100 !== 11) {
-    return one;
-  }
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-    return few;
-  }
-
-  return many;
+  return x.plural(minutes, {
+    one: x.t("error.minutes.one", { n: minutes }),
+    few: x.t("error.minutes.few", { n: minutes }),
+    many: x.t("error.minutes.many", { n: minutes }),
+    other: x.t("error.minutes.many", { n: minutes }),
+  });
 }
