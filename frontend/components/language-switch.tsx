@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { api } from "@/lib/api";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
@@ -23,6 +24,9 @@ export function LanguageSwitch() {
   const { user, setUser } = useUser();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
   useEffect(() => {
     if (!open) {
@@ -38,6 +42,7 @@ export function LanguageSwitch() {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
+        triggerRef.current?.focus();
       }
     }
 
@@ -49,6 +54,41 @@ export function LanguageSwitch() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const selected =
+      menuRef.current?.querySelector<HTMLElement>('[aria-checked="true"]') ??
+      menuRef.current?.querySelector<HTMLElement>('[role="menuitemradio"]');
+    selected?.focus();
+  }, [open]);
+
+  function onMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitemradio"]') ??
+        [],
+    );
+    const index = items.indexOf(document.activeElement as HTMLElement);
+
+    let next = index;
+    if (event.key === "ArrowDown") {
+      next = index < 0 ? 0 : (index + 1) % items.length;
+    } else if (event.key === "ArrowUp") {
+      next = index < 0 ? items.length - 1 : (index - 1 + items.length) % items.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = items.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    items[next]?.focus();
+  }
 
   async function choose(next: Locale) {
     setOpen(false);
@@ -78,8 +118,16 @@ export function LanguageSwitch() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={t("language.label")}
+        aria-controls={menuId}
         className={styles.trigger}
         onClick={() => setOpen((value) => !value)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
+        ref={triggerRef}
         type="button"
       >
         <span>{LABELS[locale].code}</span>
@@ -102,7 +150,13 @@ export function LanguageSwitch() {
       </button>
 
       {open ? (
-        <div className={styles.menu} role="menu">
+        <div
+          className={styles.menu}
+          id={menuId}
+          onKeyDown={onMenuKeyDown}
+          ref={menuRef}
+          role="menu"
+        >
           {SUPPORTED_LOCALES.map((value) => (
             <button
               aria-checked={value === locale}

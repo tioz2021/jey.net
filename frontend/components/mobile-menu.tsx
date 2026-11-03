@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { HeaderSearch } from "@/components/header-search";
 import { LanguageSwitch } from "@/components/language-switch";
@@ -33,6 +33,7 @@ export function MobileMenu() {
   const { t } = useI18n();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setOpen(false);
@@ -46,11 +47,24 @@ export function MobileMenu() {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
+        triggerRef.current?.focus();
       }
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      document.querySelector<HTMLInputElement>("#mobile-search")?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   return (
@@ -61,6 +75,7 @@ export function MobileMenu() {
         aria-label={t("nav.menu")}
         className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
         onClick={() => setOpen((value) => !value)}
+        ref={triggerRef}
         type="button"
       >
         <span aria-hidden="true" className={styles.lines} />

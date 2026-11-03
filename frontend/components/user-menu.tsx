@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { Avatar } from "@/components/profile/avatar";
 import { api } from "@/lib/api";
@@ -20,6 +21,8 @@ export function UserMenu({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setOpen(false);
@@ -39,6 +42,7 @@ export function UserMenu({ user }: { user: User }) {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
+        triggerRef.current?.focus();
       }
     }
 
@@ -50,6 +54,40 @@ export function UserMenu({ user }: { user: User }) {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const first = menuRef.current?.querySelector<HTMLElement>(
+      '[role="menuitem"]',
+    );
+    first?.focus();
+  }, [open]);
+
+  function onMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [],
+    );
+    const index = items.indexOf(document.activeElement as HTMLElement);
+
+    let next = index;
+    if (event.key === "ArrowDown") {
+      next = index < 0 ? 0 : (index + 1) % items.length;
+    } else if (event.key === "ArrowUp") {
+      next = index < 0 ? items.length - 1 : (index - 1 + items.length) % items.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = items.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    items[next]?.focus();
+  }
 
   async function handleLogout() {
     setPending(true);
@@ -70,8 +108,16 @@ export function UserMenu({ user }: { user: User }) {
       <button
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-controls="user-menu"
         className={styles.trigger}
         onClick={() => setOpen((value) => !value)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
+        ref={triggerRef}
         type="button"
       >
         <Avatar
@@ -92,7 +138,13 @@ export function UserMenu({ user }: { user: User }) {
       </button>
 
       {open ? (
-        <div className={styles.menu} role="menu">
+        <div
+          className={styles.menu}
+          id="user-menu"
+          onKeyDown={onMenuKeyDown}
+          ref={menuRef}
+          role="menu"
+        >
           {user.is_public ? (
             <Link
               className={styles.item}
