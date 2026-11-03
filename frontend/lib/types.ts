@@ -26,6 +26,7 @@ export interface User {
   is_public: boolean;
   avatar_key: string | null;
   banner_key: string | null;
+  has_password: boolean;
   created_at: string;
 }
 

@@ -24,6 +24,7 @@ pub struct UserView {
     pub is_public: bool,
     pub avatar_key: Option<String>,
     pub banner_key: Option<String>,
+    pub has_password: bool,
     pub created_at: DateTime<Utc>,
 }
 
@@ -54,6 +55,7 @@ impl From<UserRow> for UserView {
             is_public: row.is_public,
             avatar_key: row.avatar_key,
             banner_key: row.banner_key,
+            has_password: row.password_hash.is_some(),
             created_at: row.created_at,
         }
     }

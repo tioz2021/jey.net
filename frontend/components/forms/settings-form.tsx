@@ -34,19 +34,6 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Password
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
-  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
-  const [passwordErrors, setPasswordErrors] = useState<{
-    current?: string;
-    new?: string;
-    repeat?: string;
-    form?: string;
-  }>({});
-  const [savingPassword, setSavingPassword] = useState(false);
-
   // Danger zone
   const [revoking, setRevoking] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -80,49 +67,6 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
     }
   }
 
-  async function savePassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const errors: typeof passwordErrors = {};
-    if (!currentPassword) {
-      errors.current = "Введите текущий пароль";
-    }
-    if (newPassword.length < 10) {
-      errors.new = "Минимум 10 символов";
-    }
-    if (newPassword !== repeatPassword) {
-      errors.repeat = "Пароли не совпадают";
-    }
-    setPasswordErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
-
-    setSavingPassword(true);
-    setPasswordMessage(null);
-
-    try {
-      await api.auth.changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-      setCurrentPassword("");
-      setNewPassword("");
-      setRepeatPassword("");
-      setPasswordMessage("Пароль изменён. Остальные сессии завершены");
-    } catch (error) {
-      if (error instanceof ApiError && error.field === "current_password") {
-        setPasswordErrors({ current: "Неверный текущий пароль" });
-      } else if (error instanceof ApiError && error.field === "new_password") {
-        setPasswordErrors({ new: error.message });
-      } else {
-        notifyError(error);
-      }
-    } finally {
-      setSavingPassword(false);
-    }
-  }
-
   async function revokeAll() {
     setRevoking(true);
 
@@ -141,7 +85,9 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
     setDeleteError(null);
 
     try {
-      await api.auth.deleteMe(deletePassword);
+      await api.auth.deleteMe(
+        initialUser.has_password ? deletePassword : undefined,
+      );
       setUser(null);
       router.push("/");
       router.refresh();
@@ -157,7 +103,8 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
   }
 
   const deleteReady =
-    deletePassword.length > 0 && confirmWord.trim().toLowerCase() === "удалить";
+    (!initialUser.has_password || deletePassword.length > 0) &&
+    confirmWord.trim().toLowerCase() === "удалить";
 
   return (
     <div className={styles.sections}>
@@ -249,56 +196,6 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         </form>
       </Card>
 
-      <Card title="Пароль">
-        <form className={styles.form} onSubmit={savePassword} noValidate>
-          <Input
-            label="Текущий пароль"
-            type="password"
-            autoComplete="current-password"
-            value={currentPassword}
-            onChange={(event) => setCurrentPassword(event.target.value)}
-            error={passwordErrors.current}
-            required
-          />
-          <Input
-            label="Новый пароль"
-            type="password"
-            autoComplete="new-password"
-            hint="Минимум 10 символов"
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-            error={passwordErrors.new}
-            required
-          />
-          <Input
-            label="Повторите новый пароль"
-            type="password"
-            autoComplete="new-password"
-            value={repeatPassword}
-            onChange={(event) => setRepeatPassword(event.target.value)}
-            error={passwordErrors.repeat}
-            required
-          />
-
-          {passwordErrors.form ? (
-            <p className={styles.error} role="alert">
-              {passwordErrors.form}
-            </p>
-          ) : null}
-          {passwordMessage ? (
-            <p className={styles.success} role="status">
-              {passwordMessage}
-            </p>
-          ) : null}
-
-          <div>
-            <Button type="submit" loading={savingPassword}>
-              Сменить пароль
-            </Button>
-          </div>
-        </form>
-      </Card>
-
       <Card title="Сессии и аккаунт">
         <p className={styles.muted}>
           «Выйти на всех устройствах» завершит все сессии, включая текущую.
@@ -354,13 +251,15 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
               Это действие нельзя отменить. Все записи, теги и настройки будут
               удалены.
             </p>
-            <Input
-              label="Пароль"
-              type="password"
-              autoComplete="current-password"
-              value={deletePassword}
-              onChange={(event) => setDeletePassword(event.target.value)}
-            />
+            {initialUser.has_password ? (
+              <Input
+                label="Пароль"
+                type="password"
+                autoComplete="current-password"
+                value={deletePassword}
+                onChange={(event) => setDeletePassword(event.target.value)}
+              />
+            ) : null}
             <Input
               label="Введите слово «удалить»"
               value={confirmWord}

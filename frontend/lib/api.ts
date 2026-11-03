@@ -208,8 +208,11 @@ export const auth = {
   changePassword: (input: PasswordChangeInput) =>
     request<void>("/me/password", { method: "PATCH", body: input }),
 
-  deleteMe: (password: string) =>
-    request<void>("/me", { method: "DELETE", body: { password } }),
+  deleteMe: (password?: string) =>
+    request<void>("/me", {
+      method: "DELETE",
+      body: password ? { password } : {},
+    }),
 
   requestPasswordReset: (email: string) =>
     request<void>("/auth/password-reset/request", {

@@ -3,10 +3,8 @@
 import { useSearchParams } from "next/navigation";
 
 import { GoogleSignIn } from "@/components/google-sign-in";
-import { useUser } from "@/lib/user-context";
 
 import styles from "./login-options.module.css";
-import { LoginForm } from "./login-form";
 
 const ERRORS: Record<string, string> = {
   unavailable: "Вход через Google пока не настроен.",
@@ -20,7 +18,6 @@ const ERRORS: Record<string, string> = {
 
 export function LoginOptions() {
   const params = useSearchParams();
-  const { user } = useUser();
   const error = params.get("google");
 
   return (
@@ -36,15 +33,6 @@ export function LoginOptions() {
       <p className={styles.note}>
         Впервые здесь? Аккаунт создастся автоматически, пароль не нужен.
       </p>
-
-      {user ? null : (
-        <details className={styles.password}>
-          <summary>Войти по паролю</summary>
-          <div className={styles.passwordBody}>
-            <LoginForm />
-          </div>
-        </details>
-      )}
     </div>
   );
 }

@@ -19,11 +19,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <Link className={styles.brand} href="/">
             jey.net
           </Link>
-          <nav className={styles.links} aria-label="Аккаунт">
-            <Link href="/login">Вход</Link>
-            <Link href="/register">Регистрация</Link>
+          <div className={styles.links}>
             <ThemeToggle />
-          </nav>
+          </div>
         </div>
       </header>
 

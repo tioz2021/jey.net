@@ -34,11 +34,8 @@ export function PublicHeader() {
           <Link className={styles.navLink} href="/">
             Главная
           </Link>
-          <Link className={styles.navLink} href="/login">
+          <Link className={styles.cta} href="/login">
             Войти
-          </Link>
-          <Link className={styles.cta} href="/register">
-            Регистрация
           </Link>
         </nav>
       </div>

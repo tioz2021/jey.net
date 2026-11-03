@@ -72,11 +72,11 @@ export default function LandingPage() {
         </p>
 
         <div className={styles.actions}>
-          <Link className={styles.primary} href="/register">
-            Создать аккаунт
+          <Link className={styles.primary} href="/api/v1/auth/google/start">
+            Войти через Google
           </Link>
-          <Link className={styles.secondary} href="/login">
-            Войти
+          <Link className={styles.secondary} href="/#features">
+            Что внутри
           </Link>
         </div>
 
@@ -127,11 +127,11 @@ export default function LandingPage() {
           Начните с одной записи
         </h2>
         <p className={styles.finalText}>
-          Регистрация занимает полминуты: почта и пароль. Остальное можно
-          добавить позже.
+          Вход через Google занимает полминуты: без пароля и подтверждений.
+          Ник вы выберете сразу после входа.
         </p>
-        <Link className={styles.primary} href="/register">
-          Создать аккаунт
+        <Link className={styles.primary} href="/api/v1/auth/google/start">
+          Войти через Google
         </Link>
       </section>
     </div>

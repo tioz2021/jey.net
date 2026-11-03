@@ -20,7 +20,7 @@ use crate::users::user;
 
 #[derive(Debug, Deserialize)]
 pub struct DeleteAccountRequest {
-    pub password: String,
+    pub password: Option<String>,
 }
 
 /// `DELETE /api/v1/me`
@@ -31,32 +31,29 @@ pub async fn delete_me(
 ) -> Result<Response, AppError> {
     let Json(payload) = payload.map_err(|rejection| AppError::validation(rejection.body_text()))?;
 
-    if payload.password.is_empty() {
-        return Err(AppError::validation_field(
-            "password",
-            "password is required to delete the account",
-        ));
-    }
-
     let record = user::find_by_id(&state.pool, current.user.id)
         .await?
         .ok_or_else(|| AppError::unauthorized("authentication required"))?;
 
-    let Some(hash) = record.password_hash.as_deref() else {
-        return Err(AppError::validation(
-            "this account signs in with Google and has no password",
-        ));
-    };
-
-    match password::verify_password(&payload.password, hash) {
-        Ok(true) => {}
-        Ok(false) => {
+    if let Some(hash) = record.password_hash.as_deref() {
+        let password = payload.password.as_deref().unwrap_or_default();
+        if password.is_empty() {
             return Err(AppError::validation_field(
                 "password",
-                "password is incorrect",
+                "password is required to delete the account",
             ));
         }
-        Err(err) => return Err(AppError::internal(err)),
+
+        match password::verify_password(password, hash) {
+            Ok(true) => {}
+            Ok(false) => {
+                return Err(AppError::validation_field(
+                    "password",
+                    "password is incorrect",
+                ));
+            }
+            Err(err) => return Err(AppError::internal(err)),
+        }
     }
 
     let mut transaction = state.pool.begin().await.map_err(AppError::internal)?;
