@@ -1,0 +1,26 @@
+import { ru } from "./ru";
+
+export const uk = {
+  "app.name": "jey.net",
+  "app.tagline": "Особистий портал",
+  "nav.items": "Записи",
+  "nav.tags": "Теги",
+  "nav.stats": "Статистика",
+  "nav.settings": "Налаштування",
+  "nav.trash": "Кошик",
+  "nav.all": "Усі записи",
+  "nav.movies": "Фільми",
+  "nav.books": "Книги",
+  "nav.images": "Картинки",
+  "nav.other": "Інше",
+  "common.save": "Зберегти",
+  "common.cancel": "Скасувати",
+  "common.delete": "Видалити",
+  "common.edit": "Редагувати",
+  "common.add": "Додати запис",
+  "common.back": "Назад",
+  "common.close": "Закрити",
+  "common.search": "Пошук",
+  "footer.privacy": "Політика конфіденційності",
+  "footer.terms": "Умови використання",
+} satisfies Record<keyof typeof ru, string>;

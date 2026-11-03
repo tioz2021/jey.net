@@ -1,0 +1,26 @@
+import { ru } from "./ru";
+
+export const en = {
+  "app.name": "jey.net",
+  "app.tagline": "Personal portal",
+  "nav.items": "Records",
+  "nav.tags": "Tags",
+  "nav.stats": "Statistics",
+  "nav.settings": "Settings",
+  "nav.trash": "Trash",
+  "nav.all": "All records",
+  "nav.movies": "Films",
+  "nav.books": "Books",
+  "nav.images": "Images",
+  "nav.other": "Other",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.delete": "Delete",
+  "common.edit": "Edit",
+  "common.add": "Add a record",
+  "common.back": "Back",
+  "common.close": "Close",
+  "common.search": "Search",
+  "footer.privacy": "Privacy policy",
+  "footer.terms": "Terms of use",
+} satisfies Record<keyof typeof ru, string>;

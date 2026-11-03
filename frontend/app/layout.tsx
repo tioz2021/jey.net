@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import Script from "next/script";
 
 import { ToastProvider } from "@/components/toasts";
+import { LocaleProvider } from "@/lib/locale-context";
+import { getServerLocale } from "@/lib/i18n/server";
 import { UserProvider } from "@/lib/user-context";
 
 import "./globals.css";
@@ -33,9 +35,15 @@ export const metadata: Metadata = {
 // Runs before the first paint, so a stored theme never flashes its opposite.
 const THEME_INIT = `try{var t=localStorage.getItem("jey-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}`;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const locale = await getServerLocale();
+
   return (
-    <html lang="ru">
+    <html lang={locale}>
       <body>
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT}
@@ -43,13 +51,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <a className="skip-link" href="#content">
           Перейти к содержимому
         </a>
-        <UserProvider>
-          <ToastProvider>
-            <div id="content" tabIndex={-1}>
-              {children}
-            </div>
-          </ToastProvider>
-        </UserProvider>
+        <LocaleProvider initialLocale={locale}>
+          <UserProvider>
+            <ToastProvider>
+              <div id="content" tabIndex={-1}>
+                {children}
+              </div>
+            </ToastProvider>
+          </UserProvider>
+        </LocaleProvider>
       </body>
     </html>
   );
