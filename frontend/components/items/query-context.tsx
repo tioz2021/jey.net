@@ -38,6 +38,12 @@ export function ItemsQueryProvider({
 }) {
   const [search, setSearch] = useState(initialSearch);
 
+  // A server navigation (back link, another page) brings a new query; keep the
+  // provider in step instead of serving the filters it was mounted with.
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
+
   useEffect(() => {
     const sync = () => setSearch(window.location.search.replace(/^\?/, ""));
 

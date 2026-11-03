@@ -45,10 +45,10 @@ export function ItemList({
   initialLoaded?: boolean;
   initialQuery?: string;
 }) {
-  const { params: searchParams } = useItemsQuery();
+  const { params: searchParams, update } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
-  const hasFilters = ["kind", "status", "tag", "q"].some((key) =>
+  const hasFilters = ["kind", "status", "tag", "q", "month"].some((key) =>
     searchParams.has(key),
   );
 
@@ -156,8 +156,19 @@ export function ItemList({
       ) : items.length === 0 ? (
         hasFilters ? (
           <EmptyState
-            actionHref="/items"
-            actionLabel="Сбросить фильтры"
+            action={
+              <Button
+                onClick={() =>
+                  update((params) => {
+                    for (const key of [...params.keys()]) {
+                      params.delete(key);
+                    }
+                  })
+                }
+              >
+                Сбросить фильтры
+              </Button>
+            }
             text="Попробуйте изменить фильтры или поисковый запрос."
             title="Ничего не найдено"
             variant="search"
