@@ -434,4 +434,5 @@ export const ru = {
   'public.records': 'Записей: {count}',
   'form.hidePublic': 'Скрыть из публичного профиля',
   'nav.menu': 'Меню',
+  'movieSearch.replace': 'Заменить',
 } as const;

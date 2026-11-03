@@ -16,10 +16,16 @@ import styles from "./movie-search.module.css";
 export function MovieSearch({
   onSelect,
   selected,
+  selectedYear,
+  selectedDirector,
+  selectedPosterUrl,
   media = "movie",
 }: {
   onSelect: (movie: MovieDetailsResponse) => void;
   selected: string | null;
+  selectedYear?: string;
+  selectedDirector?: string;
+  selectedPosterUrl?: string | null;
   media?: "movie" | "tv";
 }) {
   const { t } = useI18n();
@@ -55,6 +61,7 @@ export function MovieSearch({
   const [active, setActive] = useState(-1);
   const [posterPath, setPosterPath] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   // Choosing a film fills the input with its title; that must not trigger a
   // fresh search and reopen the dropdown.
   const skipSearch = useRef(false);
@@ -161,6 +168,7 @@ export function MovieSearch({
           autoComplete="off"
           className={styles.input}
           id={inputId}
+          ref={inputRef}
           placeholder={t(copy.placeholder)}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -194,20 +202,39 @@ export function MovieSearch({
 
       {selected && !open ? (
         <div className={styles.selectedBox}>
-          {posterPath ? (
+          {posterPath || selectedPosterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- proxied TMDB poster
             <img
               alt=""
               className={styles.selectedPoster}
-              src={`/api/v1/movies/image?size=w92&path=${encodeURIComponent(posterPath)}`}
+              src={
+                posterPath
+                  ? `/api/v1/movies/image?size=w92&path=${encodeURIComponent(posterPath)}`
+                  : (selectedPosterUrl ?? "")
+              }
             />
-          ) : null}
-          <div>
-            <p className={styles.selected}>
-              {t(copy.selected, { title: selected })}
-            </p>
+          ) : (
+            <div aria-hidden="true" className={styles.selectedPoster} />
+          )}
+          <div className={styles.selectedInfo}>
+            <p className={styles.selectedTitle}>{selected}</p>
+            {selectedYear || selectedDirector ? (
+              <p className={styles.selectedMeta}>
+                {[selectedYear, selectedDirector].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
             <p className={styles.hint}>{t("movieSearch.posterHint")}</p>
           </div>
+          <button
+            className={styles.replace}
+            onClick={() => {
+              setQuery("");
+              inputRef.current?.focus();
+            }}
+            type="button"
+          >
+            {t("movieSearch.replace")}
+          </button>
         </div>
       ) : (
         <p className={styles.hint}>{t(copy.hint)}</p>

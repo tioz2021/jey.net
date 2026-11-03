@@ -435,4 +435,5 @@ export const en = {
   'public.records': 'Records: {count}',
   'form.hidePublic': 'Hide from the public profile',
   'nav.menu': 'Menu',
+  'movieSearch.replace': 'Replace',
 } satisfies Record<keyof typeof ru, string>;

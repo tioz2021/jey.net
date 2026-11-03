@@ -411,6 +411,11 @@ export function ItemForm({
           media={values.kind === "tv" ? "tv" : "movie"}
           onSelect={applyMovie}
           selected={values.external_id ? values.title : null}
+          selectedDirector={values.subtitle || undefined}
+          selectedPosterUrl={
+            initial?.cover_key ? `/media/${initial.cover_key}` : null
+          }
+          selectedYear={values.year || undefined}
         />
       ) : null}
 

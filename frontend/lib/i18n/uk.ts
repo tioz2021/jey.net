@@ -435,4 +435,5 @@ export const uk = {
   'public.records': 'Записів: {count}',
   'form.hidePublic': 'Приховати з публічного профілю',
   'nav.menu': 'Меню',
+  'movieSearch.replace': 'Замінити',
 } satisfies Record<keyof typeof ru, string>;
