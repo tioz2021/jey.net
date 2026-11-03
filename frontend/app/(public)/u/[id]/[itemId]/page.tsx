@@ -69,6 +69,7 @@ export default async function PublicItemPage({
         }
       />
 
+      <div className={styles.stack}>
       <div className={styles.body}>
         <div className={styles.poster}>
           {item.cover_key ? (
@@ -141,10 +142,11 @@ export default async function PublicItemPage({
       ) : null}
 
       {item.review ? (
-        <Card className={styles.reviewCard} title="Заметка">
+        <Card title="Заметка">
           <p className={styles.review}>{item.review}</p>
         </Card>
       ) : null}
+      </div>
     </article>
   );
 }

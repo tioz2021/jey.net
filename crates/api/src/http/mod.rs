@@ -97,6 +97,9 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/login", post(login))
         .route("/auth/google/start", get(crate::auth::google::start))
         .route("/auth/google/callback", get(crate::auth::google::callback))
+        // Public: TMDB posters and actor portraits are not private data, and
+        // guest profiles must render them too.
+        .route("/movies/image", get(crate::movies::image))
         .route("/auth/logout", post(logout))
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))
@@ -117,7 +120,6 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/movies/search", get(crate::movies::search))
-        .route("/movies/image", get(crate::movies::image))
         .route("/movies/{id}", get(crate::movies::details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
@@ -133,6 +135,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/items/{id}/poster",
             post(crate::items::cover::set_tmdb_poster),
         )
+        .route("/items/{id}/refresh", post(crate::items::refresh::refresh))
         .route("/tags", get(list_tags))
         .route("/tags/{id}", patch(rename_tag).delete(delete_tag))
         .route("/tags/{id}/merge", post(merge_tag))

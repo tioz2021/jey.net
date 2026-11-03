@@ -268,6 +268,9 @@ export const items = {
       body: { upload_id: uploadId },
     }),
 
+  refresh: (id: string) =>
+    request<ItemResponse>(`/items/${id}/refresh`, { method: "POST" }),
+
   setPoster: (id: string) =>
     request<ItemResponse>(`/items/${id}/poster`, { method: "POST" }),
 

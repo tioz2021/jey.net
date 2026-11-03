@@ -156,6 +156,7 @@ Origin: http://localhost:3000
 | GET | `/items` | список с фильтрами и курсором |
 | GET | `/movies/search` | поиск фильмов через TMDB (требует авторизации) |
 | GET | `/movies/{id}` | метаданные фильма из TMDB |
+| GET | `/movies/image` | прокси картинок TMDB (публичный) |
 | POST | `/items` | создание |
 | GET | `/items/{id}` | одна запись |
 | GET | `/items/{id}/neighbors` | id предыдущей и следующей записи в текущем порядке |

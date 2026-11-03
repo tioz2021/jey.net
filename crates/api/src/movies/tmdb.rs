@@ -93,6 +93,7 @@ impl TmdbClient {
                     ("language", language),
                     ("include_adult", "false"),
                 ],
+                false,
             )
             .await?;
 
@@ -104,22 +105,45 @@ impl TmdbClient {
     }
 
     pub async fn details(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
+        self.details_inner(id, language, false).await
+    }
+
+    /// Bypasses the cache: used by "refresh from TMDB".
+    pub async fn details_fresh(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
+        self.details_inner(id, language, true).await
+    }
+
+    async fn details_inner(
+        &self,
+        id: u64,
+        language: &str,
+        force: bool,
+    ) -> Result<MovieDetails, AppError> {
         let value = self
             .get_json(
                 &format!("movie/{id}"),
-                &[("language", language), ("append_to_response", "credits")],
+                &[
+                    ("language", language),
+                    ("append_to_response", "credits,external_ids"),
+                ],
+                force,
             )
             .await?;
 
         parse_details(&value).ok_or_else(|| AppError::not_found("movie not found"))
     }
 
-    async fn get_json(&self, path: &str, query: &[(&str, &str)]) -> Result<Value, AppError> {
+    async fn get_json(
+        &self,
+        path: &str,
+        query: &[(&str, &str)],
+        force: bool,
+    ) -> Result<Value, AppError> {
         let mut url = Url::parse(&format!("{BASE}/{path}")).map_err(AppError::internal)?;
         url.query_pairs_mut().extend_pairs(query);
 
         let key = url.to_string();
-        if let Some(value) = self.cached(&key) {
+        if !force && let Some(value) = self.cached(&key) {
             return Ok(value);
         }
 
@@ -182,6 +206,40 @@ impl TmdbClient {
                 value,
             },
         );
+    }
+}
+
+impl MovieDetails {
+    /// Converts the API view into the snapshot stored with the record.
+    pub fn snapshot(&self) -> jey_core::items::MovieDetails {
+        jey_core::items::MovieDetails {
+            original_title: self.original_title.clone(),
+            overview: self.overview.clone(),
+            tagline: self.tagline.clone(),
+            runtime: self.runtime,
+            release_date: self.release_date.clone(),
+            status: self.status.clone(),
+            director: self.director.clone(),
+            cast: self
+                .cast
+                .iter()
+                .map(|person| jey_core::items::CastMember {
+                    tmdb_id: person.tmdb_id,
+                    name: person.name.clone(),
+                    character: person.character.clone(),
+                    profile_path: person.profile_path.clone(),
+                })
+                .collect(),
+            genres: self.genres.clone(),
+            countries: self.countries.clone(),
+            languages: self.languages.clone(),
+            companies: self.companies.clone(),
+            budget: self.budget,
+            revenue: self.revenue,
+            imdb_id: self.imdb_id.clone(),
+            vote_average_tenths: self.vote_average_tenths,
+            vote_count: self.vote_count,
+        }
     }
 }
 

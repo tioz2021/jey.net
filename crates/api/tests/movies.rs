@@ -93,3 +93,61 @@ async fn poster_requires_tmdb_and_an_external_id() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn refresh_requires_tmdb_and_an_imported_record() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post(
+            "/api/v1/auth/register",
+            json!({ "email": email, "password": PASSWORD, "display_name": "Refresh" }),
+        )
+        .await;
+    let cookie = registered.session_cookie().expect("cookie");
+
+    let linked = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "Астрал",
+                "status": "done",
+                "external_source": "tmdb",
+                "external_id": "49018"
+            }),
+            &cookie,
+        )
+        .await;
+    let linked_id = linked.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let unavailable = client
+        .post_with_cookie(
+            &format!("/api/v1/items/{linked_id}/refresh"),
+            json!({}),
+            &cookie,
+        )
+        .await;
+    assert_eq!(unavailable.status, 503, "body: {}", unavailable.body);
+
+    let manual = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "movie", "title": "Ручной", "status": "done" }),
+            &cookie,
+        )
+        .await;
+    let manual_id = manual.body["item"]["id"].as_str().expect("id").to_owned();
+
+    let rejected = client
+        .post_with_cookie(
+            &format!("/api/v1/items/{manual_id}/refresh"),
+            json!({}),
+            &cookie,
+        )
+        .await;
+    assert_eq!(rejected.status, 400, "body: {}", rejected.body);
+
+    client.cleanup(&email).await;
+}

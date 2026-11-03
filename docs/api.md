@@ -127,6 +127,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET | `/items` | список с фильтрами и курсором (`only_deleted=true` — только корзина) |
 | GET | `/movies/search?q=` | поиск фильмов в TMDB (прокси, ключ на сервере) |
 | GET | `/movies/{id}` | детали фильма: режиссёр, актёры, жанры, длительность |
+| GET | `/movies/image` | прокси постеров и портретов TMDB (публичный) |
 | POST | `/items` | создать |
 | GET | `/items/{id}` | одна запись |
 | GET | `/items/{id}/neighbors` | соседи по текущей сортировке и фильтрам |

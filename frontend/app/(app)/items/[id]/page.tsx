@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
 import { MovieInfo } from "@/components/items/movie-info";
+import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
@@ -93,7 +94,14 @@ export default async function ItemPage({
       </p>
 
       <PageHeader
-        action={<ItemActions itemId={item.id} title={item.title} />}
+        action={
+          <>
+            {item.external_source === "tmdb" ? (
+              <RefreshMovieButton itemId={item.id} />
+            ) : null}
+            <ItemActions itemId={item.id} title={item.title} />
+          </>
+        }
         subtitle={item.subtitle ?? undefined}
         title={
           <>

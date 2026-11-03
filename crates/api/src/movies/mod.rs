@@ -97,7 +97,6 @@ pub struct ImageQuery {
 /// from `self`, and the browser never talks to `image.tmdb.org` directly.
 pub async fn image(
     State(_state): State<AppState>,
-    _current: CurrentUser,
     Query(query): Query<ImageQuery>,
 ) -> Result<Response, AppError> {
     let size = match query.size.as_deref().unwrap_or("w92") {
