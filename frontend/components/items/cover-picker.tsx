@@ -4,6 +4,7 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 
+import { IconImage } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { describeError } from "@/lib/messages";
@@ -76,7 +77,10 @@ export function CoverPicker({
           onError={() => setBroken(true)}
         />
       ) : (
-        <div className={styles.placeholder}>{t("cover.none")}</div>
+        <div className={styles.placeholder}>
+          <IconImage size={24} />
+          <span>{t("cover.none")}</span>
+        </div>
       )}
 
       <div className={styles.actions}>

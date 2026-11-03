@@ -1,6 +1,13 @@
 /* eslint-disable @next/next/no-img-element -- covers are ready-made WebP renditions */
 import Link from "next/link";
 
+import {
+  IconBook,
+  IconFilm,
+  IconImage,
+  IconOther,
+  IconTv,
+} from "@/components/icons";
 import { Badge } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import {
@@ -15,6 +22,14 @@ import type { ItemKind, ItemStatus } from "@/lib/types";
 
 import { RestoreButton } from "./restore-button";
 import styles from "./item-card.module.css";
+
+const KIND_ICONS = {
+  movie: IconFilm,
+  tv: IconTv,
+  book: IconBook,
+  image: IconImage,
+  other: IconOther,
+} as const;
 
 /** Marks the part of the title that matched the search. */
 function Highlight({ text, query }: { text: string; query?: string }) {
@@ -80,6 +95,7 @@ export function ItemCard({
   const subtitle = localizedSubtitle(item, locale);
   const tags = localizedTags(item, locale);
   const watchedEpisodes = item.details?.watched_episodes?.length ?? 0;
+  const PlaceholderIcon = KIND_ICONS[item.kind];
   const meta = [
     t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
@@ -97,7 +113,10 @@ export function ItemCard({
             decoding="async"
           />
         ) : (
-          <div className={styles.placeholder} aria-hidden="true" />
+          <div className={styles.placeholder} aria-hidden="true">
+            <PlaceholderIcon size={28} />
+            <span>{t(KIND_KEYS[item.kind])}</span>
+          </div>
         )}
       </div>
 
