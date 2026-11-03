@@ -2,8 +2,10 @@
   position: sticky;
   top: 64px;
   align-self: start;
+  overflow: hidden;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .head {
