@@ -85,7 +85,7 @@ export function ItemCard({
     item.year ? String(item.year) : null,
   ].filter(Boolean);
 
-  return (
+  const card = (
     <article className={styles.card}>
       <div className={styles.poster}>
         {item.cover_key ? (
@@ -104,13 +104,7 @@ export function ItemCard({
       <div className={styles.body}>
         <div className={styles.header}>
           <h2 className={styles.title}>
-            {item.deleted_at ? (
-              title
-            ) : (
-              <Link className={styles.link} href={target}>
-                <Highlight text={title} query={query} />
-              </Link>
-            )}
+            <Highlight text={title} query={query} />
           </h2>
           <Badge tone={STATUS_TONES[item.status]}>
             {t(STATUS_KEYS[item.status])}
@@ -162,5 +156,19 @@ export function ItemCard({
         ) : null}
       </div>
     </article>
+  );
+
+  if (item.deleted_at) {
+    return card;
+  }
+
+  return (
+    <Link
+      aria-label={title}
+      className={styles.cardLink}
+      href={target}
+    >
+      {card}
+    </Link>
   );
 }

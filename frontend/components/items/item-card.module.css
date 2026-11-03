@@ -10,8 +10,24 @@
   transition: background-color var(--transition-fast);
 }
 
-.card:hover {
+.cardLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardLink:hover .card {
   background: var(--color-surface);
+  border-color: var(--color-accent);
+}
+
+.cardLink:hover .title {
+  text-decoration: underline;
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .poster {
@@ -56,15 +72,6 @@
   font-weight: 600;
   line-height: var(--line-tight);
   overflow-wrap: anywhere;
-}
-
-.link {
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.link:hover {
-  text-decoration: underline;
 }
 
 .mark {
