@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ItemActions } from "@/components/items/item-actions";
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
+import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
@@ -258,6 +259,17 @@ export default async function ItemPage({
             tmdbId={
               item.external_source === "tmdb" ? item.external_id : null
             }
+          />
+        ) : null}
+
+        {item.kind === "tv" &&
+        item.details?.seasons &&
+        item.details.seasons.length > 0 ? (
+          <SeriesEpisodes
+            itemId={item.id}
+            seasons={item.details.seasons}
+            totalEpisodes={item.details.number_of_episodes}
+            watched={item.details.watched_episodes ?? []}
           />
         ) : null}
       </div>

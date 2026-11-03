@@ -138,6 +138,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::items::cover::set_tmdb_poster),
         )
         .route("/items/{id}/refresh", post(crate::items::refresh::refresh))
+        .route("/items/{id}/episodes", get(crate::items::episodes::season))
+        .route(
+            "/items/{id}/episodes/{season}/{episode}",
+            post(crate::items::episodes::toggle),
+        )
         .route("/tags", get(list_tags))
         .route("/tags/{id}", patch(rename_tag).delete(delete_tag))
         .route("/tags/{id}/merge", post(merge_tag))

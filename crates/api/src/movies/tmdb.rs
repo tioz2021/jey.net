@@ -204,6 +204,69 @@ impl TmdbClient {
         Ok(series)
     }
 
+    pub async fn season(
+        &self,
+        id: u64,
+        season_number: i32,
+        language: &str,
+    ) -> Result<TvSeason, AppError> {
+        let value = self
+            .get_json(
+                &format!("tv/{id}/season/{season_number}"),
+                &[("language", language)],
+                false,
+            )
+            .await?;
+
+        let episodes = value
+            .get("episodes")
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|episode| {
+                        Some(TvEpisode {
+                            episode_number: episode.get("episode_number")?.as_i64()? as i32,
+                            name: episode
+                                .get("name")
+                                .and_then(Value::as_str)
+                                .unwrap_or_default()
+                                .to_owned(),
+                            overview: episode
+                                .get("overview")
+                                .and_then(Value::as_str)
+                                .filter(|text| !text.is_empty())
+                                .map(str::to_owned),
+                            air_date: episode
+                                .get("air_date")
+                                .and_then(Value::as_str)
+                                .filter(|date| !date.is_empty())
+                                .map(str::to_owned),
+                            runtime: episode
+                                .get("runtime")
+                                .and_then(Value::as_i64)
+                                .map(|minutes| minutes as i32),
+                            still_path: episode
+                                .get("still_path")
+                                .and_then(Value::as_str)
+                                .map(str::to_owned),
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        Ok(TvSeason {
+            season_number,
+            name: value
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_owned(),
+            episodes,
+        })
+    }
+
     async fn details_inner(
         &self,
         id: u64,
@@ -300,6 +363,23 @@ impl TmdbClient {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct TvEpisode {
+    pub episode_number: i32,
+    pub name: String,
+    pub overview: Option<String>,
+    pub air_date: Option<String>,
+    pub runtime: Option<i32>,
+    pub still_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TvSeason {
+    pub season_number: i32,
+    pub name: String,
+    pub episodes: Vec<TvEpisode>,
+}
+
 impl MovieDetails {
     fn translation(&self) -> jey_core::items::MovieTranslation {
         jey_core::items::MovieTranslation {
@@ -357,6 +437,7 @@ impl MovieDetails {
             number_of_seasons: self.number_of_seasons,
             number_of_episodes: self.number_of_episodes,
             seasons: self.seasons.clone(),
+            watched_episodes: Vec::new(),
         }
     }
 }

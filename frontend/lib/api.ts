@@ -18,6 +18,7 @@ import type {
   NewItem,
   Stats,
   TagCount,
+  TvSeasonResponse,
   MovieDetailsResponse,
   MovieSearchItem,
   TagsResponse,
@@ -267,6 +268,22 @@ export const items = {
       method: "POST",
       body: { upload_id: uploadId },
     }),
+
+  episodes: (id: string, season: number) =>
+    request<TvSeasonResponse>(
+      `/items/${id}/episodes?season=${encodeURIComponent(String(season))}`,
+    ),
+
+  toggleEpisode: (
+    id: string,
+    season: number,
+    episode: number,
+    watched: boolean,
+  ) =>
+    request<{ item: Item; watched_total: number }>(
+      `/items/${id}/episodes/${season}/${episode}`,
+      { method: "POST", body: { watched } },
+    ),
 
   refresh: (id: string) =>
     request<ItemResponse>(`/items/${id}/refresh`, { method: "POST" }),

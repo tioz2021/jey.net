@@ -370,6 +370,29 @@ fn clean_details(
             .filter(|value| (0..=100).contains(value)),
         vote_count: details.vote_count.filter(|value| *value >= 0),
         translations,
+        watched_episodes: {
+            let mut seen = std::collections::BTreeSet::new();
+            let mut watched = Vec::new();
+            for episode in details.watched_episodes.iter().take(10_000) {
+                if episode.season_number < 0
+                    || episode.season_number > 100
+                    || episode.episode_number < 1
+                    || episode.episode_number > 10_000
+                {
+                    return Err(DomainError::validation_field(
+                        "details.watched_episodes",
+                        "watched episodes must have valid season and episode numbers",
+                    ));
+                }
+                if seen.insert((episode.season_number, episode.episode_number)) {
+                    watched.push(crate::items::WatchedEpisode {
+                        season_number: episode.season_number,
+                        episode_number: episode.episode_number,
+                    });
+                }
+            }
+            watched
+        },
         number_of_seasons: details
             .number_of_seasons
             .filter(|value| (0..=100).contains(value)),

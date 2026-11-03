@@ -422,4 +422,12 @@ export const uk = {
   'items.add.book': 'Додати книгу',
   'items.add.image': 'Додати картинку',
   'items.add.other': 'Додати інше',
+  'tvEpisodes.title': 'Епізоди',
+  'tvEpisodes.season': 'Сезон',
+  'tvEpisodes.seasonNumber': 'Сезон {number}',
+  'tvEpisodes.progress': 'Переглянуто {watched} з {total}',
+  'tvEpisodes.markSeason': 'Позначити сезон',
+  'tvEpisodes.unmarkSeason': 'Зняти сезон',
+  'tvEpisodes.loading': 'Завантажуємо епізоди…',
+  'tvEpisodes.error': 'Не вдалося завантажити епізоди або зберегти позначку.',
 } satisfies Record<keyof typeof ru, string>;

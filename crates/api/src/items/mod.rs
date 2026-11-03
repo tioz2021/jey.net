@@ -3,6 +3,7 @@
 pub mod cover;
 pub mod create;
 pub mod delete;
+pub mod episodes;
 pub mod filters;
 pub mod get;
 pub mod list;

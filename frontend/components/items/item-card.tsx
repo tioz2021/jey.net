@@ -49,6 +49,8 @@ export interface ItemCardData {
   deleted_at?: string | null;
   details?: {
     genres?: string[] | null;
+    number_of_episodes?: number | null;
+    watched_episodes?: Array<{ season_number: number; episode_number: number }> | null;
     translations?: Record<
       string,
       {
@@ -77,6 +79,7 @@ export function ItemCard({
   const title = localizedTitle(item, locale);
   const subtitle = localizedSubtitle(item, locale);
   const tags = localizedTags(item, locale);
+  const watchedEpisodes = item.details?.watched_episodes?.length ?? 0;
   const meta = [
     t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
@@ -119,6 +122,15 @@ export function ItemCard({
         ) : null}
 
         <p className={styles.meta}>{meta.join(" · ")}</p>
+
+        {item.kind === "tv" && watchedEpisodes > 0 ? (
+          <p className={styles.episodeProgress}>
+            {t("tvEpisodes.progress", {
+              watched: watchedEpisodes,
+              total: item.details?.number_of_episodes ?? "—",
+            })}
+          </p>
+        ) : null}
 
         {item.rating ? (
           <div className={styles.rating}>

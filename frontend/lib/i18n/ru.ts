@@ -421,4 +421,12 @@ export const ru = {
   'items.add.book': 'Добавить книгу',
   'items.add.image': 'Добавить картинку',
   'items.add.other': 'Добавить другое',
+  'tvEpisodes.title': 'Эпизоды',
+  'tvEpisodes.season': 'Сезон',
+  'tvEpisodes.seasonNumber': 'Сезон {number}',
+  'tvEpisodes.progress': 'Просмотрено {watched} из {total}',
+  'tvEpisodes.markSeason': 'Отметить сезон',
+  'tvEpisodes.unmarkSeason': 'Снять сезон',
+  'tvEpisodes.loading': 'Загружаем эпизоды…',
+  'tvEpisodes.error': 'Не удалось загрузить эпизоды или сохранить отметку.',
 } as const;

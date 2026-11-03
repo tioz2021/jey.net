@@ -72,6 +72,27 @@ export interface MovieDetails {
   number_of_seasons?: number | null;
   number_of_episodes?: number | null;
   seasons?: SeasonSummary[];
+  watched_episodes?: WatchedEpisode[];
+}
+
+export interface WatchedEpisode {
+  season_number: number;
+  episode_number: number;
+}
+
+export interface TvEpisode {
+  episode_number: number;
+  name: string;
+  overview: string | null;
+  air_date: string | null;
+  runtime: number | null;
+  still_path: string | null;
+  watched: boolean;
+}
+
+export interface TvSeasonResponse {
+  season: { season_number: number; name: string };
+  episodes: TvEpisode[];
 }
 
 export interface SeasonSummary {

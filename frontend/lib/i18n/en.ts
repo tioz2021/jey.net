@@ -422,4 +422,12 @@ export const en = {
   'items.add.book': 'Add a book',
   'items.add.image': 'Add an image',
   'items.add.other': 'Add another record',
+  'tvEpisodes.title': 'Episodes',
+  'tvEpisodes.season': 'Season',
+  'tvEpisodes.seasonNumber': 'Season {number}',
+  'tvEpisodes.progress': 'Watched {watched} of {total}',
+  'tvEpisodes.markSeason': 'Mark season',
+  'tvEpisodes.unmarkSeason': 'Unmark season',
+  'tvEpisodes.loading': 'Loading episodes…',
+  'tvEpisodes.error': 'Could not load episodes or save the mark.',
 } satisfies Record<keyof typeof ru, string>;

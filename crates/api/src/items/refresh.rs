@@ -49,8 +49,18 @@ pub async fn refresh(
         state.tmdb.details_fresh(external_id, language).await?
     };
 
+    let mut snapshot = fresh.snapshot();
+    if item.kind == jey_core::items::ItemKind::Tv {
+        // Refreshing metadata must never erase the watched progress.
+        snapshot.watched_episodes = item
+            .details
+            .as_ref()
+            .map(|details| details.watched_episodes.clone())
+            .unwrap_or_default();
+    }
+
     let patch = validate_patch(&ItemPatch {
-        details: Some(fresh.snapshot()),
+        details: Some(snapshot),
         ..ItemPatch::default()
     })?;
 

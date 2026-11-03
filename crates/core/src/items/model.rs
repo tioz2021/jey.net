@@ -122,6 +122,15 @@ pub struct MovieTranslation {
     pub companies: Vec<String>,
 }
 
+/// One watched episode of a TV show.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WatchedEpisode {
+    #[serde(default)]
+    pub season_number: i32,
+    #[serde(default)]
+    pub episode_number: i32,
+}
+
 /// One season of a TV show; episodes are loaded on demand from TMDB.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SeasonSummary {
@@ -184,6 +193,8 @@ pub struct MovieDetails {
     pub number_of_episodes: Option<i32>,
     #[serde(default)]
     pub seasons: Vec<SeasonSummary>,
+    #[serde(default)]
+    pub watched_episodes: Vec<WatchedEpisode>,
 }
 
 /// Old snapshots stored cast as plain strings; accept both shapes.
