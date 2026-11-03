@@ -218,6 +218,9 @@ export function ItemForm({
   const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
   const [coverCleared, setCoverCleared] = useState(false);
   const [posterPending, setPosterPending] = useState(false);
+  const [advanced, setAdvanced] = useState(
+    () => Boolean(itemId) || (initial?.kind ?? "movie") !== "movie",
+  );
 
   const statuses = STATUS_BY_KIND[values.kind];
 
@@ -276,6 +279,12 @@ export function ItemForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const compactMovie = !itemId && values.kind === "movie" && !advanced;
+    if (compactMovie && !values.title.trim()) {
+      setErrors({ form: t("form.movieRequired") });
+      return;
+    }
+
     const result = validate(values, t);
     setErrors(result.errors);
     if (!result.item) {
@@ -327,33 +336,40 @@ export function ItemForm({
     }
   }
 
+  const compactMovie = !itemId && values.kind === "movie";
+  const showExtra = !compactMovie || advanced;
+
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <div className={styles.row}>
-        <Select
-          label={t("form.kind")}
-          value={values.kind}
-          onChange={(event) => changeKind(event.target.value as ItemKind)}
-        >
-          {KINDS.map((value) => (
-            <option key={value} value={value}>
-              {t(KIND_KEYS[value])}
-            </option>
-          ))}
-        </Select>
+      {showExtra ? (
+        <div className={styles.row}>
+          <Select
+            label={t("form.kind")}
+            value={values.kind}
+            onChange={(event) => changeKind(event.target.value as ItemKind)}
+          >
+            {KINDS.map((value) => (
+              <option key={value} value={value}>
+                {t(KIND_KEYS[value])}
+              </option>
+            ))}
+          </Select>
 
-        <Select
-          label={t("form.status")}
-          value={values.status}
-          onChange={(event) => update("status", event.target.value as ItemStatus)}
-        >
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {t(STATUS_KEYS[status])}
-            </option>
-          ))}
-        </Select>
-      </div>
+          <Select
+            label={t("form.status")}
+            value={values.status}
+            onChange={(event) =>
+              update("status", event.target.value as ItemStatus)
+            }
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {t(STATUS_KEYS[status])}
+              </option>
+            ))}
+          </Select>
+        </div>
+      ) : null}
 
       {values.kind === "movie" ? (
         <MovieSearch
@@ -362,50 +378,91 @@ export function ItemForm({
         />
       ) : null}
 
+      {compactMovie ? (
+        <div className={styles.advanced}>
+          <button
+            aria-expanded={advanced}
+            className={styles.advancedToggle}
+            onClick={() => setAdvanced((value) => !value)}
+            type="button"
+          >
+            <span>
+              {advanced ? t("form.advancedHide") : t("form.advanced")}
+            </span>
+            <span aria-hidden="true">{advanced ? "▴" : "▾"}</span>
+          </button>
+          {!advanced ? (
+            <p className={styles.advancedHint}>{t("form.advancedHint")}</p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {showExtra ? (
+        <>
+          <Input
+            label={t("form.title")}
+            value={values.title}
+            onChange={(event) => update("title", event.target.value)}
+            error={errors.title}
+            required
+          />
+
+          <div className={styles.row}>
+            <Input
+              label={t(SUBTITLE_KEYS[values.kind])}
+              value={values.subtitle}
+              onChange={(event) => update("subtitle", event.target.value)}
+              error={errors.subtitle}
+            />
+
+            <Input
+              label={t("form.year")}
+              inputMode="numeric"
+              value={values.year}
+              onChange={(event) => update("year", event.target.value)}
+              error={errors.year}
+            />
+          </div>
+
+          <Input
+            label={t("form.link")}
+            type="url"
+            placeholder="https://"
+            value={values.source_url}
+            onChange={(event) => update("source_url", event.target.value)}
+            error={errors.source_url}
+          />
+
+          <TagInput
+            tags={values.tags}
+            onChange={(tags) => update("tags", tags)}
+            error={errors.tags}
+          />
+
+          <CoverPicker
+            currentUrl={
+              initial?.cover_key ? `/media/${initial.cover_key}` : null
+            }
+            onUploaded={(uploadId) => {
+              setCoverUploadId(uploadId);
+              setCoverCleared(false);
+            }}
+            onCleared={() => {
+              setCoverUploadId(null);
+              setCoverCleared(true);
+            }}
+          />
+        </>
+      ) : null}
+
       <Input
-        label={t("form.title")}
-        value={values.title}
-        onChange={(event) => update("title", event.target.value)}
-        error={errors.title}
-        required
+        label={t("form.rating")}
+        inputMode="numeric"
+        hint={t("form.ratingHint")}
+        value={values.rating}
+        onChange={(event) => update("rating", event.target.value)}
+        error={errors.rating}
       />
-
-      <div className={styles.row}>
-        <Input
-          label={t(SUBTITLE_KEYS[values.kind])}
-          value={values.subtitle}
-          onChange={(event) => update("subtitle", event.target.value)}
-          error={errors.subtitle}
-        />
-
-        <Input
-          label={t("form.year")}
-          inputMode="numeric"
-          value={values.year}
-          onChange={(event) => update("year", event.target.value)}
-          error={errors.year}
-        />
-      </div>
-
-      <div className={styles.row}>
-        <Input
-          label={t("form.rating")}
-          inputMode="numeric"
-          hint={t("form.ratingHint")}
-          value={values.rating}
-          onChange={(event) => update("rating", event.target.value)}
-          error={errors.rating}
-        />
-
-        <Input
-          label={t("form.link")}
-          type="url"
-          placeholder="https://"
-          value={values.source_url}
-          onChange={(event) => update("source_url", event.target.value)}
-          error={errors.source_url}
-        />
-      </div>
 
       <Textarea
         label={t("form.note")}
@@ -414,24 +471,6 @@ export function ItemForm({
         value={values.review}
         onChange={(event) => update("review", event.target.value)}
         error={errors.review}
-      />
-
-      <TagInput
-        tags={values.tags}
-        onChange={(tags) => update("tags", tags)}
-        error={errors.tags}
-      />
-
-      <CoverPicker
-        currentUrl={initial?.cover_key ? `/media/${initial.cover_key}` : null}
-        onUploaded={(uploadId) => {
-          setCoverUploadId(uploadId);
-          setCoverCleared(false);
-        }}
-        onCleared={() => {
-          setCoverUploadId(null);
-          setCoverCleared(true);
-        }}
       />
 
       {errors.form ? (

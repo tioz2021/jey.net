@@ -399,4 +399,8 @@ export const uk = {
   'skeleton.stats': 'Завантаження статистики',
   'skeleton.generic': 'Завантаження',
   'skeleton.item': 'Завантаження запису',
+  'form.advanced': 'Додаткові налаштування',
+  'form.advancedHide': 'Сховати додаткові налаштування',
+  'form.advancedHint': 'Ручне додавання, посилання, теги й обкладинка',
+  'form.movieRequired': 'Виберіть фільм із пошуку або відкрийте додаткові налаштування, щоб заповнити назву вручну.',
 } satisfies Record<keyof typeof ru, string>;

@@ -399,4 +399,8 @@ export const en = {
   'skeleton.stats': 'Loading statistics',
   'skeleton.generic': 'Loading',
   'skeleton.item': 'Loading record',
+  'form.advanced': 'Advanced settings',
+  'form.advancedHide': 'Hide advanced settings',
+  'form.advancedHint': 'Manual entry, link, tags and cover',
+  'form.movieRequired': 'Pick a film from the search or open advanced settings to enter the title manually.',
 } satisfies Record<keyof typeof ru, string>;
