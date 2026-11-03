@@ -5,8 +5,9 @@
 }
 
 .overview {
-  max-width: 75ch;
+  max-width: 72ch;
   margin: 0;
+  font-size: var(--text-base);
   line-height: var(--line-normal);
   overflow-wrap: anywhere;
 }
