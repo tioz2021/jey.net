@@ -18,9 +18,11 @@
   --color-text: #14161a;
   --color-text-muted: #5b6472;
   --color-border: #dfe3e8;
-  --color-accent: #9147ff;
-  --color-accent-hover: #772ce8;
-  --color-accent-soft: #f0e8ff;
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #7c3aed;
+  --color-accent-soft: #f1ecff;
+  --color-link: #6d28d9;
+  --color-link-hover: #5b21b6;
   --color-on-accent: #ffffff;
   --color-danger: #c0392b;
   --color-danger-hover: #a32e22;
@@ -29,7 +31,7 @@
   --color-success: #1e7f4f;
   --color-warning: #8a5a00;
   --color-warning-soft: #fff4d6;
-  --color-focus-ring: #9147ff;
+  --color-focus-ring: #8b5cf6;
   --color-star: #f5c518;
   --color-star-empty: #c7ccd4;
   --color-mark-bg: #fde68a;
@@ -82,9 +84,11 @@
     --color-text: #e8eaed;
     --color-text-muted: #9aa3af;
     --color-border: #2a2f37;
-    --color-accent: #a970ff;
-    --color-accent-hover: #c08bff;
-    --color-accent-soft: #2a1d40;
+    --color-accent: #a78bfa;
+    --color-accent-hover: #c4b5fd;
+    --color-accent-soft: #2a1f45;
+    --color-link: #c4b5fd;
+    --color-link-hover: #ddd6fe;
     --color-on-accent: #0f1115;
     --color-danger: #ff7b6b;
     --color-danger-hover: #ff9587;
@@ -93,7 +97,7 @@
     --color-success: #57c98d;
     --color-warning: #e3b341;
     --color-warning-soft: #2a2213;
-    --color-focus-ring: #a970ff;
+    --color-focus-ring: #a78bfa;
     --color-star: #f7cb45;
     --color-star-empty: #667085;
     --color-mark-bg: #4a3b12;
@@ -116,9 +120,11 @@
   --color-text: #e8eaed;
   --color-text-muted: #9aa3af;
   --color-border: #2a2f37;
-  --color-accent: #a970ff;
-  --color-accent-hover: #c08bff;
-  --color-accent-soft: #2a1d40;
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+  --color-accent-soft: #2a1f45;
+  --color-link: #c4b5fd;
+  --color-link-hover: #ddd6fe;
   --color-on-accent: #0f1115;
   --color-danger: #ff7b6b;
   --color-danger-hover: #ff9587;
@@ -127,7 +133,7 @@
   --color-success: #57c98d;
   --color-warning: #e3b341;
   --color-warning-soft: #2a2213;
-  --color-focus-ring: #a970ff;
+  --color-focus-ring: #a78bfa;
   --color-star: #f7cb45;
   --color-star-empty: #667085;
   --color-mark-bg: #4a3b12;
@@ -175,7 +181,11 @@ textarea::placeholder {
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-link);
+}
+
+a:hover {
+  color: var(--color-link-hover);
 }
 
 /* Visible only when focused: the first tab stop on every page. */

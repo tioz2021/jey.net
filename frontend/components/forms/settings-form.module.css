@@ -70,7 +70,7 @@
 .summaryLink {
   align-self: flex-start;
   margin-top: var(--space-1);
-  color: var(--color-accent);
+  color: var(--color-link);
 }
 
 .summaryHint {
