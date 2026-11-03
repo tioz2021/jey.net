@@ -87,9 +87,9 @@ const INITIAL: Values = {
   tags: [],
 };
 
-function toValues(item?: Item): Values {
+function toValues(item?: Item, initialKind?: ItemKind): Values {
   if (!item) {
-    return INITIAL;
+    return { ...INITIAL, kind: initialKind ?? INITIAL.kind };
   }
 
   return {
@@ -208,21 +208,27 @@ function mergeTags(current: string[], incoming: string[]): string[] {
 export function ItemForm({
   initial,
   itemId,
+  initialKind,
 }: {
   initial?: Item;
   itemId?: string;
+  initialKind?: ItemKind;
 }) {
   const router = useRouter();
   const { t } = useI18n();
   const { notify, notifyError } = useToast();
-  const [values, setValues] = useState<Values>(() => toValues(initial));
+  const [values, setValues] = useState<Values>(() =>
+    toValues(initial, initialKind),
+  );
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
   const [coverCleared, setCoverCleared] = useState(false);
   const [posterPending, setPosterPending] = useState(false);
+  const startKind = initial?.kind ?? initialKind ?? "movie";
   const [advanced, setAdvanced] = useState(
-    () => Boolean(itemId) || (initial?.kind ?? "movie") !== "movie",
+    () =>
+      Boolean(itemId) || (startKind !== "movie" && startKind !== "tv"),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
@@ -285,8 +291,11 @@ export function ItemForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const compactMovie = !itemId && values.kind === "movie" && !advanced;
-    if (compactMovie && !values.title.trim()) {
+    const compactMedia =
+      !itemId &&
+      (values.kind === "movie" || values.kind === "tv") &&
+      !advanced;
+    if (compactMedia && !values.title.trim()) {
       setErrors({ form: t("form.movieRequired") });
       return;
     }
@@ -342,8 +351,9 @@ export function ItemForm({
     }
   }
 
-  const compactMovie = !itemId && values.kind === "movie";
-  const showExtra = !compactMovie || advanced;
+  const compactMedia =
+    !itemId && (values.kind === "movie" || values.kind === "tv");
+  const showExtra = !compactMedia || advanced;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -385,7 +395,7 @@ export function ItemForm({
         />
       ) : null}
 
-      {compactMovie ? (
+      {compactMedia ? (
         <div className={styles.advanced}>
           <button
             aria-expanded={advanced}

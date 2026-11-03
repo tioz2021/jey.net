@@ -35,6 +35,14 @@ export default async function ItemsPage({
   // The first page is rendered on the server, so entering "Записи" shows the
   // list immediately instead of an empty shell that fetches on mount.
   const search = initial.toString();
+  const requestedKind =
+    typeof raw.kind === "string" &&
+    ["movie", "tv", "book", "image", "other"].includes(raw.kind)
+      ? raw.kind
+      : null;
+  const addHref = requestedKind
+    ? `/items/new?kind=${requestedKind}`
+    : "/items/new";
   const response = await backendFetch(`/items${search ? `?${search}` : ""}`, {
     cache: "no-store",
   });
@@ -54,7 +62,7 @@ export default async function ItemsPage({
     <main>
       <PageHeader
         action={
-          <Link className={styles.add} href="/items/new">
+          <Link className={styles.add} href={addHref}>
             {translate(locale, "common.add")}
           </Link>
         }

@@ -5,6 +5,7 @@ import { ItemForm } from "@/components/forms/item-form";
 import { Card, PageHeader } from "@/components/ui";
 import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
+import type { ItemKind } from "@/lib/types";
 
 import styles from "./page.module.css";
 
@@ -14,8 +15,22 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: `${translate(locale, "page.itemNew")} — jey.net` };
 }
 
-export default async function NewItemPage() {
+export default async function NewItemPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await getServerLocale();
+  const raw = await searchParams;
+  const requested = typeof raw.kind === "string" ? raw.kind : null;
+  const initialKind: ItemKind | undefined =
+    requested === "tv" ||
+    requested === "book" ||
+    requested === "image" ||
+    requested === "other" ||
+    requested === "movie"
+      ? requested
+      : undefined;
 
   return (
     <main>
@@ -24,7 +39,7 @@ export default async function NewItemPage() {
       </p>
       <PageHeader title={translate(locale, "page.itemNew")} />
       <Card>
-        <ItemForm />
+        <ItemForm initialKind={initialKind} />
       </Card>
     </main>
   );
