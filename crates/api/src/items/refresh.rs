@@ -42,10 +42,12 @@ pub async fn refresh(
         return Err(AppError::unavailable("TMDB is not configured"));
     }
 
-    let fresh = state
-        .tmdb
-        .details_fresh(external_id, language_for(&current.user.locale))
-        .await?;
+    let language = language_for(&current.user.locale);
+    let fresh = if item.kind == jey_core::items::ItemKind::Tv {
+        state.tmdb.tv_details_all(external_id, language).await?
+    } else {
+        state.tmdb.details_fresh(external_id, language).await?
+    };
 
     let patch = validate_patch(&ItemPatch {
         details: Some(fresh.snapshot()),

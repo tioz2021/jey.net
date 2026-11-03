@@ -16,11 +16,36 @@ import styles from "./movie-search.module.css";
 export function MovieSearch({
   onSelect,
   selected,
+  media = "movie",
 }: {
   onSelect: (movie: MovieDetailsResponse) => void;
   selected: string | null;
+  media?: "movie" | "tv";
 }) {
   const { t } = useI18n();
+  const search = media === "tv" ? api.tv.search : api.movies.search;
+  const get = media === "tv" ? api.tv.get : api.movies.get;
+  const inputId = media === "tv" ? "tv-search" : "movie-search";
+  const copy =
+    media === "tv"
+      ? {
+          label: "tvSearch.label" as const,
+          placeholder: "tvSearch.placeholder" as const,
+          hint: "tvSearch.hint" as const,
+          error: "tvSearch.error" as const,
+          loadError: "tvSearch.loadError" as const,
+          notFound: "tvSearch.notFound" as const,
+          selected: "tvSearch.selected" as const,
+        }
+      : {
+          label: "movieSearch.label" as const,
+          placeholder: "movieSearch.placeholder" as const,
+          hint: "movieSearch.hint" as const,
+          error: "movieSearch.error" as const,
+          loadError: "movieSearch.loadError" as const,
+          notFound: "movieSearch.notFound" as const,
+          selected: "movieSearch.selected" as const,
+        };
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MovieSearchItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -53,8 +78,7 @@ export function MovieSearch({
     setError(null);
 
     const timer = window.setTimeout(() => {
-      api.movies
-        .search(q)
+      search(q)
         .then((response) => {
           if (!cancelled) {
             setResults(response.results.slice(0, 8));
@@ -65,7 +89,7 @@ export function MovieSearch({
         .catch(() => {
           if (!cancelled) {
             setResults([]);
-            setError(t("movieSearch.error"));
+            setError(t(copy.error));
             setOpen(true);
           }
         })
@@ -80,7 +104,7 @@ export function MovieSearch({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [query, t]);
+  }, [query, t, search, copy.error]);
 
   useEffect(() => {
     if (!open) {
@@ -102,7 +126,7 @@ export function MovieSearch({
     setError(null);
 
     try {
-      const response = await api.movies.get(item.tmdb_id);
+      const response = await get(item.tmdb_id);
       onSelect(response.movie);
       skipSearch.current = true;
       setQuery(response.movie.title);
@@ -110,7 +134,7 @@ export function MovieSearch({
       setResults([]);
       setOpen(false);
     } catch {
-      setError(t("movieSearch.loadError"));
+      setError(t(copy.loadError));
     } finally {
       setPending(false);
     }
@@ -118,8 +142,8 @@ export function MovieSearch({
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
-      <label className={styles.label} htmlFor="movie-search">
-        {t("movieSearch.label")}
+      <label className={styles.label} htmlFor={inputId}>
+        {t(copy.label)}
       </label>
       <div className={styles.field}>
         <svg
@@ -136,8 +160,8 @@ export function MovieSearch({
         <input
           autoComplete="off"
           className={styles.input}
-          id="movie-search"
-          placeholder={t("movieSearch.placeholder")}
+          id={inputId}
+          placeholder={t(copy.placeholder)}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => {
@@ -180,20 +204,20 @@ export function MovieSearch({
           ) : null}
           <div>
             <p className={styles.selected}>
-              {t("movieSearch.selected", { title: selected })}
+              {t(copy.selected, { title: selected })}
             </p>
             <p className={styles.hint}>{t("movieSearch.posterHint")}</p>
           </div>
         </div>
       ) : (
-        <p className={styles.hint}>{t("movieSearch.hint")}</p>
+        <p className={styles.hint}>{t(copy.hint)}</p>
       )}
 
       {open ? (
         <div className={styles.dropdown}>
           {error ? <p className={styles.error}>{error}</p> : null}
           {!error && results.length === 0 && !loading ? (
-            <p className={styles.empty}>{t("movieSearch.notFound")}</p>
+            <p className={styles.empty}>{t(copy.notFound)}</p>
           ) : null}
           {results.length > 0 ? (
             <ul className={styles.list}>

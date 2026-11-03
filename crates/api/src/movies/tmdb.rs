@@ -56,6 +56,9 @@ pub struct MovieDetails {
     pub vote_average_tenths: Option<i16>,
     pub vote_count: Option<i64>,
     pub translations: BTreeMap<String, jey_core::items::MovieTranslation>,
+    pub number_of_seasons: Option<i32>,
+    pub number_of_episodes: Option<i32>,
+    pub seasons: Vec<jey_core::items::SeasonSummary>,
 }
 
 struct Cached {
@@ -141,6 +144,64 @@ impl TmdbClient {
         let mut movie = primary;
         movie.translations = translations;
         Ok(movie)
+    }
+
+    pub async fn search_tv(
+        &self,
+        query: &str,
+        language: &str,
+    ) -> Result<Vec<SearchItem>, AppError> {
+        let value = self
+            .get_json(
+                "search/tv",
+                &[
+                    ("query", query),
+                    ("language", language),
+                    ("include_adult", "false"),
+                ],
+                false,
+            )
+            .await?;
+
+        Ok(value
+            .get("results")
+            .and_then(Value::as_array)
+            .map(|items| items.iter().filter_map(parse_tv_search_item).collect())
+            .unwrap_or_default())
+    }
+
+    pub async fn tv_details(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
+        let value = self
+            .get_json(
+                &format!("tv/{id}"),
+                &[
+                    ("language", language),
+                    ("append_to_response", "credits,external_ids"),
+                ],
+                false,
+            )
+            .await?;
+
+        parse_tv_details(&value).ok_or_else(|| AppError::not_found("series not found"))
+    }
+
+    pub async fn tv_details_all(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
+        let primary = self.tv_details(id, language).await?;
+        let mut translations = BTreeMap::new();
+        translations.insert(language_key(language), primary.translation());
+
+        for code in ["ru-RU", "uk-UA", "en-US"] {
+            if language_key(code) == language_key(language) {
+                continue;
+            }
+            if let Ok(series) = self.tv_details(id, code).await {
+                translations.insert(language_key(code), series.translation());
+            }
+        }
+
+        let mut series = primary;
+        series.translations = translations;
+        Ok(series)
     }
 
     async fn details_inner(
@@ -293,6 +354,9 @@ impl MovieDetails {
             vote_average_tenths: self.vote_average_tenths,
             vote_count: self.vote_count,
             translations: self.translations.clone(),
+            number_of_seasons: self.number_of_seasons,
+            number_of_episodes: self.number_of_episodes,
+            seasons: self.seasons.clone(),
         }
     }
 }
@@ -328,6 +392,213 @@ fn parse_search_item(value: &Value) -> Option<SearchItem> {
             .and_then(Value::as_str)
             .filter(|text| !text.is_empty())
             .map(str::to_owned),
+    })
+}
+
+fn parse_tv_search_item(value: &Value) -> Option<SearchItem> {
+    Some(SearchItem {
+        tmdb_id: value.get("id")?.as_u64()?,
+        title: value.get("name")?.as_str()?.to_owned(),
+        original_title: value
+            .get("original_name")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_owned(),
+        year: value
+            .get("first_air_date")
+            .and_then(Value::as_str)
+            .and_then(|date| date.get(..4))
+            .and_then(|year| year.parse().ok()),
+        poster_path: value
+            .get("poster_path")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
+        overview: value
+            .get("overview")
+            .and_then(Value::as_str)
+            .filter(|text| !text.is_empty())
+            .map(str::to_owned),
+    })
+}
+
+fn parse_tv_details(value: &Value) -> Option<MovieDetails> {
+    let first_air_date = value
+        .get("first_air_date")
+        .and_then(Value::as_str)
+        .filter(|date| !date.is_empty())
+        .map(str::to_owned);
+
+    let names = |key: &str| -> Vec<String> {
+        value
+            .get(key)
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| item.get("name").and_then(Value::as_str))
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+
+    let cast = value
+        .get("credits")
+        .and_then(|credits| credits.get("cast"))
+        .and_then(Value::as_array)
+        .map(|people| {
+            people
+                .iter()
+                .take(10)
+                .filter_map(|person| {
+                    Some(CastMember {
+                        tmdb_id: person.get("id")?.as_u64()?,
+                        name: person.get("name")?.as_str()?.to_owned(),
+                        character: person
+                            .get("character")
+                            .and_then(Value::as_str)
+                            .filter(|text| !text.is_empty())
+                            .map(str::to_owned),
+                        profile_path: person
+                            .get("profile_path")
+                            .and_then(Value::as_str)
+                            .map(str::to_owned),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let creator_names: Vec<String> = value
+        .get("created_by")
+        .and_then(Value::as_array)
+        .map(|people| {
+            people
+                .iter()
+                .filter_map(|person| person.get("name").and_then(Value::as_str))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let seasons = value
+        .get("seasons")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|season| {
+                    Some(jey_core::items::SeasonSummary {
+                        season_number: season.get("season_number")?.as_i64()? as i32,
+                        name: season
+                            .get("name")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_owned(),
+                        episode_count: season
+                            .get("episode_count")
+                            .and_then(Value::as_i64)
+                            .unwrap_or(0) as i32,
+                        air_date: season
+                            .get("air_date")
+                            .and_then(Value::as_str)
+                            .filter(|date| !date.is_empty())
+                            .map(str::to_owned),
+                        poster_path: season
+                            .get("poster_path")
+                            .and_then(Value::as_str)
+                            .map(str::to_owned),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let episode_runtime = value
+        .get("episode_run_time")
+        .and_then(Value::as_array)
+        .and_then(|times| times.first())
+        .and_then(Value::as_i64)
+        .map(|minutes| minutes as i32);
+
+    let mut companies = names("networks");
+    companies.extend(names("production_companies"));
+
+    Some(MovieDetails {
+        tmdb_id: value.get("id")?.as_u64()?,
+        title: value.get("name")?.as_str()?.to_owned(),
+        original_title: value
+            .get("original_name")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_owned(),
+        year: first_air_date
+            .as_deref()
+            .and_then(|date| date.get(..4))
+            .and_then(|year| year.parse().ok()),
+        overview: value
+            .get("overview")
+            .and_then(Value::as_str)
+            .filter(|text| !text.is_empty())
+            .map(str::to_owned),
+        tagline: value
+            .get("tagline")
+            .and_then(Value::as_str)
+            .filter(|text| !text.is_empty())
+            .map(str::to_owned),
+        runtime: episode_runtime,
+        release_date: first_air_date,
+        status: value
+            .get("status")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
+        poster_path: value
+            .get("poster_path")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
+        director: (!creator_names.is_empty()).then(|| creator_names.join(", ")),
+        cast,
+        genres: names("genres"),
+        countries: value
+            .get("origin_country")
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default(),
+        languages: names("spoken_languages"),
+        companies,
+        budget: None,
+        revenue: None,
+        imdb_id: value
+            .get("external_ids")
+            .and_then(|ids| ids.get("imdb_id"))
+            .and_then(Value::as_str)
+            .filter(|id| !id.is_empty())
+            .map(str::to_owned),
+        vote_average_tenths: value
+            .get("vote_average")
+            .and_then(Value::as_f64)
+            .filter(|score| *score > 0.0)
+            .map(|score| (score * 10.0).round() as i16),
+        vote_count: value
+            .get("vote_count")
+            .and_then(Value::as_i64)
+            .filter(|count| *count > 0),
+        translations: BTreeMap::new(),
+        number_of_seasons: value
+            .get("number_of_seasons")
+            .and_then(Value::as_i64)
+            .map(|count| count as i32),
+        number_of_episodes: value
+            .get("number_of_episodes")
+            .and_then(Value::as_i64)
+            .map(|count| count as i32),
+        seasons,
     })
 }
 
@@ -461,6 +732,9 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .and_then(Value::as_i64)
             .filter(|count| *count > 0),
         translations: BTreeMap::new(),
+        number_of_seasons: None,
+        number_of_episodes: None,
+        seasons: Vec::new(),
     })
 }
 

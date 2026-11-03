@@ -370,20 +370,48 @@ fn clean_details(
             .filter(|value| (0..=100).contains(value)),
         vote_count: details.vote_count.filter(|value| *value >= 0),
         translations,
+        number_of_seasons: details
+            .number_of_seasons
+            .filter(|value| (0..=100).contains(value)),
+        number_of_episodes: details
+            .number_of_episodes
+            .filter(|value| (0..=10_000).contains(value)),
+        seasons: details
+            .seasons
+            .iter()
+            .take(100)
+            .map(|season| crate::items::SeasonSummary {
+                season_number: season.season_number,
+                name: season.name.trim().chars().take(200).collect(),
+                episode_count: season.episode_count.clamp(0, 10_000),
+                air_date: season
+                    .air_date
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_owned),
+                poster_path: season
+                    .poster_path
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_owned),
+            })
+            .collect(),
     }))
 }
 
 /// Which statuses make sense for each kind of record.
 pub fn status_allowed(kind: ItemKind, status: ItemStatus) -> bool {
     match kind {
-        // Films and pictures are not "in progress"; noting them is instant.
+        // Films and pictures are not "in progress"; series and books are.
         ItemKind::Movie | ItemKind::Image => {
             matches!(
                 status,
                 ItemStatus::Planned | ItemStatus::Done | ItemStatus::Dropped
             )
         }
-        ItemKind::Book | ItemKind::Other => true,
+        ItemKind::Tv | ItemKind::Book | ItemKind::Other => true,
     }
 }
 

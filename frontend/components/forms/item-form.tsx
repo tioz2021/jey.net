@@ -31,6 +31,7 @@ const KINDS = Object.keys(KIND_KEYS) as ItemKind[];
 /** Films and pictures are noted instantly; only books and notes are "in progress". */
 const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
   movie: ["planned", "done", "dropped"],
+  tv: ["planned", "in_progress", "done", "dropped"],
   image: ["planned", "done", "dropped"],
   book: ["planned", "in_progress", "done", "dropped"],
   other: ["planned", "in_progress", "done", "dropped"],
@@ -38,6 +39,7 @@ const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
 
 const SUBTITLE_KEYS: Record<ItemKind, TranslationKey> = {
   movie: "form.subtitle.movie",
+  tv: "form.subtitle.tv",
   book: "form.subtitle.book",
   image: "form.subtitle.image",
   other: "form.subtitle.other",
@@ -257,6 +259,9 @@ export function ItemForm({
         vote_average_tenths: movie.vote_average_tenths,
         vote_count: movie.vote_count,
         translations: movie.translations,
+        number_of_seasons: movie.number_of_seasons,
+        number_of_episodes: movie.number_of_episodes,
+        seasons: movie.seasons,
       },
       tags: mergeTags(current.tags, movie.genres),
     }));
@@ -372,8 +377,9 @@ export function ItemForm({
         </div>
       ) : null}
 
-      {values.kind === "movie" ? (
+      {values.kind === "movie" || values.kind === "tv" ? (
         <MovieSearch
+          media={values.kind === "tv" ? "tv" : "movie"}
           onSelect={applyMovie}
           selected={values.external_id ? values.title : null}
         />

@@ -253,6 +253,7 @@ export default async function ItemPage({
         {item.details ? (
           <MovieInfo
             details={item.details}
+            kind={item.kind}
             locale={locale}
             tmdbId={
               item.external_source === "tmdb" ? item.external_id : null

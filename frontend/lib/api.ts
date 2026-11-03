@@ -315,6 +315,16 @@ export const movies = {
     request<{ movie: MovieDetailsResponse }>(`/movies/${id}`),
 };
 
+export const tv = {
+  search: (q: string) =>
+    request<{ results: MovieSearchItem[] }>(
+      `/tv/search?q=${encodeURIComponent(q)}`,
+    ),
+
+  get: (id: number) =>
+    request<{ movie: MovieDetailsResponse }>(`/tv/${id}`),
+};
+
 export const stats = {
   get: () => request<Stats>("/stats"),
 };
@@ -324,6 +334,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, items, movies, tags, stats, transfer, uploads };
+export const api = { auth, items, movies, tv, tags, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

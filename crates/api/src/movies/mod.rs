@@ -65,6 +65,55 @@ pub async fn search(
     Ok(Json(json!({ "results": results })).into_response())
 }
 
+/// `GET /api/v1/tv/search?q=...`
+pub async fn tv_search(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Query(query): Query<SearchQuery>,
+) -> Result<Response, AppError> {
+    if !state.tmdb.configured() {
+        return Ok(unavailable());
+    }
+
+    let q = query.q.trim();
+    if q.chars().count() < 2 {
+        return Ok(Json(json!({ "results": [] })).into_response());
+    }
+    if q.chars().count() > 100 {
+        return Err(AppError::validation_field(
+            "q",
+            "query must be at most 100 characters",
+        ));
+    }
+
+    ratelimit::enforce(&state.pool, SEARCH_RULE, &format!("tv:{}", current.user.id)).await?;
+
+    let language = language_for(&current.user.locale);
+    let results = state.tmdb.search_tv(q, language).await?;
+
+    Ok(Json(json!({ "results": results })).into_response())
+}
+
+/// `GET /api/v1/tv/{id}`
+pub async fn tv_details(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(raw_id): Path<String>,
+) -> Result<Response, AppError> {
+    if !state.tmdb.configured() {
+        return Ok(unavailable());
+    }
+
+    let id: u64 = raw_id
+        .parse()
+        .map_err(|_| AppError::validation_field("id", "series id must be a number"))?;
+
+    let language = language_for(&current.user.locale);
+    let series = state.tmdb.tv_details_all(id, language).await?;
+
+    Ok(Json(json!({ "movie": series })).into_response())
+}
+
 /// `GET /api/v1/movies/{id}`
 pub async fn details(
     State(state): State<AppState>,

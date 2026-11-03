@@ -2,7 +2,7 @@ import { CastPhoto } from "@/components/items/cast-photo";
 import { Card } from "@/components/ui";
 import { formatMoney, formatNumber, translate } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
-import type { MovieDetails } from "@/lib/types";
+import type { ItemKind, MovieDetails } from "@/lib/types";
 
 import styles from "./movie-info.module.css";
 
@@ -11,10 +11,12 @@ export async function MovieInfo({
   details,
   tmdbId,
   locale,
+  kind = "movie",
 }: {
   details: MovieDetails;
   tmdbId: string | null;
   locale: Locale;
+  kind?: ItemKind;
 }) {
   const translation =
     details.translations?.[locale] ??
@@ -55,6 +57,18 @@ export async function MovieInfo({
       t("movie.minutes", { count: details.runtime }),
     ]);
   }
+  if (kind === "tv" && details.number_of_seasons) {
+    facts.push([
+      t("tv.seasons", { count: details.number_of_seasons }),
+      String(details.number_of_seasons),
+    ]);
+  }
+  if (kind === "tv" && details.number_of_episodes) {
+    facts.push([
+      t("tv.episodes", { count: details.number_of_episodes }),
+      String(details.number_of_episodes),
+    ]);
+  }
   if (details.release_date) {
     facts.push([t("movie.release"), details.release_date]);
   }
@@ -90,7 +104,7 @@ export async function MovieInfo({
 
   return (
     <>
-      <Card title={t("movie.about")}>
+      <Card title={kind === "tv" ? t("tv.about") : t("movie.about")}>
         {localized.tagline ? (
           <p className={styles.tagline}>«{localized.tagline}»</p>
         ) : null}
@@ -127,7 +141,7 @@ export async function MovieInfo({
           <p className={styles.source}>
             {t("movie.credit")}{" "}
             <a
-              href={`https://www.themoviedb.org/movie/${tmdbId}`}
+              href={`https://www.themoviedb.org/${kind === "tv" ? "tv" : "movie"}/${tmdbId}`}
               rel="noreferrer"
               target="_blank"
             >

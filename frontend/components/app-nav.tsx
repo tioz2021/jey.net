@@ -26,6 +26,7 @@ const KINDS: Array<{
 }> = [
   { kind: null, labelKey: "nav.all", Icon: IconList },
   { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
+  { kind: "tv", labelKey: "nav.series", Icon: IconFilm },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
   { kind: "image", labelKey: "nav.images", Icon: IconImage },
   { kind: "other", labelKey: "nav.other", Icon: IconOther },

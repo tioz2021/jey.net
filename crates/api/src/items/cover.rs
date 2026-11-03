@@ -85,13 +85,12 @@ pub async fn set_tmdb_poster(
         return Err(AppError::unavailable("TMDB is not configured"));
     }
 
-    let details = state
-        .tmdb
-        .details(
-            external_id,
-            crate::movies::language_for(&current.user.locale),
-        )
-        .await?;
+    let language = crate::movies::language_for(&current.user.locale);
+    let details = if item.kind == jey_core::items::ItemKind::Tv {
+        state.tmdb.tv_details(external_id, language).await?
+    } else {
+        state.tmdb.details(external_id, language).await?
+    };
 
     let path = details
         .poster_path

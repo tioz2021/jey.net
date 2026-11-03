@@ -176,7 +176,7 @@ fn build_item(index: usize) -> NewItem {
     };
 
     let base = match kind {
-        ItemKind::Movie => MOVIES[index % MOVIES.len()],
+        ItemKind::Movie | ItemKind::Tv => MOVIES[index % MOVIES.len()],
         ItemKind::Book => BOOKS[index % BOOKS.len()],
         ItemKind::Image => IMAGES[index % IMAGES.len()],
         ItemKind::Other => OTHERS[index % OTHERS.len()],
@@ -187,7 +187,7 @@ fn build_item(index: usize) -> NewItem {
         ItemKind::Movie | ItemKind::Image => {
             &[ItemStatus::Planned, ItemStatus::Done, ItemStatus::Dropped]
         }
-        ItemKind::Book | ItemKind::Other => &[
+        ItemKind::Tv | ItemKind::Book | ItemKind::Other => &[
             ItemStatus::Planned,
             ItemStatus::InProgress,
             ItemStatus::Done,
@@ -203,7 +203,7 @@ fn build_item(index: usize) -> NewItem {
     };
 
     let year = match kind {
-        ItemKind::Movie | ItemKind::Book => Some(1950 + (index * 7 % 76) as i32),
+        ItemKind::Movie | ItemKind::Tv | ItemKind::Book => Some(1950 + (index * 7 % 76) as i32),
         _ => None,
     };
 

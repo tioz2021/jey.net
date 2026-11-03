@@ -3,6 +3,7 @@ import type { ItemKind, ItemStatus, Sort } from "@/lib/types";
 
 export const KIND_KEYS: Record<ItemKind, TranslationKey> = {
   movie: "kind.movie",
+  tv: "kind.tv",
   book: "kind.book",
   image: "kind.image",
   other: "kind.other",

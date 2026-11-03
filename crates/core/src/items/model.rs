@@ -13,17 +13,19 @@ use crate::sync::{DeviceId, Revision, SyncSeq, Timestamp};
 #[serde(rename_all = "snake_case")]
 pub enum ItemKind {
     Movie,
+    Tv,
     Book,
     Image,
     Other,
 }
 
 impl ItemKind {
-    pub const ALL: [Self; 4] = [Self::Movie, Self::Book, Self::Image, Self::Other];
+    pub const ALL: [Self; 5] = [Self::Movie, Self::Tv, Self::Book, Self::Image, Self::Other];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Movie => "movie",
+            Self::Tv => "tv",
             Self::Book => "book",
             Self::Image => "image",
             Self::Other => "other",
@@ -33,12 +35,13 @@ impl ItemKind {
     pub fn parse(raw: &str) -> Result<Self, DomainError> {
         match raw {
             "movie" => Ok(Self::Movie),
+            "tv" => Ok(Self::Tv),
             "book" => Ok(Self::Book),
             "image" => Ok(Self::Image),
             "other" => Ok(Self::Other),
             other => Err(DomainError::validation_field(
                 "kind",
-                format!("kind must be one of: movie, book, image, other; got {other:?}"),
+                format!("kind must be one of: movie, tv, book, image, other; got {other:?}"),
             )),
         }
     }
@@ -119,6 +122,21 @@ pub struct MovieTranslation {
     pub companies: Vec<String>,
 }
 
+/// One season of a TV show; episodes are loaded on demand from TMDB.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SeasonSummary {
+    #[serde(default)]
+    pub season_number: i32,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub episode_count: i32,
+    #[serde(default)]
+    pub air_date: Option<String>,
+    #[serde(default)]
+    pub poster_path: Option<String>,
+}
+
 /// Snapshot of the movie metadata we keep with a record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MovieDetails {
@@ -160,6 +178,12 @@ pub struct MovieDetails {
     /// Localized variants keyed by `ru`, `uk`, `en`.
     #[serde(default)]
     pub translations: BTreeMap<String, MovieTranslation>,
+    #[serde(default)]
+    pub number_of_seasons: Option<i32>,
+    #[serde(default)]
+    pub number_of_episodes: Option<i32>,
+    #[serde(default)]
+    pub seasons: Vec<SeasonSummary>,
 }
 
 /// Old snapshots stored cast as plain strings; accept both shapes.

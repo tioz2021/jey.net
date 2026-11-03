@@ -2,6 +2,7 @@ import type { ItemKind, ItemStatus, Sort } from "./types";
 
 export const KIND_LABELS: Record<ItemKind, string> = {
   movie: "Фильм",
+  tv: "Сериал",
   book: "Книга",
   image: "Картинка",
   other: "Другое",

@@ -15,6 +15,9 @@ async fn movie_endpoints_require_auth_and_a_tmdb_token() {
     let anonymous = client.get("/api/v1/movies/search?q=test", None).await;
     assert_eq!(anonymous.status, 401);
 
+    let anonymous_tv = client.get("/api/v1/tv/search?q=test", None).await;
+    assert_eq!(anonymous_tv.status, 401);
+
     let registered = client
         .post(
             "/api/v1/auth/register",
@@ -31,6 +34,12 @@ async fn movie_endpoints_require_auth_and_a_tmdb_token() {
 
     let details = client.get("/api/v1/movies/49018", Some(&cookie)).await;
     assert_eq!(details.status, 503, "body: {}", details.body);
+
+    let tv_search = client.get("/api/v1/tv/search?q=test", Some(&cookie)).await;
+    assert_eq!(tv_search.status, 503, "body: {}", tv_search.body);
+
+    let tv_details = client.get("/api/v1/tv/70523", Some(&cookie)).await;
+    assert_eq!(tv_details.status, 503, "body: {}", tv_details.body);
 
     client.cleanup(&email).await;
 }
@@ -90,6 +99,42 @@ async fn poster_requires_tmdb_and_an_external_id() {
         )
         .await;
     assert_eq!(rejected.status, 400, "body: {}", rejected.body);
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
+async fn tv_items_accept_in_progress_and_filter_by_kind() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+
+    let registered = client
+        .post(
+            "/api/v1/auth/register",
+            json!({ "email": email, "password": PASSWORD, "display_name": "TV" }),
+        )
+        .await;
+    let cookie = registered.session_cookie().expect("cookie");
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "tv",
+                "title": "Тьма",
+                "status": "in_progress",
+                "rating": 9
+            }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    assert_eq!(created.body["item"]["kind"], "tv");
+    assert_eq!(created.body["item"]["status"], "in_progress");
+
+    let listed = client.get("/api/v1/items?kind=tv", Some(&cookie)).await;
+    assert_eq!(listed.status, 200, "body: {}", listed.body);
+    assert_eq!(listed.body["items"][0]["title"], "Тьма");
 
     client.cleanup(&email).await;
 }

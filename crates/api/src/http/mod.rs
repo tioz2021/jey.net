@@ -121,6 +121,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/verify-email/resend", post(resend_verification))
         .route("/movies/search", get(crate::movies::search))
         .route("/movies/{id}", get(crate::movies::details))
+        .route("/tv/search", get(crate::movies::tv_search))
+        .route("/tv/{id}", get(crate::movies::tv_details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(

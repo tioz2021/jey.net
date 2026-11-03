@@ -5,7 +5,7 @@
  * components work with these types and never touch raw responses.
  */
 
-export type ItemKind = "movie" | "book" | "image" | "other";
+export type ItemKind = "movie" | "tv" | "book" | "image" | "other";
 
 export type ItemStatus = "planned" | "in_progress" | "done" | "dropped";
 
@@ -69,6 +69,17 @@ export interface MovieDetails {
   vote_average_tenths: number | null;
   vote_count: number | null;
   translations?: Record<string, MovieTranslation>;
+  number_of_seasons?: number | null;
+  number_of_episodes?: number | null;
+  seasons?: SeasonSummary[];
+}
+
+export interface SeasonSummary {
+  season_number: number;
+  name: string;
+  episode_count: number;
+  air_date: string | null;
+  poster_path: string | null;
 }
 
 export interface MovieSearchItem {

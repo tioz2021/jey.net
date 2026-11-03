@@ -30,7 +30,7 @@ function clean(value: string | null | undefined): string | null {
  * keeps its own title: it is not one of the known translations.
  */
 export function localizedTitle(source: Localizable, locale: Locale): string {
-  if (source.kind && source.kind !== "movie") {
+  if (source.kind && source.kind !== "movie" && source.kind !== "tv") {
     return source.title;
   }
 
@@ -61,7 +61,7 @@ export function localizedSubtitle(
   source: Localizable,
   locale: Locale,
 ): string | null {
-  if (source.kind && source.kind !== "movie") {
+  if (source.kind && source.kind !== "movie" && source.kind !== "tv") {
     return source.subtitle ?? null;
   }
 
@@ -95,7 +95,7 @@ export function localizedSubtitle(
 /** Genres act as tags after TMDB import; custom tags stay untouched. */
 export function localizedTags(source: Localizable, locale: Locale): string[] {
   const tags = source.tags ?? [];
-  if (source.kind && source.kind !== "movie") {
+  if (source.kind && source.kind !== "movie" && source.kind !== "tv") {
     return tags;
   }
 
