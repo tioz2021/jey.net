@@ -456,6 +456,8 @@ DEPLOY_HOST=129.121.149.16 bash scripts/deploy.sh --rollback
 8. **Бэкапы** — устанавливаются `/usr/local/bin/jey-backup-db`,
    `jey-restore-db` и `jey-backup.timer`; таймер включается, если на сервере
    уже установлен GPG-получатель `/etc/jey/backup-recipient`.
+9. **Мониторинг** — устанавливаются `jey-healthcheck` и
+   `jey-healthcheck.timer`; алерты настраиваются в `/etc/jey/health.env`.
 
 ### Правила миграций
 

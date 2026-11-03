@@ -158,6 +158,32 @@ ls -lh ~/jey-backups/db
 сценарий; если компьютер и VPS погибнут одновременно, восстановление
 невозможно.
 
+#### Мониторинг
+
+`jey-healthcheck.timer` запускает `/usr/local/bin/jey-healthcheck` каждые
+5 минут. Проверяются API, веб, PostgreSQL, `jey-api`/`jey-web`, ошибки 5xx
+за 15 минут, диск, память, свежесть бэкапа и срок TLS-сертификата.
+
+Состояние хранится в `/var/lib/jey/health.state`; алерт отправляется только
+при смене состояния. Без настроенного webhook сообщения остаются в journald:
+
+```bash
+journalctl -u jey-healthcheck.service --since "1 hour ago" --no-pager
+```
+
+Внешние уведомления включаются в `/etc/jey/health.env` (600 root):
+
+```bash
+BASE_URL=https://129-121-149-16.sslip.io
+ALERT_WEBHOOK=https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<CHAT_ID>
+CERT_WARN_DAYS=14
+BACKUP_MAX_HOURS=30
+```
+
+Для Telegram: создать бота через `@BotFather`, написать ему, получить
+`chat_id` через `getUpdates`, подставить токен и id. Без webhook мониторинг
+работает, но никто не получает внешнего сообщения.
+
 ### 5. Диск заполнен
 
 ```bash

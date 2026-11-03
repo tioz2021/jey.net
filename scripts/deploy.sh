@@ -82,6 +82,9 @@ say "uploading artifacts"
 "${SCP[@]}" scripts/restore-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-restore-db.new"
 "${SCP[@]}" deploy/jey-backup.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.service"
 "${SCP[@]}" deploy/jey-backup.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.timer"
+"${SCP[@]}" deploy/healthcheck.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-healthcheck.new"
+"${SCP[@]}" deploy/jey-healthcheck.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.service"
+"${SCP[@]}" deploy/jey-healthcheck.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.timer"
 rm -f jey-web.tar.gz
 
 say "activating"
@@ -129,8 +132,10 @@ fi
 # 3. Backup tooling. The GPG public key is installed once, out of band.
 install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
 install -m 700 /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-db
-rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new
+install -m 700 /usr/local/bin/jey-healthcheck.new /usr/local/bin/jey-healthcheck
+rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-healthcheck.new
 systemctl daemon-reload
+systemctl enable --now jey-healthcheck.timer
 if [[ -s /etc/jey/backup-recipient ]]; then
     systemctl enable --now jey-backup.timer
     echo "backup timer enabled"
