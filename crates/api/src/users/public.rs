@@ -8,6 +8,7 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use chrono::{DateTime, Utc};
+use jey_core::items::MovieDetails;
 use serde::Serialize;
 use serde_json::{Value, json};
 use sqlx::PgPool;
@@ -59,7 +60,7 @@ pub struct PublicItemDetail {
     pub cover_key: Option<String>,
     pub external_source: Option<String>,
     pub external_id: Option<String>,
-    pub details: Option<Value>,
+    pub details: Option<sqlx::types::Json<MovieDetails>>,
     pub tags: Vec<String>,
     pub updated_at: DateTime<Utc>,
 }

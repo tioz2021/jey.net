@@ -31,14 +31,18 @@ export function MovieInfo({
   if (details.release_date) {
     facts.push(["Дата выхода", details.release_date]);
   }
-  if (details.countries.length > 0) {
-    facts.push(["Страны", details.countries.join(", ")]);
+  const countries = details.countries ?? [];
+  const languages = details.languages ?? [];
+  const companies = details.companies ?? [];
+
+  if (countries.length > 0) {
+    facts.push(["Страны", countries.join(", ")]);
   }
-  if (details.languages.length > 0) {
-    facts.push(["Языки", details.languages.join(", ")]);
+  if (languages.length > 0) {
+    facts.push(["Языки", languages.join(", ")]);
   }
-  if (details.companies.length > 0) {
-    facts.push(["Студии", details.companies.join(", ")]);
+  if (companies.length > 0) {
+    facts.push(["Студии", companies.join(", ")]);
   }
   if (details.budget) {
     facts.push(["Бюджет", money.format(details.budget)]);
@@ -100,10 +104,10 @@ export function MovieInfo({
         ) : null}
       </Card>
 
-      {details.cast.length > 0 ? (
+      {(details.cast ?? []).length > 0 ? (
         <Card title="В главных ролях">
           <ul className={styles.cast}>
-            {details.cast.map((person, index) => {
+            {(details.cast ?? []).map((person, index) => {
               const member = typeof person === "string" ? null : person;
               return (
                 <li key={`${castName(person)}-${index}`}>
