@@ -403,4 +403,5 @@ export const uk = {
   'form.advancedHide': 'Сховати додаткові налаштування',
   'form.advancedHint': 'Ручне додавання, посилання, теги й обкладинка',
   'form.movieRequired': 'Виберіть фільм із пошуку або відкрийте додаткові налаштування, щоб заповнити назву вручну.',
+  "form.ratingClear": 'Очистити оцінку',
 } satisfies Record<keyof typeof ru, string>;

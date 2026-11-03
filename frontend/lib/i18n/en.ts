@@ -403,4 +403,5 @@ export const en = {
   'form.advancedHide': 'Hide advanced settings',
   'form.advancedHint': 'Manual entry, link, tags and cover',
   'form.movieRequired': 'Pick a film from the search or open advanced settings to enter the title manually.',
+  "form.ratingClear": 'Clear rating',
 } satisfies Record<keyof typeof ru, string>;

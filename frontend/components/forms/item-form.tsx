@@ -20,6 +20,7 @@ import type {
 } from "@/lib/types";
 
 import { CoverPicker } from "@/components/items/cover-picker";
+import { StarRating } from "@/components/forms/star-rating";
 import { MovieSearch } from "@/components/items/movie-search";
 import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
@@ -455,12 +456,11 @@ export function ItemForm({
         </>
       ) : null}
 
-      <Input
+      <StarRating
         label={t("form.rating")}
-        inputMode="numeric"
         hint={t("form.ratingHint")}
         value={values.rating}
-        onChange={(event) => update("rating", event.target.value)}
+        onChange={(rating) => update("rating", rating)}
         error={errors.rating}
       />
 
