@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { HeaderSearch } from "@/components/header-search";
 import { LanguageSwitch } from "@/components/language-switch";
+import { MobileMenu } from "@/components/mobile-menu";
 import { Logo } from "@/components/logo";
 import {
   IconList,
@@ -45,6 +46,8 @@ export function SiteHeader() {
           <span>jey.net</span>
         </Link>
 
+        <MobileMenu />
+
         <nav className={styles.nav} aria-label="Разделы">
           {SECTIONS.map(({ href, labelKey, Icon }) => {
             const active =
@@ -75,7 +78,9 @@ export function SiteHeader() {
                 <ThemeToggle />
               </div>
 
-              <LanguageSwitch />
+              <div className={styles.language}>
+                <LanguageSwitch />
+              </div>
               <UserMenu user={user} />
             </>
           ) : (

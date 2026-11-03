@@ -1,0 +1,101 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { HeaderSearch } from "@/components/header-search";
+import { LanguageSwitch } from "@/components/language-switch";
+import {
+  IconList,
+  IconSettings,
+  IconStats,
+  IconTag,
+} from "@/components/icons";
+import { useI18n } from "@/lib/locale-context";
+import type { TranslationKey } from "@/lib/i18n";
+
+import styles from "./mobile-menu.module.css";
+
+const SECTIONS: Array<{
+  href: string;
+  labelKey: TranslationKey;
+  Icon: typeof IconList;
+}> = [
+  { href: "/items", labelKey: "nav.items", Icon: IconList },
+  { href: "/tags", labelKey: "nav.tags", Icon: IconTag },
+  { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
+  { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
+];
+
+/** Compact section menu for tablets and phones. */
+export function MobileMenu() {
+  const { t } = useI18n();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  return (
+    <div className={styles.wrap}>
+      <button
+        aria-controls="mobile-sections"
+        aria-expanded={open}
+        aria-label={t("nav.menu")}
+        className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
+        onClick={() => setOpen((value) => !value)}
+        type="button"
+      >
+        <span aria-hidden="true" className={styles.lines} />
+      </button>
+
+      {open ? (
+        <div className={styles.panel} id="mobile-sections">
+          <div className={styles.search}>
+            <HeaderSearch id="mobile-search" />
+          </div>
+
+          <div className={styles.language}>
+            <LanguageSwitch />
+          </div>
+
+          <nav aria-label={t("nav.menu")} className={styles.sections}>
+            {SECTIONS.map(({ href, labelKey, Icon }) => {
+              const active =
+                pathname === href || pathname.startsWith(`${href}/`);
+
+              return (
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className={`${styles.link} ${active ? styles.active : ""}`}
+                  href={href}
+                  key={href}
+                >
+                  <Icon size={16} />
+                  {t(labelKey)}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      ) : null}
+    </div>
+  );
+}

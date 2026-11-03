@@ -434,4 +434,5 @@ export const en = {
   'settings.progress': 'Show series progress',
   'public.records': 'Records: {count}',
   'form.hidePublic': 'Hide from the public profile',
+  'nav.menu': 'Menu',
 } satisfies Record<keyof typeof ru, string>;

@@ -434,4 +434,5 @@ export const uk = {
   'settings.progress': 'Показувати прогрес серіалів',
   'public.records': 'Записів: {count}',
   'form.hidePublic': 'Приховати з публічного профілю',
+  'nav.menu': 'Меню',
 } satisfies Record<keyof typeof ru, string>;

@@ -3,18 +3,18 @@ import { useI18n } from "@/lib/locale-context";
 import styles from "./header-search.module.css";
 
 /** Classic header search: a text field with a submit button next to it. */
-export function HeaderSearch() {
+export function HeaderSearch({ id = "global-search" }: { id?: string }) {
   const { t } = useI18n();
 
   return (
     <form action="/items" className={styles.form} method="get" role="search">
-      <label className="visually-hidden" htmlFor="global-search">
+      <label className="visually-hidden" htmlFor={id}>
         {t("search.label")}
       </label>
       <input
         autoComplete="off"
         className={styles.input}
-        id="global-search"
+        id={id}
         name="q"
         placeholder={t("search.placeholder")}
         type="search"

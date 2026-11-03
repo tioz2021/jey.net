@@ -433,4 +433,5 @@ export const ru = {
   'settings.progress': 'Показывать прогресс сериалов',
   'public.records': 'Записей: {count}',
   'form.hidePublic': 'Скрыть из публичного профиля',
+  'nav.menu': 'Меню',
 } as const;
