@@ -63,6 +63,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub mailer: Arc<dyn Mailer>,
     pub storage: Arc<LocalStorage>,
+    pub tmdb: Arc<crate::movies::tmdb::TmdbClient>,
 }
 
 /// Builds the full application router.
@@ -115,6 +116,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(upload).layer(DefaultBodyLimit::max(16 * 1024 * 1024)),
         )
         .route("/auth/verify-email/resend", post(resend_verification))
+        .route("/movies/search", get(crate::movies::search))
+        .route("/movies/{id}", get(crate::movies::details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(

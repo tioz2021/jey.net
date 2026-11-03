@@ -98,6 +98,8 @@ pub struct Config {
     pub google_client_id: Option<String>,
     pub google_client_secret: Option<String>,
     pub google_redirect_url: Option<String>,
+    /// TMDB v4 read token; movie search is disabled when absent.
+    pub tmdb_read_token: Option<String>,
 }
 
 impl Config {
@@ -200,6 +202,7 @@ impl Config {
         let google_client_id = var("GOOGLE_CLIENT_ID");
         let google_client_secret = var("GOOGLE_CLIENT_SECRET");
         let google_redirect_url = var("GOOGLE_REDIRECT_URL");
+        let tmdb_read_token = var("TMDB_READ_TOKEN");
 
         Ok(Self {
             app_env,
@@ -217,6 +220,7 @@ impl Config {
             google_client_id,
             google_client_secret,
             google_redirect_url,
+            tmdb_read_token,
         })
     }
 }

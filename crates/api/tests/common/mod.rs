@@ -63,6 +63,7 @@ fn test_config() -> Config {
         google_client_id: std::env::var("GOOGLE_CLIENT_ID").ok(),
         google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
         google_redirect_url: std::env::var("GOOGLE_REDIRECT_URL").ok(),
+        tmdb_read_token: None,
     }
 }
 
@@ -107,6 +108,7 @@ impl TestClient {
             config: Arc::new(config),
             mailer: mailer.clone(),
             storage,
+            tmdb: std::sync::Arc::new(jey_api::movies::tmdb::TmdbClient::new(None)),
         };
 
         // Every test gets its own client address so rate-limit counters of one

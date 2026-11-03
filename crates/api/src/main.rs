@@ -114,11 +114,15 @@ async fn migrate_and_exit(pool: &PgPool) -> ExitCode {
 async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(config.bind_addr).await?;
     let storage = Arc::new(LocalStorage::new(config.media_dir.clone()));
+    let tmdb = Arc::new(jey_api::movies::tmdb::TmdbClient::new(
+        config.tmdb_read_token.clone(),
+    ));
 
     let state = AppState {
         pool,
         mailer: mail::from_config(&config),
         storage,
+        tmdb,
         config: Arc::new(config),
     };
 
