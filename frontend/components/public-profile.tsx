@@ -161,11 +161,6 @@ export function PublicProfileView({
           </>
         )}
       </Card>
-
-      <p className={styles.note}>
-        Здесь — завершённые записи с оценками и заметками автора. Черновики и
-        планы скрыты.
-      </p>
     </div>
   );
 }

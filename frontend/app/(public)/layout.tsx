@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PublicFooter } from "@/components/public-footer";
+
 import styles from "./layout.module.css";
 
 /** Public pages (landing, shared profiles, legal) have a light classic header. */
@@ -29,11 +31,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
       <main className={styles.main}>{children}</main>
 
-      <footer className={styles.footer}>
-        <Link href="/privacy">Политика конфиденциальности</Link>
-        <span aria-hidden="true">·</span>
-        <Link href="/terms">Условия использования</Link>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

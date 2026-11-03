@@ -86,12 +86,6 @@
   overflow-wrap: anywhere;
 }
 
-.note {
-  margin: var(--space-4) 0 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
 @media (width <= 640px) {
   .body {
     grid-template-columns: 1fr;

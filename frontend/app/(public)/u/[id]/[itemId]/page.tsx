@@ -137,11 +137,6 @@ export default async function PublicItemPage({
           <p className={styles.review}>{item.review}</p>
         </Card>
       ) : null}
-
-      <p className={styles.note}>
-        Здесь — завершённая запись с оценкой и заметкой автора. Черновики и планы
-        скрыты.
-      </p>
     </article>
   );
 }

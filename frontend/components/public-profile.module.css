@@ -33,9 +33,9 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 8rem;
-  height: 8rem;
-  margin-top: -2.5rem;
+  width: 10rem;
+  height: 10rem;
+  margin-top: -3.5rem;
   border-radius: 0;
   object-fit: cover;
   border: 3px solid var(--color-bg);
@@ -149,12 +149,6 @@
   list-style: none;
 }
 
-.note {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
 .more {
   align-self: center;
   padding: 6px var(--space-4);
@@ -177,9 +171,9 @@
 
   .avatar,
   .avatarPlaceholder {
-    width: 6rem;
-    height: 6rem;
-    margin-top: -1.75rem;
+    width: 7rem;
+    height: 7rem;
+    margin-top: -2.25rem;
   }
 
   .identity {
