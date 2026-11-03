@@ -1,3 +1,4 @@
+import { CastPhoto } from "@/components/items/cast-photo";
 import { Card } from "@/components/ui";
 import type { MovieDetails } from "@/lib/types";
 
@@ -8,10 +9,6 @@ const money = new Intl.NumberFormat("ru-RU", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
-
-function castName(person: string | { name: string }): string {
-  return typeof person === "string" ? person : person.name;
-}
 
 /** Metadata snapshot: overview, runtime and cast names, with TMDB credit. */
 export function MovieInfo({
@@ -52,6 +49,13 @@ export function MovieInfo({
   }
   if (details.imdb_id) {
     facts.push(["IMDb", `tt${details.imdb_id.replace(/^tt/, "")}`]);
+  }
+  if (details.vote_average_tenths) {
+    const score = (details.vote_average_tenths / 10).toFixed(1);
+    const votes = details.vote_count
+      ? ` · ${new Intl.NumberFormat("ru-RU").format(details.vote_count)} голосов`
+      : "";
+    facts.push(["Рейтинг TMDB", `${score}${votes}`]);
   }
 
   return (
@@ -106,25 +110,44 @@ export function MovieInfo({
 
       {(details.cast ?? []).length > 0 ? (
         <Card title="В главных ролях">
-          <ul className={styles.cast}>
+          <ul className={styles.castGrid}>
             {(details.cast ?? []).map((person, index) => {
-              const member = typeof person === "string" ? null : person;
+              const member =
+                typeof person === "string"
+                  ? {
+                      tmdb_id: 0,
+                      name: person,
+                      character: null,
+                      profile_path: null,
+                    }
+                  : person;
+              const body = (
+                <>
+                  <CastPhoto
+                    name={member.name}
+                    profilePath={member.profile_path}
+                  />
+                  <span className={styles.castName}>{member.name}</span>
+                  {member.character ? (
+                    <span className={styles.character}>{member.character}</span>
+                  ) : null}
+                </>
+              );
+
               return (
-                <li key={`${castName(person)}-${index}`}>
-                  {member && member.tmdb_id > 0 ? (
+                <li key={`${member.name}-${index}`}>
+                  {member.tmdb_id > 0 ? (
                     <a
+                      className={styles.castCard}
                       href={`https://www.themoviedb.org/person/${member.tmdb_id}`}
                       rel="noreferrer"
                       target="_blank"
                     >
-                      {member.name}
+                      {body}
                     </a>
                   ) : (
-                    castName(person)
+                    <div className={styles.castCard}>{body}</div>
                   )}
-                  {member?.character ? (
-                    <span className={styles.character}> — {member.character}</span>
-                  ) : null}
                 </li>
               );
             })}
