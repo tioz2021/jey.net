@@ -121,11 +121,10 @@ export default async function ItemPage({
 
   return (
     <main>
-      <p className={styles.back}>
-        <Link href={backHref}>{t("item.back")}</Link>
-      </p>
-
       <header className={styles.heading}>
+        <Link className={styles.back} href={backHref}>
+          {t("item.back")}
+        </Link>
         <p className={styles.kicker}>{t(KIND_KEYS[item.kind])}</p>
         <h1 className={styles.title}>
           {displayTitle}
