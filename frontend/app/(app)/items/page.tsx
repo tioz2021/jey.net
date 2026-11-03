@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { AddRecordButton } from "@/components/items/add-record-button";
 import { ItemList } from "@/components/items/item-list";
 import { ItemsQueryProvider } from "@/components/items/query-context";
 import { PageHeader } from "@/components/ui";
@@ -35,20 +35,6 @@ export default async function ItemsPage({
   // The first page is rendered on the server, so entering "Записи" shows the
   // list immediately instead of an empty shell that fetches on mount.
   const search = initial.toString();
-  const requestedKind =
-    typeof raw.kind === "string" &&
-    ["movie", "tv", "book", "image", "other"].includes(raw.kind)
-      ? raw.kind
-      : null;
-  const addHref = requestedKind
-    ? `/items/new?kind=${requestedKind}&locked=1`
-    : "/items/new";
-  const addLabel = requestedKind
-    ? translate(
-        locale,
-        `items.add.${requestedKind}` as Parameters<typeof translate>[1],
-      )
-    : translate(locale, "common.add");
   const response = await backendFetch(`/items${search ? `?${search}` : ""}`, {
     cache: "no-store",
   });
@@ -68,9 +54,7 @@ export default async function ItemsPage({
     <main>
       <PageHeader
         action={
-          <Link className={styles.add} href={addHref}>
-            {addLabel}
-          </Link>
+          <AddRecordButton className={styles.add} />
         }
         title={translate(locale, "page.items")}
       />
