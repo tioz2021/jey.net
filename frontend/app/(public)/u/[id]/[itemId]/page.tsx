@@ -7,6 +7,11 @@ import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_KEYS } from "@/lib/i18n/labels";
 import { formatDate, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
+import {
+  localizedSubtitle,
+  localizedTags,
+  localizedTitle,
+} from "@/lib/item-title";
 import { getPublicItem } from "@/lib/public-profile";
 import { languageAlternates } from "@/lib/seo";
 
@@ -28,8 +33,10 @@ export async function generateMetadata({
     };
   }
 
+  const displayTitle = localizedTitle(item, locale);
+  const displaySubtitle = localizedSubtitle(item, locale);
   const description = [
-    item.subtitle,
+    displaySubtitle,
     item.year,
     translate(locale, KIND_KEYS[item.kind]),
   ]
@@ -37,7 +44,7 @@ export async function generateMetadata({
     .join(" · ");
 
   return {
-    title: `${item.title} — jey.net`,
+    title: `${displayTitle} — jey.net`,
     description,
     alternates: {
       canonical: `/u/${id}/${itemId}`,
@@ -45,7 +52,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
-      title: item.title,
+      title: displayTitle,
       description,
       url: `/u/${id}/${itemId}`,
       images: item.cover_key ? [`/media/${item.cover_key}`] : undefined,
@@ -70,6 +77,10 @@ export default async function PublicItemPage({
     notFound();
   }
 
+  const displayTitle = localizedTitle(item, locale);
+  const displaySubtitle = localizedSubtitle(item, locale);
+  const displayTags = localizedTags(item, locale);
+
   return (
     <article className={styles.article}>
       <p className={styles.back}>
@@ -77,10 +88,10 @@ export default async function PublicItemPage({
       </p>
 
       <PageHeader
-        subtitle={item.subtitle ?? undefined}
+        subtitle={displaySubtitle ?? undefined}
         title={
           <>
-            {item.title}
+            {displayTitle}
             {item.year ? <span className={styles.year}> ({item.year})</span> : null}
           </>
         }
@@ -93,7 +104,7 @@ export default async function PublicItemPage({
             // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
             <img
               src={`/media/${item.cover_key}`}
-              alt={t("cover.altTitle", { title: item.title })}
+              alt={t("cover.altTitle", { title: displayTitle })}
             />
           ) : (
             <div className={styles.posterPlaceholder}>Нет обложки</div>
@@ -131,7 +142,7 @@ export default async function PublicItemPage({
               <dd>
                 {item.tags.length > 0 ? (
                   <ul className={styles.tags}>
-                    {item.tags.map((tag) => (
+                    {displayTags.map((tag) => (
                       <li key={tag}>
                         <Badge>{tag}</Badge>
                       </li>

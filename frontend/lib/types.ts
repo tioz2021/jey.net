@@ -210,6 +210,9 @@ export interface PublicItem {
   external_id: string | null;
   details: MovieDetails | null;
   tags: string[];
+  titles?: Record<string, string> | null;
+  directors?: Record<string, string> | null;
+  genres?: Record<string, string[]> | null;
   updated_at: string;
 }
 

@@ -3,6 +3,11 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import {
+  localizedSubtitle,
+  localizedTags,
+  localizedTitle,
+} from "@/lib/item-title";
 import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemStatus } from "@/lib/types";
@@ -41,6 +46,20 @@ export interface ItemCardData {
   cover_key: string | null;
   tags: string[];
   deleted_at?: string | null;
+  details?: {
+    genres?: string[] | null;
+    translations?: Record<
+      string,
+      {
+        title?: string | null;
+        director?: string | null;
+        genres?: string[] | null;
+      }
+    > | null;
+  } | null;
+  titles?: Record<string, string> | null;
+  directors?: Record<string, string> | null;
+  genres?: Record<string, string[]> | null;
 }
 
 export function ItemCard({
@@ -53,7 +72,10 @@ export function ItemCard({
   href?: string;
 }) {
   const target = href ?? `/items/${item.id}`;
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const title = localizedTitle(item, locale);
+  const subtitle = localizedSubtitle(item, locale);
+  const tags = localizedTags(item, locale);
   const meta = [
     t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
@@ -80,10 +102,10 @@ export function ItemCard({
         <div className={styles.header}>
           <h2 className={styles.title}>
             {item.deleted_at ? (
-              item.title
+              title
             ) : (
               <Link className={styles.link} href={target}>
-                <Highlight text={item.title} query={query} />
+                <Highlight text={title} query={query} />
               </Link>
             )}
           </h2>
@@ -92,8 +114,8 @@ export function ItemCard({
           </Badge>
         </div>
 
-        {item.subtitle ? (
-          <p className={styles.subtitle}>{item.subtitle}</p>
+        {subtitle ? (
+          <p className={styles.subtitle}>{subtitle}</p>
         ) : null}
 
         <p className={styles.meta}>{meta.join(" · ")}</p>
@@ -107,9 +129,9 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {item.tags.length > 0 ? (
+        {tags.length > 0 ? (
           <ul className={styles.tags}>
-            {item.tags.map((tag) => (
+            {tags.map((tag) => (
               <li key={tag}>
                 <Badge>{tag}</Badge>
               </li>

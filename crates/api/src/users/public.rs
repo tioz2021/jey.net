@@ -43,6 +43,9 @@ pub struct PublicItemView {
     pub review: Option<String>,
     pub cover_key: Option<String>,
     pub tags: Vec<String>,
+    pub titles: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    pub directors: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    pub genres: Option<sqlx::types::Json<std::collections::BTreeMap<String, Vec<String>>>>,
     pub updated_at: DateTime<Utc>,
 }
 
@@ -145,6 +148,30 @@ pub async fn item(
                 i.external_source,
                 i.external_id,
                 i.details,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->>'title')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'title'
+                    ),
+                    '{}'::jsonb
+                ) as titles,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->>'director')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'director'
+                    ),
+                    '{}'::jsonb
+                ) as directors,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->'genres')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'genres'
+                    ),
+                    '{}'::jsonb
+                ) as genres,
                 i.updated_at,
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
@@ -182,6 +209,30 @@ async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicIte
                 i.external_source,
                 i.external_id,
                 i.details,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->>'title')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'title'
+                    ),
+                    '{}'::jsonb
+                ) as titles,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->>'director')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'director'
+                    ),
+                    '{}'::jsonb
+                ) as directors,
+                coalesce(
+                    (
+                        select jsonb_object_agg(key, value->'genres')
+                        from jsonb_each(i.details->'translations')
+                        where value ? 'genres'
+                    ),
+                    '{}'::jsonb
+                ) as genres,
                 i.updated_at,
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),

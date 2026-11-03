@@ -11,6 +11,11 @@ import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import { STATUS_TONES } from "@/lib/labels";
 import { formatDate as formatDateI18n, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
+import {
+  localizedSubtitle,
+  localizedTags,
+  localizedTitle,
+} from "@/lib/item-title";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemNeighbors as ItemNeighborsResponse, ItemResponse } from "@/lib/types";
 
@@ -74,6 +79,9 @@ export default async function ItemPage({
   }
 
   const { item } = (await response.json()) as ItemResponse;
+  const displayTitle = localizedTitle(item, locale);
+  const displaySubtitle = localizedSubtitle(item, locale);
+  const displayTags = localizedTags(item, locale);
 
   let prevHref: string | null = null;
   let nextHref: string | null = null;
@@ -105,13 +113,13 @@ export default async function ItemPage({
             {item.external_source === "tmdb" ? (
               <RefreshMovieButton itemId={item.id} />
             ) : null}
-            <ItemActions itemId={item.id} title={item.title} />
+            <ItemActions itemId={item.id} title={displayTitle} />
           </>
         }
-        subtitle={item.subtitle ?? undefined}
+        subtitle={displaySubtitle ?? undefined}
         title={
           <>
-            {item.title}
+            {displayTitle}
             {item.year ? <span className={styles.year}> ({item.year})</span> : null}
           </>
         }
@@ -126,7 +134,7 @@ export default async function ItemPage({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={`/media/${item.cover_key}`}
-                alt={t("cover.altTitle", { title: item.title })}
+                alt={t("cover.altTitle", { title: displayTitle })}
               />
             ) : (
               <div className={styles.posterPlaceholder}>{t("cover.none")}</div>
@@ -187,7 +195,7 @@ export default async function ItemPage({
                 <dd>
                   {item.tags.length > 0 ? (
                     <ul className={styles.tags}>
-                      {item.tags.map((tag) => (
+                      {displayTags.map((tag) => (
                         <li key={tag}>
                           <Badge>{tag}</Badge>
                         </li>
