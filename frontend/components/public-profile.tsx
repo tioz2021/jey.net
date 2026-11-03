@@ -10,7 +10,7 @@ import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
 import styles from "./public-profile.module.css";
 
-const ORDER: ItemKind[] = ["movie", "book", "image", "other"];
+const ORDER: ItemKind[] = ["movie", "tv", "book", "image", "other"];
 const PAGE_LIMIT = 12;
 
 const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "nav.images" | "nav.other"> = {
