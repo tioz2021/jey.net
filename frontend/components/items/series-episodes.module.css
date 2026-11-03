@@ -80,6 +80,27 @@
   flex: none;
 }
 
+.tick {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-bg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.tickOn {
+  color: var(--color-bg);
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
 .number {
   flex: none;
   font-size: var(--text-xs);

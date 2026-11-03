@@ -179,6 +179,9 @@ export function SeriesEpisodes({
           ) : null}
         </div>
 
+        {readOnly ? (
+          <p className={styles.muted}>{t("tvEpisodes.readOnly")}</p>
+        ) : null}
         {error ? <p className={styles.error}>{error}</p> : null}
         {loading ? <p className={styles.muted}>{t("tvEpisodes.loading")}</p> : null}
 
@@ -188,20 +191,42 @@ export function SeriesEpisodes({
               const checked = watchedSet.has(key(selected, episode.episode_number));
               return (
                 <li className={styles.episode} key={episode.episode_number}>
-                  <label className={styles.check}>
-                    <input
-                      checked={checked}
-                      disabled={readOnly || pending.has(episode.episode_number)}
-                      onChange={(event) =>
-                        toggle(episode.episode_number, event.target.checked)
+                  {readOnly ? (
+                    <span
+                      aria-label={
+                        checked
+                          ? t("tvEpisodes.watched")
+                          : t("tvEpisodes.notWatched")
                       }
-                      type="checkbox"
-                    />
-                    <span className={styles.number}>
-                      {String(episode.episode_number).padStart(2, "0")}
+                      className={styles.check}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`${styles.tick} ${checked ? styles.tickOn : ""}`}
+                      >
+                        {checked ? "✓" : ""}
+                      </span>
+                      <span className={styles.number}>
+                        {String(episode.episode_number).padStart(2, "0")}
+                      </span>
+                      <span className={styles.name}>{episode.name}</span>
                     </span>
-                    <span className={styles.name}>{episode.name}</span>
-                  </label>
+                  ) : (
+                    <label className={styles.check}>
+                      <input
+                        checked={checked}
+                        disabled={pending.has(episode.episode_number)}
+                        onChange={(event) =>
+                          toggle(episode.episode_number, event.target.checked)
+                        }
+                        type="checkbox"
+                      />
+                      <span className={styles.number}>
+                        {String(episode.episode_number).padStart(2, "0")}
+                      </span>
+                      <span className={styles.name}>{episode.name}</span>
+                    </label>
+                  )}
                   <span className={styles.meta}>
                     {episode.air_date ? <span>{episode.air_date}</span> : null}
                     {episode.runtime ? (
