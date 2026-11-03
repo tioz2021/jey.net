@@ -17,6 +17,14 @@
 
 set -uo pipefail
 
+API_ENV="${API_ENV:-/etc/jey/api.env}"
+if [[ -r "${API_ENV}" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    . "${API_ENV}"
+    set +a
+fi
+
 ENV_FILE="${HEALTH_ENV:-/etc/jey/health.env}"
 if [[ -r "${ENV_FILE}" ]]; then
     set -a
@@ -66,12 +74,18 @@ send_alert() {
     fi
 }
 
-check_http "API" "${BASE_URL}/api/v1/health"
+check_http "API readiness" "${BASE_URL}/health/ready"
 check_http "Веб" "${BASE_URL}/login"
 
 if command -v pg_isready >/dev/null 2>&1; then
     if ! pg_isready -q -h 127.0.0.1; then
         problems+=("PostgreSQL не принимает подключения")
+    fi
+fi
+
+if [[ -n "${DATABASE_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
+    if ! psql "${DATABASE_URL}" -Atc 'select 1' >/dev/null 2>&1; then
+        problems+=("PostgreSQL не отвечает на select 1")
     fi
 fi
 
@@ -91,7 +105,9 @@ if command -v journalctl >/dev/null 2>&1; then
     fi
 fi
 
-if [[ -d "${BACKUP_DIR}" ]]; then
+if [[ ! -d "${BACKUP_DIR}" ]]; then
+    problems+=("каталог бэкапов ${BACKUP_DIR} отсутствует")
+else
     newest_backup="$(find "${BACKUP_DIR}" -maxdepth 1 -type f -name 'jey-*.dump.gpg' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)"
     if [[ -z "${newest_backup}" ]]; then
         problems+=("нет свежих бэкапов БД")

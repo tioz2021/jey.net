@@ -22,9 +22,34 @@ SSH_KEY="${SSH_KEY:-$HOME/.ssh/jey_vps}"
 REMOTE_DB_DIR="${REMOTE_DB_DIR:-/var/backups/jey}"
 REMOTE_MEDIA_DIR="${REMOTE_MEDIA_DIR:-/var/lib/jey/media}"
 LOCAL_DIR="${LOCAL_DIR:-$HOME/jey-backups}"
+HC_PING_URL_PULL="${HC_PING_URL_PULL:-}"
 
 say() { printf '[%s] %s\n' "$(date -Is)" "$*"; }
 fail() { printf '[%s] ERROR: %s\n' "$(date -Is)" "$*" >&2; exit 1; }
+
+# External heartbeat for the computer-side pull. A separate Healthchecks
+# check is important: it must not keep the VPS heartbeat alive.
+finish() {
+    local code=$?
+    trap - EXIT
+
+    if [[ -n "${HC_PING_URL_PULL}" ]]; then
+        local base="${HC_PING_URL_PULL%/}"
+        local url="${base}"
+        local payload="pull ok"
+        if (( code != 0 )); then
+            url="${base}/fail"
+            payload="pull failed"
+        fi
+        if ! curl -fsS --max-time 10 -o /dev/null -X POST \
+            --data-raw "${payload}" "${url}"; then
+            printf '[%s] WARN: pull heartbeat failed\n' "$(date -Is)" >&2
+        fi
+    fi
+
+    exit "${code}"
+}
+trap finish EXIT
 
 command -v rsync >/dev/null || fail "rsync is not installed"
 command -v gpg >/dev/null || fail "gpg is not installed"

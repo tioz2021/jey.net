@@ -17,6 +17,8 @@ SSH_KEY=$HOME/.ssh/jey_vps
 REMOTE_DB_DIR=/var/backups/jey
 REMOTE_MEDIA_DIR=/var/lib/jey/media
 LOCAL_DIR=$HOME/jey-backups
+# Optional second Healthchecks check for the pull itself:
+# HC_PING_URL_PULL=https://hc-ping.com/<uuid>
 CONF
     chmod 600 "${CONFIG}"
     echo "wrote ${CONFIG}"
