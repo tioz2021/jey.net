@@ -56,6 +56,11 @@ export function LocaleProvider({
     }
   }, [locale]);
 
+  // A server refresh may bring a different locale (cookie/profile).
+  useEffect(() => {
+    setLocaleState(initialLocale);
+  }, [initialLocale]);
+
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     document.documentElement.lang = next;

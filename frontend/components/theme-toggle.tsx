@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { useI18n } from "@/lib/locale-context";
+
 import styles from "./theme-toggle.module.css";
 
 type Theme = "light" | "dark";
@@ -9,6 +11,7 @@ type Theme = "light" | "dark";
 const STORAGE_KEY = "jey-theme";
 
 export function ThemeToggle() {
+  const { t } = useI18n();
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ export function ThemeToggle() {
     window.localStorage.setItem(STORAGE_KEY, next);
   }
 
-  const label = theme === "dark" ? "Светлая тема" : "Тёмная тема";
+  const label = theme === "dark" ? t("theme.light") : t("theme.dark");
 
   return (
     <button

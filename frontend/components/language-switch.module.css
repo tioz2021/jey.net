@@ -1,0 +1,37 @@
+.group {
+  display: flex;
+  align-items: stretch;
+  height: 30px;
+  border: 1px solid var(--color-border);
+}
+
+.button {
+  width: 30px;
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 0;
+  cursor: pointer;
+}
+
+.button + .button {
+  border-left: 1px solid var(--color-border);
+}
+
+.button:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.active {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.active:hover {
+  color: var(--color-on-accent);
+  background: var(--color-accent-hover);
+}

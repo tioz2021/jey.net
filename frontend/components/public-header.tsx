@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
+import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 
 import { SiteHeader } from "./site-header";
@@ -16,6 +18,7 @@ import styles from "./public-header.module.css";
  */
 export function PublicHeader() {
   const { user } = useUser();
+  const { t } = useI18n();
   const pathname = usePathname();
 
   if (user && pathname.startsWith("/u/")) {
@@ -32,10 +35,11 @@ export function PublicHeader() {
 
         <nav className={styles.nav} aria-label="Основное">
           <Link className={styles.navLink} href="/">
-            Главная
+            {t("public.home")}
           </Link>
+          <LanguageSwitch />
           <Link className={styles.cta} href="/login">
-            Войти
+            {t("public.login")}
           </Link>
         </nav>
       </div>

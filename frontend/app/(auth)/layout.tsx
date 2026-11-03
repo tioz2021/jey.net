@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LanguageSwitch } from "@/components/language-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import styles from "./layout.module.css";
@@ -20,6 +21,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             jey.net
           </Link>
           <div className={styles.links}>
+            <LanguageSwitch />
             <ThemeToggle />
           </div>
         </div>

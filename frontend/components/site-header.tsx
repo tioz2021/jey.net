@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { HeaderSearch } from "@/components/header-search";
+import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
 import {
   IconList,
@@ -13,20 +14,27 @@ import {
 } from "@/components/icons";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
+import type { TranslationKey } from "@/lib/i18n";
 
 import { UserMenu } from "@/components/user-menu";
 import styles from "./site-header.module.css";
 
-const SECTIONS = [
-  { href: "/items", label: "Записи", Icon: IconList },
-  { href: "/tags", label: "Теги", Icon: IconTag },
-  { href: "/dashboard", label: "Статистика", Icon: IconStats },
-  { href: "/settings", label: "Настройки", Icon: IconSettings },
+const SECTIONS: Array<{
+  href: string;
+  labelKey: TranslationKey;
+  Icon: typeof IconList;
+}> = [
+  { href: "/items", labelKey: "nav.items", Icon: IconList },
+  { href: "/tags", labelKey: "nav.tags", Icon: IconTag },
+  { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
+  { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];
 
 export function SiteHeader() {
   const { user, loading } = useUser();
+  const { t } = useI18n();
   const pathname = usePathname();
 
   return (
@@ -38,7 +46,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className={styles.nav} aria-label="Разделы">
-          {SECTIONS.map(({ href, label, Icon }) => {
+          {SECTIONS.map(({ href, labelKey, Icon }) => {
             const active =
               pathname === href || pathname.startsWith(`${href}/`);
 
@@ -50,7 +58,7 @@ export function SiteHeader() {
                 key={href}
               >
                 <Icon size={14} />
-                {label}
+                {t(labelKey)}
               </Link>
             );
           })}
@@ -65,6 +73,7 @@ export function SiteHeader() {
                 <ThemeToggle />
               </div>
 
+              <LanguageSwitch />
               <UserMenu user={user} />
             </>
           ) : (

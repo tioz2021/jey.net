@@ -4,6 +4,7 @@ import Script from "next/script";
 
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
+import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import { UserProvider } from "@/lib/user-context";
 
@@ -49,7 +50,7 @@ export default async function RootLayout({
           {THEME_INIT}
         </Script>
         <a className="skip-link" href="#content">
-          Перейти к содержимому
+          {translate(locale, "app.skip")}
         </a>
         <LocaleProvider initialLocale={locale}>
           <UserProvider>

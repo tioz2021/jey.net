@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Avatar } from "@/components/profile/avatar";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 import type { User } from "@/lib/types";
 
@@ -15,6 +16,7 @@ export function UserMenu({ user }: { user: User }) {
   const router = useRouter();
   const pathname = usePathname();
   const { setUser } = useUser();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -97,11 +99,11 @@ export function UserMenu({ user }: { user: User }) {
               href={`/u/${user.id}`}
               role="menuitem"
             >
-              Моя страница
+              {t("account.myPage")}
             </Link>
           ) : null}
           <Link className={styles.item} href="/settings" role="menuitem">
-            Настройки
+            {t("account.settings")}
           </Link>
           <button
             className={`${styles.item} ${styles.danger}`}
@@ -110,7 +112,7 @@ export function UserMenu({ user }: { user: User }) {
             role="menuitem"
             type="button"
           >
-            {pending ? "Выходим…" : "Выйти"}
+            {pending ? `${t("account.logout")}…` : t("account.logout")}
           </button>
         </div>
       ) : null}

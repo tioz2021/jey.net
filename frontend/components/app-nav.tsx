@@ -13,22 +13,30 @@ import {
   IconTrash,
 } from "@/components/icons";
 
+import { useI18n } from "@/lib/locale-context";
+import type { TranslationKey } from "@/lib/i18n";
+
 import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
 
-const KINDS = [
-  { kind: null, label: "Все записи", Icon: IconList },
-  { kind: "movie", label: "Фильмы", Icon: IconFilm },
-  { kind: "book", label: "Книги", Icon: IconBook },
-  { kind: "image", label: "Картинки", Icon: IconImage },
-  { kind: "other", label: "Другое", Icon: IconOther },
-] as const;
+const KINDS: Array<{
+  kind: string | null;
+  labelKey: TranslationKey;
+  Icon: typeof IconList;
+}> = [
+  { kind: null, labelKey: "nav.all", Icon: IconList },
+  { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
+  { kind: "book", labelKey: "nav.books", Icon: IconBook },
+  { kind: "image", labelKey: "nav.images", Icon: IconImage },
+  { kind: "other", labelKey: "nav.other", Icon: IconOther },
+];
 
 function kindFromLocation(): string | null {
   return new URLSearchParams(window.location.search).get("kind");
 }
 
 export function AppNav() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const params = useSearchParams();
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
@@ -54,9 +62,9 @@ export function AppNav() {
 
   return (
     <aside className={styles.nav} aria-label="Типы записей">
-      <p className={styles.head}>Типы</p>
+      <p className={styles.head}>{t("nav.types")}</p>
       <div className={styles.body}>
-        {KINDS.map(({ kind, label, Icon }) => {
+        {KINDS.map(({ kind, labelKey, Icon }) => {
         const active =
           onItems && (kind === null ? !activeKind : activeKind === kind);
         const href = kind ? `/items?kind=${kind}` : "/items";
@@ -66,7 +74,7 @@ export function AppNav() {
             aria-current={active ? "page" : undefined}
             className={`${styles.link} ${active ? styles.active : ""}`}
             href={href}
-            key={label}
+            key={labelKey}
             onClick={(event) => {
               // Already on the catalogue: swap the filter in place instead of
               // navigating, so the page keeps its scroll position.
@@ -93,7 +101,7 @@ export function AppNav() {
             }}
           >
             <Icon size={14} />
-            {label}
+            {t(labelKey)}
             </Link>
           );
         })}
@@ -106,7 +114,7 @@ export function AppNav() {
           href="/trash"
         >
           <IconTrash size={14} />
-          Корзина
+          {t("nav.trash")}
         </Link>
       </div>
     </aside>
