@@ -8,6 +8,7 @@ import {
   localizedTags,
   localizedTitle,
 } from "@/lib/item-title";
+import { RatingStars } from "@/components/items/rating-stars";
 import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemStatus } from "@/lib/types";
@@ -79,7 +80,6 @@ export function ItemCard({
   const meta = [
     t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
-    item.rating ? `★ ${item.rating}` : null,
   ].filter(Boolean);
 
   return (
@@ -119,6 +119,16 @@ export function ItemCard({
         ) : null}
 
         <p className={styles.meta}>{meta.join(" · ")}</p>
+
+        {item.rating ? (
+          <div className={styles.rating}>
+            <RatingStars
+              compact
+              label={t("item.ratingOf", { rating: item.rating })}
+              value={item.rating}
+            />
+          </div>
+        ) : null}
 
         {item.review ? <p className={styles.review}>{item.review}</p> : null}
 

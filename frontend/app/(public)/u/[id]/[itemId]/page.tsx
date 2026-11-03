@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { MovieInfo } from "@/components/items/movie-info";
+import { RatingStars } from "@/components/items/rating-stars";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { KIND_KEYS } from "@/lib/i18n/labels";
 import { formatDate, translate } from "@/lib/i18n";
@@ -129,7 +130,17 @@ export default async function PublicItemPage({
 
             <div className={styles.metaRow}>
               <dt>{t("item.rating")}</dt>
-              <dd>{item.rating ? t("item.ratingOf", { rating: item.rating }) : "—"}</dd>
+              <dd>
+                {item.rating ? (
+                  <RatingStars
+                    label={t("item.ratingOf", { rating: item.rating })}
+                    size={14}
+                    value={item.rating}
+                  />
+                ) : (
+                  "—"
+                )}
+              </dd>
             </div>
 
             <div className={styles.metaRow}>

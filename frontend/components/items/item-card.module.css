@@ -86,6 +86,10 @@
   color: var(--color-text-muted);
 }
 
+.rating {
+  margin-top: var(--space-1);
+}
+
 .review {
   display: -webkit-box;
   margin: var(--space-1) 0 0;

@@ -19,11 +19,11 @@
 }
 
 .starLabel:hover .star {
-  color: var(--color-warning);
+  color: var(--color-star);
 }
 
 .active {
-  color: var(--color-warning);
+  color: var(--color-star);
   fill: currentColor;
 }
 

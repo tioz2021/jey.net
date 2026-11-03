@@ -1,0 +1,35 @@
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  vertical-align: middle;
+}
+
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star {
+  display: block;
+  color: var(--color-border);
+}
+
+.active {
+  color: var(--color-star);
+  fill: currentColor;
+}
+
+.value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.compact .value {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}

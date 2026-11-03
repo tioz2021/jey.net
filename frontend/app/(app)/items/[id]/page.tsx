@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
 import { MovieInfo } from "@/components/items/movie-info";
+import { RatingStars } from "@/components/items/rating-stars";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
@@ -162,9 +163,15 @@ export default async function ItemPage({
               <div className={styles.metaRow}>
                 <dt>{t("item.rating")}</dt>
                 <dd>
-                  {item.rating
-                    ? t("item.ratingOf", { rating: item.rating })
-                    : "—"}
+                  {item.rating ? (
+                    <RatingStars
+                      label={t("item.ratingOf", { rating: item.rating })}
+                      size={14}
+                      value={item.rating}
+                    />
+                  ) : (
+                    "—"
+                  )}
                 </dd>
               </div>
 
