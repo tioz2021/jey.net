@@ -8,6 +8,8 @@ import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { UserResponse } from "@/lib/types";
 
+import styles from "./page.module.css";
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
 
@@ -34,6 +36,7 @@ export default async function WelcomePage() {
         title={translate(locale, "auth.welcomeTitle")}
       />
       <Card>
+        <p className={styles.step}>{translate(locale, "auth.welcomeStep")}</p>
         <NicknameForm initial={user.display_name} />
       </Card>
     </main>

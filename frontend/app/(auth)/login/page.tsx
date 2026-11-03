@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { LoginOptions } from "@/components/forms/login-options";
+import { Logo } from "@/components/logo";
 import { RedirectIfAuthenticated } from "@/components/redirect-if-authenticated";
 import { Card } from "@/components/ui";
 import { translate } from "@/lib/i18n";
@@ -24,6 +25,17 @@ export default async function LoginPage() {
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.intro}>
+        <Logo size={34} />
+        <p className={styles.kicker}>jey.net</p>
+        <h1 className={styles.title}>
+          {translate(locale, "auth.loginIntroTitle")}
+        </h1>
+        <p className={styles.lead}>
+          {translate(locale, "auth.loginLead")}
+        </p>
+      </div>
+
       <Card title={translate(locale, "auth.loginTitle")}>
         {/* useSearchParams needs a Suspense boundary during prerendering. */}
         <Suspense fallback={null}>
@@ -31,6 +43,7 @@ export default async function LoginPage() {
           <LoginOptions />
         </Suspense>
       </Card>
+
       <p className={styles.footer}>
         {translate(locale, "auth.noRegister")}
       </p>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LanguageSwitch } from "@/components/language-switch";
+import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import styles from "./layout.module.css";
@@ -18,7 +19,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <header className={styles.bar}>
         <div className={styles.barInner}>
           <Link className={styles.brand} href="/">
-            jey.net
+            <Logo size={22} />
+            <span>jey.net</span>
           </Link>
           <div className={styles.links}>
             <LanguageSwitch />

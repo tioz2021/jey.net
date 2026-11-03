@@ -9,6 +9,8 @@ import { useI18n } from "@/lib/locale-context";
 import { ApiError } from "@/lib/errors";
 import { useUser } from "@/lib/user-context";
 
+import styles from "./nickname-form.module.css";
+
 export function NicknameForm({ initial }: { initial: string }) {
   const router = useRouter();
   const { setUser } = useUser();
@@ -39,6 +41,20 @@ export function NicknameForm({ initial }: { initial: string }) {
 
   return (
     <form onSubmit={save} noValidate>
+      <div className={styles.preview}>
+        <span aria-hidden="true" className={styles.avatar}>
+          {name.trim().charAt(0).toUpperCase() || "?"}
+        </span>
+        <div className={styles.previewText}>
+          <span className={styles.previewLabel}>
+            {t("auth.welcomePreview")}
+          </span>
+          <span className={styles.previewName}>
+            {name.trim() || t("auth.welcomeNameFallback")}
+          </span>
+        </div>
+      </div>
+
       <Input
         autoFocus
         error={error ?? undefined}
