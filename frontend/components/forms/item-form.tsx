@@ -8,9 +8,17 @@ import { Button, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
 import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
-import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
+import type {
+  Item,
+  ItemKind,
+  ItemStatus,
+  MovieDetails,
+  MovieDetailsResponse,
+  NewItem,
+} from "@/lib/types";
 
 import { CoverPicker } from "@/components/items/cover-picker";
+import { MovieSearch } from "@/components/items/movie-search";
 import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
@@ -53,6 +61,9 @@ interface Values {
   rating: string;
   review: string;
   source_url: string;
+  external_source: string;
+  external_id: string;
+  details: MovieDetails | null;
   tags: string[];
 }
 
@@ -65,6 +76,9 @@ const INITIAL: Values = {
   rating: "",
   review: "",
   source_url: "",
+  external_source: "",
+  external_id: "",
+  details: null,
   tags: [],
 };
 
@@ -82,6 +96,9 @@ function toValues(item?: Item): Values {
     rating: item.rating === null ? "" : String(item.rating),
     review: item.review ?? "",
     source_url: item.source_url ?? "",
+    external_source: item.external_source ?? "",
+    external_id: item.external_id ?? "",
+    details: item.details,
     tags: [...item.tags],
   };
 }
@@ -152,9 +169,27 @@ function validate(values: Values): { errors: Errors; item?: NewItem } {
       rating,
       review: values.review.trim() || null,
       source_url: sourceUrl || null,
+      external_source: values.external_id ? "tmdb" : null,
+      external_id: values.external_id || null,
+      details: values.details,
       tags: values.tags,
     },
   };
+}
+
+function mergeTags(current: string[], incoming: string[]): string[] {
+  const seen = new Set(current.map((tag) => tag.toLowerCase()));
+  const merged = [...current];
+
+  for (const tag of incoming) {
+    const key = tag.trim().toLowerCase();
+    if (key && !seen.has(key) && merged.length < 20) {
+      seen.add(key);
+      merged.push(tag.trim());
+    }
+  }
+
+  return merged;
 }
 
 export function ItemForm({
@@ -171,12 +206,36 @@ export function ItemForm({
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
   const [coverCleared, setCoverCleared] = useState(false);
+  const [posterPending, setPosterPending] = useState(false);
 
   const statuses = STATUS_BY_KIND[values.kind];
 
   function update<K extends keyof Values>(field: K, value: Values[K]) {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field as Field]: undefined }));
+  }
+
+  function applyMovie(movie: MovieDetailsResponse) {
+    setValues((current) => ({
+      ...current,
+      title: movie.title,
+      year: movie.year ? String(movie.year) : "",
+      subtitle: movie.director ?? current.subtitle,
+      external_source: "tmdb",
+      external_id: String(movie.tmdb_id),
+      details: {
+        original_title: movie.original_title,
+        overview: movie.overview,
+        runtime: movie.runtime,
+        director: movie.director,
+        cast: movie.cast,
+        genres: movie.genres,
+      },
+      tags: mergeTags(current.tags, movie.genres),
+    }));
+    setPosterPending(true);
+    setCoverUploadId(null);
+    setCoverCleared(false);
   }
 
   function changeKind(kind: ItemKind) {
@@ -212,10 +271,18 @@ export function ItemForm({
         await api.items.setCover(savedId, coverUploadId);
       } else if (coverCleared && itemId) {
         await api.items.clearCover(itemId);
+      } else if (posterPending && values.external_id) {
+        // A missing poster must never block saving the record itself.
+        try {
+          await api.items.setPoster(savedId);
+        } catch {
+          // The form still saves; the cover can be added later.
+        }
       }
 
+      // The detail page fetches the record on the server; refreshing here
+      // would race with the navigation and can keep the form's route.
       router.push(`/items/${savedId}`);
-      router.refresh();
     } catch (error) {
       if (error instanceof ApiError) {
         const field = error.field;
@@ -258,6 +325,13 @@ export function ItemForm({
           ))}
         </Select>
       </div>
+
+      {values.kind === "movie" ? (
+        <MovieSearch
+          onSelect={applyMovie}
+          selected={values.external_id ? values.title : null}
+        />
+      ) : null}
 
       <Input
         label="Название"

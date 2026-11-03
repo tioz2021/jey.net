@@ -30,6 +30,31 @@ export interface User {
   created_at: string;
 }
 
+export interface MovieDetails {
+  original_title: string;
+  overview: string | null;
+  runtime: number | null;
+  director: string | null;
+  cast: string[];
+  genres: string[];
+}
+
+export interface MovieSearchItem {
+  tmdb_id: number;
+  title: string;
+  original_title: string;
+  year: number | null;
+  poster_path: string | null;
+  overview: string | null;
+}
+
+export interface MovieDetailsResponse extends MovieDetails {
+  tmdb_id: number;
+  title: string;
+  year: number | null;
+  poster_path: string | null;
+}
+
 export interface Item {
   id: string;
   kind: ItemKind;
@@ -41,6 +66,10 @@ export interface Item {
   review: string | null;
   source_url: string | null;
   cover_key: string | null;
+  external_source: string | null;
+  external_id: string | null;
+  details: MovieDetails | null;
+  details_fetched_at: string | null;
   tags: string[];
   revision: number;
   sync_seq: number;
@@ -58,6 +87,9 @@ export interface NewItem {
   rating?: number | null;
   review?: string | null;
   source_url?: string | null;
+  external_source?: string | null;
+  external_id?: string | null;
+  details?: MovieDetails | null;
   tags?: string[];
 }
 

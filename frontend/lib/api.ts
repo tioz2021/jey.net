@@ -18,6 +18,8 @@ import type {
   NewItem,
   Stats,
   TagCount,
+  MovieDetailsResponse,
+  MovieSearchItem,
   TagsResponse,
   UserResponse,
 } from "./types";
@@ -266,6 +268,9 @@ export const items = {
       body: { upload_id: uploadId },
     }),
 
+  setPoster: (id: string) =>
+    request<ItemResponse>(`/items/${id}/poster`, { method: "POST" }),
+
   clearCover: (id: string) =>
     request<ItemResponse>(`/items/${id}/cover`, { method: "DELETE" }),
 };
@@ -297,6 +302,16 @@ export const tags = {
     }),
 };
 
+export const movies = {
+  search: (q: string) =>
+    request<{ results: MovieSearchItem[] }>(
+      `/movies/search?q=${encodeURIComponent(q)}`,
+    ),
+
+  get: (id: number) =>
+    request<{ movie: MovieDetailsResponse }>(`/movies/${id}`),
+};
+
 export const stats = {
   get: () => request<Stats>("/stats"),
 };
@@ -306,6 +321,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, items, tags, stats, transfer, uploads };
+export const api = { auth, items, movies, tags, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };
