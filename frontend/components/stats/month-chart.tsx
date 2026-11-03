@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 import type { MonthCount } from "@/lib/types";
 
@@ -34,8 +37,11 @@ function longMonth(value: string): string {
  */
 export function MonthChart({ data }: { data: MonthCount[] }) {
   const max = Math.max(1, ...data.map((item) => item.count));
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  const [active, setActive] = useState<MonthCount | null>(null);
 
   return (
+    <>
     <div className={styles.scroller}>
       <ul className={styles.chart} aria-label="Записи по месяцам">
         {data.map((item) => (
@@ -44,7 +50,10 @@ export function MonthChart({ data }: { data: MonthCount[] }) {
               aria-label={`Записи за ${longMonth(item.month)}: ${item.count}`}
               className={styles.link}
               href={`/items?month=${item.month}`}
-              title={`${longMonth(item.month)}: ${item.count}`}
+              onBlur={() => setActive(null)}
+              onFocus={() => setActive(item)}
+              onMouseEnter={() => setActive(item)}
+              onMouseLeave={() => setActive(null)}
             >
               <span className={styles.count}>{item.count}</span>
               <span
@@ -57,5 +66,12 @@ export function MonthChart({ data }: { data: MonthCount[] }) {
         ))}
       </ul>
     </div>
+
+    <p aria-live="polite" className={styles.detail}>
+      {active
+        ? `${longMonth(active.month)} — ${active.count} записей`
+        : `Всего за 12 месяцев: ${total}`}
+    </p>
+    </>
   );
 }

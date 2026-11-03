@@ -1,3 +1,10 @@
+.detail {
+  min-height: 1.4em;
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .scroller {
   overflow-x: auto;
   padding-bottom: var(--space-2);

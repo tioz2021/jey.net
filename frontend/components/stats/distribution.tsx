@@ -45,12 +45,16 @@ export function Distribution({
                   </>
                 );
 
+                const description = `${row.label}: ${row.count} (${share}%)`;
+
                 return row.href ? (
-                  <Link className={styles.row} href={row.href}>
+                  <Link className={styles.row} href={row.href} title={description}>
                     {content}
                   </Link>
                 ) : (
-                  <div className={styles.row}>{content}</div>
+                  <div className={styles.row} title={description}>
+                    {content}
+                  </div>
                 );
               })()}
             </li>
