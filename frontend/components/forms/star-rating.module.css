@@ -14,13 +14,10 @@
 
 .star {
   display: block;
-  color: var(--color-star-empty);
-  transition: color var(--transition-fast);
-}
-
-:global(:root[data-theme="dark"]) .star {
   width: 25px;
   height: 25px;
+  color: var(--color-star-empty);
+  transition: color var(--transition-fast);
 }
 
 .starLabel:hover .star {

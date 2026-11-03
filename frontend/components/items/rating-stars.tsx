@@ -23,7 +23,7 @@ export function RatingStars({
       aria-label={label ?? `${value}/10`}
       className={`${styles.rating} ${compact ? styles.compact : ""}`}
       role="img"
-      style={{ "--star-size": `${size}px` } as CSSProperties}
+      style={{ "--star-size": `${size * 1.2}px` } as CSSProperties}
     >
       <span aria-hidden="true" className={styles.stars}>
         {STARS.map((star) => (
