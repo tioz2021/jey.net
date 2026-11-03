@@ -209,23 +209,25 @@ export function ItemForm({
   initial,
   itemId,
   initialKind,
+  lockKind,
 }: {
   initial?: Item;
   itemId?: string;
   initialKind?: ItemKind;
+  lockKind?: ItemKind;
 }) {
   const router = useRouter();
   const { t } = useI18n();
   const { notify, notifyError } = useToast();
   const [values, setValues] = useState<Values>(() =>
-    toValues(initial, initialKind),
+    toValues(initial, lockKind ?? initialKind),
   );
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
   const [coverCleared, setCoverCleared] = useState(false);
   const [posterPending, setPosterPending] = useState(false);
-  const startKind = initial?.kind ?? initialKind ?? "movie";
+  const startKind = initial?.kind ?? lockKind ?? initialKind ?? "movie";
   const [advanced, setAdvanced] = useState(
     () =>
       Boolean(itemId) || (startKind !== "movie" && startKind !== "tv"),
@@ -362,18 +364,25 @@ export function ItemForm({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <div className={`${styles.row} ${showExtra ? "" : styles.single}`}>
-        <Select
-          label={t("form.kind")}
-          value={values.kind}
-          onChange={(event) => changeKind(event.target.value as ItemKind)}
-        >
-          {KINDS.map((value) => (
-            <option key={value} value={value}>
-              {t(KIND_KEYS[value])}
-            </option>
-          ))}
-        </Select>
+      {lockKind && !showExtra ? null : (
+      <div
+        className={`${styles.row} ${
+          showExtra || lockKind ? "" : styles.single
+        }`}
+      >
+        {lockKind ? null : (
+          <Select
+            label={t("form.kind")}
+            value={values.kind}
+            onChange={(event) => changeKind(event.target.value as ItemKind)}
+          >
+            {KINDS.map((value) => (
+              <option key={value} value={value}>
+                {t(KIND_KEYS[value])}
+              </option>
+            ))}
+          </Select>
+        )}
 
         {showExtra ? (
           <Select
@@ -391,6 +400,7 @@ export function ItemForm({
           </Select>
         ) : null}
       </div>
+      )}
 
       {values.kind === "movie" || values.kind === "tv" ? (
         <MovieSearch

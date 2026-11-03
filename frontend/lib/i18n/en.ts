@@ -417,4 +417,9 @@ export const en = {
   'tvSearch.loadError': 'Could not load the series. Try again.',
   'tvSearch.notFound': 'Nothing found. You can fill the card manually.',
   'tvSearch.selected': 'Filled from TMDB: “{title}”',
+  'items.add.movie': 'Add a film',
+  'items.add.tv': 'Add a series',
+  'items.add.book': 'Add a book',
+  'items.add.image': 'Add an image',
+  'items.add.other': 'Add another record',
 } satisfies Record<keyof typeof ru, string>;

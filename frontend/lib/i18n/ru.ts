@@ -416,4 +416,9 @@ export const ru = {
   'tvSearch.loadError': 'Не удалось загрузить сериал. Попробуйте ещё раз.',
   'tvSearch.notFound': 'Ничего не найдено. Можно заполнить карточку вручную.',
   'tvSearch.selected': 'Заполнено из TMDB: «{title}»',
+  'items.add.movie': 'Добавить фильм',
+  'items.add.tv': 'Добавить сериал',
+  'items.add.book': 'Добавить книгу',
+  'items.add.image': 'Добавить картинку',
+  'items.add.other': 'Добавить другое',
 } as const;

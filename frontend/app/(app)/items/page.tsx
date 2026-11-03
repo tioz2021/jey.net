@@ -41,8 +41,14 @@ export default async function ItemsPage({
       ? raw.kind
       : null;
   const addHref = requestedKind
-    ? `/items/new?kind=${requestedKind}`
+    ? `/items/new?kind=${requestedKind}&locked=1`
     : "/items/new";
+  const addLabel = requestedKind
+    ? translate(
+        locale,
+        `items.add.${requestedKind}` as Parameters<typeof translate>[1],
+      )
+    : translate(locale, "common.add");
   const response = await backendFetch(`/items${search ? `?${search}` : ""}`, {
     cache: "no-store",
   });
@@ -63,7 +69,7 @@ export default async function ItemsPage({
       <PageHeader
         action={
           <Link className={styles.add} href={addHref}>
-            {translate(locale, "common.add")}
+            {addLabel}
           </Link>
         }
         title={translate(locale, "page.items")}

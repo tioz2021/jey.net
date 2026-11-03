@@ -31,6 +31,8 @@ export default async function NewItemPage({
     requested === "movie"
       ? requested
       : undefined;
+  const lockedKind: ItemKind | undefined =
+    raw.locked === "1" ? initialKind : undefined;
 
   return (
     <main>
@@ -39,7 +41,7 @@ export default async function NewItemPage({
       </p>
       <PageHeader title={translate(locale, "page.itemNew")} />
       <Card>
-        <ItemForm initialKind={initialKind} />
+        <ItemForm initialKind={initialKind} lockKind={lockedKind} />
       </Card>
     </main>
   );

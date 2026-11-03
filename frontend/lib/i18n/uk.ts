@@ -417,4 +417,9 @@ export const uk = {
   'tvSearch.loadError': 'Не вдалося завантажити серіал. Спробуйте ще раз.',
   'tvSearch.notFound': 'Нічого не знайдено. Можна заповнити картку вручну.',
   'tvSearch.selected': 'Заповнено з TMDB: «{title}»',
+  'items.add.movie': 'Додати фільм',
+  'items.add.tv': 'Додати серіал',
+  'items.add.book': 'Додати книгу',
+  'items.add.image': 'Додати картинку',
+  'items.add.other': 'Додати інше',
 } satisfies Record<keyof typeof ru, string>;
