@@ -78,6 +78,10 @@ say "building web"
 say "uploading artifacts"
 "${SCP[@]}" target/release/jey-api "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/jey/jey-api.new"
 "${SCP[@]}" jey-web.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-web.tar.gz"
+"${SCP[@]}" scripts/backup-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-backup-db.new"
+"${SCP[@]}" scripts/restore-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-restore-db.new"
+"${SCP[@]}" deploy/jey-backup.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.service"
+"${SCP[@]}" deploy/jey-backup.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.timer"
 rm -f jey-web.tar.gz
 
 say "activating"
@@ -122,7 +126,19 @@ if [[ "${healthy}" -ne 1 ]]; then
     exit 1
 fi
 
-# 3. Web client: keep the previous bundle for rollback.
+# 3. Backup tooling. The GPG public key is installed once, out of band.
+install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
+install -m 700 /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-db
+rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new
+systemctl daemon-reload
+if [[ -s /etc/jey/backup-recipient ]]; then
+    systemctl enable --now jey-backup.timer
+    echo "backup timer enabled"
+else
+    echo "warning: /etc/jey/backup-recipient is missing, backup timer not enabled" >&2
+fi
+
+# 4. Web client: keep the previous bundle for rollback.
 rm -rf /opt/jey/web.prev
 mv /opt/jey/web /opt/jey/web.prev
 install -d -o jey -g jey -m 750 /opt/jey/web

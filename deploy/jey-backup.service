@@ -1,0 +1,12 @@
+[Unit]
+Description=jey.net encrypted PostgreSQL backup
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/jey-backup-db
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=30min
