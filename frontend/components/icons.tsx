@@ -41,6 +41,15 @@ export function IconFilm(props: IconProps) {
   );
 }
 
+export function IconTv(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect height="12" rx="1" width="18" x="3" y="6" {...stroke()} />
+      <path d="M8 21h8M12 18v3M8 3.5 12 6l4-2.5" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconBook(props: IconProps) {
   return (
     <svg {...base(props)}>

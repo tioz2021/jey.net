@@ -11,6 +11,7 @@ import {
   IconList,
   IconOther,
   IconTrash,
+  IconTv,
 } from "@/components/icons";
 
 import { useI18n } from "@/lib/locale-context";
@@ -26,7 +27,7 @@ const KINDS: Array<{
 }> = [
   { kind: null, labelKey: "nav.all", Icon: IconList },
   { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
-  { kind: "tv", labelKey: "nav.series", Icon: IconFilm },
+  { kind: "tv", labelKey: "nav.series", Icon: IconTv },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
   { kind: "image", labelKey: "nav.images", Icon: IconImage },
   { kind: "other", labelKey: "nav.other", Icon: IconOther },
