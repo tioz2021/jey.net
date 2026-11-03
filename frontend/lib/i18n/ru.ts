@@ -454,4 +454,10 @@ export const ru = {
   'auth.welcomeStep': 'Шаг 2 из 3 · профиль',
   'auth.welcomePreview': 'Так будет выглядеть профиль',
   'auth.welcomeNameFallback': 'Ваш ник',
+  'tags.search': 'Поиск по тегам',
+  'tags.sort': 'Сортировка',
+  'tags.sortCount': 'По количеству',
+  'tags.sortName': 'По названию',
+  'tags.noMatch': 'Ничего не найдено. Попробуйте другое название.',
+  'trash.retention': 'Записи в корзине хранятся 30 дней, затем удаляются автоматически. До этого их можно восстановить.',
 } as const;

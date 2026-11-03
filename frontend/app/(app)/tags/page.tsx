@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { TagActions } from "@/components/items/tag-actions";
 import { EmptyState } from "@/components/empty-state";
+import { TagsBrowser } from "@/components/items/tags-browser";
 import { Card, PageHeader } from "@/components/ui";
-import { plural, translate } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { TagsResponse } from "@/lib/types";
@@ -59,29 +59,7 @@ export default async function TagsPage() {
         />
       ) : (
         <Card>
-          <ul className={styles.list}>
-          {tags.map((tag) => (
-            <li key={tag.id} className={styles.row}>
-              <Link
-                className={styles.name}
-                href={`/items?tag=${encodeURIComponent(tag.name)}`}
-              >
-                {tag.name}
-              </Link>
-              <span className={styles.count}>
-                {t("tags.records", {
-                  count: tag.item_count,
-                  forms: plural(locale, tag.item_count, {
-                    one: t("tags.record.one"),
-                    few: t("tags.record.few"),
-                    many: t("tags.record.many"),
-                  }),
-                })}
-              </span>
-              <TagActions tag={tag} tags={tags} />
-            </li>
-          ))}
-          </ul>
+          <TagsBrowser tags={tags} />
         </Card>
       )}
     </main>

@@ -455,4 +455,10 @@ export const uk = {
   'auth.welcomeStep': 'Крок 2 з 3 · профіль',
   'auth.welcomePreview': 'Так виглядатиме профіль',
   'auth.welcomeNameFallback': 'Ваш нік',
+  'tags.search': 'Пошук за тегами',
+  'tags.sort': 'Сортування',
+  'tags.sortCount': 'За кількістю',
+  'tags.sortName': 'За назвою',
+  'tags.noMatch': 'Нічого не знайдено. Спробуйте іншу назву.',
+  'trash.retention': 'Записи в кошику зберігаються 30 днів, потім видаляються автоматично. До того їх можна відновити.',
 } satisfies Record<keyof typeof ru, string>;

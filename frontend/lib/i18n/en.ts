@@ -455,4 +455,10 @@ export const en = {
   'auth.welcomeStep': 'Step 2 of 3 · profile',
   'auth.welcomePreview': 'Your profile will look like this',
   'auth.welcomeNameFallback': 'Your nickname',
+  'tags.search': 'Search tags',
+  'tags.sort': 'Sort',
+  'tags.sortCount': 'By count',
+  'tags.sortName': 'By name',
+  'tags.noMatch': 'Nothing found. Try another name.',
+  'trash.retention': 'Deleted records stay in the bin for 30 days and are then removed automatically. You can restore them before that.',
 } satisfies Record<keyof typeof ru, string>;
