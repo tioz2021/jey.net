@@ -8,14 +8,19 @@
 .starLabel {
   display: flex;
   padding: 2px 0;
-  color: var(--color-border);
+  color: var(--color-star-empty);
   cursor: pointer;
 }
 
 .star {
   display: block;
-  color: var(--color-border);
+  color: var(--color-star-empty);
   transition: color var(--transition-fast);
+}
+
+:global(:root[data-theme="dark"]) .star {
+  width: 25px;
+  height: 25px;
 }
 
 .starLabel:hover .star {

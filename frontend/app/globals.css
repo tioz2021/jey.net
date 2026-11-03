@@ -30,6 +30,7 @@
   --color-warning-soft: #fff4d6;
   --color-focus-ring: #2f6fed;
   --color-star: #f5c518;
+  --color-star-empty: #c7ccd4;
   --color-mark-bg: #fde68a;
   --color-overlay: rgb(10 12 16 / 55%);
 
@@ -92,6 +93,7 @@
     --color-warning-soft: #2a2213;
     --color-focus-ring: #8aadff;
     --color-star: #f7cb45;
+    --color-star-empty: #667085;
     --color-mark-bg: #4a3b12;
     --color-overlay: rgb(0 0 0 / 65%);
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
@@ -124,6 +126,7 @@
   --color-warning-soft: #2a2213;
   --color-focus-ring: #8aadff;
   --color-star: #f7cb45;
+  --color-star-empty: #667085;
   --color-mark-bg: #4a3b12;
   --color-overlay: rgb(0 0 0 / 65%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);

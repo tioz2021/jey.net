@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import styles from "./rating-stars.module.css";
 
 const STARS = Array.from({ length: 10 }, (_, index) => index + 1);
@@ -21,6 +23,7 @@ export function RatingStars({
       aria-label={label ?? `${value}/10`}
       className={`${styles.rating} ${compact ? styles.compact : ""}`}
       role="img"
+      style={{ "--star-size": `${size}px` } as CSSProperties}
     >
       <span aria-hidden="true" className={styles.stars}>
         {STARS.map((star) => (

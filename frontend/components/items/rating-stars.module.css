@@ -13,7 +13,14 @@
 
 .star {
   display: block;
-  color: var(--color-border);
+  width: var(--star-size);
+  height: var(--star-size);
+  color: var(--color-star-empty);
+}
+
+:global(:root[data-theme="dark"]) .star {
+  width: calc(var(--star-size) * 1.2);
+  height: calc(var(--star-size) * 1.2);
 }
 
 .active {

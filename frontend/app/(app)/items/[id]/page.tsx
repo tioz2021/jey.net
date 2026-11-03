@@ -244,6 +244,12 @@ export default async function ItemPage({
           </Card>
         </div>
 
+        {item.review ? (
+          <Card title={t("item.note")}>
+            <p className={styles.review}>{item.review}</p>
+          </Card>
+        ) : null}
+
         {item.details ? (
           <MovieInfo
             details={item.details}
@@ -252,12 +258,6 @@ export default async function ItemPage({
               item.external_source === "tmdb" ? item.external_id : null
             }
           />
-        ) : null}
-
-        {item.review ? (
-          <Card title={t("item.note")}>
-            <p className={styles.review}>{item.review}</p>
-          </Card>
         ) : null}
       </div>
     </main>
