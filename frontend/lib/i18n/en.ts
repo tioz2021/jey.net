@@ -449,4 +449,5 @@ export const en = {
   'tvEpisodes.watched': 'Watched',
   'tvEpisodes.notWatched': 'Not watched',
   'filters.titleCount': 'Filters · {count}',
+  'skeleton.profile': 'Loading profile',
 } satisfies Record<keyof typeof ru, string>;

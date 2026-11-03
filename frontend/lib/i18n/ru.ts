@@ -448,4 +448,5 @@ export const ru = {
   'tvEpisodes.watched': 'Просмотрено',
   'tvEpisodes.notWatched': 'Не просмотрено',
   'filters.titleCount': 'Фильтры · {count}',
+  'skeleton.profile': 'Загрузка профиля',
 } as const;

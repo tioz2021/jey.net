@@ -449,4 +449,5 @@ export const uk = {
   'tvEpisodes.watched': 'Переглянуто',
   'tvEpisodes.notWatched': 'Не переглянуто',
   'filters.titleCount': 'Фільтри · {count}',
+  'skeleton.profile': 'Завантаження профілю',
 } satisfies Record<keyof typeof ru, string>;
