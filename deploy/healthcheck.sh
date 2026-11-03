@@ -13,6 +13,7 @@
 #   MEM_WARN_MB=100
 #   CERT_WARN_DAYS=14
 #   BACKUP_MAX_HOURS=30
+#   HC_PING_URL=https://hc-ping.com/<uuid>
 
 set -uo pipefail
 
@@ -33,6 +34,7 @@ ALERT_WEBHOOK="${ALERT_WEBHOOK:-}"
 CERT_WARN_DAYS="${CERT_WARN_DAYS:-14}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/jey}"
 BACKUP_MAX_HOURS="${BACKUP_MAX_HOURS:-30}"
+HC_PING_URL="${HC_PING_URL:-}"
 
 problems=()
 
@@ -154,6 +156,20 @@ if [[ "${current}" != "${previous}" ]]; then
     fi
     printf '%s' "${current}" > "${STATE_FILE}"
     logger -t "${LOG_TAG}" "state: ${current}"
+fi
+
+# Dead-man's switch: ping an external service on every run. When the VPS or
+# this script disappears, the pings stop and the service raises an alert.
+if [[ -n "${HC_PING_URL}" ]]; then
+    hc_url="${HC_PING_URL%/}"
+    if [[ "${current}" != "ok" ]]; then
+        hc_url="${hc_url}/fail"
+    fi
+
+    if ! curl -fsS --max-time 10 -o /dev/null -X POST \
+        --data-raw "${current}" "${hc_url}"; then
+        logger -t "${LOG_TAG}" "healthchecks.io ping failed"
+    fi
 fi
 
 if [[ "${1:-}" == "--verbose" ]]; then

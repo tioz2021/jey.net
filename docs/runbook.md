@@ -178,7 +178,12 @@ BASE_URL=https://129-121-149-16.sslip.io
 ALERT_WEBHOOK=https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<CHAT_ID>
 CERT_WARN_DAYS=14
 BACKUP_MAX_HOURS=30
+HC_PING_URL=https://hc-ping.com/<uuid>
 ```
+
+`HC_PING_URL` — внешний heartbeat. Healthcheck пингует его каждые 5 минут;
+при проблеме отправляет `/fail`. Если пинги прекратились (VPS или сервис
+умерли), Healthchecks.io пришлёт письмо.
 
 Для Telegram: создать бота через `@BotFather`, написать ему, получить
 `chat_id` через `getUpdates`, подставить токен и id. Без webhook мониторинг
