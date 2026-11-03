@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PublicProfileView } from "@/components/public-profile";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { getPublicProfile } from "@/lib/public-profile";
+import { languageAlternates } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -10,22 +13,29 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
+  const locale = await getServerLocale();
   const data = await getPublicProfile(id);
 
   if (!data) {
-    return { title: "Профиль не найден — jey.net", robots: { index: false } };
+    return {
+      title: `${translate(locale, "notFound.profile")} — jey.net`,
+      robots: { index: false },
+    };
   }
 
   const { profile, items } = data;
   const description =
     items.length > 0
-      ? `Завершённых записей: ${items.length}. Фильмы, книги и картинки, собранные в jey.net.`
-      : "Публичный профиль в jey.net.";
+      ? `${translate(locale, "public.finished", { count: items.length })} · jey.net`
+      : translate(locale, "public.empty");
 
   return {
     title: `${profile.display_name} — jey.net`,
     description,
-    alternates: { canonical: `/u/${id}` },
+    alternates: {
+      canonical: `/u/${id}`,
+      languages: languageAlternates(`/u/${id}`),
+    },
     openGraph: {
       type: "profile",
       title: profile.display_name,

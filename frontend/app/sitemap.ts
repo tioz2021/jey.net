@@ -14,10 +14,33 @@ interface PublicUserEntry {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
+  const languages = (path: string) => ({
+    languages: {
+      ru: `${base}${path}`,
+      uk: `${base}${path}?lang=uk`,
+      en: `${base}${path}?lang=en`,
+    },
+  });
+
   const entries: MetadataRoute.Sitemap = [
-    { url: `${base}/`, changeFrequency: "monthly", priority: 1 },
-    { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.3 },
+    {
+      url: `${base}/`,
+      changeFrequency: "monthly",
+      priority: 1,
+      alternates: languages("/"),
+    },
+    {
+      url: `${base}/privacy`,
+      changeFrequency: "yearly",
+      priority: 0.3,
+      alternates: languages("/privacy"),
+    },
+    {
+      url: `${base}/terms`,
+      changeFrequency: "yearly",
+      priority: 0.3,
+      alternates: languages("/terms"),
+    },
   ];
 
   try {
@@ -33,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${base}/u/${user.id}`,
           changeFrequency: "weekly",
           priority: 0.6,
+          alternates: languages(`/u/${user.id}`),
         });
       }
     }

@@ -11,9 +11,11 @@ import type { ItemList as ItemListResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Записи — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "page.items")} — jey.net` };
+}
 
 export default async function ItemsPage({
   searchParams,

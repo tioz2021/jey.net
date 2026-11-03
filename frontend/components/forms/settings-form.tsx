@@ -95,7 +95,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError && error.field === "password") {
-        setDeleteError("Неверный пароль");
+        setDeleteError(t("settings.wrongPassword"));
       } else {
         setDeleteError(null);
         notifyError(error);

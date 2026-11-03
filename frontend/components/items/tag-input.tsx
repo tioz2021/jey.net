@@ -127,7 +127,7 @@ export function TagInput({
   return (
     <div className={styles.field}>
       <Input
-        label="Теги"
+        label={t("form.tags")}
         hint={t("form.tagsHint")}
         value={value}
         onChange={(event) => {

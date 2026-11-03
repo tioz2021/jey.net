@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { useI18n } from "@/lib/locale-context";
+
 import { Button } from "./Button";
 import styles from "./Dialog.module.css";
 
@@ -20,6 +22,7 @@ export interface DialogProps {
  */
 export function Dialog({ open, title, children, onClose, footer }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const { t } = useI18n();
   const titleId = useId();
 
   useEffect(() => {
@@ -102,7 +105,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
           <h2 className={styles.title} id={titleId}>
             {title}
           </h2>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Закрыть">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label={t("common.close")}>
             ✕
           </Button>
         </header>

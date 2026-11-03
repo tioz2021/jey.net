@@ -10,31 +10,32 @@ import { UserProvider } from "@/lib/user-context";
 
 import "./globals.css";
 
-const SITE_DESCRIPTION =
-  "Фильмы, книги, картинки и заметки в одном месте: личный каталог того, что вы посмотрели, прочитали и сохранили.";
-
 // The layout reads the locale cookie, so every route is rendered per request.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.PUBLIC_URL ?? "http://localhost:3000"),
-  title: "jey.net — личный портал",
-  description: SITE_DESCRIPTION,
-  applicationName: "jey.net",
-  openGraph: {
-    type: "website",
-    siteName: "jey.net",
-    locale: "ru_RU",
-    title: "jey.net — личный портал",
-    description: SITE_DESCRIPTION,
-  },
-  twitter: {
-    card: "summary",
-    title: "jey.net — личный портал",
-    description: SITE_DESCRIPTION,
-  },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  const title = `${translate(locale, "app.name")} — ${translate(locale, "app.tagline")}`;
+  const description = translate(locale, "landing.metaDescription");
+  const ogLocale =
+    locale === "uk" ? "uk_UA" : locale === "en" ? "en_US" : "ru_RU";
+
+  return {
+    metadataBase: new URL(process.env.PUBLIC_URL ?? "http://localhost:3000"),
+    title,
+    description,
+    applicationName: "jey.net",
+    openGraph: {
+      type: "website",
+      siteName: "jey.net",
+      locale: ogLocale,
+      title,
+      description,
+    },
+    twitter: { card: "summary", title, description },
+    robots: { index: true, follow: true },
+  };
+}
 
 // Runs before the first paint, so a stored theme never flashes its opposite.
 const THEME_INIT = `try{var t=localStorage.getItem("jey-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}`;

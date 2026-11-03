@@ -11,9 +11,11 @@ import type { ItemResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Редактирование — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "page.itemEdit")} — jey.net` };
+}
 
 export default async function EditItemPage({
   params,
@@ -31,8 +33,10 @@ export default async function EditItemPage({
   if (!response.ok) {
     return (
       <main>
-        <Card title="Не удалось загрузить запись">
-          <p className={styles.muted}>Попробуйте обновить страницу позже.</p>
+        <Card title={translate(locale, "item.loadErrorTitle")}>
+          <p className={styles.muted}>
+            {translate(locale, "item.loadErrorText")}
+          </p>
           <p>
             <Link href="/items">{translate(locale, "item.back")}</Link>
           </p>

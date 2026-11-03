@@ -16,9 +16,11 @@ import type { ItemNeighbors as ItemNeighborsResponse, ItemResponse } from "@/lib
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Запись — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "page.item")} — jey.net` };
+}
 
 const dateFormat = new Intl.DateTimeFormat("ru-RU", {
   dateStyle: "long",
@@ -61,10 +63,8 @@ export default async function ItemPage({
   if (!response.ok) {
     return (
       <main>
-        <Card title="Не удалось загрузить запись">
-          <p className={styles.muted}>
-            Сервер ответил с ошибкой. Попробуйте обновить страницу позже.
-          </p>
+        <Card title={t("item.loadErrorTitle")}>
+          <p className={styles.muted}>{t("item.loadErrorText")}</p>
           <p>
             <Link href="/items">← К записям</Link>
           </p>
@@ -126,7 +126,7 @@ export default async function ItemPage({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={`/media/${item.cover_key}`}
-                alt={`Обложка записи «${item.title}»`}
+                alt={t("cover.altTitle", { title: item.title })}
               />
             ) : (
               <div className={styles.posterPlaceholder}>{t("cover.none")}</div>
@@ -153,7 +153,11 @@ export default async function ItemPage({
 
               <div className={styles.metaRow}>
                 <dt>{t("item.rating")}</dt>
-                <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
+                <dd>
+                  {item.rating
+                    ? t("item.ratingOf", { rating: item.rating })
+                    : "—"}
+                </dd>
               </div>
 
               <div className={styles.metaRow}>

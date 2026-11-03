@@ -15,9 +15,11 @@ import type { ItemKind, ItemStatus, Stats } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Статистика — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "dashboard.title")} — jey.net` };
+}
 
 export default async function DashboardPage() {
   const locale = await getServerLocale();
@@ -54,7 +56,7 @@ export default async function DashboardPage() {
           title={t("dashboard.emptyTitle")}
           text={t("dashboard.emptyText")}
           actionHref="/items/new"
-          actionLabel="Добавить запись"
+          actionLabel={t("items.empty.noneAction")}
           variant="stats"
         />
       </main>

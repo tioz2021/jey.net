@@ -3,15 +3,22 @@ import { redirect } from "next/navigation";
 
 import { NicknameForm } from "@/components/forms/nickname-form";
 import { Card, PageHeader } from "@/components/ui";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { UserResponse } from "@/lib/types";
 
-export const metadata: Metadata = {
-  title: "Выбор ника — jey.net",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return {
+    title: `${translate(locale, "auth.welcomeTitle")} — jey.net`,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function WelcomePage() {
+  const locale = await getServerLocale();
   const response = await backendFetch("/me");
 
   if (!response.ok) {
@@ -23,8 +30,8 @@ export default async function WelcomePage() {
   return (
     <main>
       <PageHeader
-        subtitle="Так вас будут видеть на публичном профиле. Потом можно изменить в настройках."
-        title="Как вас называть?"
+        subtitle={translate(locale, "auth.welcomeSubtitle")}
+        title={translate(locale, "auth.welcomeTitle")}
       />
       <Card>
         <NicknameForm initial={user.display_name} />

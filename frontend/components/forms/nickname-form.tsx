@@ -31,7 +31,7 @@ export function NicknameForm({ initial }: { initial: string }) {
       if (cause instanceof ApiError && cause.field === "display_name") {
         setError(cause.message);
       } else {
-        setError("Не удалось сохранить имя. Попробуйте ещё раз.");
+        setError(t("error.fallbackText"));
       }
       setPending(false);
     }

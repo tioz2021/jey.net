@@ -8,6 +8,7 @@ import { KIND_KEYS } from "@/lib/i18n/labels";
 import { formatDate, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import { getPublicItem } from "@/lib/public-profile";
+import { languageAlternates } from "@/lib/seo";
 
 import styles from "./page.module.css";
 
@@ -21,7 +22,10 @@ export async function generateMetadata({
   const item = await getPublicItem(id, itemId);
 
   if (!item) {
-    return { title: "Запись не найдена — jey.net", robots: { index: false } };
+    return {
+      title: `${translate(locale, "notFound.record")} — jey.net`,
+      robots: { index: false },
+    };
   }
 
   const description = [
@@ -35,7 +39,10 @@ export async function generateMetadata({
   return {
     title: `${item.title} — jey.net`,
     description,
-    alternates: { canonical: `/u/${id}/${itemId}` },
+    alternates: {
+      canonical: `/u/${id}/${itemId}`,
+      languages: languageAlternates(`/u/${id}/${itemId}`),
+    },
     openGraph: {
       type: "article",
       title: item.title,
@@ -86,7 +93,7 @@ export default async function PublicItemPage({
             // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
             <img
               src={`/media/${item.cover_key}`}
-              alt={`Обложка записи «${item.title}»`}
+              alt={t("cover.altTitle", { title: item.title })}
             />
           ) : (
             <div className={styles.posterPlaceholder}>Нет обложки</div>

@@ -1,13 +1,16 @@
 import Link from "next/link";
 
 import { Card } from "@/components/ui";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 
 import styles from "./not-found.module.css";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const locale = await getServerLocale();
   return (
     <main className={styles.page}>
-      <Card title="Страница не найдена">
+      <Card title={translate(locale, "notFound.title")}>
         <p className={styles.text}>
           Возможно, запись удалена, принадлежит другому аккаунту — или такой
           страницы никогда не было.

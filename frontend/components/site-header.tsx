@@ -68,7 +68,9 @@ export function SiteHeader() {
           {loading ? null : user ? (
             <>
               <div className={styles.tools}>
+                <div className={styles.search}>
                 <HeaderSearch />
+              </div>
                 <QuickAdd />
                 <ThemeToggle />
               </div>

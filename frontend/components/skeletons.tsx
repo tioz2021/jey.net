@@ -1,4 +1,8 @@
+"use client";
+
 import { Skeleton } from "@/components/ui";
+
+import { useI18n } from "@/lib/locale-context";
 
 import styles from "./skeletons.module.css";
 
@@ -13,12 +17,13 @@ export function ItemCardSkeleton() {
 }
 
 export function ListSkeleton({ count = 3 }: { count?: number }) {
+  const { t } = useI18n();
   return (
     <div
       className={styles.list}
       role="status"
       aria-busy="true"
-      aria-label="Загрузка записей"
+      aria-label={t("skeleton.records")}
     >
       {Array.from({ length: count }, (_, index) => (
         <ItemCardSkeleton key={index} />
@@ -28,12 +33,13 @@ export function ListSkeleton({ count = 3 }: { count?: number }) {
 }
 
 export function DashboardSkeleton() {
+  const { t } = useI18n();
   return (
     <div
       className={styles.dashboard}
       role="status"
       aria-busy="true"
-      aria-label="Загрузка статистики"
+      aria-label={t("skeleton.stats")}
     >
       <div className={styles.cards}>
         {Array.from({ length: 4 }, (_, index) => (
@@ -47,12 +53,13 @@ export function DashboardSkeleton() {
 }
 
 export function RowsSkeleton({ count = 5 }: { count?: number }) {
+  const { t } = useI18n();
   return (
     <div
       className={styles.rows}
       role="status"
       aria-busy="true"
-      aria-label="Загрузка"
+      aria-label={t("skeleton.generic")}
     >
       {Array.from({ length: count }, (_, index) => (
         <Skeleton key={index} height="2.5rem" />
@@ -62,12 +69,13 @@ export function RowsSkeleton({ count = 5 }: { count?: number }) {
 }
 
 export function DetailSkeleton() {
+  const { t } = useI18n();
   return (
     <div
       className={styles.detail}
       role="status"
       aria-busy="true"
-      aria-label="Загрузка записи"
+      aria-label={t("skeleton.item")}
     >
       <Skeleton width="60%" height="2rem" />
       <Skeleton width="30%" height="1rem" />

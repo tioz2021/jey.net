@@ -302,8 +302,8 @@ export function ItemForm({
           // The form still saves; the cover can be added later.
           notify({
             tone: "info",
-            title: "Постер не загрузился",
-            text: "Запись сохранена — обложку можно добавить вручную.",
+            title: t("item.refreshFailed"),
+            text: t("item.refreshFailedText"),
             requestId: null,
           });
         }

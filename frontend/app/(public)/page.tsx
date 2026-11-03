@@ -3,19 +3,25 @@ import Link from "next/link";
 
 import { translate, type TranslationKey } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
+import { languageAlternates } from "@/lib/seo";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "jey.net — фильмы, книги и картинки в одном месте",
-  description:
-    "Личный каталог того, что вы посмотрели, прочитали и сохранили: оценки, заметки, теги, обложки, поиск и экспорт данных.",
-  openGraph: {
-    title: "jey.net — фильмы, книги и картинки в одном месте",
-    description:
-      "Оценки, заметки, теги и обложки в одном списке. Публичный профиль — только по желанию.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  const title = translate(locale, "landing.metaTitle");
+  const description = translate(locale, "landing.metaDescription");
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: "/",
+      languages: languageAlternates("/"),
+    },
+    openGraph: { title, description },
+  };
+}
 
 const FEATURE_KEYS: Array<{ title: TranslationKey; text: TranslationKey }> = [
   { title: "landing.f1.title", text: "landing.f1.text" },

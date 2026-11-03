@@ -11,9 +11,11 @@ import type { TagsResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Теги — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "tags.title")} — jey.net` };
+}
 
 export default async function TagsPage() {
   const locale = await getServerLocale();

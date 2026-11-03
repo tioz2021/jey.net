@@ -10,9 +10,14 @@ import { getServerLocale } from "@/lib/i18n/server";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Вход — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return {
+    title: `${translate(locale, "auth.loginTitle")} — jey.net`,
+    robots: { index: false, follow: false },
+  };
+}
 
 export default async function LoginPage() {
   const locale = await getServerLocale();

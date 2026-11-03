@@ -169,11 +169,11 @@ export function ItemList({
                   })
                 }
               >
-                Сбросить фильтры
+                {t("filters.reset")}
               </Button>
             }
-            text="Попробуйте изменить фильтры или поисковый запрос."
-            title="Ничего не найдено"
+            text={t("items.empty.searchText")}
+            title={t("items.empty.searchTitle")}
             variant="search"
           />
         ) : (

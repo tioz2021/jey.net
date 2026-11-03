@@ -93,6 +93,7 @@ function ToastItem({
   toast: Toast;
   onDismiss: () => void;
 }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
 
   async function copyRequestId() {
@@ -125,7 +126,7 @@ function ToastItem({
               type="button"
               onClick={copyRequestId}
             >
-              {copied ? "Скопировано" : "Копировать ID"}
+              {copied ? t("common.copied") : t("common.copyId")}
             </button>
           </p>
         ) : null}
@@ -135,7 +136,7 @@ function ToastItem({
         className={styles.close}
         type="button"
         onClick={onDismiss}
-        aria-label="Закрыть уведомление"
+        aria-label={t("common.dismiss")}
       >
         ✕
       </button>

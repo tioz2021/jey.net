@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { LegalArticle } from "@/components/legal-article";
 import { getServerLocale } from "@/lib/i18n/server";
 import { LEGAL } from "@/lib/i18n/legal";
+import { languageAlternates } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
@@ -11,6 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${content.title} — jey.net`,
     description: content.description,
+    alternates: {
+      canonical: "/privacy",
+      languages: languageAlternates("/privacy"),
+    },
   };
 }
 

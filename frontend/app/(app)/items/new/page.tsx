@@ -8,9 +8,11 @@ import { getServerLocale } from "@/lib/i18n/server";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Новая запись — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "page.itemNew")} — jey.net` };
+}
 
 export default async function NewItemPage() {
   const locale = await getServerLocale();

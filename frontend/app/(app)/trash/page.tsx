@@ -9,9 +9,11 @@ import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemList } from "@/lib/types";
 
-export const metadata: Metadata = {
-  title: "Корзина — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "page.trash")} — jey.net` };
+}
 
 export default async function TrashPage() {
   const locale = await getServerLocale();
@@ -24,8 +26,8 @@ export default async function TrashPage() {
   if (!response.ok) {
     return (
       <main>
-        <Card title="Не удалось загрузить корзину">
-          <p>Попробуйте обновить страницу позже.</p>
+        <Card title={t("trash.errorTitle")}>
+          <p>{t("trash.errorText")}</p>
         </Card>
       </main>
     );

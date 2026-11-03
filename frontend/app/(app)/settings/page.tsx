@@ -12,9 +12,11 @@ import type { UserResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
-  title: "Настройки — jey.net",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+
+  return { title: `${translate(locale, "settings.title")} — jey.net` };
+}
 
 export default async function SettingsPage() {
   const locale = await getServerLocale();
