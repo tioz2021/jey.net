@@ -167,6 +167,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
 a {
   color: var(--color-accent);
 }
