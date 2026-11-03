@@ -6,9 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${JEY_BACKUP_CONFIG:-$HOME/.config/jey-backup.conf}"
-UNIT_DIR="$HOME/.config/systemd/user"
-
-mkdir -p "$(dirname "${CONFIG}")" "${UNIT_DIR}"
+mkdir -p "$(dirname "${CONFIG}")"
 
 if [[ ! -f "${CONFIG}" ]]; then
     cat > "${CONFIG}" <<CONF
@@ -28,32 +26,8 @@ fi
 # shellcheck disable=SC1090
 . "${CONFIG}"
 
-cat > "${UNIT_DIR}/jey-backup-pull.service" <<UNIT
-[Unit]
-Description=Pull jey.net encrypted backups to this machine
-
-[Service]
-Type=oneshot
-ExecStart=${ROOT}/scripts/pull-backup.sh
-Nice=10
-IOSchedulingClass=idle
-UNIT
-
-cat > "${UNIT_DIR}/jey-backup-pull.timer" <<UNIT
-[Unit]
-Description=Daily pull of jey.net backups
-
-[Timer]
-OnCalendar=*-*-* 04:15:00
-Persistent=true
-RandomizedDelaySec=10min
-
-[Install]
-WantedBy=timers.target
-UNIT
-
-# Cron works in headless sessions too; the systemd user timer is a bonus and
-# is intentionally not required.
+# Cron is used on purpose: the pull must work without a logged-in desktop
+# session, and this machine already has an active cron daemon.
 if command -v crontab >/dev/null 2>&1; then
     marker="# jey.net backup pull"
     current="$(crontab -l 2>/dev/null || true)"
