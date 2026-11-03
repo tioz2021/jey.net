@@ -49,6 +49,7 @@ export default async function DashboardPage() {
           text="Добавьте первую запись — здесь появятся графики по месяцам, типам и статусам."
           actionHref="/items/new"
           actionLabel="Добавить запись"
+          variant="stats"
         />
       </main>
     );

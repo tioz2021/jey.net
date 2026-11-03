@@ -48,6 +48,7 @@ export default async function TagsPage() {
           text="Добавьте теги в форме записи — они появятся здесь."
           actionHref="/items/new"
           actionLabel="Добавить запись"
+          variant="tags"
         />
       ) : (
         <Card>

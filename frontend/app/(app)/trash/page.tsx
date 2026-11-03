@@ -46,6 +46,7 @@ export default async function TrashPage() {
           actionLabel="К записям"
           text="Удалённые записи попадают сюда и остаются, пока вы не восстановите их или не очистите корзину."
           title="Корзина пуста"
+          variant="trash"
         />
       ) : (
         <Card title="Удалённые записи">

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
+import { Onboarding } from "@/components/onboarding";
 import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
@@ -153,16 +154,27 @@ export function ItemList({
       ) : loading && !loadedOnce ? (
         <ListSkeleton />
       ) : items.length === 0 ? (
-        <EmptyState
-          title={hasFilters ? "Ничего не найдено" : "Записей пока нет"}
-          text={
-            hasFilters
-              ? "Попробуйте изменить фильтры или поисковый запрос."
-              : "Добавьте первый фильм, книгу или картинку — они появятся здесь."
-          }
-          actionHref={hasFilters ? "/items" : "/items/new"}
-          actionLabel={hasFilters ? "Сбросить фильтры" : "Добавить запись"}
-        />
+        hasFilters ? (
+          <EmptyState
+            actionHref="/items"
+            actionLabel="Сбросить фильтры"
+            text="Попробуйте изменить фильтры или поисковый запрос."
+            title="Ничего не найдено"
+            variant="search"
+          />
+        ) : (
+          <Onboarding
+            fallback={
+              <EmptyState
+                actionHref="/items/new"
+                actionLabel="Добавить запись"
+                text="Добавьте первый фильм, книгу или картинку — они появятся здесь."
+                title="Записей пока нет"
+                variant="records"
+              />
+            }
+          />
+        )
       ) : (
         <>
           {showSlowHint ? (

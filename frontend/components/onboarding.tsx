@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Button, Card } from "@/components/ui";
 
@@ -13,20 +14,24 @@ const STORAGE_KEY = "jey-onboarding-dismissed";
  * First-run guidance for an empty catalogue. Hidden after the first record or
  * after the user dismisses it (remembered in localStorage).
  */
-export function Onboarding() {
-  const [visible, setVisible] = useState(false);
+export function Onboarding({ fallback }: { fallback?: ReactNode }) {
+  const [dismissed, setDismissed] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setVisible(window.localStorage.getItem(STORAGE_KEY) !== "1");
+    setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
   }, []);
 
-  if (!visible) {
+  if (dismissed === null) {
     return null;
+  }
+
+  if (dismissed) {
+    return fallback ?? null;
   }
 
   function dismiss() {
     window.localStorage.setItem(STORAGE_KEY, "1");
-    setVisible(false);
+    setDismissed(true);
   }
 
   return (
