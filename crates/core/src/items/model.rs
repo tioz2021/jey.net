@@ -80,6 +80,19 @@ impl ItemStatus {
     }
 }
 
+/// One actor in the stored credits. TMDB ids allow linking to a person page;
+/// profile images are never stored, only the path for an online request.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CastMember {
+    #[serde(default)]
+    pub tmdb_id: u64,
+    pub name: String,
+    #[serde(default)]
+    pub character: Option<String>,
+    #[serde(default)]
+    pub profile_path: Option<String>,
+}
+
 /// Snapshot of the movie metadata we keep with a record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MovieDetails {
@@ -88,13 +101,64 @@ pub struct MovieDetails {
     #[serde(default)]
     pub overview: Option<String>,
     #[serde(default)]
+    pub tagline: Option<String>,
+    #[serde(default)]
     pub runtime: Option<i32>,
     #[serde(default)]
-    pub director: Option<String>,
+    pub release_date: Option<String>,
     #[serde(default)]
-    pub cast: Vec<String>,
+    pub status: Option<String>,
+    #[serde(default)]
+    pub director: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_cast")]
+    pub cast: Vec<CastMember>,
     #[serde(default)]
     pub genres: Vec<String>,
+    #[serde(default)]
+    pub countries: Vec<String>,
+    #[serde(default)]
+    pub languages: Vec<String>,
+    #[serde(default)]
+    pub companies: Vec<String>,
+    #[serde(default)]
+    pub budget: Option<i64>,
+    #[serde(default)]
+    pub revenue: Option<i64>,
+    #[serde(default)]
+    pub imdb_id: Option<String>,
+    /// TMDB rating multiplied by ten, so the struct stays `Eq`.
+    #[serde(default)]
+    pub vote_average_tenths: Option<i16>,
+    #[serde(default)]
+    pub vote_count: Option<i64>,
+}
+
+/// Old snapshots stored cast as plain strings; accept both shapes.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum CastEntry {
+    Name(String),
+    Member(CastMember),
+}
+
+fn deserialize_cast<'de, D>(deserializer: D) -> Result<Vec<CastMember>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let entries = Vec::<CastEntry>::deserialize(deserializer)?;
+
+    Ok(entries
+        .into_iter()
+        .map(|entry| match entry {
+            CastEntry::Name(name) => CastMember {
+                tmdb_id: 0,
+                name,
+                character: None,
+                profile_path: None,
+            },
+            CastEntry::Member(member) => member,
+        })
+        .collect())
 }
 
 /// A stored record, as the API returns it and the desktop keeps it.

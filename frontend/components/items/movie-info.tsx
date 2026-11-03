@@ -3,6 +3,16 @@ import type { MovieDetails } from "@/lib/types";
 
 import styles from "./movie-info.module.css";
 
+const money = new Intl.NumberFormat("ru-RU", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+function castName(person: string | { name: string }): string {
+  return typeof person === "string" ? person : person.name;
+}
+
 /** Metadata snapshot: overview, runtime and cast names, with TMDB credit. */
 export function MovieInfo({
   details,
@@ -18,10 +28,34 @@ export function MovieInfo({
   if (details.runtime) {
     facts.push(["Длительность", `${details.runtime} мин`]);
   }
+  if (details.release_date) {
+    facts.push(["Дата выхода", details.release_date]);
+  }
+  if (details.countries.length > 0) {
+    facts.push(["Страны", details.countries.join(", ")]);
+  }
+  if (details.languages.length > 0) {
+    facts.push(["Языки", details.languages.join(", ")]);
+  }
+  if (details.companies.length > 0) {
+    facts.push(["Студии", details.companies.join(", ")]);
+  }
+  if (details.budget) {
+    facts.push(["Бюджет", money.format(details.budget)]);
+  }
+  if (details.revenue) {
+    facts.push(["Сборы", money.format(details.revenue)]);
+  }
+  if (details.imdb_id) {
+    facts.push(["IMDb", `tt${details.imdb_id.replace(/^tt/, "")}`]);
+  }
 
   return (
     <>
       <Card title="О фильме">
+        {details.tagline ? (
+          <p className={styles.tagline}>«{details.tagline}»</p>
+        ) : null}
         {details.overview ? (
           <p className={styles.overview}>{details.overview}</p>
         ) : (
@@ -37,6 +71,18 @@ export function MovieInfo({
               </div>
             ))}
           </dl>
+        ) : null}
+
+        {details.imdb_id ? (
+          <p className={styles.links}>
+            <a
+              href={`https://www.imdb.com/title/tt${details.imdb_id.replace(/^tt/, "")}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Страница на IMDb
+            </a>
+          </p>
         ) : null}
 
         {tmdbId ? (
@@ -57,9 +103,27 @@ export function MovieInfo({
       {details.cast.length > 0 ? (
         <Card title="В главных ролях">
           <ul className={styles.cast}>
-            {details.cast.map((person) => (
-              <li key={person}>{person}</li>
-            ))}
+            {details.cast.map((person, index) => {
+              const member = typeof person === "string" ? null : person;
+              return (
+                <li key={`${castName(person)}-${index}`}>
+                  {member && member.tmdb_id > 0 ? (
+                    <a
+                      href={`https://www.themoviedb.org/person/${member.tmdb_id}`}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {member.name}
+                    </a>
+                  ) : (
+                    castName(person)
+                  )}
+                  {member?.character ? (
+                    <span className={styles.character}> — {member.character}</span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </Card>
       ) : null}

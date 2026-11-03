@@ -1,3 +1,9 @@
+.tagline {
+  margin: 0 0 var(--space-2);
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
 .overview {
   max-width: 75ch;
   margin: 0;
@@ -42,6 +48,19 @@
 }
 
 .cast li {
+  font-size: var(--text-sm);
+}
+
+.cast a {
+  color: var(--color-text);
+}
+
+.character {
+  color: var(--color-text-muted);
+}
+
+.links {
+  margin: var(--space-2) 0 0;
   font-size: var(--text-sm);
 }
 

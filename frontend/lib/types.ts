@@ -30,13 +30,32 @@ export interface User {
   created_at: string;
 }
 
+export interface CastMember {
+  tmdb_id: number;
+  name: string;
+  character: string | null;
+  profile_path: string | null;
+}
+
 export interface MovieDetails {
   original_title: string;
   overview: string | null;
+  tagline: string | null;
   runtime: number | null;
+  release_date: string | null;
+  status: string | null;
   director: string | null;
-  cast: string[];
+  /** Old snapshots kept cast as plain names; the server normalises new ones. */
+  cast: Array<CastMember | string>;
   genres: string[];
+  countries: string[];
+  languages: string[];
+  companies: string[];
+  budget: number | null;
+  revenue: number | null;
+  imdb_id: string | null;
+  vote_average_tenths: number | null;
+  vote_count: number | null;
 }
 
 export interface MovieSearchItem {

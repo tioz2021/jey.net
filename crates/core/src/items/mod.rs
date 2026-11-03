@@ -3,4 +3,4 @@
 pub mod model;
 pub mod validate;
 
-pub use model::{Item, ItemKind, ItemPatch, ItemStatus, MovieDetails, NewItem};
+pub use model::{CastMember, Item, ItemKind, ItemPatch, ItemStatus, MovieDetails, NewItem};

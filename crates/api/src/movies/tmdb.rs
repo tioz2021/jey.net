@@ -25,17 +25,36 @@ pub struct SearchItem {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub struct CastMember {
+    pub tmdb_id: u64,
+    pub name: String,
+    pub character: Option<String>,
+    pub profile_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct MovieDetails {
     pub tmdb_id: u64,
     pub title: String,
     pub original_title: String,
     pub year: Option<i32>,
     pub overview: Option<String>,
+    pub tagline: Option<String>,
     pub runtime: Option<i32>,
+    pub release_date: Option<String>,
+    pub status: Option<String>,
     pub poster_path: Option<String>,
     pub director: Option<String>,
-    pub cast: Vec<String>,
+    pub cast: Vec<CastMember>,
     pub genres: Vec<String>,
+    pub countries: Vec<String>,
+    pub languages: Vec<String>,
+    pub companies: Vec<String>,
+    pub budget: Option<i64>,
+    pub revenue: Option<i64>,
+    pub imdb_id: Option<String>,
+    pub vote_average_tenths: Option<i16>,
+    pub vote_count: Option<i64>,
 }
 
 struct Cached {
@@ -209,6 +228,26 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .map(str::to_owned)
     });
 
+    let names = |key: &str| -> Vec<String> {
+        value
+            .get(key)
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| item.get("name").and_then(Value::as_str))
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+
+    let release_date = value
+        .get("release_date")
+        .and_then(Value::as_str)
+        .filter(|date| !date.is_empty())
+        .map(str::to_owned);
+
     Some(MovieDetails {
         tmdb_id: value.get("id")?.as_u64()?,
         title: value.get("title")?.as_str()?.to_owned(),
@@ -217,9 +256,8 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .and_then(Value::as_str)
             .unwrap_or_default()
             .to_owned(),
-        year: value
-            .get("release_date")
-            .and_then(Value::as_str)
+        year: release_date
+            .as_deref()
             .and_then(|date| date.get(..4))
             .and_then(|year| year.parse().ok()),
         overview: value
@@ -227,10 +265,21 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .and_then(Value::as_str)
             .filter(|text| !text.is_empty())
             .map(str::to_owned),
+        tagline: value
+            .get("tagline")
+            .and_then(Value::as_str)
+            .filter(|text| !text.is_empty())
+            .map(str::to_owned),
         runtime: value
             .get("runtime")
             .and_then(Value::as_i64)
+            .filter(|minutes| *minutes > 0)
             .map(|minutes| minutes as i32),
+        release_date,
+        status: value
+            .get("status")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
         poster_path: value
             .get("poster_path")
             .and_then(Value::as_str)
@@ -241,22 +290,56 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
                 people
                     .iter()
                     .take(10)
-                    .filter_map(|person| person.get("name").and_then(Value::as_str))
-                    .map(str::to_owned)
+                    .filter_map(|person| {
+                        Some(CastMember {
+                            tmdb_id: person.get("id")?.as_u64()?,
+                            name: person.get("name")?.as_str()?.to_owned(),
+                            character: person
+                                .get("character")
+                                .and_then(Value::as_str)
+                                .filter(|text| !text.is_empty())
+                                .map(str::to_owned),
+                            profile_path: person
+                                .get("profile_path")
+                                .and_then(Value::as_str)
+                                .map(str::to_owned),
+                        })
+                    })
                     .collect()
             })
             .unwrap_or_default(),
-        genres: value
-            .get("genres")
-            .and_then(Value::as_array)
-            .map(|genres| {
-                genres
-                    .iter()
-                    .filter_map(|genre| genre.get("name").and_then(Value::as_str))
-                    .map(str::to_owned)
-                    .collect()
+        genres: names("genres"),
+        countries: names("production_countries"),
+        languages: names("spoken_languages"),
+        companies: names("production_companies"),
+        budget: value
+            .get("budget")
+            .and_then(Value::as_i64)
+            .filter(|amount| *amount > 0),
+        revenue: value
+            .get("revenue")
+            .and_then(Value::as_i64)
+            .filter(|amount| *amount > 0),
+        imdb_id: value
+            .get("imdb_id")
+            .and_then(Value::as_str)
+            .or_else(|| {
+                value
+                    .get("external_ids")
+                    .and_then(|ids| ids.get("imdb_id"))
+                    .and_then(Value::as_str)
             })
-            .unwrap_or_default(),
+            .filter(|id| !id.is_empty())
+            .map(str::to_owned),
+        vote_average_tenths: value
+            .get("vote_average")
+            .and_then(Value::as_f64)
+            .filter(|score| *score > 0.0)
+            .map(|score| (score * 10.0).round() as i16),
+        vote_count: value
+            .get("vote_count")
+            .and_then(Value::as_i64)
+            .filter(|count| *count > 0),
     })
 }
 
@@ -295,15 +378,22 @@ mod tests {
             "credits": {
                 "crew": [{ "job": "Director", "name": "Джеймс Ван" }],
                 "cast": [
-                    { "name": "Патрик Уилсон" },
-                    { "name": "Роуз Бирн" }
+                    {
+                        "id": 3894,
+                        "name": "Патрик Уилсон",
+                        "character": "Джош Ламберт",
+                        "profile_path": "/wilson.jpg"
+                    },
+                    { "id": 3895, "name": "Роуз Бирн", "character": "Рене Ламберт" }
                 ]
             }
         }))
         .expect("details");
 
         assert_eq!(movie.director.as_deref(), Some("Джеймс Ван"));
-        assert_eq!(movie.cast, vec!["Патрик Уилсон", "Роуз Бирн"]);
+        assert_eq!(movie.cast[0].name, "Патрик Уилсон");
+        assert_eq!(movie.cast[0].character.as_deref(), Some("Джош Ламберт"));
+        assert_eq!(movie.cast[0].tmdb_id, 3894);
         assert_eq!(movie.genres, vec!["Ужасы"]);
         assert_eq!(movie.runtime, Some(103));
     }

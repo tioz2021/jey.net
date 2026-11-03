@@ -219,15 +219,99 @@ fn clean_details(
             .collect()
     };
 
+    let cast = details
+        .cast
+        .iter()
+        .map(|person| {
+            let name = person.name.trim();
+            if name.is_empty() || name.chars().count() > 200 {
+                return Err(DomainError::validation_field(
+                    "details.cast",
+                    "cast names must be short non-empty strings",
+                ));
+            }
+            if person
+                .character
+                .as_deref()
+                .is_some_and(|value| value.chars().count() > 200)
+            {
+                return Err(DomainError::validation_field(
+                    "details.cast",
+                    "character names must be short",
+                ));
+            }
+            if person
+                .profile_path
+                .as_deref()
+                .is_some_and(|value| !value.starts_with('/') || value.len() > 200)
+            {
+                return Err(DomainError::validation_field(
+                    "details.cast",
+                    "profile paths must be relative TMDB paths",
+                ));
+            }
+
+            Ok(crate::items::CastMember {
+                tmdb_id: person.tmdb_id,
+                name: name.to_owned(),
+                character: person
+                    .character
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_owned),
+                profile_path: person
+                    .profile_path
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_owned),
+            })
+        })
+        .collect::<Result<Vec<_>, DomainError>>()?;
+
     Ok(Some(crate::items::MovieDetails {
         original_title: details.original_title.trim().chars().take(300).collect(),
         overview: overview.map(str::to_owned),
+        tagline: details
+            .tagline
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(500).collect()),
         runtime: details
             .runtime
             .filter(|minutes| (1..=1000).contains(minutes)),
+        release_date: details
+            .release_date
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned),
+        status: details
+            .status
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned),
         director: director.map(str::to_owned),
-        cast: clean_list(&details.cast, 200)?,
+        cast,
         genres: clean_list(&details.genres, 100)?,
+        countries: clean_list(&details.countries, 100)?,
+        languages: clean_list(&details.languages, 100)?,
+        companies: clean_list(&details.companies, 200)?,
+        budget: details.budget.filter(|value| *value > 0),
+        revenue: details.revenue.filter(|value| *value > 0),
+        imdb_id: details
+            .imdb_id
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(32).collect()),
+        vote_average_tenths: details
+            .vote_average_tenths
+            .filter(|value| (0..=100).contains(value)),
+        vote_count: details.vote_count.filter(|value| *value >= 0),
     }))
 }
 

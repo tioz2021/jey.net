@@ -222,7 +222,9 @@ curl -sS -b jar.txt -X POST "$BASE/uploads" -H "Origin: $ORIGIN" \
       "original_title": "Insidious",
       "runtime": 103,
       "director": "Джеймс Ван",
-      "cast": ["Патрик Уилсон", "Роуз Бирн"],
+      "cast": [
+        { "tmdb_id": 17178, "name": "Патрик Уилсон", "character": "Josh Lambert", "profile_path": "/x.jpg" }
+      ],
       "genres": ["ужасы", "триллер"]
     },
     "details_fetched_at": "2026-11-03T16:40:00Z",

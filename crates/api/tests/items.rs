@@ -798,7 +798,10 @@ async fn movie_metadata_is_stored_and_updated() {
     assert_eq!(created.body["item"]["external_source"], "tmdb");
     assert_eq!(created.body["item"]["external_id"], "49018");
     assert_eq!(created.body["item"]["details"]["director"], "Джеймс Ван");
-    assert_eq!(created.body["item"]["details"]["cast"][1], "Роуз Бирн");
+    assert_eq!(
+        created.body["item"]["details"]["cast"][1]["name"],
+        "Роуз Бирн"
+    );
     assert!(created.body["item"]["details_fetched_at"].is_string());
 
     let id = created.body["item"]["id"].as_str().expect("id").to_owned();
