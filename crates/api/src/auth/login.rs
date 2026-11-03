@@ -54,7 +54,11 @@ pub async fn login(
         return Err(invalid_credentials());
     };
 
-    match password::verify_password(&payload.password, &record.password_hash) {
+    let Some(hash) = record.password_hash.as_deref() else {
+        return Err(invalid_credentials());
+    };
+
+    match password::verify_password(&payload.password, hash) {
         Ok(true) => {}
         Ok(false) => return Err(invalid_credentials()),
         Err(err) => return Err(AppError::internal(err)),

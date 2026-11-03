@@ -1,6 +1,7 @@
 //! Authentication building blocks.
 
 pub mod email_verify;
+pub mod google;
 pub mod login;
 pub mod logout;
 pub mod middleware;

@@ -60,6 +60,9 @@ fn test_config() -> Config {
         mail_dir: std::path::PathBuf::from("var/mail"),
         media_dir: std::path::PathBuf::from("var/test-media"),
         media_quota_bytes: 200 * 1024 * 1024,
+        google_client_id: std::env::var("GOOGLE_CLIENT_ID").ok(),
+        google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
+        google_redirect_url: std::env::var("GOOGLE_REDIRECT_URL").ok(),
     }
 }
 

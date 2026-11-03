@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { LoginForm } from "@/components/forms/login-form";
+import { LoginOptions } from "@/components/forms/login-options";
 import { RedirectIfAuthenticated } from "@/components/redirect-if-authenticated";
 import { Card } from "@/components/ui";
 
@@ -19,11 +19,11 @@ export default function LoginPage() {
         {/* useSearchParams needs a Suspense boundary during prerendering. */}
         <Suspense fallback={null}>
           <RedirectIfAuthenticated />
-          <LoginForm />
+          <LoginOptions />
         </Suspense>
       </Card>
       <p className={styles.footer}>
-        Нет аккаунта? <Link href="/register">Зарегистрироваться</Link>
+        Регистрация не нужна — аккаунт создаётся при первом входе.
       </p>
 
       <p className={styles.footer}>

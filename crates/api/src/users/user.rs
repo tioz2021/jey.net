@@ -39,7 +39,8 @@ pub struct UserRow {
     pub avatar_key: Option<String>,
     pub banner_key: Option<String>,
     pub created_at: DateTime<Utc>,
-    pub password_hash: String,
+    pub password_hash: Option<String>,
+    pub google_sub: Option<String>,
 }
 
 impl From<UserRow> for UserView {
@@ -69,7 +70,7 @@ pub async fn create(
         "insert into users (id, email, password_hash, display_name)
          values ($1, $2, $3, $4)
          returning id, email::text as email, display_name, locale,
-                   email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash",
+                   email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash, google_sub",
     )
     .bind(Uuid::new_v4())
     .bind(email)
@@ -91,7 +92,7 @@ pub async fn create(
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, email::text as email, display_name, locale,
-                email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash
+                email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash, google_sub
          from users
          where email = $1 and deleted_at is null",
     )
@@ -101,11 +102,69 @@ pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>
     .map_err(AppError::internal)
 }
 
+/// Finds a live user by Google subject.
+pub async fn find_by_google_sub(
+    pool: &PgPool,
+    google_sub: &str,
+) -> Result<Option<UserRow>, AppError> {
+    sqlx::query_as::<_, UserRow>(
+        "select id, email::text as email, display_name, locale,
+                email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash, google_sub
+         from users
+         where google_sub = $1 and deleted_at is null",
+    )
+    .bind(google_sub)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)
+}
+
+/// Creates an account that has no password and signs in with Google.
+pub async fn create_google(
+    pool: &PgPool,
+    email: &str,
+    display_name: &str,
+    google_sub: &str,
+) -> Result<UserView, AppError> {
+    let result = sqlx::query_as::<_, UserRow>(
+        "insert into users (id, email, display_name, google_sub, email_verified_at)
+         values ($1, $2, $3, $4, now())
+         returning id, email::text as email, display_name, locale,
+                   email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash, google_sub",
+    )
+    .bind(Uuid::new_v4())
+    .bind(email)
+    .bind(display_name)
+    .bind(google_sub)
+    .fetch_one(pool)
+    .await;
+
+    match result {
+        Ok(row) => Ok(row.into()),
+        Err(err) if is_unique_violation(&err) => Err(AppError::conflict(
+            "an account with this email already exists",
+        )),
+        Err(err) => Err(AppError::internal(err)),
+    }
+}
+
+/// Attaches a Google subject to an existing account.
+pub async fn link_google(pool: &PgPool, user_id: Uuid, google_sub: &str) -> Result<(), AppError> {
+    sqlx::query("update users set google_sub = $2 where id = $1 and google_sub is null")
+        .bind(user_id)
+        .bind(google_sub)
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    Ok(())
+}
+
 /// Finds a live user by identifier.
 pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, email::text as email, display_name, locale,
-                email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash
+                email_verified_at, is_public, avatar_key, banner_key, created_at, password_hash, google_sub
          from users
          where id = $1 and deleted_at is null",
     )

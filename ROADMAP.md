@@ -50,7 +50,7 @@
 | **D · Дизайн и удобство** | D01–D17 | Быстрое добавление, фильтры, статистика, профиль, вход через Google |
 | **M8 · Десктоп и синхронизация** | T92–T105 | Tauri-приложение на локальной базе, sync-протокол, конфликты, релиз 0.2.0 |
 
-**Текущий статус:** T01–T90, D01–D14 приняты. Следующая — D15 (вход через Google), затем D16–D17 и T91.
+**Текущий статус:** T01–T90, D01–D16 приняты. Следующая — D17 (убрать парольный вход после проверки), затем T91.
 
 ---
 
@@ -715,13 +715,13 @@
   **Проверить:** цвета различимы в светлой и тёмной теме; статус читается и по тексту, не только по цвету.
   **Коммит:** `style(web): colour-code record statuses`
 
-- [ ] **D15 · Вход через Google: бэкенд**
+- [x] **D15 · Вход через Google: бэкенд**
   **Файлы:** `migrations/0015_google_auth.sql`, `crates/api/src/auth/google.rs`, `crates/api/src/auth/mod.rs`, `crates/api/src/config.rs`, `crates/api/tests/google_auth.rs`
   **Сделать:** OAuth 2.0 Authorization Code: `GET /auth/google/start` (state в HttpOnly-cookie, redirect на Google) и `GET /auth/google/callback` (обмен кода, проверка `email_verified`, поиск по `google_sub` или привязка по подтверждённому email, сессия). Поле `google_sub`, `password_hash` становится nullable. Настройки `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`.
   **Проверить:** вход создаёт сессию; повторный вход находит тот же аккаунт; существующий аккаунт привязывается по email; неверный state и чужой redirect отклоняются; без env приложение стартует, кнопка Google недоступна.
   **Коммит:** `feat(auth): sign in with google`
 
-- [ ] **D16 · Экран входа и выбор ника**
+- [x] **D16 · Экран входа и выбор ника**
   **Файлы:** `frontend/app/(auth)/login/page.tsx`, `frontend/app/(auth)/register/page.tsx`, `frontend/app/(auth)/welcome/page.tsx`, `frontend/components/google-button.tsx`
   **Сделать:** вместо формы email/пароля — кнопка «Войти через Google»; после первого входа — шаг «Выберите ник»; регистрация по email убирается из интерфейса. Парольный вход временно остаётся скрытой ссылкой «Войти по паролю» до D17.
   **Проверить:** новый пользователь попадает на выбор ника; ник сохраняется и виден в шапке; повторный вход не спрашивает ник; старый аккаунт входит по паролю через скрытую ссылку.

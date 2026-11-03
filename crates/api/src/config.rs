@@ -94,12 +94,25 @@ pub struct Config {
     pub media_dir: PathBuf,
     /// Per-user storage quota in bytes.
     pub media_quota_bytes: u64,
+    /// Google OAuth client credentials; sign-in is disabled when absent.
+    pub google_client_id: Option<String>,
+    pub google_client_secret: Option<String>,
+    pub google_redirect_url: Option<String>,
 }
 
 impl Config {
     /// True when the process serves real traffic.
     pub fn is_production(&self) -> bool {
         self.app_env == AppEnv::Prod
+    }
+
+    /// Client id, secret and redirect URL when Google sign-in is configured.
+    pub fn google_oauth(&self) -> Option<(&str, &str, &str)> {
+        Some((
+            self.google_client_id.as_deref()?,
+            self.google_client_secret.as_deref()?,
+            self.google_redirect_url.as_deref()?,
+        ))
     }
 
     /// Loads configuration from `.env` (searched upwards) and the environment.
@@ -184,6 +197,10 @@ impl Config {
             },
         };
 
+        let google_client_id = var("GOOGLE_CLIENT_ID");
+        let google_client_secret = var("GOOGLE_CLIENT_SECRET");
+        let google_redirect_url = var("GOOGLE_REDIRECT_URL");
+
         Ok(Self {
             app_env,
             bind_addr,
@@ -197,6 +214,9 @@ impl Config {
             mail_dir,
             media_dir,
             media_quota_bytes: media_quota_mb * 1024 * 1024,
+            google_client_id,
+            google_client_secret,
+            google_redirect_url,
         })
     }
 }

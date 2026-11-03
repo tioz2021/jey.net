@@ -94,6 +94,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
+        .route("/auth/google/start", get(crate::auth::google::start))
+        .route("/auth/google/callback", get(crate::auth::google::callback))
         .route("/auth/logout", post(logout))
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))

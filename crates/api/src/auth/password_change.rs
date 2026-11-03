@@ -30,7 +30,13 @@ pub async fn change_password(
         .await?
         .ok_or_else(|| AppError::unauthorized("authentication required"))?;
 
-    match password::verify_password(&payload.current_password, &record.password_hash) {
+    let Some(hash) = record.password_hash.as_deref() else {
+        return Err(AppError::validation(
+            "this account signs in with Google and has no password",
+        ));
+    };
+
+    match password::verify_password(&payload.current_password, hash) {
         Ok(true) => {}
         Ok(false) => {
             return Err(AppError::validation_field(
@@ -43,7 +49,7 @@ pub async fn change_password(
 
     // Reusing the old password is almost always a mistake, so refuse it.
     if matches!(
-        password::verify_password(&payload.new_password, &record.password_hash),
+        password::verify_password(&payload.new_password, hash),
         Ok(true)
     ) {
         return Err(AppError::validation_field(
