@@ -193,6 +193,17 @@ Origin: http://localhost:3000
   "review": "Смотрел второй раз, всё ещё цепляет.",
   "source_url": null,
   "cover_key": "u/8a1f0c62-…/0b7f…/large.webp",
+  "external_source": "tmdb",
+  "external_id": "49018",
+  "details": {
+    "original_title": "Insidious",
+    "overview": "Семья переезжает...",
+    "runtime": 103,
+    "director": "Джеймс Ван",
+    "cast": ["Патрик Уилсон", "Роуз Бирн"],
+    "genres": ["ужасы", "триллер"]
+  },
+  "details_fetched_at": "2026-11-03T16:40:00Z",
   "tags": ["sci-fi", "nolan"],
   "revision": 3,
   "sync_seq": 1042,

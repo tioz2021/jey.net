@@ -216,6 +216,16 @@ curl -sS -b jar.txt -X POST "$BASE/uploads" -H "Origin: $ORIGIN" \
     "review": null,
     "source_url": null,
     "cover_key": null,
+    "external_source": "tmdb",
+    "external_id": "49018",
+    "details": {
+      "original_title": "Insidious",
+      "runtime": 103,
+      "director": "Джеймс Ван",
+      "cast": ["Патрик Уилсон", "Роуз Бирн"],
+      "genres": ["ужасы", "триллер"]
+    },
+    "details_fetched_at": "2026-11-03T16:40:00Z",
     "tags": ["sci-fi"],
     "revision": 1,
     "sync_seq": 0,

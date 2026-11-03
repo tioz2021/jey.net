@@ -234,6 +234,9 @@ fn build_item(index: usize) -> NewItem {
         rating,
         review,
         source_url: None,
+        external_source: None,
+        external_id: None,
+        details: None,
         tags,
     }
 }

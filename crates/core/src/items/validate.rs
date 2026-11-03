@@ -46,6 +46,9 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
     validate_year(item.year)?;
     validate_rating(item.rating)?;
     let tags = normalise_tags(&item.tags)?;
+    let (external_source, external_id) =
+        clean_external(item.external_source.as_deref(), item.external_id.as_deref())?;
+    let details = clean_details(item.details.as_ref())?;
 
     Ok(NewItem {
         kind: item.kind,
@@ -56,6 +59,9 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
         rating: item.rating,
         review,
         source_url,
+        external_source,
+        external_id,
+        details,
         tags,
     })
 }
@@ -97,6 +103,12 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         None => None,
     };
 
+    let (external_source, external_id) = clean_external(
+        patch.external_source.as_deref(),
+        patch.external_id.as_deref(),
+    )?;
+    let details = clean_details(patch.details.as_ref())?;
+
     Ok(ItemPatch {
         kind: patch.kind,
         title,
@@ -106,8 +118,117 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         rating: patch.rating,
         review,
         source_url,
+        external_source,
+        external_id,
+        details,
         tags,
     })
+}
+
+fn clean_external(
+    source: Option<&str>,
+    id: Option<&str>,
+) -> Result<(Option<String>, Option<String>), DomainError> {
+    let source = source.map(str::trim).filter(|value| !value.is_empty());
+    let id = id.map(str::trim).filter(|value| !value.is_empty());
+
+    if source.is_some() != id.is_some() {
+        return Err(DomainError::validation_field(
+            "external_id",
+            "external source and id must be provided together",
+        ));
+    }
+
+    let Some(source) = source else {
+        return Ok((None, None));
+    };
+    let id = id.expect("checked together");
+
+    if source.chars().count() > 32
+        || !source
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+    {
+        return Err(DomainError::validation_field(
+            "external_source",
+            "external source must be a short identifier",
+        ));
+    }
+    if id.chars().count() > 64 {
+        return Err(DomainError::validation_field(
+            "external_id",
+            "external id must be at most 64 characters",
+        ));
+    }
+
+    Ok((Some(source.to_ascii_lowercase()), Some(id.to_owned())))
+}
+
+fn clean_details(
+    details: Option<&crate::items::MovieDetails>,
+) -> Result<Option<crate::items::MovieDetails>, DomainError> {
+    let Some(details) = details else {
+        return Ok(None);
+    };
+
+    let overview = details
+        .overview
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    if overview.is_some_and(|value| value.chars().count() > 5000) {
+        return Err(DomainError::validation_field(
+            "details.overview",
+            "overview must be at most 5000 characters",
+        ));
+    }
+
+    let director = details
+        .director
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    if director.is_some_and(|value| value.chars().count() > 200) {
+        return Err(DomainError::validation_field(
+            "details.director",
+            "director must be at most 200 characters",
+        ));
+    }
+
+    if details.cast.len() > 50 || details.genres.len() > 20 {
+        return Err(DomainError::validation_field(
+            "details",
+            "too many cast or genre entries",
+        ));
+    }
+
+    let clean_list = |values: &[String], limit: usize| -> Result<Vec<String>, DomainError> {
+        values
+            .iter()
+            .map(|value| {
+                let value = value.trim();
+                if value.is_empty() || value.chars().count() > limit {
+                    Err(DomainError::validation_field(
+                        "details",
+                        "cast and genre entries must be short non-empty strings",
+                    ))
+                } else {
+                    Ok(value.to_owned())
+                }
+            })
+            .collect()
+    };
+
+    Ok(Some(crate::items::MovieDetails {
+        original_title: details.original_title.trim().chars().take(300).collect(),
+        overview: overview.map(str::to_owned),
+        runtime: details
+            .runtime
+            .filter(|minutes| (1..=1000).contains(minutes)),
+        director: director.map(str::to_owned),
+        cast: clean_list(&details.cast, 200)?,
+        genres: clean_list(&details.genres, 100)?,
+    }))
 }
 
 /// Which statuses make sense for each kind of record.
@@ -268,6 +389,9 @@ mod tests {
             rating: Some(9),
             review: None,
             source_url: None,
+            external_source: None,
+            external_id: None,
+            details: None,
             tags: vec![],
         }
     }

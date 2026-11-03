@@ -18,6 +18,9 @@ fn new_movie(title: &str) -> NewItem {
         rating: Some(9),
         review: None,
         source_url: None,
+        external_source: None,
+        external_id: None,
+        details: None,
         tags: vec!["Sci-Fi".to_owned(), "nolan".to_owned()],
     }
 }
@@ -206,6 +209,9 @@ fn json_shape_uses_snake_case() {
         rating: None,
         review: None,
         source_url: None,
+        external_source: None,
+        external_id: None,
+        details: None,
         tags: vec![],
     };
 
@@ -401,6 +407,9 @@ async fn list_paginates_without_gaps_or_duplicates() {
                 rating: Some((index % 10 + 1) as u8),
                 review: None,
                 source_url: None,
+                external_source: None,
+                external_id: None,
+                details: None,
                 tags: vec![],
             },
         )
@@ -484,6 +493,9 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
                 rating: Some(rating),
                 review: None,
                 source_url: None,
+                external_source: None,
+                external_id: None,
+                details: None,
                 tags: vec![],
             },
         )
@@ -504,6 +516,9 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
             rating: Some(9),
             review: None,
             source_url: None,
+            external_source: None,
+            external_id: None,
+            details: None,
             tags: vec![],
         },
     )
@@ -751,6 +766,76 @@ async fn delete_and_restore_respect_ownership() {
 
     client.cleanup(&email).await;
     stranger.cleanup(&stranger_email).await;
+}
+
+#[tokio::test]
+async fn movie_metadata_is_stored_and_updated() {
+    let (client, email, cookie) = logged_in_client().await;
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "Астрал",
+                "status": "done",
+                "external_source": "tmdb",
+                "external_id": "49018",
+                "details": {
+                    "original_title": "Insidious",
+                    "overview": "Семья переезжает в новый дом.",
+                    "runtime": 103,
+                    "director": "Джеймс Ван",
+                    "cast": ["Патрик Уилсон", "Роуз Бирн"],
+                    "genres": ["ужасы", "триллер"]
+                }
+            }),
+            &cookie,
+        )
+        .await;
+
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    assert_eq!(created.body["item"]["external_source"], "tmdb");
+    assert_eq!(created.body["item"]["external_id"], "49018");
+    assert_eq!(created.body["item"]["details"]["director"], "Джеймс Ван");
+    assert_eq!(created.body["item"]["details"]["cast"][1], "Роуз Бирн");
+    assert!(created.body["item"]["details_fetched_at"].is_string());
+
+    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
+    let patched = client
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "details": {
+                "original_title": "Insidious",
+                "runtime": 102,
+                "director": "James Wan",
+                "cast": [],
+                "genres": ["horror"]
+            }}),
+            &cookie,
+        )
+        .await;
+
+    assert_eq!(patched.status, 200, "body: {}", patched.body);
+    assert_eq!(patched.body["item"]["details"]["director"], "James Wan");
+    assert_eq!(patched.body["item"]["details"]["runtime"], 102);
+
+    // Source and id must travel together.
+    let invalid = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "movie",
+                "title": "Без источника",
+                "status": "done",
+                "external_source": "tmdb"
+            }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(invalid.status, 400);
+
+    client.cleanup(&email).await;
 }
 
 #[tokio::test]
@@ -1083,6 +1168,9 @@ async fn list_filters_combine_with_and() {
                 rating: Some(rating),
                 review: None,
                 source_url: None,
+                external_source: None,
+                external_id: None,
+                details: None,
                 tags: tags.into_iter().map(str::to_owned).collect(),
             },
         )

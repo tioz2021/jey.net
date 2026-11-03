@@ -80,6 +80,23 @@ impl ItemStatus {
     }
 }
 
+/// Snapshot of the movie metadata we keep with a record.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MovieDetails {
+    #[serde(default)]
+    pub original_title: String,
+    #[serde(default)]
+    pub overview: Option<String>,
+    #[serde(default)]
+    pub runtime: Option<i32>,
+    #[serde(default)]
+    pub director: Option<String>,
+    #[serde(default)]
+    pub cast: Vec<String>,
+    #[serde(default)]
+    pub genres: Vec<String>,
+}
+
 /// A stored record, as the API returns it and the desktop keeps it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Item {
@@ -94,6 +111,14 @@ pub struct Item {
     pub review: Option<String>,
     pub source_url: Option<String>,
     pub cover_key: Option<String>,
+    #[serde(default)]
+    pub external_source: Option<String>,
+    #[serde(default)]
+    pub external_id: Option<String>,
+    #[serde(default)]
+    pub details: Option<MovieDetails>,
+    #[serde(default)]
+    pub details_fetched_at: Option<Timestamp>,
     pub tags: Vec<String>,
     pub revision: Revision,
     pub sync_seq: SyncSeq,
@@ -120,6 +145,12 @@ pub struct NewItem {
     #[serde(default)]
     pub source_url: Option<String>,
     #[serde(default)]
+    pub external_source: Option<String>,
+    #[serde(default)]
+    pub external_id: Option<String>,
+    #[serde(default)]
+    pub details: Option<MovieDetails>,
+    #[serde(default)]
     pub tags: Vec<String>,
 }
 
@@ -143,6 +174,12 @@ pub struct ItemPatch {
     #[serde(default)]
     pub source_url: Option<String>,
     #[serde(default)]
+    pub external_source: Option<String>,
+    #[serde(default)]
+    pub external_id: Option<String>,
+    #[serde(default)]
+    pub details: Option<MovieDetails>,
+    #[serde(default)]
     pub tags: Option<Vec<String>>,
 }
 
@@ -157,6 +194,9 @@ impl ItemPatch {
             && self.rating.is_none()
             && self.review.is_none()
             && self.source_url.is_none()
+            && self.external_source.is_none()
+            && self.external_id.is_none()
+            && self.details.is_none()
             && self.tags.is_none()
     }
 }
