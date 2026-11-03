@@ -19,7 +19,24 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: "/",
       languages: languageAlternates("/"),
     },
-    openGraph: { title, description },
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: "/og.png",
+          width: 1200,
+          height: 630,
+          alt: "jey.net — личный каталог",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/og.png"],
+    },
   };
 }
 
@@ -31,9 +48,9 @@ const FEATURE_KEYS: Array<{ title: TranslationKey; text: TranslationKey }> = [
 ];
 
 const SCREENSHOT_KEYS = [
-  { src: "/screenshots/items.webp", alt: "landing.shot1.alt", caption: "landing.shot1.caption", width: 1000, height: 667 },
-  { src: "/screenshots/item.webp", alt: "landing.shot2.alt", caption: "landing.shot2.caption", width: 1000, height: 667 },
-  { src: "/screenshots/profile.webp", alt: "landing.shot3.alt", caption: "landing.shot3.caption", width: 1000, height: 667 },
+  { src: "/screenshots/items.webp", alt: "landing.shot1.alt", caption: "landing.shot1.caption", width: 1200, height: 800 },
+  { src: "/screenshots/item.webp", alt: "landing.shot2.alt", caption: "landing.shot2.caption", width: 1200, height: 800 },
+  { src: "/screenshots/profile.webp", alt: "landing.shot3.alt", caption: "landing.shot3.caption", width: 1200, height: 800 },
 ] as const;
 
 export default async function LandingPage() {

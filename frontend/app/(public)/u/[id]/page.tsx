@@ -41,12 +41,17 @@ export async function generateMetadata({
       title: profile.display_name,
       description,
       url: `/u/${id}`,
-      images: profile.avatar_key ? [`/media/${profile.avatar_key}`] : undefined,
+      images: profile.avatar_key
+        ? [`/media/${profile.avatar_key}`]
+        : ["/og.png"],
     },
     twitter: {
-      card: "summary",
+      card: profile.avatar_key ? "summary" : "summary_large_image",
       title: profile.display_name,
       description,
+      images: profile.avatar_key
+        ? [`/media/${profile.avatar_key}`]
+        : ["/og.png"],
     },
   };
 }

@@ -58,7 +58,17 @@ export async function generateMetadata({
       title: displayTitle,
       description,
       url: `/u/${id}/${itemId}`,
-      images: item.cover_key ? [`/media/${item.cover_key}`] : undefined,
+      images: item.cover_key
+        ? [`/media/${item.cover_key}`]
+        : ["/og.png"],
+    },
+    twitter: {
+      card: item.cover_key ? "summary" : "summary_large_image",
+      title: displayTitle,
+      description,
+      images: item.cover_key
+        ? [`/media/${item.cover_key}`]
+        : ["/og.png"],
     },
   };
 }
