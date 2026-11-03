@@ -95,6 +95,10 @@ impl AppError {
         Self::new(DomainError::rate_limited(message, retry_after_secs))
     }
 
+    pub fn unavailable(message: impl Into<String>) -> Self {
+        Self::new(DomainError::Unavailable(message.into()))
+    }
+
     pub fn internal(error: impl Into<Box<dyn std::error::Error + Send + Sync>>) -> Self {
         Self::new(DomainError::internal(error))
     }
@@ -143,6 +147,12 @@ impl AppError {
                 message.clone(),
                 None,
             ),
+            DomainError::Unavailable(message) => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "unavailable",
+                message.clone(),
+                None,
+            ),
             DomainError::RateLimited {
                 message,
                 retry_after_secs,
@@ -183,6 +193,7 @@ impl From<DomainError> for AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let retry_after = match &self.source {
+            DomainError::Unavailable(_) => None,
             DomainError::RateLimited {
                 retry_after_secs, ..
             } => Some(*retry_after_secs),

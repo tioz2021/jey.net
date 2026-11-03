@@ -93,7 +93,7 @@ fn unavailable() -> Response {
 }
 
 /// TMDB speaks `xx-YY`; unknown locales fall back to Russian.
-fn language_for(locale: &str) -> &'static str {
+pub(crate) fn language_for(locale: &str) -> &'static str {
     match locale {
         "en" => "en-US",
         "uk" => "uk-UA",

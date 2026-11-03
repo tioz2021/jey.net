@@ -41,6 +41,9 @@ pub enum DomainError {
         retry_after_secs: u64,
     },
 
+    #[error("unavailable: {0}")]
+    Unavailable(String),
+
     #[error("internal error: {0}")]
     Internal(Box<dyn std::error::Error + Send + Sync>),
 }

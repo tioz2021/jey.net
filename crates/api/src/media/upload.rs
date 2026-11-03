@@ -70,6 +70,36 @@ pub struct StoredUpload {
     pub total_bytes: i64,
 }
 
+/// Writes the upload row after the files are already on disk.
+pub async fn insert_upload(
+    pool: &sqlx::PgPool,
+    user_id: Uuid,
+    stored: &StoredUpload,
+) -> Result<(), AppError> {
+    sqlx::query(
+        "insert into uploads
+             (id, user_id, mime, size_bytes, sha256, storage_key,
+              width, height, large_key, preview_key, total_bytes)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+    )
+    .bind(stored.id)
+    .bind(user_id)
+    .bind(stored.mime)
+    .bind(stored.size)
+    .bind(&stored.sha256)
+    .bind(&stored.storage_key)
+    .bind(stored.width as i32)
+    .bind(stored.height as i32)
+    .bind(&stored.large_key)
+    .bind(&stored.preview_key)
+    .bind(stored.total_bytes)
+    .execute(pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(())
+}
+
 /// Validates the bytes and writes the original plus both renditions.
 pub async fn save(
     storage: &LocalStorage,

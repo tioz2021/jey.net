@@ -128,6 +128,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/items/{id}/purge", delete(purge_item))
         .route("/trash", delete(empty_trash))
         .route("/items/{id}/cover", post(set_cover).delete(clear_cover))
+        .route(
+            "/items/{id}/poster",
+            post(crate::items::cover::set_tmdb_poster),
+        )
         .route("/tags", get(list_tags))
         .route("/tags/{id}", patch(rename_tag).delete(delete_tag))
         .route("/tags/{id}/merge", post(merge_tag))

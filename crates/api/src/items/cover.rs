@@ -18,6 +18,7 @@ use crate::http::AppState;
 use crate::items::get::parse_id;
 use crate::items::repo;
 use crate::items::view::ItemView;
+use crate::media;
 use crate::media::LocalStorage;
 
 #[derive(Debug, Deserialize)]
@@ -47,6 +48,85 @@ pub async fn set_cover(
         current.user.id,
         item_id,
         payload.upload_id,
+    )
+    .await?;
+
+    Ok(Json(json!({ "item": ItemView::from(item) })))
+}
+
+/// `POST /api/v1/items/{id}/poster`
+///
+/// Downloads the poster of a TMDB-linked film and stores it as the cover.
+pub async fn set_tmdb_poster(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(raw_id): Path<String>,
+) -> Result<Json<Value>, AppError> {
+    let item_id = parse_id(&raw_id)?;
+    let item = repo::get(&state.pool, current.user.id, item_id)
+        .await?
+        .ok_or_else(|| AppError::not_found("item not found"))?;
+
+    if item.external_source.as_deref() != Some("tmdb") {
+        return Err(AppError::validation_field(
+            "external_source",
+            "poster download is only available for TMDB records",
+        ));
+    }
+
+    let external_id = item
+        .external_id
+        .as_deref()
+        .ok_or_else(|| AppError::validation_field("external_id", "TMDB id is missing"))?
+        .parse::<u64>()
+        .map_err(|_| AppError::validation_field("external_id", "TMDB id is not a number"))?;
+
+    if !state.tmdb.configured() {
+        return Err(AppError::unavailable("TMDB is not configured"));
+    }
+
+    let details = state
+        .tmdb
+        .details(
+            external_id,
+            crate::movies::language_for(&current.user.locale),
+        )
+        .await?;
+
+    let path = details
+        .poster_path
+        .ok_or_else(|| AppError::not_found("this film has no poster"))?;
+
+    let response = reqwest::Client::new()
+        .get(format!("https://image.tmdb.org/t/p/w1280{path}"))
+        .timeout(std::time::Duration::from_secs(20))
+        .send()
+        .await
+        .map_err(AppError::internal)?;
+
+    if !response.status().is_success() {
+        return Err(AppError::internal("poster download failed"));
+    }
+
+    let bytes = response.bytes().await.map_err(AppError::internal)?;
+    let used = media::used_bytes(&state.pool, current.user.id).await?;
+    let stored = media::save(
+        &state.storage,
+        current.user.id,
+        &bytes,
+        state.config.media_quota_bytes as i64,
+        used,
+    )
+    .await?;
+
+    media::insert_upload(&state.pool, current.user.id, &stored).await?;
+
+    let item = apply_cover(
+        &state.pool,
+        &state.storage,
+        current.user.id,
+        item_id,
+        stored.id,
     )
     .await?;
 

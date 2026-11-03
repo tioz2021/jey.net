@@ -51,26 +51,7 @@ pub async fn upload(
     )
     .await?;
 
-    sqlx::query(
-        "insert into uploads
-             (id, user_id, mime, size_bytes, sha256, storage_key,
-              width, height, large_key, preview_key, total_bytes)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-    )
-    .bind(stored.id)
-    .bind(current.user.id)
-    .bind(stored.mime)
-    .bind(stored.size)
-    .bind(&stored.sha256)
-    .bind(&stored.storage_key)
-    .bind(stored.width as i32)
-    .bind(stored.height as i32)
-    .bind(&stored.large_key)
-    .bind(&stored.preview_key)
-    .bind(stored.total_bytes)
-    .execute(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+    media::insert_upload(&state.pool, current.user.id, &stored).await?;
 
     Ok((
         StatusCode::CREATED,
