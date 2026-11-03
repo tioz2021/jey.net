@@ -23,6 +23,22 @@
   gap: var(--space-3);
 }
 
+.statuses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2) 0;
+  border: 0;
+}
+
+.statuses legend {
+  margin-bottom: var(--space-1);
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 .checkbox {
   display: inline-flex;
   align-items: center;

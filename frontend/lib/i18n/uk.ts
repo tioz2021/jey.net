@@ -430,4 +430,8 @@ export const uk = {
   'tvEpisodes.unmarkSeason': 'Зняти сезон',
   'tvEpisodes.loading': 'Завантажуємо епізоди…',
   'tvEpisodes.error': 'Не вдалося завантажити епізоди або зберегти позначку.',
+  'settings.publicStatuses': 'Що показувати публічно',
+  'settings.progress': 'Показувати прогрес серіалів',
+  'public.records': 'Записів: {count}',
+  'form.hidePublic': 'Приховати з публічного профілю',
 } satisfies Record<keyof typeof ru, string>;

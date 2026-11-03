@@ -36,7 +36,10 @@ export const getPublicItem = cache(
       return null;
     }
 
-    const body = (await response.json()) as { item: PublicItem };
-    return body.item;
+    const body = (await response.json()) as {
+      item: PublicItem;
+      progress_visible?: boolean;
+    };
+    return { ...body.item, progress_visible: body.progress_visible };
   },
 );

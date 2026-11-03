@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
+import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { Badge, Card, PageHeader } from "@/components/ui";
-import { KIND_KEYS } from "@/lib/i18n/labels";
+import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { STATUS_TONES } from "@/lib/labels";
 import { formatDate, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import {
@@ -124,7 +126,9 @@ export default async function PublicItemPage({
             <div className={styles.metaRow}>
               <dt>{t("item.status")}</dt>
               <dd>
-                <Badge tone="success">{t("public.done")}</Badge>
+                <Badge tone={STATUS_TONES[item.status]}>
+                  {t(STATUS_KEYS[item.status])}
+                </Badge>
               </dd>
             </div>
 
@@ -185,6 +189,19 @@ export default async function PublicItemPage({
           kind={item.kind}
           locale={locale}
           tmdbId={item.external_source === "tmdb" ? item.external_id : null}
+        />
+      ) : null}
+
+      {item.kind === "tv" &&
+      item.details?.seasons &&
+      item.details.seasons.length > 0 &&
+      item.progress_visible !== false ? (
+        <SeriesEpisodes
+          itemId={item.id}
+          publicUserId={id}
+          seasons={item.details.seasons}
+          totalEpisodes={item.details.number_of_episodes}
+          watched={item.details.watched_episodes ?? []}
         />
       ) : null}
       </div>

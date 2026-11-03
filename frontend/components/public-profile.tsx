@@ -86,7 +86,7 @@ export function PublicProfileView({
             <h1 className={styles.name}>{profile.display_name}</h1>
             <p className={styles.meta}>
               {items.length > 0
-                ? t("public.finished", { count: items.length })
+                ? t("public.records", { count: items.length })
                 : t("public.none")}{" "}
               · {t("public.onSite", {
                 date: date(profile.created_at, { dateStyle: "long" }),
@@ -180,7 +180,7 @@ function ItemGrid({ items, userId }: { items: PublicItem[]; userId: string }) {
         <li key={item.id}>
           <ItemCard
             href={`/u/${userId}/${item.id}`}
-            item={{ ...item, status: "done", deleted_at: null }}
+            item={{ ...item, deleted_at: null }}
           />
         </li>
       ))}

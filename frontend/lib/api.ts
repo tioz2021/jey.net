@@ -155,6 +155,8 @@ export interface ProfilePatch {
   display_name?: string;
   locale?: string;
   is_public?: boolean;
+  public_statuses?: string[];
+  public_show_progress?: boolean;
 }
 
 export interface PasswordChangeInput {
@@ -332,6 +334,19 @@ export const movies = {
     request<{ movie: MovieDetailsResponse }>(`/movies/${id}`),
 };
 
+export const publicItems = {
+  episodes: (userId: string, itemId: string, season: number) =>
+    fetch(
+      `/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/episodes?season=${encodeURIComponent(String(season))}`,
+      { cache: "no-store" },
+    ).then(async (response) => {
+      if (!response.ok) {
+        throw new Error("public episodes failed");
+      }
+      return (await response.json()) as TvSeasonResponse;
+    }),
+};
+
 export const tv = {
   search: (q: string) =>
     request<{ results: MovieSearchItem[] }>(
@@ -351,6 +366,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, items, movies, tv, tags, stats, transfer, uploads };
+export const api = { auth, items, movies, publicItems, tv, tags, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

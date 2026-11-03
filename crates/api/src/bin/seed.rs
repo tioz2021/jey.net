@@ -237,6 +237,7 @@ fn build_item(index: usize) -> NewItem {
         external_source: None,
         external_id: None,
         details: None,
+        public_hidden: false,
         tags,
     }
 }

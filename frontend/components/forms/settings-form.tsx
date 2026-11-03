@@ -8,6 +8,7 @@ import { CoverPicker } from "@/components/items/cover-picker";
 import { BannerPicker } from "@/components/profile/banner-picker";
 import { Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { STATUS_KEYS } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import { ApiError } from "@/lib/errors";
 import { useToast } from "@/components/toasts";
@@ -32,6 +33,12 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
   const [displayName, setDisplayName] = useState(initialUser.display_name);
   const [locale, setLocale] = useState(initialUser.locale);
   const [isPublic, setIsPublic] = useState(initialUser.is_public);
+  const [publicStatuses, setPublicStatuses] = useState<string[]>(
+    initialUser.public_statuses ?? ["done"],
+  );
+  const [publicShowProgress, setPublicShowProgress] = useState(
+    initialUser.public_show_progress ?? true,
+  );
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -55,6 +62,8 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         display_name: displayName.trim(),
         locale,
         is_public: isPublic,
+        public_statuses: publicStatuses,
+        public_show_progress: publicShowProgress,
       });
       setUser(response.user);
       setProfileMessage(t("settings.saved"));
@@ -177,6 +186,37 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
               onChange={(event) => setIsPublic(event.target.checked)}
             />
             {t("settings.public")}
+          </label>
+
+          <fieldset className={styles.statuses}>
+            <legend>{t("settings.publicStatuses")}</legend>
+            {(["planned", "in_progress", "done", "dropped"] as const).map(
+              (status) => (
+                <label className={styles.checkbox} key={status}>
+                  <input
+                    type="checkbox"
+                    checked={publicStatuses.includes(status)}
+                    onChange={(event) =>
+                      setPublicStatuses((current) =>
+                        event.target.checked
+                          ? [...current, status]
+                          : current.filter((value) => value !== status),
+                      )
+                    }
+                  />
+                  {t(STATUS_KEYS[status])}
+                </label>
+              ),
+            )}
+          </fieldset>
+
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={publicShowProgress}
+              onChange={(event) => setPublicShowProgress(event.target.checked)}
+            />
+            {t("settings.progress")}
           </label>
 
           {profileError ? (

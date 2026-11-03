@@ -27,6 +27,8 @@ struct PublicUserRow {
     avatar_key: Option<String>,
     banner_key: Option<String>,
     locale: String,
+    public_statuses: Vec<String>,
+    public_show_progress: bool,
     created_at: DateTime<Utc>,
 }
 
@@ -39,6 +41,7 @@ pub struct PublicItemView {
     pub title: String,
     pub subtitle: Option<String>,
     pub year: Option<i32>,
+    pub status: String,
     pub rating: Option<i16>,
     pub review: Option<String>,
     pub cover_key: Option<String>,
@@ -58,6 +61,7 @@ pub struct PublicItemDetail {
     pub title: String,
     pub subtitle: Option<String>,
     pub year: Option<i32>,
+    pub status: String,
     pub rating: Option<i16>,
     pub review: Option<String>,
     pub cover_key: Option<String>,
@@ -99,7 +103,7 @@ pub async fn profile(
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
     let user = load_public_user(&state.pool, id).await?;
-    let items = load_public_items(&state.pool, id).await?;
+    let items = load_public_items(&state.pool, id, &user.public_statuses).await?;
 
     Ok(Json(json!({
         "profile": {
@@ -116,7 +120,8 @@ pub async fn profile(
 
 async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppError> {
     sqlx::query_as::<_, PublicUserRow>(
-        "select id, display_name, avatar_key, banner_key, locale, created_at
+        "select id, display_name, avatar_key, banner_key, locale,
+                public_statuses, public_show_progress, created_at
          from users
          where id = $1 and is_public and deleted_at is null",
     )
@@ -134,7 +139,7 @@ pub async fn item(
     State(state): State<AppState>,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Json<Value>, AppError> {
-    load_public_user(&state.pool, user_id).await?;
+    let user = load_public_user(&state.pool, user_id).await?;
 
     let item = sqlx::query_as::<_, PublicItemDetail>(
         "select i.id,
@@ -142,6 +147,7 @@ pub async fn item(
                 i.title,
                 i.subtitle,
                 i.year,
+                i.status,
                 i.rating,
                 i.review,
                 i.cover_key,
@@ -182,27 +188,140 @@ pub async fn item(
          left join tags t on t.id = it.tag_id
          where i.id = $2
            and i.user_id = $1
-           and i.status = 'done'
+           and i.status = ANY($3)
+           and not i.public_hidden
            and i.deleted_at is null
          group by i.id",
     )
     .bind(user_id)
     .bind(item_id)
+    .bind(&user.public_statuses)
     .fetch_optional(&state.pool)
     .await
     .map_err(AppError::internal)?
     .ok_or_else(|| AppError::not_found("record"))?;
 
-    Ok(Json(json!({ "item": item })))
+    Ok(Json(json!({
+        "item": item,
+        "progress_visible": user.public_show_progress,
+    })))
 }
 
-async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicItemView>, AppError> {
+/// `GET /api/v1/public/users/{id}/items/{item_id}/episodes?season=N`
+///
+/// Read-only episode progress for a public series. The direct link must pass
+/// the same status/hidden checks as the record page.
+pub async fn episodes(
+    State(state): State<AppState>,
+    Path((user_id, item_id)): Path<(Uuid, Uuid)>,
+    axum::extract::Query(query): axum::extract::Query<crate::items::episodes::SeasonQuery>,
+) -> Result<Json<Value>, AppError> {
+    let user = load_public_user(&state.pool, user_id).await?;
+    if !user.public_show_progress {
+        return Err(AppError::not_found("record"));
+    }
+
+    let row = sqlx::query_as::<
+        _,
+        (
+            String,
+            Option<String>,
+            Option<String>,
+            Option<sqlx::types::Json<MovieDetails>>,
+        ),
+    >(
+        "select i.kind, i.external_source, i.external_id, i.details
+         from items i
+         where i.id = $2
+           and i.user_id = $1
+           and i.status = ANY($3)
+           and not i.public_hidden
+           and i.deleted_at is null",
+    )
+    .bind(user_id)
+    .bind(item_id)
+    .bind(&user.public_statuses)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("record"))?;
+
+    if row.0 != "tv" || row.1.as_deref() != Some("tmdb") {
+        return Err(AppError::not_found("record"));
+    }
+    if !state.tmdb.configured() {
+        return Err(AppError::unavailable("TMDB is not configured"));
+    }
+
+    let external_id: u64 = row
+        .2
+        .as_deref()
+        .and_then(|value| value.parse().ok())
+        .ok_or_else(|| AppError::not_found("record"))?;
+    let season_number = query.season.unwrap_or(1);
+    if !(0..=100).contains(&season_number) {
+        return Err(AppError::validation_field("season", "invalid season"));
+    }
+
+    let season = state
+        .tmdb
+        .season(
+            external_id,
+            season_number,
+            crate::movies::language_for(&user.locale),
+        )
+        .await?;
+
+    let watched: std::collections::BTreeSet<(i32, i32)> = row
+        .3
+        .as_ref()
+        .map(|details| {
+            details
+                .0
+                .watched_episodes
+                .iter()
+                .map(|episode| (episode.season_number, episode.episode_number))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let episodes: Vec<Value> = season
+        .episodes
+        .iter()
+        .map(|episode| {
+            json!({
+                "episode_number": episode.episode_number,
+                "name": episode.name,
+                "overview": episode.overview,
+                "air_date": episode.air_date,
+                "runtime": episode.runtime,
+                "still_path": episode.still_path,
+                "watched": watched.contains(&(season_number, episode.episode_number)),
+            })
+        })
+        .collect();
+
+    Ok(Json(json!({
+        "season": {
+            "season_number": season.season_number,
+            "name": season.name,
+        },
+        "episodes": episodes,
+    })))
+}
+
+async fn load_public_items(
+    pool: &PgPool,
+    user_id: Uuid,
+    statuses: &[String],
+) -> Result<Vec<PublicItemView>, AppError> {
     sqlx::query_as::<_, PublicItemView>(
         "select i.id,
                 i.kind,
                 i.title,
                 i.subtitle,
                 i.year,
+                i.status,
                 i.rating,
                 i.review,
                 i.cover_key,
@@ -242,13 +361,15 @@ async fn load_public_items(pool: &PgPool, user_id: Uuid) -> Result<Vec<PublicIte
          left join item_tags it on it.item_id = i.id
          left join tags t on t.id = it.tag_id
          where i.user_id = $1
-           and i.status = 'done'
+           and i.status = ANY($2)
+           and not i.public_hidden
            and i.deleted_at is null
          group by i.id
          order by i.updated_at desc
-         limit $2",
+         limit $3",
     )
     .bind(user_id)
+    .bind(statuses)
     .bind(MAX_PUBLIC_ITEMS)
     .fetch_all(pool)
     .await

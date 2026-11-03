@@ -21,6 +21,7 @@ fn new_movie(title: &str) -> NewItem {
         external_source: None,
         external_id: None,
         details: None,
+        public_hidden: false,
         tags: vec!["Sci-Fi".to_owned(), "nolan".to_owned()],
     }
 }
@@ -212,6 +213,7 @@ fn json_shape_uses_snake_case() {
         external_source: None,
         external_id: None,
         details: None,
+        public_hidden: false,
         tags: vec![],
     };
 
@@ -410,6 +412,7 @@ async fn list_paginates_without_gaps_or_duplicates() {
                 external_source: None,
                 external_id: None,
                 details: None,
+                public_hidden: false,
                 tags: vec![],
             },
         )
@@ -496,6 +499,7 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
                 external_source: None,
                 external_id: None,
                 details: None,
+                public_hidden: false,
                 tags: vec![],
             },
         )
@@ -519,6 +523,7 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
             external_source: None,
             external_id: None,
             details: None,
+            public_hidden: false,
             tags: vec![],
         },
     )
@@ -1174,6 +1179,7 @@ async fn list_filters_combine_with_and() {
                 external_source: None,
                 external_id: None,
                 details: None,
+                public_hidden: false,
                 tags: tags.into_iter().map(str::to_owned).collect(),
             },
         )

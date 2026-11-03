@@ -429,4 +429,8 @@ export const ru = {
   'tvEpisodes.unmarkSeason': 'Снять сезон',
   'tvEpisodes.loading': 'Загружаем эпизоды…',
   'tvEpisodes.error': 'Не удалось загрузить эпизоды или сохранить отметку.',
+  'settings.publicStatuses': 'Что показывать публично',
+  'settings.progress': 'Показывать прогресс сериалов',
+  'public.records': 'Записей: {count}',
+  'form.hidePublic': 'Скрыть из публичного профиля',
 } as const;

@@ -271,6 +271,7 @@ mod tests {
             external_id: None,
             details: None,
             details_fetched_at: None,
+            public_hidden: false,
             cover_key: None,
             tags: vec![],
             revision: Revision::INITIAL,

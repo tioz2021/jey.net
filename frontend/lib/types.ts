@@ -24,6 +24,8 @@ export interface User {
   locale: string;
   email_verified: boolean;
   is_public: boolean;
+  public_statuses: string[];
+  public_show_progress: boolean;
   avatar_key: string | null;
   banner_key: string | null;
   has_password: boolean;
@@ -134,6 +136,7 @@ export interface Item {
   external_id: string | null;
   details: MovieDetails | null;
   details_fetched_at: string | null;
+  public_hidden: boolean;
   tags: string[];
   revision: number;
   sync_seq: number;
@@ -154,6 +157,7 @@ export interface NewItem {
   external_source?: string | null;
   external_id?: string | null;
   details?: MovieDetails | null;
+  public_hidden?: boolean;
   tags?: string[];
 }
 
@@ -235,17 +239,20 @@ export interface PublicItem {
   title: string;
   subtitle: string | null;
   year: number | null;
+  status: ItemStatus;
   rating: number | null;
   review: string | null;
   cover_key: string | null;
   external_source: string | null;
   external_id: string | null;
   details: MovieDetails | null;
+  public_hidden: boolean;
   tags: string[];
   titles?: Record<string, string> | null;
   directors?: Record<string, string> | null;
   genres?: Record<string, string[]> | null;
   updated_at: string;
+  progress_visible?: boolean;
 }
 
 export interface PublicProfileResponse {

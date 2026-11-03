@@ -200,3 +200,73 @@ async fn malformed_id_is_a_validation_error() {
     let response = client.get("/api/v1/public/users/not-a-uuid", None).await;
     assert_eq!(response.status, 400, "body: {}", response.body);
 }
+
+#[tokio::test]
+async fn status_visibility_and_per_record_hiding_are_enforced() {
+    let (client, _email, cookie, user) = account().await;
+    let user_id = user["id"].as_str().expect("user id").to_owned();
+
+    add_item(&client, &cookie, "Готово", "done", None).await;
+    let in_progress = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "В процессе", "status": "in_progress" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(in_progress.status, 201, "body: {}", in_progress.body);
+    add_item(&client, &cookie, "План", "planned", None).await;
+
+    let settings = client
+        .patch(
+            "/api/v1/me",
+            json!({
+                "is_public": true,
+                "public_statuses": ["done", "in_progress"]
+            }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(settings.status, 200, "body: {}", settings.body);
+
+    let public = client
+        .get(&format!("/api/v1/public/users/{user_id}"), None)
+        .await;
+    assert_eq!(public.status, 200, "body: {}", public.body);
+    let titles: Vec<&str> = public.body["items"]
+        .as_array()
+        .expect("items")
+        .iter()
+        .filter_map(|item| item["title"].as_str())
+        .collect();
+    assert!(titles.contains(&"Готово"));
+    assert!(titles.contains(&"В процессе"));
+    assert!(!titles.contains(&"План"));
+
+    let item_id = in_progress.body["item"]["id"].as_str().expect("item id");
+    let hidden = client
+        .patch(
+            &format!("/api/v1/items/{item_id}"),
+            json!({ "public_hidden": true }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(hidden.status, 200, "body: {}", hidden.body);
+
+    let public = client
+        .get(&format!("/api/v1/public/users/{user_id}"), None)
+        .await;
+    assert!(!public.body.to_string().contains("В процессе"));
+    assert_eq!(
+        client
+            .get(
+                &format!("/api/v1/public/users/{user_id}/items/{item_id}"),
+                None,
+            )
+            .await
+            .status,
+        404
+    );
+
+    purge_test_user(&pool().await, user_id.parse::<Uuid>().expect("uuid")).await;
+}

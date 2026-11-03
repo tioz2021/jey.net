@@ -69,6 +69,7 @@ interface Values {
   external_source: string;
   external_id: string;
   details: MovieDetails | null;
+  public_hidden: boolean;
   tags: string[];
 }
 
@@ -84,6 +85,7 @@ const INITIAL: Values = {
   external_source: "",
   external_id: "",
   details: null,
+  public_hidden: false,
   tags: [],
 };
 
@@ -104,6 +106,7 @@ function toValues(item?: Item, initialKind?: ItemKind): Values {
     external_source: item.external_source ?? "",
     external_id: item.external_id ?? "",
     details: item.details,
+    public_hidden: item.public_hidden ?? false,
     tags: [...item.tags],
   };
 }
@@ -185,6 +188,7 @@ function validate(
       external_source: values.external_id ? "tmdb" : null,
       external_id: values.external_id || null,
       details: values.details,
+      public_hidden: values.public_hidden,
       tags: values.tags,
     },
   };
@@ -464,6 +468,20 @@ export function ItemForm({
             onChange={(event) => update("source_url", event.target.value)}
             error={errors.source_url}
           />
+
+          <label className={styles.checkbox}>
+            <input
+              checked={values.public_hidden}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  public_hidden: event.target.checked,
+                }))
+              }
+              type="checkbox"
+            />
+            {t("form.hidePublic")}
+          </label>
 
           <TagInput
             tags={values.tags}

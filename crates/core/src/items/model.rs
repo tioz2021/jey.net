@@ -247,6 +247,8 @@ pub struct Item {
     pub details: Option<MovieDetails>,
     #[serde(default)]
     pub details_fetched_at: Option<Timestamp>,
+    #[serde(default)]
+    pub public_hidden: bool,
     pub tags: Vec<String>,
     pub revision: Revision,
     pub sync_seq: SyncSeq,
@@ -279,6 +281,8 @@ pub struct NewItem {
     #[serde(default)]
     pub details: Option<MovieDetails>,
     #[serde(default)]
+    pub public_hidden: bool,
+    #[serde(default)]
     pub tags: Vec<String>,
 }
 
@@ -308,6 +312,8 @@ pub struct ItemPatch {
     #[serde(default)]
     pub details: Option<MovieDetails>,
     #[serde(default)]
+    pub public_hidden: Option<bool>,
+    #[serde(default)]
     pub tags: Option<Vec<String>>,
 }
 
@@ -325,6 +331,7 @@ impl ItemPatch {
             && self.external_source.is_none()
             && self.external_id.is_none()
             && self.details.is_none()
+            && self.public_hidden.is_none()
             && self.tags.is_none()
     }
 }

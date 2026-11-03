@@ -62,6 +62,7 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
         external_source,
         external_id,
         details,
+        public_hidden: item.public_hidden,
         tags,
     })
 }
@@ -121,6 +122,7 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         external_source,
         external_id,
         details,
+        public_hidden: patch.public_hidden,
         tags,
     })
 }

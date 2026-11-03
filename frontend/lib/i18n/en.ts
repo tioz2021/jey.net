@@ -430,4 +430,8 @@ export const en = {
   'tvEpisodes.unmarkSeason': 'Unmark season',
   'tvEpisodes.loading': 'Loading episodes…',
   'tvEpisodes.error': 'Could not load episodes or save the mark.',
+  'settings.publicStatuses': 'What to show publicly',
+  'settings.progress': 'Show series progress',
+  'public.records': 'Records: {count}',
+  'form.hidePublic': 'Hide from the public profile',
 } satisfies Record<keyof typeof ru, string>;

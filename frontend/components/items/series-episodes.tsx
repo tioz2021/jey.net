@@ -22,11 +22,13 @@ export function SeriesEpisodes({
   seasons,
   watched,
   totalEpisodes,
+  publicUserId,
 }: {
   itemId: string;
   seasons: SeasonSummary[];
   watched: WatchedEpisode[];
   totalEpisodes?: number | null;
+  publicUserId?: string;
 }) {
   const { t } = useI18n();
   const available = useMemo(
@@ -48,6 +50,7 @@ export function SeriesEpisodes({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<Set<number>>(new Set());
+  const readOnly = Boolean(publicUserId);
 
   const total = totalEpisodes ?? seasons.reduce((sum, season) => sum + season.episode_count, 0);
 
@@ -56,8 +59,11 @@ export function SeriesEpisodes({
     setLoading(true);
     setError(null);
 
-    api.items
-      .episodes(itemId, selected)
+    const request = publicUserId
+      ? api.publicItems.episodes(publicUserId, itemId, selected)
+      : api.items.episodes(itemId, selected);
+
+    request
       .then((response) => {
         if (!cancelled) {
           setEpisodes(response.episodes);
@@ -78,9 +84,12 @@ export function SeriesEpisodes({
     return () => {
       cancelled = true;
     };
-  }, [itemId, selected, t]);
+  }, [itemId, publicUserId, selected, t]);
 
   async function toggle(episode: number, next: boolean) {
+    if (readOnly) {
+      return;
+    }
     setPending((current) => new Set(current).add(episode));
     try {
       await api.items.toggleEpisode(itemId, selected, episode, next);
@@ -105,6 +114,9 @@ export function SeriesEpisodes({
   }
 
   async function toggleSeason(next: boolean) {
+    if (readOnly) {
+      return;
+    }
     const numbers = episodes.map((episode) => episode.episode_number);
     await Promise.all(
       numbers.map((episode) => api.items.toggleEpisode(itemId, selected, episode, next)),
@@ -153,14 +165,18 @@ export function SeriesEpisodes({
             ))}
           </Select>
 
-          <Button
-            disabled={episodes.length === 0}
-            size="sm"
-            variant="secondary"
-            onClick={() => toggleSeason(!allSeasonWatched)}
-          >
-            {allSeasonWatched ? t("tvEpisodes.unmarkSeason") : t("tvEpisodes.markSeason")}
-          </Button>
+          {!readOnly ? (
+            <Button
+              disabled={episodes.length === 0}
+              size="sm"
+              variant="secondary"
+              onClick={() => toggleSeason(!allSeasonWatched)}
+            >
+              {allSeasonWatched
+                ? t("tvEpisodes.unmarkSeason")
+                : t("tvEpisodes.markSeason")}
+            </Button>
+          ) : null}
         </div>
 
         {error ? <p className={styles.error}>{error}</p> : null}
@@ -175,7 +191,7 @@ export function SeriesEpisodes({
                   <label className={styles.check}>
                     <input
                       checked={checked}
-                      disabled={pending.has(episode.episode_number)}
+                      disabled={readOnly || pending.has(episode.episode_number)}
                       onChange={(event) =>
                         toggle(episode.episode_number, event.target.checked)
                       }

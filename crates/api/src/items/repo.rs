@@ -14,8 +14,9 @@ use crate::error::AppError;
 const SELECT_BY_ID: &str = r#"
     select
         i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.external_source, i.external_id,
-        i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
+        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
+        i.device_id,
         i.created_at, i.updated_at, i.deleted_at,
         coalesce(
             array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
@@ -31,8 +32,9 @@ const SELECT_BY_ID: &str = r#"
 const SELECT_ALL: &str = r#"
     select
         i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.external_source, i.external_id,
-        i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
+        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
+        i.device_id,
         i.created_at, i.updated_at, i.deleted_at,
         coalesce(
             array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
@@ -49,8 +51,9 @@ const SELECT_ALL: &str = r#"
 const SELECT_LIST: &str = r#"
     select
         i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.external_source, i.external_id,
-        i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
+        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
+        i.device_id,
         i.created_at, i.updated_at, i.deleted_at,
         coalesce(
             array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
@@ -81,6 +84,7 @@ pub struct ItemRow {
     review: Option<String>,
     source_url: Option<String>,
     cover_key: Option<String>,
+    public_hidden: bool,
     external_source: Option<String>,
     external_id: Option<String>,
     details: Option<serde_json::Value>,
@@ -110,6 +114,7 @@ impl TryFrom<ItemRow> for Item {
             review: row.review,
             source_url: row.source_url,
             cover_key: row.cover_key,
+            public_hidden: row.public_hidden,
             external_source: row.external_source,
             external_id: row.external_id,
             details: match row.details {
@@ -155,10 +160,10 @@ pub async fn create(
     sqlx::query(
         "insert into items
              (id, user_id, kind, title, subtitle, year, status, rating, review,
-              source_url, external_source, external_id, details, details_fetched_at,
-              device_id)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-                 case when $13::jsonb is null then null else now() end, $14)",
+              source_url, public_hidden, external_source, external_id, details,
+              details_fetched_at, device_id)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+                 case when $14::jsonb is null then null else now() end, $15)",
     )
     .bind(id)
     .bind(user_id)
@@ -170,6 +175,7 @@ pub async fn create(
     .bind(new.rating.map(i16::from))
     .bind(&new.review)
     .bind(&new.source_url)
+    .bind(new.public_hidden)
     .bind(&new.external_source)
     .bind(&new.external_id)
     .bind(details_json(&new.details)?)
@@ -306,8 +312,9 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
          )
          select
              i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-             i.review, i.source_url, i.cover_key, i.external_source, i.external_id,
-             i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
+             i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+             i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
+             i.device_id,
              i.created_at, i.updated_at, i.deleted_at,
              coalesce(
                  array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
@@ -463,11 +470,12 @@ pub async fn update(
              rating = coalesce($8, rating),
              review = coalesce($9, review),
              source_url = coalesce($10, source_url),
-             external_source = coalesce($11, external_source),
-             external_id = coalesce($12, external_id),
-             details = coalesce($13, details),
+             public_hidden = coalesce($11, public_hidden),
+             external_source = coalesce($12, external_source),
+             external_id = coalesce($13, external_id),
+             details = coalesce($14, details),
              details_fetched_at = case
-                 when $13::jsonb is not null then now()
+                 when $14::jsonb is not null then now()
                  else details_fetched_at
              end,
              revision = revision + 1
@@ -484,6 +492,7 @@ pub async fn update(
     .bind(patch.rating.map(i16::from))
     .bind(&patch.review)
     .bind(&patch.source_url)
+    .bind(patch.public_hidden)
     .bind(&patch.external_source)
     .bind(&patch.external_id)
     .bind(details_json(&patch.details)?)
