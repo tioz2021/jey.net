@@ -91,6 +91,15 @@ export function UserMenu({ user }: { user: User }) {
 
       {open ? (
         <div className={styles.menu} role="menu">
+          {user.is_public ? (
+            <Link
+              className={styles.item}
+              href={`/u/${user.id}`}
+              role="menuitem"
+            >
+              Моя страница
+            </Link>
+          ) : null}
           <Link className={styles.item} href="/settings" role="menuitem">
             Настройки
           </Link>
