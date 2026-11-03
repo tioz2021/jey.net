@@ -200,7 +200,7 @@ export function ItemForm({
   itemId?: string;
 }) {
   const router = useRouter();
-  const { notifyError } = useToast();
+  const { notify, notifyError } = useToast();
   const [values, setValues] = useState<Values>(() => toValues(initial));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -277,6 +277,12 @@ export function ItemForm({
           await api.items.setPoster(savedId);
         } catch {
           // The form still saves; the cover can be added later.
+          notify({
+            tone: "info",
+            title: "Постер не загрузился",
+            text: "Запись сохранена — обложку можно добавить вручную.",
+            requestId: null,
+          });
         }
       }
 

@@ -46,6 +46,19 @@
   color: var(--color-text-muted);
 }
 
+.selectedBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.selectedPoster {
+  width: 34px;
+  height: 51px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
 .selected {
   margin: 0;
   font-size: var(--text-sm);

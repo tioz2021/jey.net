@@ -26,9 +26,18 @@ export function MovieSearch({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState(-1);
+  const [posterPath, setPosterPath] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Choosing a film fills the input with its title; that must not trigger a
+  // fresh search and reopen the dropdown.
+  const skipSearch = useRef(false);
 
   useEffect(() => {
+    if (skipSearch.current) {
+      skipSearch.current = false;
+      return;
+    }
+
     const q = query.trim();
     if (q.length < 2) {
       setResults([]);
@@ -93,7 +102,10 @@ export function MovieSearch({
     try {
       const response = await api.movies.get(item.tmdb_id);
       onSelect(response.movie);
+      skipSearch.current = true;
       setQuery(response.movie.title);
+      setPosterPath(response.movie.poster_path);
+      setResults([]);
       setOpen(false);
     } catch {
       setError("Не удалось загрузить фильм. Попробуйте ещё раз.");
@@ -153,7 +165,22 @@ export function MovieSearch({
       </div>
 
       {selected && !open ? (
-        <p className={styles.selected}>Заполнено из TMDB: «{selected}»</p>
+        <div className={styles.selectedBox}>
+          {posterPath ? (
+            // eslint-disable-next-line @next/next/no-img-element -- proxied TMDB poster
+            <img
+              alt=""
+              className={styles.selectedPoster}
+              src={`/api/v1/movies/image?size=w92&path=${encodeURIComponent(posterPath)}`}
+            />
+          ) : null}
+          <div>
+            <p className={styles.selected}>Заполнено из TMDB: «{selected}»</p>
+            <p className={styles.hint}>
+              Постер загрузится в запись при сохранении.
+            </p>
+          </div>
+        </div>
       ) : (
         <p className={styles.hint}>
           Начните вводить название — поля заполнятся сами.
@@ -185,7 +212,7 @@ export function MovieSearch({
                         alt=""
                         className={styles.poster}
                         loading="lazy"
-                        src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                        src={`/api/v1/movies/image?size=w92&path=${encodeURIComponent(item.poster_path)}`}
                       />
                     ) : (
                       <span className={styles.poster} aria-hidden="true" />
