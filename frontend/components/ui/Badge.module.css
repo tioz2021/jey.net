@@ -22,6 +22,12 @@
   border-color: var(--color-accent);
 }
 
+.warning {
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+}
+
 .success {
   color: var(--color-success);
   background: transparent;

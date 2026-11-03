@@ -17,12 +17,12 @@ export const STATUS_LABELS: Record<ItemStatus, string> = {
 /** Badge tone for each status; the components stay colour-agnostic. */
 export const STATUS_TONES: Record<
   ItemStatus,
-  "neutral" | "accent" | "success" | "danger"
+  "neutral" | "accent" | "success" | "warning" | "danger"
 > = {
-  planned: "neutral",
-  in_progress: "accent",
+  planned: "accent",
+  in_progress: "warning",
   done: "success",
-  dropped: "danger",
+  dropped: "neutral",
 };
 
 export const SORT_LABELS: Record<Sort, string> = {
