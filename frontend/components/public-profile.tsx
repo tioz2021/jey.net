@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
 
@@ -44,6 +45,34 @@ export function PublicProfileView({
   const shown = expanded ? items : items.slice(0, PAGE_LIMIT);
   const visible =
     active === "all" ? shown : shown.filter((item) => item.kind === active);
+
+  function onTabKeyDown(
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+  ) {
+    const tabs = Array.from(
+      event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>(
+        '[role="tab"]',
+      ) ?? [],
+    );
+    const index = tabs.indexOf(event.currentTarget);
+
+    let next = index;
+    if (event.key === "ArrowRight") {
+      next = (index + 1) % tabs.length;
+    } else if (event.key === "ArrowLeft") {
+      next = (index - 1 + tabs.length) % tabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    tabs[next]?.focus();
+    tabs[next]?.click();
+  }
 
   const groups = kinds
     .map((kind) => ({
@@ -123,6 +152,7 @@ export function PublicProfileView({
                 aria-selected={active === "all"}
                 className={`${styles.tab} ${active === "all" ? styles.tabActive : ""}`}
                 onClick={() => setActive("all")}
+                onKeyDown={onTabKeyDown}
                 role="tab"
                 type="button"
               >
@@ -134,6 +164,7 @@ export function PublicProfileView({
                   className={`${styles.tab} ${active === group.kind ? styles.tabActive : ""}`}
                   key={group.kind}
                   onClick={() => setActive(group.kind)}
+                  onKeyDown={onTabKeyDown}
                   role="tab"
                   type="button"
                 >
