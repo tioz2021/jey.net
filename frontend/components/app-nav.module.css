@@ -48,7 +48,7 @@
   border-left-color: var(--color-accent);
 }
 
-@media (width <= 900px) {
+@media (width <= 1000px) {
   .nav {
     position: static;
     display: flex;

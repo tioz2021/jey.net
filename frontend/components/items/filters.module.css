@@ -26,7 +26,7 @@
   gap: var(--space-3);
 }
 
-@media (width <= 900px) {
+@media (width <= 1000px) {
   .row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

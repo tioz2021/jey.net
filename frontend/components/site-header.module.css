@@ -80,8 +80,10 @@
   font-size: var(--text-sm);
 }
 
-@media (width <= 900px) {
-  .nav {
+@media (width <= 1000px) {
+  .nav,
+  .search,
+  .language {
     display: none;
   }
 
@@ -95,14 +97,6 @@
 }
 
 @media (width <= 700px) {
-  .search {
-    display: none;
-  }
-
-  .language {
-    display: none;
-  }
-
   .inner {
     padding: 0 var(--space-3);
   }

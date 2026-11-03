@@ -83,7 +83,7 @@
 }
 
 .search {
-  display: none;
+  display: block;
 }
 
 .language {
@@ -116,18 +116,12 @@
   font-weight: 600;
 }
 
-@media (width <= 900px) {
+@media (width <= 1000px) {
   .wrap {
     display: block;
   }
 
   .trigger {
     display: inline-flex;
-  }
-}
-
-@media (width <= 700px) {
-  .search {
-    display: block;
   }
 }
