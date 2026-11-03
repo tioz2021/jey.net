@@ -16,14 +16,32 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
     const initial: Theme =
       stored === "light" || stored === "dark"
         ? stored
-        : window.matchMedia("(prefers-color-scheme: dark)").matches
+        : media.matches
           ? "dark"
           : "light";
 
     setTheme(initial);
+    document.documentElement.dataset.theme = initial;
+
+    // Until the person makes an explicit choice, follow the browser live.
+    function onSystemChange(event: MediaQueryListEvent) {
+      const chosen = window.localStorage.getItem(STORAGE_KEY);
+      if (chosen === "light" || chosen === "dark") {
+        return;
+      }
+
+      const next: Theme = event.matches ? "dark" : "light";
+      setTheme(next);
+      document.documentElement.dataset.theme = next;
+    }
+
+    media.addEventListener("change", onSystemChange);
+
+    return () => media.removeEventListener("change", onSystemChange);
   }, []);
 
   function toggle() {

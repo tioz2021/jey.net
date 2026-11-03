@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Runs before the first paint, so a stored theme never flashes its opposite.
-const THEME_INIT = `try{var t=localStorage.getItem("jey-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}`;
+const THEME_INIT = `try{var s=localStorage.getItem("jey-theme");var t=(s==="light"||s==="dark")?s:(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default async function RootLayout({
   children,
