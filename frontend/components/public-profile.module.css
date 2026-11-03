@@ -169,9 +169,7 @@
   cursor: pointer;
 }
 
-.more:hover {
-  background: var(--color-surface-hover);
-}
+
 
 @media (width <= 640px) {
   .banner {

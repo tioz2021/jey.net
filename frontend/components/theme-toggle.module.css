@@ -11,7 +11,10 @@
   cursor: pointer;
 }
 
-.button:hover {
-  color: var(--color-text);
-  background: var(--color-surface);
+.button:active {
+  transform: translateY(1px) scale(0.9);
+}
+
+.button {
+  transition: transform 90ms ease;
 }

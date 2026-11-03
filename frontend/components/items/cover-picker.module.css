@@ -59,9 +59,7 @@
   cursor: pointer;
 }
 
-.choose:hover {
-  background: var(--color-surface-hover);
-}
+
 
 .choose:focus-within {
   outline: 2px solid var(--color-focus-ring);
