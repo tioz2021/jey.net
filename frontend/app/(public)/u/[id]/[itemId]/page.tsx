@@ -5,7 +5,14 @@ import { notFound } from "next/navigation";
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import {
+  IconBook,
+  IconFilm,
+  IconImage,
+  IconOther,
+  IconTv,
+} from "@/components/icons";
+import { Badge, Card } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import { STATUS_TONES } from "@/lib/labels";
 import { formatDate, translate } from "@/lib/i18n";
@@ -19,6 +26,14 @@ import { getPublicItem } from "@/lib/public-profile";
 import { languageAlternates } from "@/lib/seo";
 
 import styles from "./page.module.css";
+
+const KIND_ICONS = {
+  movie: IconFilm,
+  tv: IconTv,
+  book: IconBook,
+  image: IconImage,
+  other: IconOther,
+} as const;
 
 export async function generateMetadata({
   params,
@@ -93,127 +108,125 @@ export default async function PublicItemPage({
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
   const displayTags = localizedTags(item, locale);
+  const KindIcon = KIND_ICONS[item.kind];
 
   return (
     <article className={styles.article}>
-      <p className={styles.back}>
-        <Link href={`/u/${id}`}>{t("item.backProfile")}</Link>
-      </p>
+      <header className={styles.heading}>
+        <Link className={styles.back} href={`/u/${id}`}>
+          {t("item.backProfile")}
+        </Link>
+        <p className={styles.kicker}>{t(KIND_KEYS[item.kind])}</p>
+        <h1 className={styles.title}>
+          {displayTitle}
+          {item.year ? <span className={styles.year}> ({item.year})</span> : null}
+        </h1>
+        {displaySubtitle ? (
+          <p className={styles.subtitle}>{displaySubtitle}</p>
+        ) : null}
+      </header>
 
-      <PageHeader
-        subtitle={displaySubtitle ?? undefined}
-        title={
-          <>
-            {displayTitle}
-            {item.year ? <span className={styles.year}> ({item.year})</span> : null}
-          </>
-        }
-      />
+      <div className={styles.layout}>
+        <aside className={styles.rail}>
+          <div className={styles.cover}>
+            {item.cover_key ? (
+              // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
+              <img
+                src={`/media/${item.cover_key}`}
+                alt={t("cover.altTitle", { title: displayTitle })}
+              />
+            ) : (
+              <div className={styles.coverPlaceholder}>
+                <KindIcon size={36} />
+                <span>{t(KIND_KEYS[item.kind])}</span>
+              </div>
+            )}
+          </div>
 
-      <div className={styles.stack}>
-      <div className={styles.body}>
-        <div className={styles.poster}>
-          {item.cover_key ? (
-            // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
-            <img
-              src={`/media/${item.cover_key}`}
-              alt={t("cover.altTitle", { title: displayTitle })}
+          <div className={styles.railPanel}>
+            <dl className={styles.facts}>
+              <div className={styles.fact}>
+                <dt>{t("item.status")}</dt>
+                <dd>
+                  <Badge tone={STATUS_TONES[item.status]}>
+                    {t(STATUS_KEYS[item.status])}
+                  </Badge>
+                </dd>
+              </div>
+
+              <div className={styles.fact}>
+                <dt>{t("item.rating")}</dt>
+                <dd>
+                  {item.rating ? (
+                    <RatingStars
+                      label={t("item.ratingOf", { rating: item.rating })}
+                      size={14}
+                      value={item.rating}
+                    />
+                  ) : (
+                    "—"
+                  )}
+                </dd>
+              </div>
+
+              {displayTags.length > 0 ? (
+                <div className={styles.fact}>
+                  <dt>{t("item.tags")}</dt>
+                  <dd>
+                    <ul className={styles.tags}>
+                      {displayTags.map((tag) => (
+                        <li key={tag}>
+                          <Badge>{tag}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              ) : null}
+
+              <div className={styles.fact}>
+                <dt>{t("public.updated")}</dt>
+                <dd>
+                  {formatDate(locale, item.updated_at, {
+                    dateStyle: "medium",
+                  })}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </aside>
+
+        <div className={styles.main}>
+          {item.review ? (
+            <Card title={t("public.itemNote")}>
+              <p className={styles.review}>{item.review}</p>
+            </Card>
+          ) : null}
+
+          {item.details ? (
+            <MovieInfo
+              details={item.details}
+              kind={item.kind}
+              locale={locale}
+              tmdbId={
+                item.external_source === "tmdb" ? item.external_id : null
+              }
             />
-          ) : (
-            <div className={styles.posterPlaceholder}>Нет обложки</div>
-          )}
+          ) : null}
+
+          {item.kind === "tv" &&
+          item.details?.seasons &&
+          item.details.seasons.length > 0 &&
+          item.progress_visible !== false ? (
+            <SeriesEpisodes
+              itemId={item.id}
+              publicUserId={id}
+              seasons={item.details.seasons}
+              totalEpisodes={item.details.number_of_episodes}
+              watched={item.details.watched_episodes ?? []}
+            />
+          ) : null}
         </div>
-
-        <Card title={t("item.properties")}>
-          <dl className={styles.meta}>
-            <div className={styles.metaRow}>
-              <dt>{t("item.type")}</dt>
-              <dd>
-                <Badge>{t(KIND_KEYS[item.kind])}</Badge>
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>{t("item.status")}</dt>
-              <dd>
-                <Badge tone={STATUS_TONES[item.status]}>
-                  {t(STATUS_KEYS[item.status])}
-                </Badge>
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>{t("item.rating")}</dt>
-              <dd>
-                {item.rating ? (
-                  <RatingStars
-                    label={t("item.ratingOf", { rating: item.rating })}
-                    size={14}
-                    value={item.rating}
-                  />
-                ) : (
-                  "—"
-                )}
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>{t("item.year")}</dt>
-              <dd>{item.year ?? "—"}</dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>{t("item.tags")}</dt>
-              <dd>
-                {item.tags.length > 0 ? (
-                  <ul className={styles.tags}>
-                    {displayTags.map((tag) => (
-                      <li key={tag}>
-                        <Badge>{tag}</Badge>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  "—"
-                )}
-              </dd>
-            </div>
-
-            <div className={styles.metaRow}>
-              <dt>{t("public.updated")}</dt>
-              <dd>{formatDate(locale, item.updated_at, { dateStyle: "long" })}</dd>
-            </div>
-          </dl>
-        </Card>
-      </div>
-
-      {item.review ? (
-        <Card title={t("public.itemNote")}>
-          <p className={styles.review}>{item.review}</p>
-        </Card>
-      ) : null}
-
-      {item.details ? (
-        <MovieInfo
-          details={item.details}
-          kind={item.kind}
-          locale={locale}
-          tmdbId={item.external_source === "tmdb" ? item.external_id : null}
-        />
-      ) : null}
-
-      {item.kind === "tv" &&
-      item.details?.seasons &&
-      item.details.seasons.length > 0 &&
-      item.progress_visible !== false ? (
-        <SeriesEpisodes
-          itemId={item.id}
-          publicUserId={id}
-          seasons={item.details.seasons}
-          totalEpisodes={item.details.number_of_episodes}
-          watched={item.details.watched_episodes ?? []}
-        />
-      ) : null}
       </div>
     </article>
   );
