@@ -436,4 +436,13 @@ export const uk = {
   'form.hidePublic': 'Приховати з публічного профілю',
   'nav.menu': 'Меню',
   'movieSearch.replace': 'Замінити',
+  'settings.publicSummary': 'Зараз публічно',
+  'settings.publicSummaryOn': 'Статуси: {statuses}.',
+  'settings.publicSummaryNone': 'Статуси: нічого не вибрано.',
+  'settings.publicSummaryProgressOn': 'Прогрес серіалів: показується.',
+  'settings.publicSummaryProgressOff': 'Прогрес серіалів: приховано.',
+  'settings.publicSummaryNotes': 'Нотатки: видно в опублікованих записах.',
+  'settings.publicSummaryOff': 'Публічний профіль вимкнено — записи бачиш лише ти.',
+  'settings.publicSummaryHint': 'Зміни застосуються після збереження.',
+  'settings.openPublic': 'Відкрити публічну сторінку',
 } satisfies Record<keyof typeof ru, string>;

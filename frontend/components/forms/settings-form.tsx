@@ -39,6 +39,11 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
   const [publicShowProgress, setPublicShowProgress] = useState(
     initialUser.public_show_progress ?? true,
   );
+  const publicStatusLabels = publicStatuses
+    .map((status) => STATUS_KEYS[status as keyof typeof STATUS_KEYS])
+    .filter(Boolean)
+    .map((key) => t(key))
+    .join(", ");
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -218,6 +223,42 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
             />
             {t("settings.progress")}
           </label>
+
+          <div className={styles.summary}>
+            <p className={styles.summaryTitle}>
+              {t("settings.publicSummary")}
+            </p>
+            {isPublic ? (
+              <>
+                <p>
+                  {publicStatusLabels
+                    ? t("settings.publicSummaryOn", {
+                        statuses: publicStatusLabels,
+                      })
+                    : t("settings.publicSummaryNone")}
+                </p>
+                <p>
+                  {publicShowProgress
+                    ? t("settings.publicSummaryProgressOn")
+                    : t("settings.publicSummaryProgressOff")}
+                </p>
+                <p>{t("settings.publicSummaryNotes")}</p>
+                <a
+                  className={styles.summaryLink}
+                  href={`/u/${initialUser.id}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {t("settings.openPublic")}
+                </a>
+              </>
+            ) : (
+              <p>{t("settings.publicSummaryOff")}</p>
+            )}
+            <p className={styles.summaryHint}>
+              {t("settings.publicSummaryHint")}
+            </p>
+          </div>
 
           {profileError ? (
             <p className={styles.error} role="alert">

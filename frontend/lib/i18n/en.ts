@@ -436,4 +436,13 @@ export const en = {
   'form.hidePublic': 'Hide from the public profile',
   'nav.menu': 'Menu',
   'movieSearch.replace': 'Replace',
+  'settings.publicSummary': 'Currently public',
+  'settings.publicSummaryOn': 'Statuses: {statuses}.',
+  'settings.publicSummaryNone': 'Statuses: nothing selected.',
+  'settings.publicSummaryProgressOn': 'Series progress: shown.',
+  'settings.publicSummaryProgressOff': 'Series progress: hidden.',
+  'settings.publicSummaryNotes': 'Notes: visible on published records.',
+  'settings.publicSummaryOff': 'The public profile is off — only you can see your records.',
+  'settings.publicSummaryHint': 'Changes apply after saving.',
+  'settings.openPublic': 'Open the public page',
 } satisfies Record<keyof typeof ru, string>;

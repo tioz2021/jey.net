@@ -435,4 +435,13 @@ export const ru = {
   'form.hidePublic': 'Скрыть из публичного профиля',
   'nav.menu': 'Меню',
   'movieSearch.replace': 'Заменить',
+  'settings.publicSummary': 'Сейчас публично',
+  'settings.publicSummaryOn': 'Статусы: {statuses}.',
+  'settings.publicSummaryNone': 'Статусы: ничего не выбрано.',
+  'settings.publicSummaryProgressOn': 'Прогресс сериалов: показывается.',
+  'settings.publicSummaryProgressOff': 'Прогресс сериалов: скрыт.',
+  'settings.publicSummaryNotes': 'Заметки: видны у опубликованных записей.',
+  'settings.publicSummaryOff': 'Публичный профиль выключен — записи видишь только ты.',
+  'settings.publicSummaryHint': 'Изменения применятся после сохранения.',
+  'settings.openPublic': 'Открыть публичную страницу',
 } as const;
