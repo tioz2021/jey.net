@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { useI18n } from "@/lib/locale-context";
+
 import styles from "./item-neighbors.module.css";
 
 /**
@@ -18,6 +20,7 @@ export function ItemNeighbors({
   nextHref: string | null;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -51,24 +54,24 @@ export function ItemNeighbors({
   }
 
   return (
-    <nav aria-label="Переход между записями (клавиши ← и →)" className={styles.pager}>
+    <nav aria-label={t("item.previous")} className={styles.pager}>
       {prevHref ? (
         <Link className={styles.link} href={prevHref} title="Предыдущая запись (←)">
-          ← Предыдущая
+          {t("item.previous")}
         </Link>
       ) : (
         <span aria-disabled="true" className={styles.disabled}>
-          ← Предыдущая
+          {t("item.previous")}
         </span>
       )}
 
       {nextHref ? (
         <Link className={styles.link} href={nextHref} title="Следующая запись (→)">
-          Следующая →
+          {t("item.next")}
         </Link>
       ) : (
         <span aria-disabled="true" className={styles.disabled}>
-          Следующая →
+          {t("item.next")}
         </span>
       )}
     </nav>

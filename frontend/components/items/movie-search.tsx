@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 import type { MovieDetailsResponse, MovieSearchItem } from "@/lib/types";
 
 import styles from "./movie-search.module.css";
@@ -19,6 +20,7 @@ export function MovieSearch({
   onSelect: (movie: MovieDetailsResponse) => void;
   selected: string | null;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MovieSearchItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -63,7 +65,7 @@ export function MovieSearch({
         .catch(() => {
           if (!cancelled) {
             setResults([]);
-            setError("Не удалось получить подсказки. Можно заполнить вручную.");
+            setError(t("movieSearch.error"));
             setOpen(true);
           }
         })
@@ -78,7 +80,7 @@ export function MovieSearch({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, t]);
 
   useEffect(() => {
     if (!open) {
@@ -108,7 +110,7 @@ export function MovieSearch({
       setResults([]);
       setOpen(false);
     } catch {
-      setError("Не удалось загрузить фильм. Попробуйте ещё раз.");
+      setError(t("movieSearch.loadError"));
     } finally {
       setPending(false);
     }
@@ -117,7 +119,7 @@ export function MovieSearch({
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <label className={styles.label} htmlFor="movie-search">
-        Найти фильм
+        {t("movieSearch.label")}
       </label>
       <div className={styles.field}>
         <svg
@@ -135,7 +137,7 @@ export function MovieSearch({
           autoComplete="off"
           className={styles.input}
           id="movie-search"
-          placeholder="Например, Астрал"
+          placeholder={t("movieSearch.placeholder")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => {
@@ -161,7 +163,9 @@ export function MovieSearch({
             }
           }}
         />
-        {loading ? <span className={styles.hint}>Ищем…</span> : null}
+        {loading ? (
+          <span className={styles.hint}>{t("movieSearch.searching")}</span>
+        ) : null}
       </div>
 
       {selected && !open ? (
@@ -175,25 +179,21 @@ export function MovieSearch({
             />
           ) : null}
           <div>
-            <p className={styles.selected}>Заполнено из TMDB: «{selected}»</p>
-            <p className={styles.hint}>
-              Постер загрузится в запись при сохранении.
+            <p className={styles.selected}>
+              {t("movieSearch.selected", { title: selected })}
             </p>
+            <p className={styles.hint}>{t("movieSearch.posterHint")}</p>
           </div>
         </div>
       ) : (
-        <p className={styles.hint}>
-          Начните вводить название — поля заполнятся сами.
-        </p>
+        <p className={styles.hint}>{t("movieSearch.hint")}</p>
       )}
 
       {open ? (
         <div className={styles.dropdown}>
           {error ? <p className={styles.error}>{error}</p> : null}
           {!error && results.length === 0 && !loading ? (
-            <p className={styles.empty}>
-              Ничего не найдено. Можно заполнить карточку вручную.
-            </p>
+            <p className={styles.empty}>{t("movieSearch.notFound")}</p>
           ) : null}
           {results.length > 0 ? (
             <ul className={styles.list}>
@@ -232,7 +232,7 @@ export function MovieSearch({
             </ul>
           ) : null}
           <p className={styles.source}>
-            Данные о фильмах предоставлены{" "}
+            {t("movieSearch.credits")}{" "}
             <a href="https://www.themoviedb.org" rel="noreferrer" target="_blank">
               TMDB
             </a>

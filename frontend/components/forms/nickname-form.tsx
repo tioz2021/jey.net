@@ -5,12 +5,14 @@ import { useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 import { ApiError } from "@/lib/errors";
 import { useUser } from "@/lib/user-context";
 
 export function NicknameForm({ initial }: { initial: string }) {
   const router = useRouter();
   const { setUser } = useUser();
+  const { t } = useI18n();
   const [name, setName] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -40,8 +42,8 @@ export function NicknameForm({ initial }: { initial: string }) {
       <Input
         autoFocus
         error={error ?? undefined}
-        hint="Это имя увидят другие в публичном профиле."
-        label="Ник"
+        hint={t("auth.nicknameHint")}
+        label={t("auth.nickname")}
         maxLength={60}
         value={name}
         onChange={(event) => setName(event.target.value)}
@@ -52,7 +54,7 @@ export function NicknameForm({ initial }: { initial: string }) {
           loading={pending}
           type="submit"
         >
-          Сохранить и продолжить
+          {t("auth.nicknameSave")}
         </Button>
       </div>
     </form>

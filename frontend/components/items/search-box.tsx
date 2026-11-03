@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button, Input } from "@/components/ui";
 
+import { useI18n } from "@/lib/locale-context";
+
 import { useItemsQuery } from "./query-context";
 import styles from "./search-box.module.css";
 
 const DEBOUNCE_MS = 300;
 
 export function SearchBox() {
+  const { t } = useI18n();
   const { params, update } = useItemsQuery();
   const urlQuery = params.get("q") ?? "";
 
@@ -66,9 +69,9 @@ export function SearchBox() {
     <div className={styles.wrapper}>
       <div className={styles.field}>
         <Input
-          label="Поиск"
+          label={t("search.fieldLabel")}
           type="search"
-          placeholder="Название, автор или заметка"
+          placeholder={t("search.fieldPlaceholder")}
           value={value}
           onChange={(event) => handleChange(event.target.value)}
         />
@@ -76,7 +79,7 @@ export function SearchBox() {
 
       {value ? (
         <Button variant="ghost" size="sm" onClick={clear}>
-          Очистить
+          {t("search.clear")}
         </Button>
       ) : null}
     </div>

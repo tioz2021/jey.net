@@ -6,15 +6,15 @@ import { useState } from "react";
 import { useToast } from "@/components/toasts";
 import { Button, Dialog } from "@/components/ui";
 import { api } from "@/lib/api";
-import { KIND_LABELS } from "@/lib/labels";
+import { useI18n } from "@/lib/locale-context";
+import { KIND_KEYS } from "@/lib/i18n/labels";
 import type { Item } from "@/lib/types";
 
 import styles from "./trash-list.module.css";
 
-const dateFormat = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long" });
-
 export function TrashList({ items }: { items: Item[] }) {
   const router = useRouter();
+  const { t, date } = useI18n();
   const { notify, notifyError } = useToast();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<Item | null>(null);
@@ -27,8 +27,8 @@ export function TrashList({ items }: { items: Item[] }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Запись восстановлена",
-        text: `«${item.title}» снова в каталоге.`,
+        title: t("trash.restored"),
+        text: t("trash.restoredText", { title: item.title }),
         requestId: null,
       });
     } catch (cause) {
@@ -47,8 +47,8 @@ export function TrashList({ items }: { items: Item[] }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Запись удалена навсегда",
-        text: `«${item.title}» больше не восстановить.`,
+        title: t("trash.purged"),
+        text: t("trash.purgedText", { title: item.title }),
         requestId: null,
       });
     } catch (cause) {
@@ -66,9 +66,11 @@ export function TrashList({ items }: { items: Item[] }) {
             <div className={styles.info}>
               <p className={styles.title}>{item.title}</p>
               <p className={styles.meta}>
-                {KIND_LABELS[item.kind]}
+                {t(KIND_KEYS[item.kind])}
                 {item.deleted_at
-                  ? ` · удалено ${dateFormat.format(new Date(item.deleted_at))}`
+                  ? ` · ${t("trash.deletedOn", {
+                      date: date(item.deleted_at, { dateStyle: "long" }),
+                    })}`
                   : null}
               </p>
             </div>
@@ -80,10 +82,10 @@ export function TrashList({ items }: { items: Item[] }) {
                 variant="secondary"
                 onClick={() => restore(item)}
               >
-                Восстановить
+                {t("trash.restore")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setConfirming(item)}>
-                Удалить навсегда
+                {t("trash.deleteForever")}
               </Button>
             </div>
           </li>
@@ -92,26 +94,28 @@ export function TrashList({ items }: { items: Item[] }) {
 
       <Dialog
         open={confirming !== null}
-        title={confirming ? `Удалить «${confirming.title}» навсегда?` : ""}
+        title={
+          confirming
+            ? t("trash.confirmTitle", { title: confirming.title })
+            : ""
+        }
         onClose={() => setConfirming(null)}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirming(null)}>
-              Отмена
+              {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
               loading={pendingId === confirming?.id}
               onClick={() => confirming && purge(confirming)}
             >
-              Удалить навсегда
+              {t("trash.deleteForever")}
             </Button>
           </>
         }
       >
-        <p className={styles.hint}>
-          Запись и её обложка исчезнут без возможности восстановления.
-        </p>
+        <p className={styles.hint}>{t("trash.confirmText")}</p>
       </Dialog>
     </>
   );

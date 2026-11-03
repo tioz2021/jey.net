@@ -1,6 +1,7 @@
 "use client";
 
-import { KIND_LABELS, SORT_LABELS, STATUS_LABELS } from "@/lib/labels";
+import { KIND_KEYS, SORT_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { useI18n } from "@/lib/locale-context";
 import type { ItemKind, ItemStatus, Sort } from "@/lib/types";
 
 import { useItemsQuery } from "./query-context";
@@ -25,19 +26,24 @@ function monthLabel(value: string): string {
   return monthFormat.format(new Date(year, month - 1, 1));
 }
 
-function buildChips(params: URLSearchParams): Chip[] {
+function buildChips(
+  params: URLSearchParams,
+  t: ReturnType<typeof useI18n>["t"],
+): Chip[] {
   const chips: Chip[] = [];
 
   const query = params.get("q")?.trim();
   if (query) {
-    chips.push({ key: "q", label: `Поиск: «${query}»` });
+    chips.push({ key: "q", label: t("active.search", { q: query }) });
   }
 
   const kind = params.get("kind");
   if (kind) {
     chips.push({
       key: "kind",
-      label: KIND_LABELS[kind as ItemKind] ?? kind,
+      label: KIND_KEYS[kind as ItemKind]
+        ? t(KIND_KEYS[kind as ItemKind])
+        : kind,
     });
   }
 
@@ -45,25 +51,32 @@ function buildChips(params: URLSearchParams): Chip[] {
   if (status) {
     chips.push({
       key: "status",
-      label: STATUS_LABELS[status as ItemStatus] ?? status,
+      label: STATUS_KEYS[status as ItemStatus]
+        ? t(STATUS_KEYS[status as ItemStatus])
+        : status,
     });
   }
 
   const month = params.get("month");
   if (month) {
-    chips.push({ key: "month", label: `Месяц: ${monthLabel(month)}` });
+    chips.push({
+      key: "month",
+      label: t("active.month", { month: monthLabel(month) }),
+    });
   }
 
   const tag = params.get("tag");
   if (tag) {
-    chips.push({ key: "tag", label: `Тег: ${tag}` });
+    chips.push({ key: "tag", label: t("active.tag", { tag }) });
   }
 
   const sort = params.get("sort");
   if (sort && sort !== "created_desc") {
     chips.push({
       key: "sort",
-      label: `Сортировка: ${SORT_LABELS[sort as Sort] ?? sort}`,
+      label: SORT_KEYS[sort as Sort]
+        ? t("active.sort", { sort: t(SORT_KEYS[sort as Sort]) })
+        : sort,
     });
   }
 
@@ -72,8 +85,9 @@ function buildChips(params: URLSearchParams): Chip[] {
 
 /** Shows every active condition with a button to drop just that one. */
 export function ActiveFilters() {
+  const { t } = useI18n();
   const { params, update } = useItemsQuery();
-  const chips = buildChips(params);
+  const chips = buildChips(params, t);
 
   if (chips.length === 0) {
     return null;
@@ -84,7 +98,7 @@ export function ActiveFilters() {
   }
 
   return (
-    <ul className={styles.chips} aria-label="Активные фильтры">
+    <ul className={styles.chips} aria-label={t("filters.title")}>
       {chips.map((chip) => (
         <li key={chip.key}>
           <button

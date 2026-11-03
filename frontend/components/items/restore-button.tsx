@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
+import { useI18n } from "@/lib/locale-context";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/toasts";
 
@@ -12,6 +13,7 @@ import styles from "./restore-button.module.css";
 export function RestoreButton({ itemId }: { itemId: string }) {
   const router = useRouter();
   const { notifyError } = useToast();
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
 
   async function restore() {
@@ -30,7 +32,7 @@ export function RestoreButton({ itemId }: { itemId: string }) {
   return (
     <span className={styles.wrapper}>
       <Button size="sm" variant="secondary" loading={pending} onClick={restore}>
-        Восстановить
+        {t("common.restore")}
       </Button>
     </span>
   );

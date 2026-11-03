@@ -1,6 +1,12 @@
+"use client";
+
+import { useI18n } from "@/lib/locale-context";
+
 import styles from "./google-sign-in.module.css";
 
-export function GoogleSignIn({ label = "Войти через Google" }: { label?: string }) {
+export function GoogleSignIn({ label }: { label?: string }) {
+  const { t } = useI18n();
+
   return (
     <a className={styles.button} href="/api/v1/auth/google/start">
       <svg aria-hidden="true" height="18" viewBox="0 0 48 48" width="18">
@@ -21,7 +27,7 @@ export function GoogleSignIn({ label = "Войти через Google" }: { label
           fill="#34A853"
         />
       </svg>
-      {label}
+      {label ?? t("auth.google")}
     </a>
   );
 }

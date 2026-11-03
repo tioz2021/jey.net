@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button, Dialog } from "@/components/ui";
+import { useI18n } from "@/lib/locale-context";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/toasts";
 
@@ -37,26 +38,25 @@ export function DeleteDialog({
     }
   }
 
+  const { t } = useI18n();
+
   return (
     <Dialog
       open={open}
-      title="Удалить запись?"
+      title={t("item.deleteTitle")}
       onClose={onClose}
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={pending}>
-            Отмена
+            {t("common.cancel")}
           </Button>
           <Button variant="danger" loading={pending} onClick={remove}>
-            Удалить
+            {t("common.delete")}
           </Button>
         </>
       }
     >
-      <p>
-        «{title}» переедет в корзину: запись можно будет вернуть, она не
-        удаляется навсегда.
-      </p>
+      <p>{t("item.deleteText", { title })}</p>
     </Dialog>
   );
 }

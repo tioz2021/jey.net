@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ItemList } from "@/components/items/item-list";
 import { ItemsQueryProvider } from "@/components/items/query-context";
 import { PageHeader } from "@/components/ui";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemList as ItemListResponse } from "@/lib/types";
 
@@ -18,6 +20,7 @@ export default async function ItemsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const locale = await getServerLocale();
   const raw = await searchParams;
   const initial = new URLSearchParams();
 
@@ -50,10 +53,10 @@ export default async function ItemsPage({
       <PageHeader
         action={
           <Link className={styles.add} href="/items/new">
-            Добавить запись
+            {translate(locale, "common.add")}
           </Link>
         }
-        title="Записи"
+        title={translate(locale, "page.items")}
       />
 
       {/* The page renders dynamically, so useSearchParams needs no Suspense

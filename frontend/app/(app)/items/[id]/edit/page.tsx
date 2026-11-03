@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { ItemForm } from "@/components/forms/item-form";
 import { Card, PageHeader } from "@/components/ui";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemResponse } from "@/lib/types";
 
@@ -19,6 +21,7 @@ export default async function EditItemPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
   const response = await backendFetch(`/items/${encodeURIComponent(id)}`);
 
   if (response.status === 400 || response.status === 404) {
@@ -31,7 +34,7 @@ export default async function EditItemPage({
         <Card title="Не удалось загрузить запись">
           <p className={styles.muted}>Попробуйте обновить страницу позже.</p>
           <p>
-            <Link href="/items">← К записям</Link>
+            <Link href="/items">{translate(locale, "item.back")}</Link>
           </p>
         </Card>
       </main>
@@ -45,7 +48,7 @@ export default async function EditItemPage({
       <p className={styles.back}>
         <Link href={`/items/${item.id}`}>← К записи</Link>
       </p>
-      <PageHeader title="Редактирование" />
+      <PageHeader title={translate(locale, "page.itemEdit")} />
       <Card>
         <ItemForm initial={item} itemId={item.id} />
       </Card>

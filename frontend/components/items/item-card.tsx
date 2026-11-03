@@ -2,7 +2,9 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui";
-import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
+import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { useI18n } from "@/lib/locale-context";
+import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemStatus } from "@/lib/types";
 
 import { RestoreButton } from "./restore-button";
@@ -51,8 +53,9 @@ export function ItemCard({
   href?: string;
 }) {
   const target = href ?? `/items/${item.id}`;
+  const { t } = useI18n();
   const meta = [
-    KIND_LABELS[item.kind],
+    t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
     item.rating ? `★ ${item.rating}` : null,
   ].filter(Boolean);
@@ -85,7 +88,7 @@ export function ItemCard({
             )}
           </h2>
           <Badge tone={STATUS_TONES[item.status]}>
-            {STATUS_LABELS[item.status]}
+            {t(STATUS_KEYS[item.status])}
           </Badge>
         </div>
 
@@ -99,7 +102,7 @@ export function ItemCard({
 
         {item.deleted_at ? (
           <div className={styles.deleted}>
-            <Badge tone="danger">В корзине</Badge>
+            <Badge tone="danger">{t("card.deleted")}</Badge>
             <RestoreButton itemId={item.id} />
           </div>
         ) : null}

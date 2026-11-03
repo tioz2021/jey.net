@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { GoogleSignIn } from "@/components/google-sign-in";
+import { useI18n } from "@/lib/locale-context";
 
 import styles from "./login-options.module.css";
 
@@ -18,6 +19,7 @@ const ERRORS: Record<string, string> = {
 
 export function LoginOptions() {
   const params = useSearchParams();
+  const { t } = useI18n();
   const error = params.get("google");
 
   return (
@@ -30,9 +32,7 @@ export function LoginOptions() {
 
       <GoogleSignIn />
 
-      <p className={styles.note}>
-        Впервые здесь? Аккаунт создастся автоматически, пароль не нужен.
-      </p>
+      <p className={styles.note}>{t("auth.firstTime")}</p>
     </div>
   );
 }

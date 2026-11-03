@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { ItemForm } from "@/components/forms/item-form";
 import { Card, PageHeader } from "@/components/ui";
+import { translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 
 import styles from "./page.module.css";
 
@@ -10,13 +12,15 @@ export const metadata: Metadata = {
   title: "Новая запись — jey.net",
 };
 
-export default function NewItemPage() {
+export default async function NewItemPage() {
+  const locale = await getServerLocale();
+
   return (
     <main>
       <p className={styles.back}>
-        <Link href="/items">← К записям</Link>
+        <Link href="/items">{translate(locale, "item.back")}</Link>
       </p>
-      <PageHeader title="Новая запись" />
+      <PageHeader title={translate(locale, "page.itemNew")} />
       <Card>
         <ItemForm />
       </Card>

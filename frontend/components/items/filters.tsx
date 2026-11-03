@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { Button, Select } from "@/components/ui";
 import { api } from "@/lib/api";
-import { KIND_LABELS, SORT_LABELS, STATUS_LABELS } from "@/lib/labels";
+import { KIND_KEYS, SORT_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { useI18n } from "@/lib/locale-context";
 import type { ItemKind, ItemStatus, Sort, TagCount } from "@/lib/types";
 
 import { ActiveFilters } from "./active-filters";
@@ -12,11 +13,12 @@ import { useItemsQuery } from "./query-context";
 import { SearchBox } from "./search-box";
 import styles from "./filters.module.css";
 
-const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
-const STATUSES = Object.entries(STATUS_LABELS) as [ItemStatus, string][];
-const SORTS = Object.entries(SORT_LABELS) as [Sort, string][];
+const KINDS = Object.keys(KIND_KEYS) as ItemKind[];
+const STATUSES = Object.keys(STATUS_KEYS) as ItemStatus[];
+const SORTS = Object.keys(SORT_KEYS) as Sort[];
 
 export function ItemsFilters() {
+  const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const [tags, setTags] = useState<TagCount[]>([]);
 
@@ -59,7 +61,7 @@ export function ItemsFilters() {
   return (
     <section className={styles.panel} aria-labelledby="filters-title">
       <h2 className={styles.head} id="filters-title">
-        Фильтры
+        {t("filters.title")}
       </h2>
 
       <div className={styles.body}>
@@ -70,39 +72,39 @@ export function ItemsFilters() {
         <div className={styles.row}>
         <Select
           className={styles.select}
-          label="Тип"
+          label={t("filters.kind")}
           value={searchParams.get("kind") ?? ""}
           onChange={(event) => setParam("kind", event.target.value)}
         >
-          <option value="">Все типы</option>
-          {KINDS.map(([value, label]) => (
+          <option value="">{t("filters.kindAny")}</option>
+          {KINDS.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(KIND_KEYS[value])}
             </option>
           ))}
         </Select>
 
         <Select
           className={styles.select}
-          label="Статус"
+          label={t("filters.status")}
           value={searchParams.get("status") ?? ""}
           onChange={(event) => setParam("status", event.target.value)}
         >
-          <option value="">Любой статус</option>
-          {STATUSES.map(([value, label]) => (
+          <option value="">{t("filters.statusAny")}</option>
+          {STATUSES.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(STATUS_KEYS[value])}
             </option>
           ))}
         </Select>
 
         <Select
           className={styles.select}
-          label="Тег"
+          label={t("filters.tag")}
           value={searchParams.get("tag") ?? ""}
           onChange={(event) => setParam("tag", event.target.value)}
         >
-          <option value="">Все теги</option>
+          <option value="">{t("filters.tagAny")}</option>
           {tags.map((tag) => (
             <option key={tag.id} value={tag.name}>
               {tag.name} ({tag.item_count})
@@ -112,13 +114,13 @@ export function ItemsFilters() {
 
         <Select
           className={styles.select}
-          label="Сортировка"
+          label={t("filters.sort")}
           value={searchParams.get("sort") ?? "created_desc"}
           onChange={(event) => setParam("sort", event.target.value)}
         >
-          {SORTS.map(([value, label]) => (
+          {SORTS.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(SORT_KEYS[value])}
             </option>
           ))}
         </Select>
@@ -137,7 +139,7 @@ export function ItemsFilters() {
               })
             }
           >
-            Сбросить фильтры
+            {t("filters.reset")}
           </Button>
 
         </div>

@@ -6,6 +6,8 @@ import type { KeyboardEvent } from "react";
 import { Badge, Button, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 
+import { useI18n } from "@/lib/locale-context";
+
 import styles from "./tag-input.module.css";
 
 const MAX_TAGS = 20;
@@ -28,6 +30,7 @@ export function TagInput({
   onChange: (tags: string[]) => void;
   error?: string;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   const [knownTags, setKnownTags] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -125,7 +128,7 @@ export function TagInput({
     <div className={styles.field}>
       <Input
         label="Теги"
-        hint="Enter добавляет тег, стрелки выбирают из подсказок"
+        hint={t("form.tagsHint")}
         value={value}
         onChange={(event) => {
           setValue(event.target.value);

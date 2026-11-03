@@ -7,7 +7,10 @@ import { MovieInfo } from "@/components/items/movie-info";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { ItemNeighbors } from "@/components/items/item-neighbors";
 import { Badge, Card, PageHeader } from "@/components/ui";
-import { KIND_LABELS, STATUS_LABELS, STATUS_TONES } from "@/lib/labels";
+import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { STATUS_TONES } from "@/lib/labels";
+import { formatDate as formatDateI18n, translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
 import type { ItemNeighbors as ItemNeighborsResponse, ItemResponse } from "@/lib/types";
 
@@ -33,6 +36,9 @@ export default async function ItemPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const locale = await getServerLocale();
+  const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
+    translate(locale, key, values);
   const { id } = await params;
   const raw = await searchParams;
   const query = new URLSearchParams();
@@ -90,7 +96,7 @@ export default async function ItemPage({
   return (
     <main>
       <p className={styles.back}>
-        <Link href={backHref}>← К записям</Link>
+        <Link href={backHref}>{t("item.back")}</Link>
       </p>
 
       <PageHeader
@@ -123,40 +129,40 @@ export default async function ItemPage({
                 alt={`Обложка записи «${item.title}»`}
               />
             ) : (
-              <div className={styles.posterPlaceholder}>Нет обложки</div>
+              <div className={styles.posterPlaceholder}>{t("cover.none")}</div>
             )}
           </div>
 
-          <Card title="Свойства">
+          <Card title={t("item.properties")}>
             <dl className={styles.meta}>
               <div className={styles.metaRow}>
-                <dt>Тип</dt>
+                <dt>{t("item.type")}</dt>
                 <dd>
-                  <Badge>{KIND_LABELS[item.kind]}</Badge>
+                  <Badge>{t(KIND_KEYS[item.kind])}</Badge>
                 </dd>
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Статус</dt>
+                <dt>{t("item.status")}</dt>
                 <dd>
                   <Badge tone={STATUS_TONES[item.status]}>
-                    {STATUS_LABELS[item.status]}
+                    {t(STATUS_KEYS[item.status])}
                   </Badge>
                 </dd>
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Оценка</dt>
+                <dt>{t("item.rating")}</dt>
                 <dd>{item.rating ? `${item.rating} из 10` : "—"}</dd>
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Год</dt>
+                <dt>{t("item.year")}</dt>
                 <dd>{item.year ?? "—"}</dd>
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Ссылка</dt>
+                <dt>{t("item.link")}</dt>
                 <dd>
                   {item.source_url ? (
                     <a
@@ -173,7 +179,7 @@ export default async function ItemPage({
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Теги</dt>
+                <dt>{t("item.tags")}</dt>
                 <dd>
                   {item.tags.length > 0 ? (
                     <ul className={styles.tags}>
@@ -190,13 +196,23 @@ export default async function ItemPage({
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Добавлено</dt>
-                <dd>{formatDate(item.created_at)}</dd>
+                <dt>{t("item.added")}</dt>
+                <dd>
+                  {formatDateI18n(locale, item.created_at, {
+                    dateStyle: "long",
+                    timeStyle: "short",
+                  })}
+                </dd>
               </div>
 
               <div className={styles.metaRow}>
-                <dt>Изменено</dt>
-                <dd>{formatDate(item.updated_at)}</dd>
+                <dt>{t("item.changed")}</dt>
+                <dd>
+                  {formatDateI18n(locale, item.updated_at, {
+                    dateStyle: "long",
+                    timeStyle: "short",
+                  })}
+                </dd>
               </div>
 
               {item.deleted_at ? (
@@ -219,7 +235,7 @@ export default async function ItemPage({
         ) : null}
 
         {item.review ? (
-          <Card title="Заметка">
+          <Card title={t("item.note")}>
             <p className={styles.review}>{item.review}</p>
           </Card>
         ) : null}

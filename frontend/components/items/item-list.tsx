@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
 import { Onboarding } from "@/components/onboarding";
+import { useI18n } from "@/lib/locale-context";
 import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
@@ -45,6 +46,7 @@ export function ItemList({
   initialLoaded?: boolean;
   initialQuery?: string;
 }) {
+  const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
@@ -140,14 +142,14 @@ export function ItemList({
 
       {error ? (
         <EmptyState
-          title="Не удалось загрузить записи"
+          title={t("items.errorTitle")}
           text={error}
           action={
             <Button
               variant="secondary"
               onClick={() => setReloadToken((value) => value + 1)}
             >
-              Повторить
+              {t("items.retry")}
             </Button>
           }
         />
@@ -178,9 +180,9 @@ export function ItemList({
             fallback={
               <EmptyState
                 actionHref="/items/new"
-                actionLabel="Добавить запись"
-                text="Добавьте первый фильм, книгу или картинку — они появятся здесь."
-                title="Записей пока нет"
+                actionLabel={t("items.empty.noneAction")}
+                text={t("items.empty.noneText")}
+                title={t("items.empty.noneTitle")}
                 variant="records"
               />
             }
@@ -190,7 +192,7 @@ export function ItemList({
         <>
           {showSlowHint ? (
             <p aria-live="polite" className={styles.updating} role="status">
-              Обновляем список…
+              {t("items.updating")}
             </p>
           ) : null}
 

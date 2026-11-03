@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
+import { useI18n } from "@/lib/locale-context";
 
 import { DeleteDialog } from "./delete-dialog";
 import styles from "./item-actions.module.css";
@@ -18,6 +19,8 @@ export function ItemActions({
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
 
+  const { t } = useI18n();
+
   return (
     <div className={styles.actions}>
       <Button
@@ -25,10 +28,10 @@ export function ItemActions({
         size="sm"
         onClick={() => router.push(`/items/${itemId}/edit`)}
       >
-        Редактировать
+        {t("common.edit")}
       </Button>
       <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
-        Удалить
+        {t("common.delete")}
       </Button>
 
       <DeleteDialog

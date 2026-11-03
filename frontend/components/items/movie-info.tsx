@@ -1,51 +1,56 @@
 import { CastPhoto } from "@/components/items/cast-photo";
 import { Card } from "@/components/ui";
+import { formatMoney, formatNumber, translate } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n/server";
 import type { MovieDetails } from "@/lib/types";
 
 import styles from "./movie-info.module.css";
 
-const money = new Intl.NumberFormat("ru-RU", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
 /** Metadata snapshot: overview, runtime and cast names, with TMDB credit. */
-export function MovieInfo({
+export async function MovieInfo({
   details,
   tmdbId,
 }: {
   details: MovieDetails;
   tmdbId: string | null;
 }) {
+  const locale = await getServerLocale();
+  const t = (
+    key: Parameters<typeof translate>[1],
+    values?: Record<string, string | number>,
+  ) => translate(locale, key, values);
+
   const facts: Array<[string, string]> = [];
   if (details.original_title) {
-    facts.push(["Оригинальное название", details.original_title]);
+    facts.push([t("movie.originalTitle"), details.original_title]);
   }
   if (details.runtime) {
-    facts.push(["Длительность", `${details.runtime} мин`]);
+    facts.push([
+      t("movie.runtime"),
+      t("movie.minutes", { count: details.runtime }),
+    ]);
   }
   if (details.release_date) {
-    facts.push(["Дата выхода", details.release_date]);
+    facts.push([t("movie.release"), details.release_date]);
   }
   const countries = details.countries ?? [];
   const languages = details.languages ?? [];
   const companies = details.companies ?? [];
 
   if (countries.length > 0) {
-    facts.push(["Страны", countries.join(", ")]);
+    facts.push([t("movie.countries"), countries.join(", ")]);
   }
   if (languages.length > 0) {
-    facts.push(["Языки", languages.join(", ")]);
+    facts.push([t("movie.languages"), languages.join(", ")]);
   }
   if (companies.length > 0) {
-    facts.push(["Студии", companies.join(", ")]);
+    facts.push([t("movie.studios"), companies.join(", ")]);
   }
   if (details.budget) {
-    facts.push(["Бюджет", money.format(details.budget)]);
+    facts.push([t("movie.budget"), formatMoney(locale, details.budget)]);
   }
   if (details.revenue) {
-    facts.push(["Сборы", money.format(details.revenue)]);
+    facts.push([t("movie.revenue"), formatMoney(locale, details.revenue)]);
   }
   if (details.imdb_id) {
     facts.push(["IMDb", `tt${details.imdb_id.replace(/^tt/, "")}`]);
@@ -53,21 +58,21 @@ export function MovieInfo({
   if (details.vote_average_tenths) {
     const score = (details.vote_average_tenths / 10).toFixed(1);
     const votes = details.vote_count
-      ? ` · ${new Intl.NumberFormat("ru-RU").format(details.vote_count)} голосов`
+      ? ` · ${t("movie.votes", { count: formatNumber(locale, details.vote_count) })}`
       : "";
-    facts.push(["Рейтинг TMDB", `${score}${votes}`]);
+    facts.push([t("movie.tmdbRating"), `${score}${votes}`]);
   }
 
   return (
     <>
-      <Card title="О фильме">
+      <Card title={t("movie.about")}>
         {details.tagline ? (
           <p className={styles.tagline}>«{details.tagline}»</p>
         ) : null}
         {details.overview ? (
           <p className={styles.overview}>{details.overview}</p>
         ) : (
-          <p className={styles.muted}>Описание пока не загружено.</p>
+          <p className={styles.muted}>{t("movie.overviewEmpty")}</p>
         )}
 
         {facts.length > 0 ? (
@@ -88,14 +93,14 @@ export function MovieInfo({
               rel="noreferrer"
               target="_blank"
             >
-              Страница на IMDb
+              {t("movie.imdbPage")}
             </a>
           </p>
         ) : null}
 
         {tmdbId ? (
           <p className={styles.source}>
-            Данные о фильме предоставлены{" "}
+            {t("movie.credit")}{" "}
             <a
               href={`https://www.themoviedb.org/movie/${tmdbId}`}
               rel="noreferrer"
@@ -109,7 +114,7 @@ export function MovieInfo({
       </Card>
 
       {(details.cast ?? []).length > 0 ? (
-        <Card title="В главных ролях">
+        <Card title={t("movie.cast")}>
           <ul className={styles.castGrid}>
             {(details.cast ?? []).map((person, index) => {
               const member =

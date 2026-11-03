@@ -6,9 +6,11 @@ import { useState } from "react";
 import { useToast } from "@/components/toasts";
 import { Button, Dialog } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 
 export function EmptyTrashButton({ count }: { count: number }) {
   const router = useRouter();
+  const { t } = useI18n();
   const { notify, notifyError } = useToast();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -22,8 +24,8 @@ export function EmptyTrashButton({ count }: { count: number }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Корзина очищена",
-        text: `Удалено записей: ${result.purged}.`,
+        title: t("trash.emptied"),
+        text: t("trash.emptiedText", { count: result.purged }),
         requestId: null,
       });
     } catch (cause) {
@@ -36,12 +38,12 @@ export function EmptyTrashButton({ count }: { count: number }) {
   return (
     <>
       <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        Очистить корзину
+        {t("trash.emptyTrash")}
       </Button>
 
       <Dialog
         open={open}
-        title="Очистить корзину?"
+        title={t("trash.emptyConfirmTitle")}
         onClose={() => {
           if (!pending) {
             setOpen(false);
@@ -54,18 +56,15 @@ export function EmptyTrashButton({ count }: { count: number }) {
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Отмена
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" loading={pending} onClick={empty}>
-              Очистить
+              {t("trash.emptyConfirm")}
             </Button>
           </>
         }
       >
-        <p>
-          Безвозвратно удалятся все записи из корзины: {count}. Отменить это
-          будет нельзя.
-        </p>
+        <p>{t("trash.emptyConfirmText", { count })}</p>
       </Dialog>
     </>
   );

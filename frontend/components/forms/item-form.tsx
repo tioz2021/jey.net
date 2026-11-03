@@ -7,7 +7,9 @@ import type { FormEvent } from "react";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
-import { KIND_LABELS, STATUS_LABELS } from "@/lib/labels";
+import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import type { TranslationKey } from "@/lib/i18n";
+import { useI18n } from "@/lib/locale-context";
 import type {
   Item,
   ItemKind,
@@ -23,7 +25,7 @@ import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
-const KINDS = Object.entries(KIND_LABELS) as [ItemKind, string][];
+const KINDS = Object.keys(KIND_KEYS) as ItemKind[];
 
 /** Films and pictures are noted instantly; only books and notes are "in progress". */
 const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
@@ -33,11 +35,11 @@ const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
   other: ["planned", "in_progress", "done", "dropped"],
 };
 
-const SUBTITLE_LABELS: Record<ItemKind, string> = {
-  movie: "Режиссёр",
-  book: "Автор",
-  image: "Описание",
-  other: "Подробности",
+const SUBTITLE_KEYS: Record<ItemKind, TranslationKey> = {
+  movie: "form.subtitle.movie",
+  book: "form.subtitle.book",
+  image: "form.subtitle.image",
+  other: "form.subtitle.other",
 };
 
 type Field =
@@ -200,6 +202,7 @@ export function ItemForm({
   itemId?: string;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const { notify, notifyError } = useToast();
   const [values, setValues] = useState<Values>(() => toValues(initial));
   const [errors, setErrors] = useState<Errors>({});
@@ -319,25 +322,25 @@ export function ItemForm({
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <div className={styles.row}>
         <Select
-          label="Тип"
+          label={t("form.kind")}
           value={values.kind}
           onChange={(event) => changeKind(event.target.value as ItemKind)}
         >
-          {KINDS.map(([value, label]) => (
+          {KINDS.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(KIND_KEYS[value])}
             </option>
           ))}
         </Select>
 
         <Select
-          label="Статус"
+          label={t("form.status")}
           value={values.status}
           onChange={(event) => update("status", event.target.value as ItemStatus)}
         >
           {statuses.map((status) => (
             <option key={status} value={status}>
-              {STATUS_LABELS[status]}
+              {t(STATUS_KEYS[status])}
             </option>
           ))}
         </Select>
@@ -351,7 +354,7 @@ export function ItemForm({
       ) : null}
 
       <Input
-        label="Название"
+        label={t("form.title")}
         value={values.title}
         onChange={(event) => update("title", event.target.value)}
         error={errors.title}
@@ -360,14 +363,14 @@ export function ItemForm({
 
       <div className={styles.row}>
         <Input
-          label={SUBTITLE_LABELS[values.kind]}
+          label={t(SUBTITLE_KEYS[values.kind])}
           value={values.subtitle}
           onChange={(event) => update("subtitle", event.target.value)}
           error={errors.subtitle}
         />
 
         <Input
-          label="Год"
+          label={t("form.year")}
           inputMode="numeric"
           value={values.year}
           onChange={(event) => update("year", event.target.value)}
@@ -377,16 +380,16 @@ export function ItemForm({
 
       <div className={styles.row}>
         <Input
-          label="Оценка"
+          label={t("form.rating")}
           inputMode="numeric"
-          hint="От 1 до 10"
+          hint={t("form.ratingHint")}
           value={values.rating}
           onChange={(event) => update("rating", event.target.value)}
           error={errors.rating}
         />
 
         <Input
-          label="Ссылка"
+          label={t("form.link")}
           type="url"
           placeholder="https://"
           value={values.source_url}
@@ -396,8 +399,8 @@ export function ItemForm({
       </div>
 
       <Textarea
-        label="Заметка"
-        hint="До 20 000 символов"
+        label={t("form.note")}
+        hint={t("form.noteHint")}
         rows={5}
         value={values.review}
         onChange={(event) => update("review", event.target.value)}
@@ -430,14 +433,14 @@ export function ItemForm({
 
       <div className={styles.actions}>
         <Button type="submit" loading={submitting}>
-          {itemId ? "Сохранить изменения" : "Сохранить"}
+          {itemId ? t("form.update") : t("form.save")}
         </Button>
         <Button
           variant="secondary"
           onClick={() => router.push("/items")}
           disabled={submitting}
         >
-          Отмена
+          {t("form.cancel")}
         </Button>
       </div>
     </form>

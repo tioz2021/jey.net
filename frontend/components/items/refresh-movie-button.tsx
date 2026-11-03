@@ -6,11 +6,13 @@ import { useState } from "react";
 import { useToast } from "@/components/toasts";
 import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/locale-context";
 
 /** Re-fetches the TMDB snapshot, keeping the user's own edits intact. */
 export function RefreshMovieButton({ itemId }: { itemId: string }) {
   const router = useRouter();
   const { notify, notifyError } = useToast();
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
 
   async function refresh() {
@@ -21,8 +23,8 @@ export function RefreshMovieButton({ itemId }: { itemId: string }) {
       router.refresh();
       notify({
         tone: "success",
-        title: "Данные обновлены",
-        text: "Актёры и факты загружены заново из TMDB.",
+        title: t("item.refreshed"),
+        text: t("item.refreshedText"),
         requestId: null,
       });
     } catch (cause) {
@@ -39,7 +41,7 @@ export function RefreshMovieButton({ itemId }: { itemId: string }) {
       variant="secondary"
       onClick={refresh}
     >
-      Обновить из TMDB
+      {t("item.refresh")}
     </Button>
   );
 }

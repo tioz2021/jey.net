@@ -8,6 +8,8 @@ import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 
+import { useI18n } from "@/lib/locale-context";
+
 import styles from "./cover-picker.module.css";
 
 /**
@@ -20,13 +22,14 @@ export function CoverPicker({
   currentUrl,
   onUploaded,
   onCleared,
-  label = "Обложка",
+  label,
 }: {
   currentUrl?: string | null;
   onUploaded: (uploadId: string) => void;
   onCleared: () => void;
   label?: string;
 }) {
+  const { t } = useI18n();
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,22 +65,22 @@ export function CoverPicker({
 
   return (
     <div className={styles.field}>
-      <span className={styles.label}>{label}</span>
+      <span className={styles.label}>{label ?? t("cover.label")}</span>
 
       {preview && !broken ? (
         <img
           className={styles.preview}
           src={preview}
-          alt="Обложка записи"
+          alt={label ?? t("cover.label")}
           onError={() => setBroken(true)}
         />
       ) : (
-        <div className={styles.placeholder}>Обложка не выбрана</div>
+        <div className={styles.placeholder}>{t("cover.none")}</div>
       )}
 
       <div className={styles.actions}>
         <label className={styles.choose}>
-          <span>{preview ? "Заменить" : "Выбрать файл"}</span>
+          <span>{preview ? t("cover.replace") : t("cover.choose")}</span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -89,11 +92,13 @@ export function CoverPicker({
 
         {preview ? (
           <Button variant="ghost" size="sm" onClick={clear}>
-            Убрать
+            {t("cover.clear")}
           </Button>
         ) : null}
 
-        {uploading ? <span className={styles.hint}>Загружаем…</span> : null}
+        {uploading ? (
+          <span className={styles.hint}>{t("cover.uploading")}</span>
+        ) : null}
       </div>
 
       {error ? (
