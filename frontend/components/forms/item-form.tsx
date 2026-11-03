@@ -252,6 +252,7 @@ export function ItemForm({
         imdb_id: movie.imdb_id,
         vote_average_tenths: movie.vote_average_tenths,
         vote_count: movie.vote_count,
+        translations: movie.translations,
       },
       tags: mergeTags(current.tags, movie.genres),
     }));

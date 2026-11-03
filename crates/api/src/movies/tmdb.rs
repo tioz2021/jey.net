@@ -1,6 +1,6 @@
 //! Thin TMDB client: search, details and an in-memory day-long cache.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -55,6 +55,7 @@ pub struct MovieDetails {
     pub imdb_id: Option<String>,
     pub vote_average_tenths: Option<i16>,
     pub vote_count: Option<i64>,
+    pub translations: BTreeMap<String, jey_core::items::MovieTranslation>,
 }
 
 struct Cached {
@@ -110,7 +111,36 @@ impl TmdbClient {
 
     /// Bypasses the cache: used by "refresh from TMDB".
     pub async fn details_fresh(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
-        self.details_inner(id, language, true).await
+        self.details_all_inner(id, language, true).await
+    }
+
+    /// Fetches the primary language plus ru/uk/en variants for the snapshot.
+    pub async fn details_all(&self, id: u64, language: &str) -> Result<MovieDetails, AppError> {
+        self.details_all_inner(id, language, false).await
+    }
+
+    async fn details_all_inner(
+        &self,
+        id: u64,
+        language: &str,
+        force: bool,
+    ) -> Result<MovieDetails, AppError> {
+        let primary = self.details_inner(id, language, force).await?;
+        let mut translations = BTreeMap::new();
+        translations.insert(language_key(language), primary.translation());
+
+        for code in ["ru-RU", "uk-UA", "en-US"] {
+            if language_key(code) == language_key(language) {
+                continue;
+            }
+            if let Ok(movie) = self.details_inner(id, code, force).await {
+                translations.insert(language_key(code), movie.translation());
+            }
+        }
+
+        let mut movie = primary;
+        movie.translations = translations;
+        Ok(movie)
     }
 
     async fn details_inner(
@@ -210,6 +240,29 @@ impl TmdbClient {
 }
 
 impl MovieDetails {
+    fn translation(&self) -> jey_core::items::MovieTranslation {
+        jey_core::items::MovieTranslation {
+            title: self.title.clone(),
+            overview: self.overview.clone(),
+            tagline: self.tagline.clone(),
+            director: self.director.clone(),
+            cast: self
+                .cast
+                .iter()
+                .map(|person| jey_core::items::CastMember {
+                    tmdb_id: person.tmdb_id,
+                    name: person.name.clone(),
+                    character: person.character.clone(),
+                    profile_path: person.profile_path.clone(),
+                })
+                .collect(),
+            genres: self.genres.clone(),
+            countries: self.countries.clone(),
+            languages: self.languages.clone(),
+            companies: self.companies.clone(),
+        }
+    }
+
     /// Converts the API view into the snapshot stored with the record.
     pub fn snapshot(&self) -> jey_core::items::MovieDetails {
         jey_core::items::MovieDetails {
@@ -239,8 +292,17 @@ impl MovieDetails {
             imdb_id: self.imdb_id.clone(),
             vote_average_tenths: self.vote_average_tenths,
             vote_count: self.vote_count,
+            translations: self.translations.clone(),
         }
     }
+}
+
+fn language_key(language: &str) -> String {
+    language
+        .split(['-', '_'])
+        .next()
+        .unwrap_or(language)
+        .to_ascii_lowercase()
 }
 
 fn parse_search_item(value: &Value) -> Option<SearchItem> {
@@ -398,6 +460,7 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .get("vote_count")
             .and_then(Value::as_i64)
             .filter(|count| *count > 0),
+        translations: BTreeMap::new(),
     })
 }
 

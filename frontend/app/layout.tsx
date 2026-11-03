@@ -13,6 +13,9 @@ import "./globals.css";
 const SITE_DESCRIPTION =
   "Фильмы, книги, картинки и заметки в одном месте: личный каталог того, что вы посмотрели, прочитали и сохранили.";
 
+// The layout reads the locale cookie, so every route is rendered per request.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.PUBLIC_URL ?? "http://localhost:3000"),
   title: "jey.net — личный портал",

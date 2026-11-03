@@ -80,7 +80,7 @@ pub async fn details(
         .map_err(|_| AppError::validation_field("id", "movie id must be a number"))?;
 
     let language = language_for(&current.user.locale);
-    let movie = state.tmdb.details(id, language).await?;
+    let movie = state.tmdb.details_all(id, language).await?;
 
     Ok(Json(json!({ "movie": movie })).into_response())
 }

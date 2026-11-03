@@ -37,6 +37,18 @@ export interface CastMember {
   profile_path: string | null;
 }
 
+export interface MovieTranslation {
+  title: string;
+  overview: string | null;
+  tagline: string | null;
+  director: string | null;
+  cast: Array<CastMember | string>;
+  genres: string[];
+  countries: string[];
+  languages: string[];
+  companies: string[];
+}
+
 export interface MovieDetails {
   original_title: string;
   overview: string | null;
@@ -56,6 +68,7 @@ export interface MovieDetails {
   imdb_id: string | null;
   vote_average_tenths: number | null;
   vote_count: number | null;
+  translations?: Record<string, MovieTranslation>;
 }
 
 export interface MovieSearchItem {

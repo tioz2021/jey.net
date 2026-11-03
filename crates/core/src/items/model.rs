@@ -1,5 +1,7 @@
 //! Item types shared by the API server and the desktop client.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -93,6 +95,30 @@ pub struct CastMember {
     pub profile_path: Option<String>,
 }
 
+/// One localized version of the text fields. Shared facts (budget, runtime,
+/// release date, IMDb id, rating) live outside the translations.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct MovieTranslation {
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub overview: Option<String>,
+    #[serde(default)]
+    pub tagline: Option<String>,
+    #[serde(default)]
+    pub director: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_cast")]
+    pub cast: Vec<CastMember>,
+    #[serde(default)]
+    pub genres: Vec<String>,
+    #[serde(default)]
+    pub countries: Vec<String>,
+    #[serde(default)]
+    pub languages: Vec<String>,
+    #[serde(default)]
+    pub companies: Vec<String>,
+}
+
 /// Snapshot of the movie metadata we keep with a record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MovieDetails {
@@ -131,6 +157,9 @@ pub struct MovieDetails {
     pub vote_average_tenths: Option<i16>,
     #[serde(default)]
     pub vote_count: Option<i64>,
+    /// Localized variants keyed by `ru`, `uk`, `en`.
+    #[serde(default)]
+    pub translations: BTreeMap<String, MovieTranslation>,
 }
 
 /// Old snapshots stored cast as plain strings; accept both shapes.

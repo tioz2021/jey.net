@@ -1,7 +1,7 @@
 import { CastPhoto } from "@/components/items/cast-photo";
 import { Card } from "@/components/ui";
 import { formatMoney, formatNumber, translate } from "@/lib/i18n";
-import { getServerLocale } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n";
 import type { MovieDetails } from "@/lib/types";
 
 import styles from "./movie-info.module.css";
@@ -10,11 +10,36 @@ import styles from "./movie-info.module.css";
 export async function MovieInfo({
   details,
   tmdbId,
+  locale,
 }: {
   details: MovieDetails;
   tmdbId: string | null;
+  locale: Locale;
 }) {
-  const locale = await getServerLocale();
+  const translation =
+    details.translations?.[locale] ??
+    details.translations?.en ??
+    details.translations?.ru;
+  const localized = {
+    overview: translation?.overview ?? details.overview,
+    tagline: translation?.tagline ?? details.tagline,
+    countries:
+      translation && translation.countries.length > 0
+        ? translation.countries
+        : (details.countries ?? []),
+    languages:
+      translation && translation.languages.length > 0
+        ? translation.languages
+        : (details.languages ?? []),
+    companies:
+      translation && translation.companies.length > 0
+        ? translation.companies
+        : (details.companies ?? []),
+    cast:
+      translation && translation.cast.length > 0
+        ? translation.cast
+        : (details.cast ?? []),
+  };
   const t = (
     key: Parameters<typeof translate>[1],
     values?: Record<string, string | number>,
@@ -33,9 +58,9 @@ export async function MovieInfo({
   if (details.release_date) {
     facts.push([t("movie.release"), details.release_date]);
   }
-  const countries = details.countries ?? [];
-  const languages = details.languages ?? [];
-  const companies = details.companies ?? [];
+  const countries = localized.countries;
+  const languages = localized.languages;
+  const companies = localized.companies;
 
   if (countries.length > 0) {
     facts.push([t("movie.countries"), countries.join(", ")]);
@@ -66,11 +91,11 @@ export async function MovieInfo({
   return (
     <>
       <Card title={t("movie.about")}>
-        {details.tagline ? (
-          <p className={styles.tagline}>«{details.tagline}»</p>
+        {localized.tagline ? (
+          <p className={styles.tagline}>«{localized.tagline}»</p>
         ) : null}
-        {details.overview ? (
-          <p className={styles.overview}>{details.overview}</p>
+        {localized.overview ? (
+          <p className={styles.overview}>{localized.overview}</p>
         ) : (
           <p className={styles.muted}>{t("movie.overviewEmpty")}</p>
         )}
@@ -113,10 +138,10 @@ export async function MovieInfo({
         ) : null}
       </Card>
 
-      {(details.cast ?? []).length > 0 ? (
+      {localized.cast.length > 0 ? (
         <Card title={t("movie.cast")}>
           <ul className={styles.castGrid}>
-            {(details.cast ?? []).map((person, index) => {
+            {localized.cast.map((person, index) => {
               const member =
                 typeof person === "string"
                   ? {

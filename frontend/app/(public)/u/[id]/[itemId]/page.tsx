@@ -147,6 +147,7 @@ export default async function PublicItemPage({
       {item.details ? (
         <MovieInfo
           details={item.details}
+          locale={locale}
           tmdbId={item.external_source === "tmdb" ? item.external_id : null}
         />
       ) : null}

@@ -219,56 +219,113 @@ fn clean_details(
             .collect()
     };
 
-    let cast = details
-        .cast
-        .iter()
-        .map(|person| {
-            let name = person.name.trim();
-            if name.is_empty() || name.chars().count() > 200 {
-                return Err(DomainError::validation_field(
-                    "details.cast",
-                    "cast names must be short non-empty strings",
-                ));
-            }
-            if person
-                .character
-                .as_deref()
-                .is_some_and(|value| value.chars().count() > 200)
-            {
-                return Err(DomainError::validation_field(
-                    "details.cast",
-                    "character names must be short",
-                ));
-            }
-            if person
-                .profile_path
-                .as_deref()
-                .is_some_and(|value| !value.starts_with('/') || value.len() > 200)
-            {
-                return Err(DomainError::validation_field(
-                    "details.cast",
-                    "profile paths must be relative TMDB paths",
-                ));
-            }
-
-            Ok(crate::items::CastMember {
-                tmdb_id: person.tmdb_id,
-                name: name.to_owned(),
-                character: person
+    let clean_cast = |people: &[crate::items::CastMember]| -> Result<Vec<crate::items::CastMember>, DomainError> {
+        people
+            .iter()
+            .map(|person| {
+                let name = person.name.trim();
+                if name.is_empty() || name.chars().count() > 200 {
+                    return Err(DomainError::validation_field(
+                        "details.cast",
+                        "cast names must be short non-empty strings",
+                    ));
+                }
+                if person
                     .character
                     .as_deref()
-                    .map(str::trim)
-                    .filter(|value| !value.is_empty())
-                    .map(str::to_owned),
-                profile_path: person
+                    .is_some_and(|value| value.chars().count() > 200)
+                {
+                    return Err(DomainError::validation_field(
+                        "details.cast",
+                        "character names must be short",
+                    ));
+                }
+                if person
                     .profile_path
+                    .as_deref()
+                    .is_some_and(|value| !value.starts_with('/') || value.len() > 200)
+                {
+                    return Err(DomainError::validation_field(
+                        "details.cast",
+                        "profile paths must be relative TMDB paths",
+                    ));
+                }
+
+                Ok(crate::items::CastMember {
+                    tmdb_id: person.tmdb_id,
+                    name: name.to_owned(),
+                    character: person
+                        .character
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|value| !value.is_empty())
+                        .map(str::to_owned),
+                    profile_path: person
+                        .profile_path
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|value| !value.is_empty())
+                        .map(str::to_owned),
+                })
+            })
+            .collect()
+    };
+
+    let cast = clean_cast(&details.cast)?;
+
+    let mut translations = std::collections::BTreeMap::new();
+
+    for (key, translation) in &details.translations {
+        if !matches!(key.as_str(), "ru" | "uk" | "en") {
+            continue;
+        }
+        if translation.cast.len() > 50 || translation.genres.len() > 20 {
+            return Err(DomainError::validation_field(
+                "details.translations",
+                "too many cast or genre entries in a translation",
+            ));
+        }
+        if translation
+            .overview
+            .as_deref()
+            .is_some_and(|value| value.chars().count() > 5000)
+        {
+            return Err(DomainError::validation_field(
+                "details.translations",
+                "translated overview is too long",
+            ));
+        }
+
+        translations.insert(
+            key.clone(),
+            crate::items::MovieTranslation {
+                title: translation.title.trim().chars().take(300).collect(),
+                overview: translation
+                    .overview
                     .as_deref()
                     .map(str::trim)
                     .filter(|value| !value.is_empty())
                     .map(str::to_owned),
-            })
-        })
-        .collect::<Result<Vec<_>, DomainError>>()?;
+                tagline: translation
+                    .tagline
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(|value| value.chars().take(500).collect()),
+                director: translation
+                    .director
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(|value| value.chars().take(200).collect()),
+                cast: clean_cast(&translation.cast)?,
+                genres: clean_list(&translation.genres, 100)?,
+                countries: clean_list(&translation.countries, 100)?,
+                languages: clean_list(&translation.languages, 100)?,
+                companies: clean_list(&translation.companies, 200)?,
+            },
+        );
+    }
 
     Ok(Some(crate::items::MovieDetails {
         original_title: details.original_title.trim().chars().take(300).collect(),
@@ -312,6 +369,7 @@ fn clean_details(
             .vote_average_tenths
             .filter(|value| (0..=100).contains(value)),
         vote_count: details.vote_count.filter(|value| *value >= 0),
+        translations,
     }))
 }
 
