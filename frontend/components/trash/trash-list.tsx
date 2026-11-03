@@ -7,6 +7,7 @@ import { useToast } from "@/components/toasts";
 import { Button, Dialog } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { RatingStars } from "@/components/items/rating-stars";
 import { KIND_KEYS } from "@/lib/i18n/labels";
 import type { Item } from "@/lib/types";
 
@@ -73,6 +74,15 @@ export function TrashList({ items }: { items: Item[] }) {
                     })}`
                   : null}
               </p>
+              {item.rating ? (
+                <div className={styles.rating}>
+                  <RatingStars
+                    compact
+                    label={t("item.ratingOf", { rating: item.rating })}
+                    value={item.rating}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.actions}>

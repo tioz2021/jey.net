@@ -29,6 +29,10 @@
   overflow-wrap: anywhere;
 }
 
+.rating {
+  margin-top: 2px;
+}
+
 .meta {
   margin: var(--space-1) 0 0;
   font-size: var(--text-sm);
