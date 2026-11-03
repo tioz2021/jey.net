@@ -11,7 +11,7 @@ import styles from "./language-switch.module.css";
 
 const LABELS: Record<Locale, string> = {
   ru: "RU",
-  uk: "UK",
+  uk: "UA",
   en: "EN",
 };
 
@@ -49,7 +49,7 @@ export function LanguageSwitch() {
           className={`${styles.button} ${value === locale ? styles.active : ""}`}
           key={value}
           onClick={() => choose(value)}
-          title={value.toUpperCase()}
+          title={LABELS[value]}
           type="button"
         >
           {LABELS[value]}
