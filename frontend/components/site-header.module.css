@@ -30,6 +30,9 @@
 }
 
 .navLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 0;
   font-size: var(--text-sm);
   color: var(--color-text-muted);

@@ -4,15 +4,24 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import {
+  IconBook,
+  IconFilm,
+  IconImage,
+  IconList,
+  IconOther,
+  IconTrash,
+} from "@/components/icons";
+
 import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
 
 const KINDS = [
-  { kind: null, label: "Все записи" },
-  { kind: "movie", label: "Фильмы" },
-  { kind: "book", label: "Книги" },
-  { kind: "image", label: "Картинки" },
-  { kind: "other", label: "Другое" },
+  { kind: null, label: "Все записи", Icon: IconList },
+  { kind: "movie", label: "Фильмы", Icon: IconFilm },
+  { kind: "book", label: "Книги", Icon: IconBook },
+  { kind: "image", label: "Картинки", Icon: IconImage },
+  { kind: "other", label: "Другое", Icon: IconOther },
 ] as const;
 
 function kindFromLocation(): string | null {
@@ -47,7 +56,7 @@ export function AppNav() {
     <aside className={styles.nav} aria-label="Типы записей">
       <p className={styles.head}>Типы</p>
       <div className={styles.body}>
-        {KINDS.map(({ kind, label }) => {
+        {KINDS.map(({ kind, label, Icon }) => {
         const active =
           onItems && (kind === null ? !activeKind : activeKind === kind);
         const href = kind ? `/items?kind=${kind}` : "/items";
@@ -83,6 +92,7 @@ export function AppNav() {
               window.dispatchEvent(new Event(ITEMS_QUERY_EVENT));
             }}
           >
+            <Icon size={14} />
             {label}
             </Link>
           );
@@ -95,6 +105,7 @@ export function AppNav() {
           }`}
           href="/trash"
         >
+          <IconTrash size={14} />
           Корзина
         </Link>
       </div>

@@ -4,6 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { HeaderSearch } from "@/components/header-search";
+import {
+  IconList,
+  IconSettings,
+  IconStats,
+  IconTag,
+} from "@/components/icons";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useUser } from "@/lib/user-context";
@@ -12,10 +18,10 @@ import { UserMenu } from "@/components/user-menu";
 import styles from "./site-header.module.css";
 
 const SECTIONS = [
-  { href: "/items", label: "Записи" },
-  { href: "/tags", label: "Теги" },
-  { href: "/dashboard", label: "Статистика" },
-  { href: "/settings", label: "Настройки" },
+  { href: "/items", label: "Записи", Icon: IconList },
+  { href: "/tags", label: "Теги", Icon: IconTag },
+  { href: "/dashboard", label: "Статистика", Icon: IconStats },
+  { href: "/settings", label: "Настройки", Icon: IconSettings },
 ];
 
 export function SiteHeader() {
@@ -30,18 +36,19 @@ export function SiteHeader() {
         </Link>
 
         <nav className={styles.nav} aria-label="Разделы">
-          {SECTIONS.map((section) => {
+          {SECTIONS.map(({ href, label, Icon }) => {
             const active =
-              pathname === section.href || pathname.startsWith(`${section.href}/`);
+              pathname === href || pathname.startsWith(`${href}/`);
 
             return (
               <Link
                 aria-current={active ? "page" : undefined}
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
-                href={section.href}
-                key={section.href}
+                href={href}
+                key={href}
               >
-                {section.label}
+                <Icon size={14} />
+                {label}
               </Link>
             );
           })}
