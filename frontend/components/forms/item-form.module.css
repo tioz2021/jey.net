@@ -11,6 +11,10 @@
   gap: var(--space-4);
 }
 
+.single {
+  grid-template-columns: minmax(0, 14rem);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

@@ -286,6 +286,11 @@ export function ItemForm({
         ? current.status
         : (STATUS_BY_KIND[kind][0] ?? "planned"),
     }));
+
+    // Books and images need the full form; films and series stay compact.
+    if (kind !== "movie" && kind !== "tv") {
+      setAdvanced(true);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -357,20 +362,20 @@ export function ItemForm({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      {showExtra ? (
-        <div className={styles.row}>
-          <Select
-            label={t("form.kind")}
-            value={values.kind}
-            onChange={(event) => changeKind(event.target.value as ItemKind)}
-          >
-            {KINDS.map((value) => (
-              <option key={value} value={value}>
-                {t(KIND_KEYS[value])}
-              </option>
-            ))}
-          </Select>
+      <div className={`${styles.row} ${showExtra ? "" : styles.single}`}>
+        <Select
+          label={t("form.kind")}
+          value={values.kind}
+          onChange={(event) => changeKind(event.target.value as ItemKind)}
+        >
+          {KINDS.map((value) => (
+            <option key={value} value={value}>
+              {t(KIND_KEYS[value])}
+            </option>
+          ))}
+        </Select>
 
+        {showExtra ? (
           <Select
             label={t("form.status")}
             value={values.status}
@@ -384,8 +389,8 @@ export function ItemForm({
               </option>
             ))}
           </Select>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {values.kind === "movie" || values.kind === "tv" ? (
         <MovieSearch
