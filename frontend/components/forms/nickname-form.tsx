@@ -27,7 +27,7 @@ export function NicknameForm({ initial }: { initial: string }) {
     try {
       const response = await api.auth.updateMe({ display_name: name.trim() });
       setUser(response.user);
-      router.push("/items");
+      router.push("/welcome/privacy");
       router.refresh();
     } catch (cause) {
       if (cause instanceof ApiError && cause.field === "display_name") {
