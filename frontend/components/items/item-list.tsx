@@ -73,6 +73,7 @@ export function ItemList({
   const [bulkStatus, setBulkStatus] = useState<ItemStatus | "">("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [selectAllBusy, setSelectAllBusy] = useState(false);
 
   useEffect(() => {
     if (skipQuery.current !== null) {
@@ -151,6 +152,26 @@ export function ItemList({
     });
   }
 
+  async function selectAll() {
+    setSelectAllBusy(true);
+    try {
+      const ids: string[] = [];
+      let cursor: string | null = null;
+      do {
+        const page = await api.items.list({
+          ...filters,
+          limit: 100,
+          cursor,
+        });
+        ids.push(...page.items.map((item) => item.id));
+        cursor = page.next_cursor;
+      } while (cursor && ids.length < 5000);
+      setSelected(new Set(ids));
+    } finally {
+      setSelectAllBusy(false);
+    }
+  }
+
   async function runBulk(action: "status" | "trash" | "restore") {
     if (selected.size === 0) return;
     setBulkBusy(true);
@@ -211,19 +232,21 @@ export function ItemList({
           </span>
           <button
             className={styles.bulkClear}
-            onClick={() =>
-              setSelected(
-                selected.size === items.length
-                  ? new Set()
-                  : new Set(items.map((item) => item.id)),
-              )
-            }
+            disabled={selectAllBusy}
+            onClick={() => void selectAll()}
             type="button"
           >
-            {selected.size === items.length
-              ? t("bulk.clear")
-              : t("bulk.selectAll")}
+            {selectAllBusy ? "…" : t("bulk.selectAll")}
           </button>
+          {selected.size > 0 ? (
+            <button
+              className={styles.bulkClear}
+              onClick={() => setSelected(new Set())}
+              type="button"
+            >
+              {t("bulk.clear")}
+            </button>
+          ) : null}
           {hasActiveSelection ? (
             <>
               <select
