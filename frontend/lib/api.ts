@@ -10,6 +10,7 @@ import { ApiError } from "./errors";
 import type {
   ImportReport,
   UploadResponse,
+  FollowState,
   Item,
   ItemFilters,
   ItemList,
@@ -318,6 +319,19 @@ export const movies = {
     request<{ movie: MovieDetailsResponse }>(`/movies/${id}`),
 };
 
+export const follows = {
+  status: (id: string) =>
+    request<FollowState>(`/users/${encodeURIComponent(id)}/follow`),
+  follow: (id: string) =>
+    request<FollowState>(`/users/${encodeURIComponent(id)}/follow`, {
+      method: "POST",
+    }),
+  unfollow: (id: string) =>
+    request<FollowState>(`/users/${encodeURIComponent(id)}/follow`, {
+      method: "DELETE",
+    }),
+};
+
 export const publicItems = {
   episodes: (userId: string, itemId: string, season: number) =>
     fetch(
@@ -383,6 +397,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, games, items, movies, publicItems, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, follows, games, items, movies, publicItems, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

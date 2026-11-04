@@ -302,6 +302,12 @@ export interface PublicItem {
   progress_visible?: boolean;
 }
 
+export interface FollowState {
+  following: boolean;
+  followers: number;
+  following_count: number;
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];

@@ -1,0 +1,135 @@
+//! One-way subscriptions to public profiles and the resulting feed.
+
+use axum::Json;
+use axum::extract::{Path, State};
+use serde_json::{Value, json};
+use sqlx::PgPool;
+use uuid::Uuid;
+
+use crate::auth::middleware::CurrentUser;
+use crate::error::AppError;
+use crate::http::AppState;
+
+async fn public_target(pool: &PgPool, id: Uuid) -> Result<(), AppError> {
+    let exists: bool = sqlx::query_scalar(
+        "select exists(select 1 from users where id = $1 and is_public and deleted_at is null)",
+    )
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .map_err(AppError::internal)?;
+    if !exists {
+        return Err(AppError::not_found("profile"));
+    }
+    Ok(())
+}
+
+async fn counts(pool: &PgPool, user_id: Uuid) -> Result<(i64, i64), AppError> {
+    let row: (i64, i64) = sqlx::query_as(
+        "select
+            (select count(*) from follows where followee_id = $1),
+            (select count(*) from follows where follower_id = $1)",
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(row)
+}
+
+/// `POST /api/v1/users/{id}/follow`
+pub async fn follow(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    if target == current.user.id {
+        return Err(AppError::validation_field("id", "cannot follow yourself"));
+    }
+    public_target(&state.pool, target).await?;
+    sqlx::query(
+        "insert into follows (follower_id, followee_id) values ($1, $2)
+         on conflict do nothing",
+    )
+    .bind(current.user.id)
+    .bind(target)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let (followers, following) = counts(&state.pool, target).await?;
+    Ok(Json(
+        json!({ "following": true, "followers": followers, "following_count": following }),
+    ))
+}
+
+/// `DELETE /api/v1/users/{id}/follow`
+pub async fn unfollow(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    public_target(&state.pool, target).await?;
+    sqlx::query("delete from follows where follower_id = $1 and followee_id = $2")
+        .bind(current.user.id)
+        .bind(target)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    let (followers, following) = counts(&state.pool, target).await?;
+    Ok(Json(
+        json!({ "following": false, "followers": followers, "following_count": following }),
+    ))
+}
+
+/// `GET /api/v1/users/{id}/follow` — state for the authenticated viewer.
+pub async fn status(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    public_target(&state.pool, target).await?;
+    let following: bool = sqlx::query_scalar(
+        "select exists(select 1 from follows where follower_id = $1 and followee_id = $2)",
+    )
+    .bind(current.user.id)
+    .bind(target)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let (followers, following_count) = counts(&state.pool, target).await?;
+    Ok(Json(
+        json!({ "following": following, "followers": followers, "following_count": following_count }),
+    ))
+}
+
+/// `GET /api/v1/feed` — recent public records of followed profiles.
+pub async fn feed(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let items: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', i.id, 'author_id', u.id, 'author_name', u.display_name,
+            'kind', i.kind, 'title', i.title, 'subtitle', i.subtitle,
+            'year', i.year, 'status', i.status, 'rating', i.rating,
+            'review', i.review, 'cover_key', i.cover_key,
+            'external_source', i.external_source, 'external_id', i.external_id,
+            'details', i.details, 'public_hidden', i.public_hidden,
+            'updated_at', i.updated_at
+         )
+         from follows f
+         join users u on u.id = f.followee_id
+         join items i on i.user_id = u.id
+         where f.follower_id = $1
+           and u.is_public and u.deleted_at is null
+           and i.status = ANY(u.public_statuses)
+           and not i.public_hidden and i.deleted_at is null
+         order by i.updated_at desc
+         limit 50",
+    )
+    .bind(current.user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "items": items })))
+}

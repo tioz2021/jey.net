@@ -117,6 +117,13 @@ fn api_v1(state: AppState) -> Router<AppState> {
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
+        .route("/feed", get(crate::users::follows::feed))
+        .route(
+            "/users/{id}/follow",
+            get(crate::users::follows::status)
+                .post(crate::users::follows::follow)
+                .delete(crate::users::follows::unfollow),
+        )
         .route("/me/sessions/revoke-all", post(revoke_all_sessions))
         .route("/me/avatar", post(set_avatar).delete(clear_avatar))
         .route("/me/banner", post(set_banner).delete(clear_banner))

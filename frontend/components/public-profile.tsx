@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
 
 import { useI18n } from "@/lib/locale-context";
+import { useUser } from "@/lib/user-context";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui";
 import { Badge, Card } from "@/components/ui";
 import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
@@ -32,6 +35,41 @@ export function PublicProfileView({
   items: PublicItem[];
 }) {
   const { t, date } = useI18n();
+  const { user } = useUser();
+  const [followed, setFollowed] = useState(false);
+  const [followers, setFollowers] = useState<number | null>(null);
+  const [followBusy, setFollowBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user || user.id === profile.id) return;
+    let cancelled = false;
+    api.follows
+      .status(profile.id)
+      .then((state) => {
+        if (!cancelled) {
+          setFollowed(state.following);
+          setFollowers(state.followers);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.id, user]);
+
+  async function toggleFollow() {
+    if (!user || user.id === profile.id) return;
+    setFollowBusy(true);
+    try {
+      const state = followed
+        ? await api.follows.unfollow(profile.id)
+        : await api.follows.follow(profile.id);
+      setFollowed(state.following);
+      setFollowers(state.followers);
+    } finally {
+      setFollowBusy(false);
+    }
+  }
   const [active, setActive] = useState<ItemKind | "all">("all");
   const [expanded, setExpanded] = useState(false);
 
@@ -131,7 +169,24 @@ export function PublicProfileView({
           )}
 
           <div className={styles.identityText}>
-            <h1 className={styles.name}>{profile.display_name}</h1>
+            <div className={styles.nameRow}>
+              <h1 className={styles.name}>{profile.display_name}</h1>
+              {user && user.id !== profile.id ? (
+                <Button
+                  loading={followBusy}
+                  onClick={() => void toggleFollow()}
+                  size="sm"
+                  variant={followed ? "secondary" : "primary"}
+                >
+                  {followed ? t("public.following") : t("public.follow")}
+                </Button>
+              ) : null}
+            </div>
+            {followers !== null ? (
+              <p className={styles.meta}>
+                {t("public.followers", { count: followers })}
+              </p>
+            ) : null}
             <p className={styles.meta}>
               {visibleItems.length > 0
                 ? t("public.records", { count: visibleItems.length })
