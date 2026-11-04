@@ -72,7 +72,7 @@ pub async fn export(
 
 fn to_csv(items: &[ItemView]) -> String {
     let mut out = String::from(
-        "id,kind,title,subtitle,year,status,rating,review,source_url,tags,created_at,updated_at,deleted_at\n",
+        "id,kind,title,subtitle,year,status,rating,review,source_url,created_at,updated_at,deleted_at\n",
     );
 
     for item in items {
@@ -88,7 +88,6 @@ fn to_csv(items: &[ItemView]) -> String {
                 .unwrap_or_default(),
             item.review.clone().unwrap_or_default(),
             item.source_url.clone().unwrap_or_default(),
-            item.tags.join("; "),
             item.created_at.to_rfc3339(),
             item.updated_at.to_rfc3339(),
             item.deleted_at

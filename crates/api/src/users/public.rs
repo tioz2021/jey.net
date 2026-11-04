@@ -45,7 +45,6 @@ pub struct PublicItemView {
     pub rating: Option<i16>,
     pub review: Option<String>,
     pub cover_key: Option<String>,
-    pub tags: Vec<String>,
     pub titles: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
     pub directors: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
     pub genres: Option<sqlx::types::Json<std::collections::BTreeMap<String, Vec<String>>>>,
@@ -68,7 +67,6 @@ pub struct PublicItemDetail {
     pub external_source: Option<String>,
     pub external_id: Option<String>,
     pub details: Option<sqlx::types::Json<MovieDetails>>,
-    pub tags: Vec<String>,
     pub updated_at: DateTime<Utc>,
 }
 
@@ -182,10 +180,7 @@ pub async fn item(
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
                     '{}'
-                ) as tags
          from items i
-         left join item_tags it on it.item_id = i.id
-         left join tags t on t.id = it.tag_id
          where i.id = $2
            and i.user_id = $1
            and i.status = ANY($3)
@@ -356,10 +351,7 @@ async fn load_public_items(
                 coalesce(
                     array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
                     '{}'
-                ) as tags
          from items i
-         left join item_tags it on it.item_id = i.id
-         left join tags t on t.id = it.tag_id
          where i.user_id = $1
            and i.status = ANY($2)
            and not i.public_hidden

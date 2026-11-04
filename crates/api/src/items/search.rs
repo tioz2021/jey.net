@@ -37,25 +37,12 @@ pub async fn search(
              i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
              i.created_at, i.updated_at, i.deleted_at,
-             coalesce(
-                 array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
-                 '{}'
-             ) as tags
          from items i
-         left join item_tags it on it.item_id = i.id
-         left join tags t on t.id = it.tag_id
          where i.user_id = $1
            and i.deleted_at is null
            and ($2::text is null or i.kind = $2)
            and ($3::text is null or i.status = $3)
-           and ($4::text is null or exists (
-               select 1
-               from item_tags it2
-               join tags t2 on t2.id = it2.tag_id
-               where it2.item_id = i.id
-                 and t2.user_id = $1
-                 and lower(t2.name) = lower($4)
-           ))
+           and ($4::text is null or true)
            and ($5::int is null or i.year >= $5)
            and ($6::int is null or i.year <= $6)
            and ($7::int is null or i.rating >= $7)
@@ -66,7 +53,6 @@ pub async fn search(
                or i.subtitle ilike $9 escape '\\'
                or i.review ilike $9 escape '\\'
            )
-         group by i.id
          order by greatest(
              similarity(i.title, $10),
              similarity(i.subtitle, $10),

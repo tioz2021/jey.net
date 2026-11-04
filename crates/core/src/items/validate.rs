@@ -45,7 +45,6 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
 
     validate_year(item.year)?;
     validate_rating(item.rating)?;
-    let tags = normalise_tags(&item.tags)?;
     let (external_source, external_id) =
         clean_external(item.external_source.as_deref(), item.external_id.as_deref())?;
     let details = clean_details(item.details.as_ref())?;
@@ -63,7 +62,6 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
         external_id,
         details,
         public_hidden: item.public_hidden,
-        tags,
     })
 }
 
@@ -99,11 +97,6 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
     validate_year(patch.year)?;
     validate_rating(patch.rating)?;
 
-    let tags = match &patch.tags {
-        Some(tags) => Some(normalise_tags(tags)?),
-        None => None,
-    };
-
     let (external_source, external_id) = clean_external(
         patch.external_source.as_deref(),
         patch.external_id.as_deref(),
@@ -123,7 +116,6 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         external_id,
         details,
         public_hidden: patch.public_hidden,
-        tags,
     })
 }
 
@@ -569,41 +561,6 @@ fn sanitise(value: &str, keep_line_breaks: bool) -> String {
         .collect()
 }
 
-/// Trims tags, drops empty ones, removes case-insensitive duplicates and
-/// enforces the count.
-pub fn normalise_tags(tags: &[String]) -> Result<Vec<String>, DomainError> {
-    let mut normalised: Vec<String> = Vec::new();
-
-    for tag in tags {
-        let trimmed = tag.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if trimmed.chars().count() > MAX_TAG_LENGTH {
-            return Err(DomainError::validation_field(
-                "tags",
-                format!("each tag must be at most {MAX_TAG_LENGTH} characters"),
-            ));
-        }
-
-        let duplicate = normalised
-            .iter()
-            .any(|existing| existing.eq_ignore_ascii_case(trimmed));
-        if !duplicate {
-            normalised.push(trimmed.to_owned());
-        }
-    }
-
-    if normalised.len() > MAX_TAGS {
-        return Err(DomainError::validation_field(
-            "tags",
-            format!("at most {MAX_TAGS} tags are allowed"),
-        ));
-    }
-
-    Ok(normalised)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -621,7 +578,6 @@ mod tests {
             external_source: None,
             external_id: None,
             details: None,
-            tags: vec![],
         }
     }
 

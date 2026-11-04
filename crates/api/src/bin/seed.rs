@@ -83,19 +83,6 @@ const AUTHORS: &[&str] = &[
     "Ted Chiang",
 ];
 
-const TAGS: &[&str] = &[
-    "classic",
-    "sci-fi",
-    "fantasy",
-    "drama",
-    "detective",
-    "history",
-    "art",
-    "favourite",
-    "rewatch",
-    "to-revisit",
-];
-
 #[tokio::main]
 async fn main() -> ExitCode {
     match run().await {
@@ -216,15 +203,6 @@ fn build_item(index: usize) -> NewItem {
         None
     };
 
-    let tags = if index % 7 == 0 {
-        Vec::new()
-    } else {
-        vec![
-            TAGS[index % TAGS.len()].to_owned(),
-            TAGS[(index * 3 + 1) % TAGS.len()].to_owned(),
-        ]
-    };
-
     NewItem {
         kind,
         title: format!("{base} #{:03}", index + 1),
@@ -238,6 +216,5 @@ fn build_item(index: usize) -> NewItem {
         external_id: None,
         details: None,
         public_hidden: false,
-        tags,
     }
 }

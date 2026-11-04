@@ -264,7 +264,6 @@ pub struct Item {
     pub details_fetched_at: Option<Timestamp>,
     #[serde(default)]
     pub public_hidden: bool,
-    pub tags: Vec<String>,
     pub revision: Revision,
     pub sync_seq: SyncSeq,
     pub device_id: Option<DeviceId>,
@@ -297,8 +296,6 @@ pub struct NewItem {
     pub details: Option<MovieDetails>,
     #[serde(default)]
     pub public_hidden: bool,
-    #[serde(default)]
-    pub tags: Vec<String>,
 }
 
 /// Partial update: absent fields stay untouched.
@@ -328,8 +325,6 @@ pub struct ItemPatch {
     pub details: Option<MovieDetails>,
     #[serde(default)]
     pub public_hidden: Option<bool>,
-    #[serde(default)]
-    pub tags: Option<Vec<String>>,
 }
 
 impl ItemPatch {
@@ -347,7 +342,6 @@ impl ItemPatch {
             && self.external_id.is_none()
             && self.details.is_none()
             && self.public_hidden.is_none()
-            && self.tags.is_none()
     }
 }
 

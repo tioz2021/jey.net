@@ -17,16 +17,9 @@ const SELECT_BY_ID: &str = r#"
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
-        i.created_at, i.updated_at, i.deleted_at,
-        coalesce(
-            array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
-            '{}'
-        ) as tags
+        i.created_at, i.updated_at, i.deleted_at
     from items i
-    left join item_tags it on it.item_id = i.id
-    left join tags t on t.id = it.tag_id
     where i.id = $1 and i.user_id = $2 and i.deleted_at is null
-    group by i.id
 "#;
 
 const SELECT_ALL: &str = r#"
@@ -35,16 +28,9 @@ const SELECT_ALL: &str = r#"
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
-        i.created_at, i.updated_at, i.deleted_at,
-        coalesce(
-            array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
-            '{}'
-        ) as tags
+        i.created_at, i.updated_at, i.deleted_at
     from items i
-    left join item_tags it on it.item_id = i.id
-    left join tags t on t.id = it.tag_id
     where i.user_id = $1
-    group by i.id
     order by i.created_at asc, i.id asc
 "#;
 
@@ -54,19 +40,12 @@ const SELECT_LIST: &str = r#"
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
-        i.created_at, i.updated_at, i.deleted_at,
-        coalesce(
-            array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
-            '{}'
-        ) as tags
+        i.created_at, i.updated_at, i.deleted_at
     from items i
-    left join item_tags it on it.item_id = i.id
-    left join tags t on t.id = it.tag_id
     where i.user_id = $1
       and i.deleted_at is null
       and ($2::text is null or i.kind = $2)
       and ($3::text is null or i.status = $3)
-    group by i.id
     order by i.created_at desc, i.id desc
     limit $4
 "#;
@@ -95,7 +74,6 @@ pub struct ItemRow {
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
     deleted_at: Option<DateTime<Utc>>,
-    tags: Vec<String>,
 }
 
 impl TryFrom<ItemRow> for Item {
@@ -122,7 +100,6 @@ impl TryFrom<ItemRow> for Item {
                 None => None,
             },
             details_fetched_at: row.details_fetched_at.map(timestamp),
-            tags: row.tags,
             revision: Revision::from_u64(row.revision as u64),
             sync_seq: SyncSeq::from_u64(row.sync_seq as u64),
             device_id: row.device_id.map(DeviceId::from_uuid),
@@ -183,8 +160,6 @@ pub async fn create(
     .execute(&mut *transaction)
     .await
     .map_err(AppError::internal)?;
-
-    link_tags(&mut transaction, user_id, id, &new.tags).await?;
 
     transaction.commit().await.map_err(AppError::internal)?;
 
@@ -294,12 +269,6 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
                and ($3::text is null or i.status = $3)
                and ($8::text is null or exists (
                    select 1
-                   from item_tags it2
-                   join tags t2 on t2.id = it2.tag_id
-                   where it2.item_id = i.id
-                     and t2.user_id = $1
-                     and lower(t2.name) = lower($8)
-               ))
                and ($9::int is null or i.year >= $9)
                and ($10::int is null or i.year <= $10)
                and ($11::int is null or i.rating >= $11)
@@ -319,13 +288,9 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
              coalesce(
                  array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
                  '{{}}'
-             ) as tags
          from items i
          join page p on p.id = i.id
-         left join item_tags it on it.item_id = i.id
-         left join tags t on t.id = it.tag_id
-         group by i.id
-         order by {order}"
+              order by {order}"
     );
 
     let (cursor_value, cursor_id) = match cursor {
@@ -390,14 +355,7 @@ pub async fn neighbors(
                and i.deleted_at is null
                and ($3::text is null or i.kind = $3)
                and ($4::text is null or i.status = $4)
-               and ($5::text is null or exists (
-                   select 1
-                   from item_tags it2
-                   join tags t2 on t2.id = it2.tag_id
-                   where it2.item_id = i.id
-                     and t2.user_id = $1
-                     and lower(t2.name) = lower($5)
-               ))
+               and ($5::text is null or true)
                and ($6::int is null or i.year >= $6)
                and ($7::int is null or i.year <= $7)
                and ($8::int is null or i.rating >= $8)
@@ -503,16 +461,6 @@ pub async fn update(
     if updated.is_none() {
         transaction.rollback().await.ok();
         return Ok(None);
-    }
-
-    if let Some(tags) = &patch.tags {
-        sqlx::query("delete from item_tags where item_id = $1")
-            .bind(id)
-            .execute(&mut *transaction)
-            .await
-            .map_err(AppError::internal)?;
-
-        link_tags(&mut transaction, user_id, id, tags).await?;
     }
 
     transaction.commit().await.map_err(AppError::internal)?;
@@ -638,57 +586,10 @@ pub async fn import_items(
         .await
         .map_err(AppError::internal)?;
 
-        link_tags(&mut transaction, user_id, new_id, &item.tags).await?;
         created += 1;
     }
 
     transaction.commit().await.map_err(AppError::internal)?;
 
     Ok(created)
-}
-
-/// Upserts tags for a user and links them to an item.
-pub(crate) async fn link_tags(
-    transaction: &mut Transaction<'_, Postgres>,
-    user_id: Uuid,
-    item_id: Uuid,
-    tags: &[String],
-) -> Result<(), AppError> {
-    for tag in tags {
-        let name = tag.trim();
-        if name.is_empty() {
-            continue;
-        }
-
-        sqlx::query(
-            "insert into tags (id, user_id, name) values ($1, $2, $3)
-             on conflict (user_id, lower(name)) do nothing",
-        )
-        .bind(Uuid::new_v4())
-        .bind(user_id)
-        .bind(name)
-        .execute(&mut **transaction)
-        .await
-        .map_err(AppError::internal)?;
-
-        let tag_id = sqlx::query_scalar::<_, Uuid>(
-            "select id from tags where user_id = $1 and lower(name) = lower($2)",
-        )
-        .bind(user_id)
-        .bind(name)
-        .fetch_one(&mut **transaction)
-        .await
-        .map_err(AppError::internal)?;
-
-        sqlx::query(
-            "insert into item_tags (item_id, tag_id) values ($1, $2) on conflict do nothing",
-        )
-        .bind(item_id)
-        .bind(tag_id)
-        .execute(&mut **transaction)
-        .await
-        .map_err(AppError::internal)?;
-    }
-
-    Ok(())
 }
