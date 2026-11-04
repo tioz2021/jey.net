@@ -73,6 +73,7 @@ export function ItemList({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<ItemStatus | "">("");
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   useEffect(() => {
     if (skipQuery.current !== null) {
@@ -127,7 +128,20 @@ export function ItemList({
 
   useEffect(() => {
     setSelected(new Set());
+    setSelectionMode(false);
   }, [query]);
+
+  useEffect(() => {
+    if (!selectionMode) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectionMode(false);
+        setSelected(new Set());
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectionMode]);
 
   function toggleSelected(id: string) {
     setSelected((current) => {
@@ -187,13 +201,38 @@ export function ItemList({
   return (
     <div className={styles.layout}>
       <SavedFilters />
+      <div className={styles.toolbar}>
+        {!selectionMode && items.length > 0 ? (
+          <Button
+            onClick={() => setSelectionMode(true)}
+            variant="secondary"
+          >
+            {t("bulk.selectMode")}
+          </Button>
+        ) : null}
+      </div>
       <ItemsFilters />
 
-      {selected.size > 0 ? (
+      {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>
           <span className={styles.bulkCount}>
             {t("bulk.selected", { count: selected.size })}
           </span>
+          <button
+            className={styles.bulkClear}
+            onClick={() =>
+              setSelected(
+                selected.size === items.length
+                  ? new Set()
+                  : new Set(items.map((item) => item.id)),
+              )
+            }
+            type="button"
+          >
+            {selected.size === items.length
+              ? t("bulk.clear")
+              : t("bulk.selectAll")}
+          </button>
           {hasActiveSelection ? (
             <>
               <select
@@ -239,11 +278,14 @@ export function ItemList({
             </Button>
           ) : null}
           <button
-            className={styles.bulkClear}
-            onClick={() => setSelected(new Set())}
+            className={styles.bulkDone}
+            onClick={() => {
+              setSelectionMode(false);
+              setSelected(new Set());
+            }}
             type="button"
           >
-            {t("bulk.clear")}
+            {t("bulk.done")}
           </button>
         </div>
       ) : null}
@@ -307,18 +349,22 @@ export function ItemList({
           <ul className={styles.list}>
             {items.map((item) => (
               <li className={styles.item} key={item.id}>
-                <label className={styles.select}>
-                  <input
-                    aria-label={t("bulk.select", { title: item.title })}
-                    checked={selected.has(item.id)}
-                    onChange={() => toggleSelected(item.id)}
-                    type="checkbox"
-                  />
-                </label>
+                {selectionMode ? (
+                  <label className={styles.select}>
+                    <input
+                      aria-label={t("bulk.select", { title: item.title })}
+                      checked={selected.has(item.id)}
+                      onChange={() => toggleSelected(item.id)}
+                      type="checkbox"
+                    />
+                    <span aria-hidden="true" className={styles.check} />
+                  </label>
+                ) : null}
                 <ItemCard
                   href={`/items/${item.id}${query ? `?${query}` : ""}`}
                   item={item}
                   query={filters.q}
+                  selected={selectionMode && selected.has(item.id)}
                 />
               </li>
             ))}

@@ -82,10 +82,12 @@ export function ItemCard({
   item,
   query,
   href,
+  selected = false,
 }: {
   item: ItemCardData;
   query?: string;
   href?: string;
+  selected?: boolean;
 }) {
   const target = href ?? `/items/${item.id}`;
   const { t, locale } = useI18n();
@@ -100,7 +102,7 @@ export function ItemCard({
   ].filter(Boolean);
 
   const card = (
-    <article className={styles.card}>
+    <article className={`${styles.card} ${selected ? styles.cardSelected : ""}`}>
       <div className={styles.poster}>
         {item.cover_key ? (
           <img
