@@ -349,6 +349,16 @@ export interface FollowingProfile {
   notifications: boolean;
 }
 
+export interface NotificationItem {
+  id: string;
+  kind: "follow" | string;
+  actor_id: string;
+  actor_name: string;
+  actor_avatar: string | null;
+  created_at: string;
+  read: boolean;
+}
+
 export interface FollowState {
   following: boolean;
   blocked?: boolean;

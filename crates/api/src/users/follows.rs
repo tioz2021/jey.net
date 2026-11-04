@@ -72,6 +72,17 @@ pub async fn follow(
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    sqlx::query(
+        "insert into notifications (id, user_id, actor_id, kind)
+         values (gen_random_uuid(), $1, $2, 'follow')
+         on conflict (user_id, actor_id, kind)
+         do update set created_at = now(), read_at = null",
+    )
+    .bind(target)
+    .bind(current.user.id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     let (followers, following) = counts(&state.pool, target).await?;
     Ok(Json(
         json!({ "following": true, "followers": followers, "following_count": following }),

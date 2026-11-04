@@ -13,6 +13,7 @@ import {
   IconPeople,
   IconSparkles,
 } from "@/components/icons";
+import { NotificationBell } from "@/components/notification-bell";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/lib/locale-context";
@@ -83,6 +84,7 @@ export function SiteHeader() {
                 <ThemeToggle />
               </div>
 
+              <NotificationBell />
               <div className={styles.language}>
                 <LanguageSwitch />
               </div>

@@ -4,6 +4,7 @@ pub mod avatar;
 pub mod banner;
 pub mod delete;
 pub mod follows;
+pub mod notifications;
 pub mod profile;
 pub mod public;
 pub mod purge;

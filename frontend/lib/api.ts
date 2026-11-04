@@ -13,6 +13,7 @@ import type {
   FollowState,
   FollowingProfile,
   FeedItem,
+  NotificationItem,
   FriendRecommendation,
   PublicUserCard,
   SimilarItem,
@@ -356,6 +357,13 @@ export const follows = {
     }),
 };
 
+export const notifications = {
+  list: () =>
+    request<{ items: NotificationItem[]; unread: number }>("/notifications"),
+  markAllRead: () =>
+    request<{ unread: number }>("/notifications/read", { method: "POST" }),
+};
+
 export const feed = {
   get: () => request<{ items: FeedItem[] }>("/feed"),
 };
@@ -442,6 +450,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, feed, follows, games, items, movies, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, feed, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

@@ -1,0 +1,31 @@
+.link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.link:hover {
+  background: var(--color-surface);
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 15px;
+  color: #fff;
+  text-align: center;
+  background: var(--color-accent);
+  border-radius: 8px;
+}
