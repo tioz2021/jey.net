@@ -205,6 +205,7 @@ pub async fn details(id: &str, key: &str) -> Result<BookDetails, AppError> {
                 items
                     .iter()
                     .filter_map(Value::as_str)
+                    .filter(|subject| subject.chars().count() <= 40)
                     .take(8)
                     .map(str::to_owned)
                     .collect()

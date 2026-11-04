@@ -204,7 +204,7 @@ function mergeTags(current: string[], incoming: string[]): string[] {
 
   for (const tag of incoming) {
     const key = tag.trim().toLowerCase();
-    if (key && !seen.has(key) && merged.length < 20) {
+    if (key && key.length <= 40 && !seen.has(key) && merged.length < 20) {
       seen.add(key);
       merged.push(tag.trim());
     }
@@ -424,6 +424,8 @@ export function ItemForm({
     (values.kind === "movie" ||
       values.kind === "tv" ||
       values.kind === "book");
+  const submitError =
+    errors.form ?? errors.tags ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;
 
   return (
@@ -600,6 +602,12 @@ export function ItemForm({
       {errors.form ? (
         <p className={styles.formError} role="alert">
           {errors.form}
+        </p>
+      ) : null}
+
+      {submitError && !errors.title && !errors.subtitle ? (
+        <p className={styles.formError} role="alert">
+          {submitError}
         </p>
       ) : null}
 

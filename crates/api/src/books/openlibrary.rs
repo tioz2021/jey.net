@@ -289,7 +289,7 @@ pub async fn details(book_id: &str) -> Result<BookDetails, AppError> {
         subjects: strings(work.get("subjects"))
             .into_iter()
             .filter(|subject| {
-                subject.len() <= 80
+                subject.len() <= 40
                     && !subject.contains('=')
                     && !subject.to_lowercase().contains("award")
             })

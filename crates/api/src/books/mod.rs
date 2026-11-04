@@ -52,17 +52,17 @@ pub async fn search(
     )
     .await?;
 
-    let mut results = openlibrary::search(q).await.unwrap_or_default();
-    if results.is_empty()
-        && let Some(key) = state.config.google_books_key.as_deref()
-    {
-        let locale = match current.user.locale.as_str() {
-            "ru" => "ru",
-            "uk" => "uk",
-            _ => "en",
-        };
-        results = google::search(q, key, locale).await.unwrap_or_default();
-    }
+    let key = state
+        .config
+        .google_books_key
+        .as_deref()
+        .ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
+    let locale = match current.user.locale.as_str() {
+        "ru" => "ru",
+        "uk" => "uk",
+        _ => "en",
+    };
+    let results = google::search(q, key, locale).await?;
     Ok(Json(json!({ "results": results })).into_response())
 }
 

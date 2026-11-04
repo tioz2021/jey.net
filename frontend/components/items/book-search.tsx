@@ -266,10 +266,6 @@ export function BookSearch({
           ) : null}
           <p className={styles.source}>
             {t("bookSearch.source")}{" "}
-            <a href="https://openlibrary.org" rel="noreferrer" target="_blank">
-              Open Library
-            </a>
-            {" · "}
             <a href="https://books.google.com" rel="noreferrer" target="_blank">
               Google Books
             </a>
