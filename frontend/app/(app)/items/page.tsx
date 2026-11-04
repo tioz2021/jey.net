@@ -65,13 +65,13 @@ export default async function ItemsPage({
           the list height. */}
       <ItemsQueryProvider initialSearch={search}>
         <div style={{ display: "grid", gap: "var(--space-4)" }}>
+          <FollowingPanel />
           <ItemList
             initialCursor={initialCursor}
             initialItems={initialItems}
             initialLoaded={initialLoaded}
             initialQuery={search}
           />
-          <FollowingPanel />
         </div>
       </ItemsQueryProvider>
     </main>
