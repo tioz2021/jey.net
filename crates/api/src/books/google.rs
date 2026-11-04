@@ -28,19 +28,34 @@ fn year(value: Option<&str>) -> Option<i32> {
 }
 
 fn cover_url(volume: &Value) -> Option<String> {
-    volume
+    let raw = volume
         .get("imageLinks")
         .and_then(|links| {
             links
                 .get("thumbnail")
                 .or_else(|| links.get("smallThumbnail"))
                 .and_then(Value::as_str)
+        })?
+        .replacen("http://", "https://", 1);
+
+    // Google's `thumbnail` is zoom=1 (about 128×176). Ask the same CDN for
+    // the largest render it exposes; this is still one request, not an image
+    // upscale on our side.
+    let upgraded = raw
+        .split('&')
+        .map(|part| {
+            if part.starts_with("zoom=") {
+                "zoom=3"
+            } else {
+                part
+            }
         })
-        .map(|url| url.replacen("http://", "https://", 1))
-        .filter(|url| {
-            url.starts_with("https://books.google.com/")
-                || url.starts_with("https://books.googleusercontent.com/")
-        })
+        .collect::<Vec<_>>()
+        .join("&");
+
+    (upgraded.starts_with("https://books.google.com/")
+        || upgraded.starts_with("https://books.googleusercontent.com/"))
+    .then_some(upgraded)
 }
 
 fn isbn(volume: &Value) -> Option<String> {
