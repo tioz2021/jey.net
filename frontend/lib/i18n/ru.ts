@@ -68,6 +68,7 @@ export const ru = {
   "footer.profileNote": "Записи, которыми автор решил поделиться, — с оценками и заметками.",
   "footer.landingNote": "Личный портал для фильмов, книг и картинок — без рекламы и алгоритмов.",
   "account.myPage": "Моя страница",
+  "account.stats": "Статистика",
   "account.settings": "Настройки",
   "account.logout": "Выйти",
   "public.home": "Главная",

@@ -12,8 +12,6 @@ import {
   IconList,
   IconPeople,
   IconSparkles,
-  IconSettings,
-  IconStats,
 } from "@/components/icons";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -33,8 +31,6 @@ const SECTIONS: Array<{
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
   { href: "/people", labelKey: "nav.people", Icon: IconPeople },
-  { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
-  { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];
 
 export function SiteHeader() {

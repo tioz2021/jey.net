@@ -69,6 +69,7 @@ export const en = {
   "footer.profileNote": "Records the author chose to share, with ratings and notes.",
   "footer.landingNote": "A personal portal for films, books and images — no ads, no algorithms.",
   "account.myPage": "My page",
+  "account.stats": "Statistics",
   "account.settings": "Settings",
   "account.logout": "Log out",
   "public.home": "Home",

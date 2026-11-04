@@ -157,6 +157,9 @@ export function UserMenu({ user }: { user: User }) {
           <Link className={styles.item} href="/settings" role="menuitem">
             {t("account.settings")}
           </Link>
+          <Link className={styles.item} href="/dashboard" role="menuitem">
+            {t("account.stats")}
+          </Link>
           <button
             className={`${styles.item} ${styles.danger}`}
             disabled={pending}

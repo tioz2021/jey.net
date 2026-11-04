@@ -69,6 +69,7 @@ export const uk = {
   "footer.profileNote": "Записи, якими автор вирішив поділитися, — з оцінками та нотатками.",
   "footer.landingNote": "Особистий портал для фільмів, книг і картинок — без реклами та алгоритмів.",
   "account.myPage": "Моя сторінка",
+  "account.stats": "Статистика",
   "account.settings": "Налаштування",
   "account.logout": "Вийти",
   "public.home": "Головна",
