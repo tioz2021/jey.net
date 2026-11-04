@@ -273,7 +273,6 @@ mod tests {
             details_fetched_at: None,
             public_hidden: false,
             cover_key: None,
-            tags: vec![],
             revision: Revision::INITIAL,
             sync_seq: SyncSeq::ZERO,
             device_id: None,

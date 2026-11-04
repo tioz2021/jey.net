@@ -64,6 +64,7 @@ fn test_config() -> Config {
         google_client_secret: std::env::var("GOOGLE_CLIENT_SECRET").ok(),
         google_redirect_url: std::env::var("GOOGLE_REDIRECT_URL").ok(),
         tmdb_read_token: None,
+        google_books_key: None,
         purge_retention_days: 30,
     }
 }
