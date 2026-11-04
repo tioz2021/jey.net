@@ -6,6 +6,7 @@ import { Button } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
 import { Onboarding } from "@/components/onboarding";
 import { useI18n } from "@/lib/locale-context";
+import { STATUS_KEYS } from "@/lib/i18n/labels";
 import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
 import { describeError } from "@/lib/messages";
@@ -14,6 +15,7 @@ import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types"
 import { ItemsFilters } from "./filters";
 import { useItemsQuery } from "./query-context";
 import { ItemCard } from "./item-card";
+import { SavedFilters } from "./saved-filters";
 import styles from "./item-list.module.css";
 
 const PAGE_SIZE = 20;
@@ -68,6 +70,9 @@ export function ItemList({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<ItemStatus | "">("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   useEffect(() => {
     if (skipQuery.current !== null) {
@@ -120,6 +125,48 @@ export function ItemList({
     return () => window.clearTimeout(timer);
   }, [loading]);
 
+  useEffect(() => {
+    setSelected(new Set());
+  }, [query]);
+
+  function toggleSelected(id: string) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function runBulk(action: "status" | "trash" | "restore") {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    setError(null);
+    try {
+      const ids = [...selected];
+      if (action === "status" && bulkStatus) {
+        await Promise.all(
+          ids.map((id) => api.items.update(id, { status: bulkStatus })),
+        );
+      } else if (action === "trash") {
+        await Promise.all(ids.map((id) => api.items.remove(id)));
+      } else if (action === "restore") {
+        await Promise.all(ids.map((id) => api.items.restore(id)));
+      }
+      setSelected(new Set());
+      setBulkStatus("");
+      setReloadToken((value) => value + 1);
+    } catch (cause) {
+      setError(describeError(cause, i18n).text);
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  const selectedItems = items.filter((item) => selected.has(item.id));
+  const hasActiveSelection = selectedItems.some((item) => !item.deleted_at);
+  const hasDeletedSelection = selectedItems.some((item) => item.deleted_at);
+
   async function loadMore() {
     if (!cursor) {
       return;
@@ -139,7 +186,67 @@ export function ItemList({
 
   return (
     <div className={styles.layout}>
+      <SavedFilters />
       <ItemsFilters />
+
+      {selected.size > 0 ? (
+        <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>
+          <span className={styles.bulkCount}>
+            {t("bulk.selected", { count: selected.size })}
+          </span>
+          {hasActiveSelection ? (
+            <>
+              <select
+                aria-label={t("bulk.status")}
+                className={styles.bulkSelect}
+                onChange={(event) =>
+                  setBulkStatus(event.target.value as ItemStatus | "")
+                }
+                value={bulkStatus}
+              >
+                <option value="">{t("bulk.status")}</option>
+                {(
+                  ["planned", "in_progress", "done", "dropped"] as ItemStatus[]
+                ).map((status) => (
+                  <option key={status} value={status}>
+                    {t(STATUS_KEYS[status])}
+                  </option>
+                ))}
+              </select>
+              <Button
+                disabled={!bulkStatus || bulkBusy}
+                onClick={() => void runBulk("status")}
+                variant="secondary"
+              >
+                {t("bulk.apply")}
+              </Button>
+              <Button
+                disabled={bulkBusy}
+                onClick={() => void runBulk("trash")}
+                variant="secondary"
+              >
+                {t("bulk.trash")}
+              </Button>
+            </>
+          ) : null}
+          {hasDeletedSelection ? (
+            <Button
+              disabled={bulkBusy}
+              onClick={() => void runBulk("restore")}
+              variant="secondary"
+            >
+              {t("bulk.restore")}
+            </Button>
+          ) : null}
+          <button
+            className={styles.bulkClear}
+            onClick={() => setSelected(new Set())}
+            type="button"
+          >
+            {t("bulk.clear")}
+          </button>
+        </div>
+      ) : null}
 
       {error ? (
         <EmptyState
@@ -199,7 +306,15 @@ export function ItemList({
 
           <ul className={styles.list}>
             {items.map((item) => (
-              <li key={item.id}>
+              <li className={styles.item} key={item.id}>
+                <label className={styles.select}>
+                  <input
+                    aria-label={t("bulk.select", { title: item.title })}
+                    checked={selected.has(item.id)}
+                    onChange={() => toggleSelected(item.id)}
+                    type="checkbox"
+                  />
+                </label>
                 <ItemCard
                   href={`/items/${item.id}${query ? `?${query}` : ""}`}
                   item={item}

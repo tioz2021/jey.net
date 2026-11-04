@@ -35,3 +35,133 @@
     gap: var(--space-4);
   }
 }
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.bulkCount {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.bulkSelect {
+  min-height: 34px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.bulkClear {
+  margin-left: auto;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-link);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.select {
+  display: flex;
+  padding-top: var(--space-3);
+}
+
+.select input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+.saved {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 26px;
+}
+
+.savedTitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.savedList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.savedChip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.savedChip button {
+  padding: 3px 6px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.savedDelete {
+  color: var(--color-text-muted) !important;
+}
+
+.savedSave {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.savedSave input {
+  width: 12rem;
+  min-height: 28px;
+  padding: 3px 6px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.savedSave button {
+  padding: 3px 8px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  border: 0;
+  cursor: pointer;
+}
+
+@media (width <= 480px) {
+  .bulkClear {
+    margin-left: 0;
+  }
+  .savedSave input {
+    width: 9rem;
+  }
+}
