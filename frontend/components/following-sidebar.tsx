@@ -39,7 +39,7 @@ export function FollowingSidebar() {
         <p className={styles.empty}>{t("public.followingEmpty")}</p>
       ) : (
         <ul className={styles.list}>
-          {people.map((person) => (
+          {people.slice(0, 10).map((person) => (
             <li key={person.id}>
               <Link className={styles.person} href={`/u/${person.id}`}>
                 {person.avatar_key ? (
@@ -56,6 +56,11 @@ export function FollowingSidebar() {
           ))}
         </ul>
       )}
+     {people.length > 0 ? (
+        <Link className={styles.all} href="/subscriptions">
+          {t("public.allFollowing", { count: people.length })}
+        </Link>
+      ) : null}
     </section>
   );
 }

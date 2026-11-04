@@ -463,6 +463,7 @@ export const ru = {
   'public.privacy': 'Настройки приватности',
   'public.followingTitle': 'Мои подписки',
   'public.followingEmpty': 'Вы пока ни на кого не подписаны.',
+  'public.allFollowing': 'Все подписки ({count})',
   'public.follow': 'Подписаться',
   'public.following': 'Вы подписаны',
   'public.followers': 'Подписчиков: {count}',

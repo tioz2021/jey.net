@@ -464,6 +464,7 @@ export const en = {
   'public.privacy': 'Privacy settings',
   'public.followingTitle': 'My subscriptions',
   'public.followingEmpty': 'You are not subscribed to anyone yet.',
+  'public.allFollowing': 'All subscriptions ({count})',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',
