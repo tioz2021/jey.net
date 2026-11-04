@@ -76,20 +76,20 @@ export default function RecommendationsPage() {
               <ul className={styles.list}>
                 {visibleTaste.map((item) => (
                   <li key={`${item.author_id}-${item.id}`}>
-                    <p className={styles.reason}>
-                      {t("recommendations.tasteReason", {
-                        genres: item.matched_genres.join(", "),
-                      })}
-                    </p>
-                    <div className={styles.itemWithHide}>
-                      <ItemCard
-                        href={`/u/${item.author_id}/${item.id}`}
-                        item={item}
-                      />
+                    <div className={styles.reasonRow}>
+                      <p className={styles.reason}>
+                        {t("recommendations.tasteReason", {
+                          genres: item.matched_genres.join(", "),
+                        })}
+                      </p>
                       <HideRecommendation
                         onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
                       />
                     </div>
+                    <ItemCard
+                      href={`/u/${item.author_id}/${item.id}`}
+                      item={item}
+                    />
                   </li>
                 ))}
               </ul>
@@ -109,24 +109,24 @@ export default function RecommendationsPage() {
           <ul className={styles.list}>
             {visibleFriends.map((item) => (
               <li key={`${item.author_id}-${item.id}`}>
-                <p className={styles.reason}>
-                  {t("recommendations.reason", {
-                    friends: item.friends.slice(0, 3).join(", "),
-                    rating: item.average_rating,
-                  })}
-                  {item.friend_count > 1 ? (
-                    <span> · {item.friend_count}</span>
-                  ) : null}
-                </p>
-                <div className={styles.itemWithHide}>
-                  <ItemCard
-                    href={`/u/${item.author_id}/${item.id}`}
-                    item={item}
-                  />
+                <div className={styles.reasonRow}>
+                  <p className={styles.reason}>
+                    {t("recommendations.reason", {
+                      friends: item.friends.slice(0, 3).join(", "),
+                      rating: item.average_rating,
+                    })}
+                    {item.friend_count > 1 ? (
+                      <span> · {item.friend_count}</span>
+                    ) : null}
+                  </p>
                   <HideRecommendation
                     onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
                   />
                 </div>
+                <ItemCard
+                  href={`/u/${item.author_id}/${item.id}`}
+                  item={item}
+                />
               </li>
             ))}
           </ul>

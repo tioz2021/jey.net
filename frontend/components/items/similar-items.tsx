@@ -76,6 +76,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
               {item.year ? <span className={styles.year}>{item.year}</span> : null}
             </a>
             <HideRecommendation
+              compact
               onHide={() => hide(similarRecommendationKey(item.source, item.external_id))}
             />
           </li>

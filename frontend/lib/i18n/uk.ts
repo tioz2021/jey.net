@@ -23,6 +23,7 @@ export const uk = {
   "recommendations.homeTitle": "Рекомендації для вас",
   "recommendations.subtitle": "Добірки за вашим смаком та оцінками людей, на яких ви підписані.",
   "nav.recommendationsHint": "Рекомендації: добірки для вас",
+  "recommendations.hide": "Сховати",
   "recommendations.notInterested": "Не цікаво",
   "recommendations.title": "Рекомендації",
   "recommendations.friendsTitle": "Підписки високо оцінили",

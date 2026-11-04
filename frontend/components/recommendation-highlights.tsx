@@ -59,9 +59,6 @@ export function RecommendationHighlights() {
       <ul className={styles.list}>
         {visible.map((item) => (
           <li key={`${item.author_id}-${item.id}`}>
-            <HideRecommendation
-              onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
-            />
             <Link className={styles.item} href={`/u/${item.author_id}/${item.id}`}>
               {item.cover_key ? (
                 // eslint-disable-next-line @next/next/no-img-element -- local cover
@@ -74,6 +71,10 @@ export function RecommendationHighlights() {
                 {item.year ? <span className={styles.meta}>{item.year}</span> : null}
               </span>
             </Link>
+            <HideRecommendation
+              compact
+              onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+            />
           </li>
         ))}
       </ul>

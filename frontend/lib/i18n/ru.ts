@@ -22,6 +22,7 @@ export const ru = {
   "recommendations.homeTitle": "Рекомендации для вас",
   "recommendations.subtitle": "Подборки по вашему вкусу и оценкам людей, на которых вы подписаны.",
   "nav.recommendationsHint": "Рекомендации: подборки для вас",
+  "recommendations.hide": "Скрыть",
   "recommendations.notInterested": "Не интересно",
   "recommendations.title": "Рекомендации",
   "recommendations.friendsTitle": "Подписки высоко оценили",

@@ -41,11 +41,11 @@
 }
 
 .withHide {
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .withHide > button {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  align-self: flex-start;
+  margin-top: 3px;
 }
