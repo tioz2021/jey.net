@@ -1,7 +1,11 @@
-//! Book metadata from Open Library.
+//! Book metadata from Open Library and Google Books.
 
 pub mod google;
 pub mod openlibrary;
+
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use axum::Json;
 use axum::extract::{Path, Query, State};
@@ -15,6 +19,123 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::ratelimit;
 use crate::movies::SEARCH_RULE;
+
+const SEARCH_TTL: Duration = Duration::from_secs(15 * 60);
+const DETAILS_TTL: Duration = Duration::from_secs(60 * 60);
+const CACHE_CAPACITY: usize = 200;
+
+pub struct BookClient {
+    search_cache: Mutex<HashMap<String, (Instant, Vec<openlibrary::SearchItem>)>>,
+    details_cache: Mutex<HashMap<String, (Instant, openlibrary::BookDetails)>>,
+    permits: Arc<tokio::sync::Semaphore>,
+}
+
+impl Default for BookClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl BookClient {
+    pub fn new() -> Self {
+        Self {
+            search_cache: Mutex::new(HashMap::new()),
+            details_cache: Mutex::new(HashMap::new()),
+            permits: Arc::new(tokio::sync::Semaphore::new(4)),
+        }
+    }
+
+    pub async fn search(
+        &self,
+        query: &str,
+        locale: &str,
+        key: Option<&str>,
+    ) -> Result<Vec<openlibrary::SearchItem>, AppError> {
+        let cache_key = format!("{locale}:{query}");
+        if let Some(value) = self.cached_search(&cache_key) {
+            return Ok(value);
+        }
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("book request limiter is closed"))?;
+        if let Some(value) = self.cached_search(&cache_key) {
+            return Ok(value);
+        }
+
+        let google_query = async {
+            match key {
+                Some(key) => google::search(query, key, locale).await,
+                None => Ok(Vec::new()),
+            }
+        };
+        let openlibrary_query = openlibrary::search(query);
+        let (google_result, openlibrary_result) = tokio::join!(google_query, openlibrary_query);
+        let google_results = google_result.unwrap_or_default();
+        let openlibrary_results = openlibrary_result.unwrap_or_default();
+        if google_results.is_empty() && openlibrary_results.is_empty() && key.is_none() {
+            return Err(AppError::unavailable("Google Books is not configured"));
+        }
+
+        let results = merge_results(query, google_results, openlibrary_results);
+        self.store_search(cache_key, results.clone());
+        Ok(results)
+    }
+
+    pub async fn details(
+        &self,
+        id: &str,
+        key: Option<&str>,
+    ) -> Result<openlibrary::BookDetails, AppError> {
+        if let Some(value) = self.cached_details(id) {
+            return Ok(value);
+        }
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("book request limiter is closed"))?;
+        if let Some(value) = self.cached_details(id) {
+            return Ok(value);
+        }
+
+        let book = if id.starts_with("gb:") {
+            let key = key.ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
+            google::details(id, key).await?
+        } else {
+            openlibrary::details(id).await?
+        };
+        if let Ok(mut cache) = self.details_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(id.to_owned(), (Instant::now(), book.clone()));
+        }
+        Ok(book)
+    }
+
+    fn cached_search(&self, key: &str) -> Option<Vec<openlibrary::SearchItem>> {
+        let cache = self.search_cache.lock().ok()?;
+        let (at, value) = cache.get(key)?;
+        (at.elapsed() < SEARCH_TTL).then(|| value.clone())
+    }
+
+    fn store_search(&self, key: String, value: Vec<openlibrary::SearchItem>) {
+        if let Ok(mut cache) = self.search_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(key, (Instant::now(), value));
+        }
+    }
+
+    fn cached_details(&self, id: &str) -> Option<openlibrary::BookDetails> {
+        let cache = self.details_cache.lock().ok()?;
+        let (at, value) = cache.get(id)?;
+        (at.elapsed() < DETAILS_TTL).then(|| value.clone())
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct SearchQuery {
@@ -44,7 +165,6 @@ pub async fn search(
             "query must be at most 100 characters",
         ));
     }
-
     ratelimit::enforce(
         &state.pool,
         SEARCH_RULE,
@@ -57,24 +177,10 @@ pub async fn search(
         "uk" => "uk",
         _ => "en",
     };
-    let key = state.config.google_books_key.as_deref();
-
-    let google_query = async {
-        match key {
-            Some(key) => google::search(q, key, locale).await,
-            None => Ok(Vec::new()),
-        }
-    };
-    let openlibrary_query = openlibrary::search(q);
-    let (google_result, openlibrary_result) = tokio::join!(google_query, openlibrary_query);
-
-    let google_results = google_result.unwrap_or_default();
-    let openlibrary_results = openlibrary_result.unwrap_or_default();
-    if google_results.is_empty() && openlibrary_results.is_empty() && key.is_none() {
-        return Err(AppError::unavailable("Google Books is not configured"));
-    }
-
-    let results = merge_results(q, google_results, openlibrary_results);
+    let results = state
+        .books
+        .search(q, locale, state.config.google_books_key.as_deref())
+        .await?;
     Ok(Json(json!({ "results": results })).into_response())
 }
 
@@ -84,20 +190,14 @@ pub async fn details(
     _current: CurrentUser,
     Path(id): Path<String>,
 ) -> Result<Response, AppError> {
-    let book = if id.starts_with("gb:") {
-        let key = state
-            .config
-            .google_books_key
-            .as_deref()
-            .ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
-        google::details(&id, key).await?
-    } else {
-        openlibrary::details(&id).await?
-    };
+    let book = state
+        .books
+        .details(&id, state.config.google_books_key.as_deref())
+        .await?;
     Ok(Json(json!({ "book": book })).into_response())
 }
 
-/// `GET /api/v1/books/image?cover=123&size=M`
+/// `GET /api/v1/books/image?...`
 pub async fn image(
     State(_state): State<crate::http::AppState>,
     Query(query): Query<CoverQuery>,

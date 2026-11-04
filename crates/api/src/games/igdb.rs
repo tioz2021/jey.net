@@ -3,7 +3,8 @@
 //! Twitch/IGDB credentials stay server-side. The token is refreshed lazily and
 //! cached in memory until shortly before it expires.
 
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use reqwest::Client;
@@ -15,6 +16,9 @@ use jey_core::items::MovieDetails;
 
 const API: &str = "https://api.igdb.com/v4";
 const TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
+const SEARCH_TTL: Duration = Duration::from_secs(15 * 60);
+const DETAILS_TTL: Duration = Duration::from_secs(60 * 60);
+const CACHE_CAPACITY: usize = 200;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchItem {
@@ -31,6 +35,9 @@ pub struct IgdbClient {
     client_id: Option<String>,
     client_secret: Option<String>,
     token: Mutex<Option<(String, Instant)>>,
+    search_cache: Mutex<HashMap<String, (Instant, Vec<SearchItem>)>>,
+    details_cache: Mutex<HashMap<String, (Instant, MovieDetails)>>,
+    permits: Arc<tokio::sync::Semaphore>,
 }
 
 impl IgdbClient {
@@ -44,6 +51,9 @@ impl IgdbClient {
             client_id,
             client_secret,
             token: Mutex::new(None),
+            search_cache: Mutex::new(HashMap::new()),
+            details_cache: Mutex::new(HashMap::new()),
+            permits: Arc::new(tokio::sync::Semaphore::new(4)),
         }
     }
 
@@ -121,6 +131,63 @@ impl IgdbClient {
         }
         let value = response.json::<Value>().await.map_err(AppError::internal)?;
         Ok(value.as_array().cloned().unwrap_or_default())
+    }
+
+    pub async fn search_cached(&self, query: &str) -> Result<Vec<SearchItem>, AppError> {
+        if let Some(value) = self.cached_search(query) {
+            return Ok(value);
+        }
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("IGDB request limiter is closed"))?;
+        if let Some(value) = self.cached_search(query) {
+            return Ok(value);
+        }
+        let value = self.search(query).await?;
+        if let Ok(mut cache) = self.search_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(query.to_owned(), (Instant::now(), value.clone()));
+        }
+        Ok(value)
+    }
+
+    pub async fn details_cached(&self, id: u64) -> Result<MovieDetails, AppError> {
+        let key = id.to_string();
+        if let Some(value) = self.cached_details(&key) {
+            return Ok(value);
+        }
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("IGDB request limiter is closed"))?;
+        if let Some(value) = self.cached_details(&key) {
+            return Ok(value);
+        }
+        let value = self.details(id).await?;
+        if let Ok(mut cache) = self.details_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(key, (Instant::now(), value.clone()));
+        }
+        Ok(value)
+    }
+
+    fn cached_search(&self, query: &str) -> Option<Vec<SearchItem>> {
+        let cache = self.search_cache.lock().ok()?;
+        let (at, value) = cache.get(query)?;
+        (at.elapsed() < SEARCH_TTL).then(|| value.clone())
+    }
+
+    fn cached_details(&self, id: &str) -> Option<MovieDetails> {
+        let cache = self.details_cache.lock().ok()?;
+        let (at, value) = cache.get(id)?;
+        (at.elapsed() < DETAILS_TTL).then(|| value.clone())
     }
 
     pub async fn search(&self, query: &str) -> Result<Vec<SearchItem>, AppError> {

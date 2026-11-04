@@ -122,6 +122,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         config.twitch_client_secret.clone(),
     ));
     let anime = Arc::new(jey_api::anime::AnimeClient::new());
+    let books = Arc::new(jey_api::books::BookClient::new());
 
     jey_api::users::purge::spawn(pool.clone(), storage.clone(), config.purge_retention_days);
 
@@ -132,6 +133,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         tmdb,
         igdb,
         anime,
+        books,
         config: Arc::new(config),
     };
 

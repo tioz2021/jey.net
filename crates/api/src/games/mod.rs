@@ -50,7 +50,7 @@ pub async fn search(
         &format!("games:{}", current.user.id),
     )
     .await?;
-    Ok(Json(json!({ "results": state.igdb.search(q).await? })).into_response())
+    Ok(Json(json!({ "results": state.igdb.search_cached(q).await? })).into_response())
 }
 
 pub async fn details(
@@ -61,7 +61,7 @@ pub async fn details(
     let id: u64 = raw_id
         .parse()
         .map_err(|_| AppError::validation_field("id", "game id must be a number"))?;
-    let game = state.igdb.details(id).await?;
+    let game = state.igdb.details_cached(id).await?;
     Ok(Json(json!({ "game": game })).into_response())
 }
 
