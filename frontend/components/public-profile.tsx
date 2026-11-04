@@ -49,9 +49,16 @@ export function PublicProfileView({
   }, [visibleItems]);
 
   const kinds = ORDER.filter((kind) => (counts.get(kind) ?? 0) > 0);
-  const shown = expanded ? visibleItems : visibleItems.slice(0, PAGE_LIMIT);
-  const visible =
-    active === "all" ? shown : shown.filter((item) => item.kind === active);
+  const filtered =
+    active === "all"
+      ? visibleItems
+      : visibleItems.filter((item) => item.kind === active);
+  // The limit belongs to the "all" overview. A selected tab shows its own
+  // records, otherwise the first 12 global records can hide most of a kind.
+  const shown =
+    active === "all" && !expanded
+      ? filtered.slice(0, PAGE_LIMIT)
+      : filtered;
 
   function onTabKeyDown(
     event: ReactKeyboardEvent<HTMLButtonElement>,
@@ -81,12 +88,17 @@ export function PublicProfileView({
     tabs[next]?.click();
   }
 
-  const groups = kinds
-    .map((kind) => ({
-      kind,
-      label: t(KIND_TABS[kind]),
-      count: counts.get(kind) ?? 0,
-      items: shown.filter((item) => item.kind === kind),
+  const groups = kinds.map((kind) => ({
+    kind,
+    label: t(KIND_TABS[kind]),
+    count: counts.get(kind) ?? 0,
+    items: visibleItems.filter((item) => item.kind === kind),
+  }));
+
+  const shownGroups = groups
+    .map((group) => ({
+      ...group,
+      items: shown.filter((item) => item.kind === group.kind),
     }))
     .filter((group) => group.items.length > 0);
 
@@ -121,8 +133,8 @@ export function PublicProfileView({
           <div className={styles.identityText}>
             <h1 className={styles.name}>{profile.display_name}</h1>
             <p className={styles.meta}>
-              {items.length > 0
-                ? t("public.records", { count: items.length })
+              {visibleItems.length > 0
+                ? t("public.records", { count: visibleItems.length })
                 : t("public.none")}{" "}
               · {t("public.onSite", {
                 date: date(profile.created_at, { dateStyle: "long" }),
@@ -146,11 +158,13 @@ export function PublicProfileView({
 
       <Card
         action={
-          items.length > 0 ? <span className={styles.total}>{items.length}</span> : null
+          visibleItems.length > 0 ? (
+            <span className={styles.total}>{visibleItems.length}</span>
+          ) : null
         }
         title={t("public.items")}
       >
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <p className={styles.empty}>{t("public.empty")}</p>
         ) : (
           <>
@@ -163,7 +177,7 @@ export function PublicProfileView({
                 role="tab"
                 type="button"
               >
-                {t("public.all")} ({items.length})
+                {t("public.all")} ({visibleItems.length})
               </button>
               {groups.map((group) => (
                 <button
@@ -182,7 +196,7 @@ export function PublicProfileView({
 
             {active === "all" ? (
               <div className={styles.groups}>
-                {groups.map((group) => (
+                {shownGroups.map((group) => (
                   <section className={styles.group} key={group.kind}>
                     <h2 className={styles.groupTitle}>{group.label}</h2>
                     <ItemGrid items={group.items} userId={profile.id} />
@@ -190,10 +204,10 @@ export function PublicProfileView({
                 ))}
               </div>
             ) : (
-              <ItemGrid items={visible} userId={profile.id} />
+              <ItemGrid items={shown} userId={profile.id} />
             )}
 
-            {items.length > PAGE_LIMIT ? (
+            {active === "all" && visibleItems.length > PAGE_LIMIT ? (
               <button
                 className={styles.more}
                 onClick={() => setExpanded((value) => !value)}
@@ -201,7 +215,7 @@ export function PublicProfileView({
               >
                 {expanded
                   ? t("public.collapse")
-                  : t("public.more", { count: items.length })}
+                  : t("public.more", { count: visibleItems.length })}
               </button>
             ) : null}
           </>
