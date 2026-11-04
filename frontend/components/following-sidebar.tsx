@@ -56,9 +56,6 @@ export function FollowingSidebar() {
           ))}
         </ul>
       )}
-      <Link className={styles.settings} href="/settings#privacy">
-        {t("public.privacy")}
-      </Link>
     </section>
   );
 }
