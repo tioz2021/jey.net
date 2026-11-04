@@ -90,6 +90,13 @@ export function MobileMenu() {
                   className={`${styles.link} ${active ? styles.active : ""}`}
                   href={href}
                   key={href}
+                  title={
+                    href === "/feed"
+                      ? t("nav.feedHint")
+                      : href === "/recommendations"
+                        ? t("nav.recommendationsHint")
+                        : undefined
+                  }
                 >
                   <Icon size={16} />
                   {t(labelKey)}

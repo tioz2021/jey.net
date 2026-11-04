@@ -63,6 +63,13 @@ export function SiteHeader() {
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
                 href={href}
                 key={href}
+                title={
+                  href === "/feed"
+                    ? t("nav.feedHint")
+                    : href === "/recommendations"
+                      ? t("nav.recommendationsHint")
+                      : undefined
+                }
               >
                 <Icon size={14} />
                 {t(labelKey)}

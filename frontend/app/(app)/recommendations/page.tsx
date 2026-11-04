@@ -46,7 +46,7 @@ export default function RecommendationsPage() {
 
   return (
     <main>
-      <PageHeader title={t("recommendations.title")} />
+      <PageHeader subtitle={t("recommendations.subtitle")} title={t("recommendations.title")} />
       <Card title={t("recommendations.tasteTitle")}>
         {genres.length === 0 ? (
           <p className={styles.empty}>{t("recommendations.tasteEmpty")}</p>

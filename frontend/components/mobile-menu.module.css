@@ -112,7 +112,7 @@
   font-weight: 600;
 }
 
-@media (width <= 1000px) {
+@media (width <= 1120px) {
   .wrap {
     display: block;
   }

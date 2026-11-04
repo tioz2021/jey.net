@@ -76,7 +76,7 @@
   font-size: var(--text-sm);
 }
 
-@media (width <= 1000px) {
+@media (width <= 1120px) {
   .nav,
   .search,
   .language {

@@ -48,7 +48,7 @@ export default function FeedPage() {
 
   return (
     <main>
-      <PageHeader title={t("feed.title")} />
+      <PageHeader subtitle={t("feed.subtitle")} title={t("feed.title")} />
       <Card>
         {loading ? (
           <ListSkeleton />
