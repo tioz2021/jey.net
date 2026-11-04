@@ -9,6 +9,8 @@ export const uk = {
   "recommendations.tasteEmpty": "Поки мало оцінок, щоб зрозуміти смак. Поставте 8–10 кільком записам.",
   "recommendations.tasteReason": "Бо вам подобається: {genres}",
   "recommendations.tasteNoItems": "Збігів із публічними записами поки немає.",
+  "similar.showAll": "Показати всі ({count})",
+  "similar.collapse": "Згорнути",
   "similar.title": "Схоже",
   "recommendations.title": "Рекомендації",
   "recommendations.friendsTitle": "Друзі високо оцінили",

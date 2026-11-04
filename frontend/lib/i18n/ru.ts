@@ -8,6 +8,8 @@ export const ru = {
   "recommendations.tasteEmpty": "Пока мало оценок, чтобы понять вкус. Поставьте 8–10 нескольким записям.",
   "recommendations.tasteReason": "Потому что вам нравится: {genres}",
   "recommendations.tasteNoItems": "Совпадений с публичными записями пока нет.",
+  "similar.showAll": "Показать все ({count})",
+  "similar.collapse": "Свернуть",
   "similar.title": "Похожее",
   "recommendations.title": "Рекомендации",
   "recommendations.friendsTitle": "Друзья высоко оценили",

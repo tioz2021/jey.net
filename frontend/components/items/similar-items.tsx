@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { SimilarItem } from "@/lib/types";
@@ -12,6 +12,7 @@ import styles from "./similar-items.module.css";
 export function SimilarItems({ itemId }: { itemId: string }) {
   const { t } = useI18n();
   const [items, setItems] = useState<SimilarItem[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +32,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
   return (
     <Card title={t("similar.title")}>
       <ul className={styles.list}>
-        {items.slice(0, 6).map((item) => (
+        {(expanded ? items : items.slice(0, 6)).map((item) => (
           <li key={`${item.source}-${item.external_id}`}>
             <a
               className={styles.card}
@@ -54,6 +55,17 @@ export function SimilarItems({ itemId }: { itemId: string }) {
           </li>
         ))}
       </ul>
+      {items.length > 6 ? (
+        <Button
+          onClick={() => setExpanded((value) => !value)}
+          size="sm"
+          variant="ghost"
+        >
+          {expanded
+            ? t("similar.collapse")
+            : t("similar.showAll", { count: items.length })}
+        </Button>
+      ) : null}
     </Card>
   );
 }
