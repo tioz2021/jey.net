@@ -461,6 +461,8 @@ export const ru = {
   'tvEpisodes.error': 'Не удалось загрузить эпизоды или сохранить отметку.',
   'settings.publicStatuses': 'Что показывать публично',
   'settings.progress': 'Показывать прогресс сериалов',
+  'public.block': 'Заблокировать',
+  'public.unblock': 'Разблокировать',
   'public.follow': 'Подписаться',
   'public.following': 'Вы подписаны',
   'public.followers': 'Подписчиков: {count}',

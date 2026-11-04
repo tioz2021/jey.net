@@ -10,6 +10,19 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
+async fn blocked_between(pool: &PgPool, a: Uuid, b: Uuid) -> Result<bool, AppError> {
+    sqlx::query_scalar(
+        "select exists(select 1 from blocks
+         where (blocker_id = $1 and blocked_id = $2)
+            or (blocker_id = $2 and blocked_id = $1))",
+    )
+    .bind(a)
+    .bind(b)
+    .fetch_one(pool)
+    .await
+    .map_err(AppError::internal)
+}
+
 async fn public_target(pool: &PgPool, id: Uuid) -> Result<(), AppError> {
     let exists: bool = sqlx::query_scalar(
         "select exists(select 1 from users where id = $1 and is_public and deleted_at is null)",
@@ -47,6 +60,9 @@ pub async fn follow(
         return Err(AppError::validation_field("id", "cannot follow yourself"));
     }
     public_target(&state.pool, target).await?;
+    if blocked_between(&state.pool, current.user.id, target).await? {
+        return Err(AppError::forbidden("profile is blocked"));
+    }
     sqlx::query(
         "insert into follows (follower_id, followee_id) values ($1, $2)
          on conflict do nothing",
@@ -97,9 +113,13 @@ pub async fn status(
     .await
     .map_err(AppError::internal)?;
     let (followers, following_count) = counts(&state.pool, target).await?;
-    Ok(Json(
-        json!({ "following": following, "followers": followers, "following_count": following_count }),
-    ))
+    let blocked = blocked_between(&state.pool, current.user.id, target).await?;
+    Ok(Json(json!({
+        "following": following,
+        "blocked": blocked,
+        "followers": followers,
+        "following_count": following_count,
+    })))
 }
 
 /// `GET /api/v1/feed` — recent public records of followed profiles.
@@ -124,6 +144,11 @@ pub async fn feed(
            and u.is_public and u.deleted_at is null
            and i.status = ANY(u.public_statuses)
            and not i.public_hidden and i.deleted_at is null
+           and not exists (
+               select 1 from blocks b
+               where (b.blocker_id = $1 and b.blocked_id = u.id)
+                  or (b.blocker_id = u.id and b.blocked_id = $1)
+           )
          order by i.updated_at desc
          limit 50",
     )
@@ -132,4 +157,47 @@ pub async fn feed(
     .await
     .map_err(AppError::internal)?;
     Ok(Json(json!({ "items": items })))
+}
+
+/// `POST /api/v1/users/{id}/block`
+pub async fn block(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    if target == current.user.id {
+        return Err(AppError::validation_field("id", "cannot block yourself"));
+    }
+    public_target(&state.pool, target).await?;
+    sqlx::query(
+        "insert into blocks (blocker_id, blocked_id) values ($1, $2)
+         on conflict do nothing",
+    )
+    .bind(current.user.id)
+    .bind(target)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    sqlx::query("delete from follows where (follower_id = $1 and followee_id = $2) or (follower_id = $2 and followee_id = $1)")
+        .bind(current.user.id)
+        .bind(target)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    Ok(Json(json!({ "blocked": true })))
+}
+
+/// `DELETE /api/v1/users/{id}/block`
+pub async fn unblock(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    sqlx::query("delete from blocks where blocker_id = $1 and blocked_id = $2")
+        .bind(current.user.id)
+        .bind(target)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    Ok(Json(json!({ "blocked": false })))
 }

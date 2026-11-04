@@ -304,6 +304,7 @@ export interface PublicItem {
 
 export interface FollowState {
   following: boolean;
+  blocked?: boolean;
   followers: number;
   following_count: number;
 }

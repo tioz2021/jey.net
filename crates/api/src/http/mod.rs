@@ -124,6 +124,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
                 .post(crate::users::follows::follow)
                 .delete(crate::users::follows::unfollow),
         )
+        .route(
+            "/users/{id}/block",
+            post(crate::users::follows::block).delete(crate::users::follows::unblock),
+        )
         .route("/me/sessions/revoke-all", post(revoke_all_sessions))
         .route("/me/avatar", post(set_avatar).delete(clear_avatar))
         .route("/me/banner", post(set_banner).delete(clear_banner))

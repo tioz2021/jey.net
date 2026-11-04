@@ -462,6 +462,8 @@ export const en = {
   'tvEpisodes.error': 'Could not load episodes or save the mark.',
   'settings.publicStatuses': 'What to show publicly',
   'settings.progress': 'Show series progress',
+  'public.block': 'Block',
+  'public.unblock': 'Unblock',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',

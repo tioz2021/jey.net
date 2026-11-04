@@ -331,6 +331,14 @@ export const follows = {
     request<FollowState>(`/users/${encodeURIComponent(id)}/follow`, {
       method: "DELETE",
     }),
+  block: (id: string) =>
+    request<{ blocked: boolean }>(`/users/${encodeURIComponent(id)}/block`, {
+      method: "POST",
+    }),
+  unblock: (id: string) =>
+    request<{ blocked: boolean }>(`/users/${encodeURIComponent(id)}/block`, {
+      method: "DELETE",
+    }),
 };
 
 export const feed = {

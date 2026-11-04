@@ -462,6 +462,8 @@ export const uk = {
   'tvEpisodes.error': 'Не вдалося завантажити епізоди або зберегти позначку.',
   'settings.publicStatuses': 'Що показувати публічно',
   'settings.progress': 'Показувати прогрес серіалів',
+  'public.block': 'Заблокувати',
+  'public.unblock': 'Розблокувати',
   'public.follow': 'Підписатися',
   'public.following': 'Ви підписані',
   'public.followers': 'Підписників: {count}',

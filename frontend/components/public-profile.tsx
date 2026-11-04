@@ -39,6 +39,8 @@ export function PublicProfileView({
   const [followed, setFollowed] = useState(false);
   const [followers, setFollowers] = useState<number | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [blockBusy, setBlockBusy] = useState(false);
 
   useEffect(() => {
     if (!user || user.id === profile.id) return;
@@ -48,6 +50,7 @@ export function PublicProfileView({
       .then((state) => {
         if (!cancelled) {
           setFollowed(state.following);
+          setBlocked(Boolean(state.blocked));
           setFollowers(state.followers);
         }
       })
@@ -56,6 +59,20 @@ export function PublicProfileView({
       cancelled = true;
     };
   }, [profile.id, user]);
+
+  async function toggleBlock() {
+    if (!user || user.id === profile.id) return;
+    setBlockBusy(true);
+    try {
+      const state = blocked
+        ? await api.follows.unblock(profile.id)
+        : await api.follows.block(profile.id);
+      setBlocked(state.blocked);
+      if (state.blocked) setFollowed(false);
+    } finally {
+      setBlockBusy(false);
+    }
+  }
 
   async function toggleFollow() {
     if (!user || user.id === profile.id) return;
@@ -172,14 +189,26 @@ export function PublicProfileView({
             <div className={styles.nameRow}>
               <h1 className={styles.name}>{profile.display_name}</h1>
               {user && user.id !== profile.id ? (
-                <Button
-                  loading={followBusy}
-                  onClick={() => void toggleFollow()}
-                  size="sm"
-                  variant={followed ? "secondary" : "primary"}
-                >
-                  {followed ? t("public.following") : t("public.follow")}
-                </Button>
+                <>
+                  {!blocked ? (
+                    <Button
+                      loading={followBusy}
+                      onClick={() => void toggleFollow()}
+                      size="sm"
+                      variant={followed ? "secondary" : "primary"}
+                    >
+                      {followed ? t("public.following") : t("public.follow")}
+                    </Button>
+                  ) : null}
+                  <Button
+                    loading={blockBusy}
+                    onClick={() => void toggleBlock()}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    {blocked ? t("public.unblock") : t("public.block")}
+                  </Button>
+                </>
               ) : null}
             </div>
             {followers !== null ? (
