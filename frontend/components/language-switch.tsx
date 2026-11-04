@@ -117,7 +117,7 @@ export function LanguageSwitch() {
       <button
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label={t("language.label")}
+        aria-label={`${t("language.label")}: ${LABELS[locale].code}`}
         aria-controls={menuId}
         className={styles.trigger}
         onClick={() => setOpen((value) => !value)}
