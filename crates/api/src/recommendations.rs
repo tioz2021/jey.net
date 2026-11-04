@@ -1,6 +1,6 @@
 //! Recommendations from public ratings of followed profiles.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -9,6 +9,7 @@ use axum::extract::State;
 use serde_json::{Value, json};
 
 use crate::auth::middleware::CurrentUser;
+use crate::books::openlibrary::SearchItem as BookSearchItem;
 use crate::error::AppError;
 use crate::http::AppState;
 use crate::movies::tmdb::SimilarItem;
@@ -54,8 +55,40 @@ type SimilarRow = (
     String,
     Option<String>,
     Option<String>,
+    String,
     Option<serde_json::Value>,
 );
+
+async fn search_books(
+    state: &AppState,
+    source: &str,
+    query: &str,
+    language: &str,
+) -> Vec<BookSearchItem> {
+    if source == "googlebooks" {
+        match state.config.google_books_key.as_deref() {
+            Some(key) => crate::books::google::search(query, key, language)
+                .await
+                .unwrap_or_default(),
+            None => Vec::new(),
+        }
+    } else {
+        crate::books::openlibrary::search(query)
+            .await
+            .unwrap_or_default()
+    }
+}
+
+fn normalize_title(title: &str) -> String {
+    title
+        .to_lowercase()
+        .chars()
+        .filter(|character| character.is_alphanumeric() || character.is_whitespace())
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
 
 fn languages(locale: &str) -> (&'static str, &'static str) {
     match locale {
@@ -74,7 +107,7 @@ async fn load_similar(
 ) -> Result<Value, AppError> {
     let row: Option<SimilarRow> = match owner {
         Some(user_id) => sqlx::query_as(
-            "select kind, external_source, external_id, details from items
+            "select kind, external_source, external_id, title, details from items
                  where id = $1 and user_id = $2 and deleted_at is null",
         )
         .bind(id)
@@ -83,7 +116,7 @@ async fn load_similar(
         .await
         .map_err(AppError::internal)?,
         None => sqlx::query_as(
-            "select i.kind, i.external_source, i.external_id, i.details
+            "select i.kind, i.external_source, i.external_id, i.title, i.details
                  from items i
                  join users u on u.id = i.user_id
                  where i.id = $1 and i.deleted_at is null
@@ -96,7 +129,8 @@ async fn load_similar(
         .await
         .map_err(AppError::internal)?,
     };
-    let (kind, source, external_id, details) = row.ok_or_else(|| AppError::not_found("record"))?;
+    let (kind, source, external_id, title, details) =
+        row.ok_or_else(|| AppError::not_found("record"))?;
     let Some(source) = source else {
         return Ok(json!({ "items": [] }));
     };
@@ -106,48 +140,92 @@ async fn load_similar(
 
     if source == "openlibrary" || source == "googlebooks" {
         let details = details.unwrap_or_default();
-        let author = details
+        let authors: Vec<String> = details
             .get("authors")
             .and_then(serde_json::Value::as_array)
-            .and_then(|authors| authors.first())
-            .and_then(serde_json::Value::as_str);
-        let subject = details
+            .map(|authors| {
+                authors
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::trim)
+                    .filter(|author| !author.is_empty())
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        let subjects: Vec<String> = details
             .get("genres")
             .and_then(serde_json::Value::as_array)
-            .and_then(|genres| genres.first())
-            .and_then(serde_json::Value::as_str);
-        let (field, term) = if let Some(author) = author {
-            (
-                if source == "googlebooks" {
-                    "inauthor"
-                } else {
-                    "author"
-                },
-                author,
-            )
-        } else if let Some(subject) = subject {
-            ("subject", subject)
-        } else {
+            .map(|genres| {
+                genres
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::trim)
+                    .filter(|subject| !subject.is_empty())
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        if authors.is_empty() && subjects.is_empty() {
             return Ok(json!({ "items": [] }));
-        };
-        let query = format!("{field}:\"{}\"", term.replace('"', "\\\""));
-        let candidates = if source == "googlebooks" {
-            match state.config.google_books_key.as_deref() {
-                Some(key) => crate::books::google::search(&query, key, book_language)
-                    .await
-                    .unwrap_or_default(),
-                None => Vec::new(),
+        }
+
+        let mut candidates: Vec<BookSearchItem> = Vec::new();
+        if let Some(author) = authors.first() {
+            let field = if source == "googlebooks" {
+                "inauthor"
+            } else {
+                "author"
+            };
+            let query = format!("{field}:\"{}\"", author.replace('"', "\\\""));
+            candidates.extend(search_books(state, &source, &query, book_language).await);
+        }
+        // If the author is not enough, add subject matches; keep the author matches first.
+        if candidates.len() < 8
+            && let Some(subject) = subjects.first()
+        {
+            let query = format!("subject:\"{}\"", subject.replace('"', "\\\""));
+            candidates.extend(search_books(state, &source, &query, book_language).await);
+        }
+
+        let wanted_authors: Vec<String> =
+            authors.iter().map(|author| author.to_lowercase()).collect();
+        let wanted_title = normalize_title(&title);
+        let mut seen = HashSet::new();
+        let mut scored: Vec<(u8, BookSearchItem)> = Vec::new();
+        for book in candidates {
+            if book.book_id == external_id || normalize_title(&book.title) == wanted_title {
+                continue;
             }
-        } else {
-            crate::books::openlibrary::search(&query)
-                .await
-                .unwrap_or_default()
-        };
-        let items: Vec<SimilarItem> = candidates
+            let key = format!(
+                "{}|{}",
+                normalize_title(&book.title),
+                book.authors
+                    .first()
+                    .map_or("", String::as_str)
+                    .to_lowercase()
+            );
+            if !seen.insert(key) {
+                continue;
+            }
+            let by_author = book
+                .authors
+                .iter()
+                .any(|author| wanted_authors.contains(&author.to_lowercase()));
+            let rank = if by_author {
+                0
+            } else if book.cover_id.is_some() || book.cover_url.is_some() {
+                1
+            } else {
+                2
+            };
+            scored.push((rank, book));
+        }
+        scored.sort_by_key(|(rank, book)| (*rank, std::cmp::Reverse(book.year.unwrap_or(0))));
+        let items: Vec<SimilarItem> = scored
             .into_iter()
-            .filter(|book| book.book_id != external_id)
             .take(12)
-            .map(|book| SimilarItem {
+            .map(|(_, book)| SimilarItem {
                 source: book.source.clone(),
                 external_id: book.book_id.clone(),
                 title: book.title,
