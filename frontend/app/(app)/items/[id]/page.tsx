@@ -249,6 +249,8 @@ export default async function ItemPage({
             />
           ) : null}
 
+          {item.review ? <ItemReview text={item.review} /> : null}
+
           {item.kind === "tv" &&
           item.details?.seasons &&
           item.details.seasons.length > 0 ? (
@@ -260,7 +262,6 @@ export default async function ItemPage({
             />
           ) : null}
 
-          {item.review ? <ItemReview text={item.review} /> : null}
           <SimilarItems itemId={item.id} />
           {item.details ? (
             <MovieCast details={item.details} locale={locale} />

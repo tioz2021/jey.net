@@ -196,6 +196,9 @@ export default async function PublicItemPage({
             />
           ) : null}
 
+          {item.review ? (
+            <ItemReview text={item.review} title={t("public.itemNote")} />
+          ) : null}
           {item.kind === "tv" &&
           item.details?.seasons &&
           item.details.seasons.length > 0 &&
@@ -207,9 +210,6 @@ export default async function PublicItemPage({
               totalEpisodes={item.details.number_of_episodes}
               watched={item.details.watched_episodes ?? []}
             />
-          ) : null}
-          {item.review ? (
-            <ItemReview text={item.review} title={t("public.itemNote")} />
           ) : null}
           {item.details ? (
             <MovieCast details={item.details} locale={locale} />
