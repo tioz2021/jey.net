@@ -5,24 +5,36 @@ import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { ItemCard } from "@/components/items/item-card";
-import { Card, PageHeader } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
-import type { FriendRecommendation } from "@/lib/types";
+import type {
+  FriendRecommendation,
+  TasteGenre,
+  TasteRecommendation,
+} from "@/lib/types";
 
 import styles from "./recommendations.module.css";
 
 export default function RecommendationsPage() {
   const { t } = useI18n();
   const [items, setItems] = useState<FriendRecommendation[]>([]);
+  const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
+  const [genres, setGenres] = useState<TasteGenre[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    api.recommendations
-      .friends()
-      .then((response) => {
-        if (!cancelled) setItems(response.items);
+    Promise.all([
+      api.recommendations.friends(),
+      api.recommendations.taste(),
+    ])
+      .then(([friends, taste]) => {
+        if (!cancelled) {
+          setItems(friends.items);
+          setTasteItems(taste.items);
+          setGenres(taste.genres);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -35,6 +47,40 @@ export default function RecommendationsPage() {
   return (
     <main>
       <PageHeader title={t("recommendations.title")} />
+      <Card title={t("recommendations.tasteTitle")}>
+        {genres.length === 0 ? (
+          <p className={styles.empty}>{t("recommendations.tasteEmpty")}</p>
+        ) : (
+          <>
+            <ul className={styles.genres}>
+              {genres.map((genre) => (
+                <li key={genre.name}>
+                  <Badge>{genre.name}</Badge>
+                </li>
+              ))}
+            </ul>
+            {tasteItems.length > 0 ? (
+              <ul className={styles.list}>
+                {tasteItems.map((item) => (
+                  <li key={`${item.author_id}-${item.id}`}>
+                    <p className={styles.reason}>
+                      {t("recommendations.tasteReason", {
+                        genres: item.matched_genres.join(", "),
+                      })}
+                    </p>
+                    <ItemCard
+                      href={`/u/${item.author_id}/${item.id}`}
+                      item={item}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.empty}>{t("recommendations.tasteNoItems")}</p>
+            )}
+          </>
+        )}
+      </Card>
       <Card title={t("recommendations.friendsTitle")}>
         {!loading && items.length === 0 ? (
           <EmptyState

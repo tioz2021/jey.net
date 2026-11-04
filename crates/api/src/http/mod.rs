@@ -122,6 +122,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/recommendations/friends",
             get(crate::recommendations::friends),
         )
+        .route("/recommendations/taste", get(crate::recommendations::taste))
         .route("/follows/following", get(crate::users::follows::following))
         .route(
             "/users/{id}/follow/notifications",

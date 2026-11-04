@@ -304,6 +304,17 @@ export interface PublicItem {
   progress_visible?: boolean;
 }
 
+export interface TasteGenre {
+  name: string;
+  count: number;
+}
+
+export interface TasteRecommendation extends PublicItem {
+  author_id: string;
+  author_name: string;
+  matched_genres: string[];
+}
+
 export interface FriendRecommendation extends PublicItem {
   author_id: string;
   friends: string[];

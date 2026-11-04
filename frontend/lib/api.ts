@@ -14,6 +14,8 @@ import type {
   FollowingProfile,
   FeedItem,
   FriendRecommendation,
+  TasteRecommendation,
+  TasteGenre,
   Item,
   ItemFilters,
   ItemList,
@@ -357,6 +359,10 @@ export const feed = {
 export const recommendations = {
   friends: () =>
     request<{ items: FriendRecommendation[] }>("/recommendations/friends"),
+  taste: () =>
+    request<{ genres: TasteGenre[]; items: TasteRecommendation[] }>(
+      "/recommendations/taste",
+    ),
 };
 
 export const publicItems = {
