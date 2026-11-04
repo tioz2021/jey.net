@@ -52,17 +52,29 @@ pub async fn search(
     )
     .await?;
 
-    let key = state
-        .config
-        .google_books_key
-        .as_deref()
-        .ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
     let locale = match current.user.locale.as_str() {
         "ru" => "ru",
         "uk" => "uk",
         _ => "en",
     };
-    let results = google::search(q, key, locale).await?;
+    let key = state.config.google_books_key.as_deref();
+
+    let google_query = async {
+        match key {
+            Some(key) => google::search(q, key, locale).await,
+            None => Ok(Vec::new()),
+        }
+    };
+    let openlibrary_query = openlibrary::search(q);
+    let (google_result, openlibrary_result) = tokio::join!(google_query, openlibrary_query);
+
+    let google_results = google_result.unwrap_or_default();
+    let openlibrary_results = openlibrary_result.unwrap_or_default();
+    if google_results.is_empty() && openlibrary_results.is_empty() && key.is_none() {
+        return Err(AppError::unavailable("Google Books is not configured"));
+    }
+
+    let results = merge_results(q, google_results, openlibrary_results);
     Ok(Json(json!({ "results": results })).into_response())
 }
 
@@ -110,6 +122,74 @@ pub async fn image(
         HeaderValue::from_static("public, max-age=86400"),
     );
     Ok(response)
+}
+
+fn merge_results(
+    query: &str,
+    mut google: Vec<openlibrary::SearchItem>,
+    mut openlibrary: Vec<openlibrary::SearchItem>,
+) -> Vec<openlibrary::SearchItem> {
+    fn has_cover(item: &openlibrary::SearchItem) -> bool {
+        item.cover_url.is_some() || item.cover_id.is_some()
+    }
+    fn key(item: &openlibrary::SearchItem) -> String {
+        format!(
+            "{}|{}",
+            item.title.trim().to_lowercase(),
+            item.authors
+                .first()
+                .map(|author| author.trim().to_lowercase())
+                .unwrap_or_default()
+        )
+    }
+
+    let needle = query.trim().to_lowercase();
+    let relevance = |item: &openlibrary::SearchItem| {
+        let title = item.title.trim().to_lowercase();
+        if title == needle {
+            0
+        } else if title.contains(&needle) || needle.contains(&title) {
+            1
+        } else {
+            2
+        }
+    };
+    google.sort_by_key(|item| relevance(item));
+    openlibrary.sort_by_key(|item| relevance(item));
+
+    let mut merged: Vec<openlibrary::SearchItem> = Vec::new();
+    for item in google.into_iter().chain(openlibrary) {
+        let item_key = key(&item);
+        if let Some(existing) = merged
+            .iter_mut()
+            .find(|candidate| key(candidate) == item_key)
+        {
+            // Keep the richer cover when the same book came from both sources.
+            if !has_cover(existing) && has_cover(&item) {
+                *existing = item;
+            }
+        } else {
+            merged.push(item);
+        }
+    }
+
+    // Interleave providers: an Open Library result with a cover should not be
+    // buried under eight Google results, while Google's relevance order stays
+    // intact within its own half.
+    let (google, openlibrary): (Vec<_>, Vec<_>) = merged
+        .into_iter()
+        .partition(|item| item.source == "googlebooks");
+    let mut interleaved = Vec::with_capacity(google.len() + openlibrary.len());
+    for index in 0..google.len().max(openlibrary.len()) {
+        if let Some(item) = google.get(index) {
+            interleaved.push(item.clone());
+        }
+        if let Some(item) = openlibrary.get(index) {
+            interleaved.push(item.clone());
+        }
+    }
+    interleaved.truncate(12);
+    interleaved
 }
 
 /// Build a record snapshot from a book.

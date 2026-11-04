@@ -254,7 +254,13 @@ export function BookSearch({
                     <span className={styles.info}>
                       <span className={styles.title}>{item.title}</span>
                       <span className={styles.meta}>
-                        {[item.authors.slice(0, 2).join(", "), item.year]
+                        {[
+                          item.authors.slice(0, 2).join(", "),
+                          item.year,
+                          item.source === "openlibrary"
+                            ? "Open Library"
+                            : "Google Books",
+                        ]
                           .filter(Boolean)
                           .join(" · ")}
                       </span>
@@ -266,6 +272,10 @@ export function BookSearch({
           ) : null}
           <p className={styles.source}>
             {t("bookSearch.source")}{" "}
+            <a href="https://openlibrary.org" rel="noreferrer" target="_blank">
+              Open Library
+            </a>
+            {" · "}
             <a href="https://books.google.com" rel="noreferrer" target="_blank">
               Google Books
             </a>

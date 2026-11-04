@@ -122,6 +122,7 @@ export interface MovieSearchItem {
 
 export interface BookSearchItem {
   book_id: string;
+  source: "openlibrary" | "googlebooks" | string;
   title: string;
   authors: string[];
   year: number | null;
