@@ -1,5 +1,5 @@
 /* jey.net offline shell. API responses are never cached: they are private. */
-const CACHE = "jey-shell-v1";
+const CACHE = "jey-shell-v2";
 const OFFLINE = "/offline";
 const PRECACHE = [OFFLINE, "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
