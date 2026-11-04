@@ -9,6 +9,7 @@ import { LanguageSwitch } from "@/components/language-switch";
 import {
   IconFeed,
   IconList,
+  IconPeople,
   IconSparkles,
   IconSettings,
   IconStats,
@@ -26,6 +27,7 @@ const SECTIONS: Array<{
   { href: "/items", labelKey: "nav.items", Icon: IconList },
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
+  { href: "/people", labelKey: "nav.people", Icon: IconPeople },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];

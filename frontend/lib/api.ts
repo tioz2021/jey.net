@@ -14,6 +14,7 @@ import type {
   FollowingProfile,
   FeedItem,
   FriendRecommendation,
+  PublicUserCard,
   SimilarItem,
   TasteRecommendation,
   TasteGenre,
@@ -368,6 +369,14 @@ export const recommendations = {
     ),
 };
 
+export const publicUsers = {
+  search: (q: string) =>
+    request<{ users: PublicUserCard[] }>(
+      `/public/users?q=${encodeURIComponent(q)}`,
+      { redirectOnUnauthorized: false },
+    ),
+};
+
 export const publicItems = {
   episodes: (userId: string, itemId: string, season: number) =>
     fetch(
@@ -433,6 +442,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, feed, follows, games, items, movies, publicItems, recommendations, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, feed, follows, games, items, movies, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

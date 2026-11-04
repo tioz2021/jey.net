@@ -6,9 +6,10 @@
 //! endpoint cannot be used to enumerate accounts.
 
 use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use chrono::{DateTime, Utc};
 use jey_core::items::MovieDetails;
+use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
 use sqlx::PgPool;
@@ -75,19 +76,45 @@ pub struct PublicItemDetail {
 pub struct PublicUserEntry {
     pub id: Uuid,
     pub display_name: String,
+    pub avatar_key: Option<String>,
+    pub item_count: i64,
+    pub followers: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PeopleQuery {
+    pub q: Option<String>,
 }
 
 /// `GET /api/v1/public/users`
 ///
 /// Public, opt-in profiles only — enough for a sitemap, nothing private.
-pub async fn list(State(state): State<AppState>) -> Result<Json<Value>, AppError> {
+pub async fn list(
+    State(state): State<AppState>,
+    Query(query): Query<PeopleQuery>,
+) -> Result<Json<Value>, AppError> {
+    let q = query.q.as_deref().map(str::trim).unwrap_or("");
+    if q.chars().count() > 100 {
+        return Err(AppError::validation_field(
+            "q",
+            "query must be at most 100 characters",
+        ));
+    }
+    let pattern = format!("%{q}%");
     let users = sqlx::query_as::<_, PublicUserEntry>(
-        "select id, display_name
-         from users
-         where is_public and deleted_at is null
-         order by created_at desc
-         limit 1000",
+        "select u.id, u.display_name, u.avatar_key,
+                (select count(*) from items i
+                 where i.user_id = u.id and i.status = ANY(u.public_statuses)
+                   and not i.public_hidden and i.deleted_at is null) as item_count,
+                (select count(*) from follows f where f.followee_id = u.id) as followers
+         from users u
+         where u.is_public and u.deleted_at is null
+           and ($1 = '' or u.display_name ilike $2)
+         order by u.display_name asc
+         limit 60",
     )
+    .bind(q)
+    .bind(pattern)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;

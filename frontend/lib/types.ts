@@ -334,6 +334,14 @@ export interface FriendRecommendation extends PublicItem {
   average_rating: number;
 }
 
+export interface PublicUserCard {
+  id: string;
+  display_name: string;
+  avatar_key: string | null;
+  item_count: number;
+  followers: number;
+}
+
 export interface FollowingProfile {
   id: string;
   display_name: string;
