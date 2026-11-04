@@ -102,6 +102,9 @@ pub struct Config {
     pub tmdb_read_token: Option<String>,
     /// Google Books API key; the fallback book search is disabled when absent.
     pub google_books_key: Option<String>,
+    /// Twitch app credentials; IGDB game search is disabled when absent.
+    pub twitch_client_id: Option<String>,
+    pub twitch_client_secret: Option<String>,
     /// Days a deleted account is kept for recovery before the purge task.
     pub purge_retention_days: i32,
 }
@@ -213,6 +216,8 @@ impl Config {
         let google_redirect_url = var("GOOGLE_REDIRECT_URL");
         let tmdb_read_token = var("TMDB_READ_TOKEN");
         let google_books_key = var("GOOGLE_BOOKS_API_KEY");
+        let twitch_client_id = var("TWITCH_CLIENT_ID");
+        let twitch_client_secret = var("TWITCH_CLIENT_SECRET");
 
         Ok(Self {
             app_env,
@@ -232,6 +237,8 @@ impl Config {
             google_redirect_url,
             tmdb_read_token,
             google_books_key,
+            twitch_client_id,
+            twitch_client_secret,
             purge_retention_days,
         })
     }

@@ -166,7 +166,7 @@ fn build_item(index: usize) -> NewItem {
         ItemKind::Movie | ItemKind::Tv => MOVIES[index % MOVIES.len()],
         ItemKind::Book => BOOKS[index % BOOKS.len()],
         ItemKind::Image => IMAGES[index % IMAGES.len()],
-        ItemKind::Other => OTHERS[index % OTHERS.len()],
+        ItemKind::Game | ItemKind::Other => OTHERS[index % OTHERS.len()],
     };
 
     // Films and pictures cannot be "in progress".
@@ -174,7 +174,7 @@ fn build_item(index: usize) -> NewItem {
         ItemKind::Movie | ItemKind::Image => {
             &[ItemStatus::Planned, ItemStatus::Done, ItemStatus::Dropped]
         }
-        ItemKind::Tv | ItemKind::Book | ItemKind::Other => &[
+        ItemKind::Tv | ItemKind::Book | ItemKind::Game | ItemKind::Other => &[
             ItemStatus::Planned,
             ItemStatus::InProgress,
             ItemStatus::Done,

@@ -5,6 +5,7 @@ export const KIND_KEYS: Record<ItemKind, TranslationKey> = {
   movie: "kind.movie",
   tv: "kind.tv",
   book: "kind.book",
+  game: "kind.game",
   image: "kind.image",
   other: "kind.other",
 };

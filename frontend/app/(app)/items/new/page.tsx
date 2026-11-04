@@ -26,6 +26,7 @@ export default async function NewItemPage({
   const initialKind: ItemKind | undefined =
     requested === "tv" ||
     requested === "book" ||
+    requested === "game" ||
     requested === "image" ||
     requested === "other" ||
     requested === "movie"

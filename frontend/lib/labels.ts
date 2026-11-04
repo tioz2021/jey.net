@@ -4,6 +4,7 @@ export const KIND_LABELS: Record<ItemKind, string> = {
   movie: "Фильм",
   tv: "Сериал",
   book: "Книга",
+  game: "Игра",
   image: "Картинка",
   other: "Другое",
 };

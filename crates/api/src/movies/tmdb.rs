@@ -420,6 +420,9 @@ impl MovieDetails {
             isbn: None,
             cover_id: None,
             cover_url: None,
+            platforms: Vec::new(),
+            developers: Vec::new(),
+            publishers: Vec::new(),
             cast: self
                 .cast
                 .iter()

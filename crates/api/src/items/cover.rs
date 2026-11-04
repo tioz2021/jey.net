@@ -116,6 +116,15 @@ pub async fn set_tmdb_poster(
             let (_, bytes) = crate::books::openlibrary::cover(cover_id, "L").await?;
             bytes
         }
+        Some("igdb") => {
+            let url = item
+                .details
+                .as_ref()
+                .and_then(|details| details.cover_url.as_deref())
+                .ok_or_else(|| AppError::not_found("this game has no cover"))?;
+            let (_, bytes) = state.igdb.cover(url).await?;
+            bytes
+        }
         Some("googlebooks") => {
             let url = item
                 .details

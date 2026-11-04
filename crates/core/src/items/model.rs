@@ -15,18 +15,27 @@ pub enum ItemKind {
     Movie,
     Tv,
     Book,
+    Game,
     Image,
     Other,
 }
 
 impl ItemKind {
-    pub const ALL: [Self; 5] = [Self::Movie, Self::Tv, Self::Book, Self::Image, Self::Other];
+    pub const ALL: [Self; 6] = [
+        Self::Movie,
+        Self::Tv,
+        Self::Book,
+        Self::Game,
+        Self::Image,
+        Self::Other,
+    ];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Movie => "movie",
             Self::Tv => "tv",
             Self::Book => "book",
+            Self::Game => "game",
             Self::Image => "image",
             Self::Other => "other",
         }
@@ -37,11 +46,12 @@ impl ItemKind {
             "movie" => Ok(Self::Movie),
             "tv" => Ok(Self::Tv),
             "book" => Ok(Self::Book),
+            "game" => Ok(Self::Game),
             "image" => Ok(Self::Image),
             "other" => Ok(Self::Other),
             other => Err(DomainError::validation_field(
                 "kind",
-                format!("kind must be one of: movie, tv, book, image, other; got {other:?}"),
+                format!("kind must be one of: movie, tv, book, game, image, other; got {other:?}"),
             )),
         }
     }
@@ -175,9 +185,16 @@ pub struct MovieDetails {
     /// Open Library cover id, used to download the cover.
     #[serde(default)]
     pub cover_id: Option<i64>,
-    /// Google Books cover URL, used to download the cover.
+    /// Provider cover URL, used to download the cover.
     #[serde(default)]
     pub cover_url: Option<String>,
+    /// IGDB platforms, developers and publishers; empty for other kinds.
+    #[serde(default)]
+    pub platforms: Vec<String>,
+    #[serde(default)]
+    pub developers: Vec<String>,
+    #[serde(default)]
+    pub publishers: Vec<String>,
     #[serde(default, deserialize_with = "deserialize_cast")]
     pub cast: Vec<CastMember>,
     #[serde(default)]
@@ -365,7 +382,7 @@ mod tests {
 
     #[test]
     fn unknown_values_are_rejected() {
-        assert!(ItemKind::parse("game").is_err());
+        assert_eq!(ItemKind::parse("game").expect("game"), ItemKind::Game);
         assert!(ItemKind::parse("").is_err());
         assert!(ItemStatus::parse("lost").is_err());
     }

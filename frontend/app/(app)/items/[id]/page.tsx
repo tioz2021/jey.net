@@ -11,6 +11,7 @@ import { ItemNeighbors } from "@/components/items/item-neighbors";
 import {
   IconBook,
   IconFilm,
+  IconGame,
   IconImage,
   IconOther,
   IconTv,
@@ -33,6 +34,7 @@ const KIND_ICONS = {
   movie: IconFilm,
   tv: IconTv,
   book: IconBook,
+  game: IconGame,
   image: IconImage,
   other: IconOther,
 } as const;

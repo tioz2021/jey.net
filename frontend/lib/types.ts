@@ -5,7 +5,7 @@
  * components work with these types and never touch raw responses.
  */
 
-export type ItemKind = "movie" | "tv" | "book" | "image" | "other";
+export type ItemKind = "movie" | "tv" | "book" | "game" | "image" | "other";
 
 export type ItemStatus = "planned" | "in_progress" | "done" | "dropped";
 
@@ -65,6 +65,9 @@ export interface MovieDetails {
   isbn?: string | null;
   cover_id?: number | null;
   cover_url?: string | null;
+  platforms?: string[];
+  developers?: string[];
+  publishers?: string[];
   /** Old snapshots kept cast as plain names; the server normalises new ones. */
   cast: Array<CastMember | string>;
   genres: string[];
@@ -144,6 +147,15 @@ export interface BookDetailsResponse {
   cover_url: string | null;
   source: "openlibrary" | "googlebooks" | string;
   subjects: string[];
+}
+
+export interface GameSearchItem {
+  igdb_id: number;
+  title: string;
+  year: number | null;
+  cover_url: string | null;
+  platforms: string[];
+  summary: string | null;
 }
 
 export interface MovieDetailsResponse extends MovieDetails {

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import {
   IconBook,
   IconFilm,
+  IconGame,
   IconImage,
   IconList,
   IconOther,
@@ -29,6 +30,7 @@ const KINDS: Array<{
   { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
   { kind: "tv", labelKey: "nav.series", Icon: IconTv },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
+  { kind: "game", labelKey: "nav.games", Icon: IconGame },
   { kind: "image", labelKey: "nav.images", Icon: IconImage },
   { kind: "other", labelKey: "nav.other", Icon: IconOther },
 ];

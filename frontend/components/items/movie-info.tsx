@@ -48,6 +48,7 @@ export async function MovieInfo({
   ) => translate(locale, key, values);
 
   const isBook = kind === "book";
+  const isGame = kind === "game";
   const bookAuthors = details.authors?.length
     ? details.authors
     : details.director
@@ -55,7 +56,24 @@ export async function MovieInfo({
       : [];
 
   const facts: Array<[string, string]> = [];
-  if (isBook) {
+  if (isGame) {
+    if (details.developers?.length) {
+      facts.push(["Разработчик", details.developers.join(", ")]);
+    }
+    if (details.publishers?.length) {
+      facts.push(["Издатель", details.publishers.join(", ")]);
+    }
+    if (details.platforms?.length) {
+      facts.push(["Платформы", details.platforms.join(", ")]);
+    }
+    if (details.release_date) {
+      facts.push([t("movie.release"), details.release_date]);
+    }
+    const score = details.vote_average_tenths;
+    if (score) {
+      facts.push(["IGDB", (score / 10).toFixed(1)]);
+    }
+  } else if (isBook) {
     if (bookAuthors.length > 0) {
       facts.push([t("book.authors"), bookAuthors.join(", ")]);
     }
@@ -71,7 +89,7 @@ export async function MovieInfo({
   } else if (details.original_title) {
     facts.push([t("movie.originalTitle"), details.original_title]);
   }
-  if (!isBook && details.runtime) {
+  if (!isBook && !isGame && details.runtime) {
     facts.push([
       t("movie.runtime"),
       t("movie.minutes", { count: details.runtime }),
@@ -89,7 +107,7 @@ export async function MovieInfo({
       String(details.number_of_episodes),
     ]);
   }
-  if (!isBook && details.release_date) {
+  if (!isBook && !isGame && details.release_date) {
     facts.push([t("movie.release"), details.release_date]);
   }
   const countries = localized.countries;
@@ -105,16 +123,16 @@ export async function MovieInfo({
   if (companies.length > 0) {
     facts.push([t("movie.studios"), companies.join(", ")]);
   }
-  if (!isBook && details.budget) {
+  if (!isBook && !isGame && details.budget) {
     facts.push([t("movie.budget"), formatMoney(locale, details.budget)]);
   }
-  if (!isBook && details.revenue) {
+  if (!isBook && !isGame && details.revenue) {
     facts.push([t("movie.revenue"), formatMoney(locale, details.revenue)]);
   }
-  if (!isBook && details.imdb_id) {
+  if (!isBook && !isGame && details.imdb_id) {
     facts.push(["IMDb", `tt${details.imdb_id.replace(/^tt/, "")}`]);
   }
-  if (!isBook && details.vote_average_tenths) {
+  if (!isBook && !isGame && details.vote_average_tenths) {
     const score = (details.vote_average_tenths / 10).toFixed(1);
     const votes = details.vote_count
       ? ` · ${t("movie.votes", { count: formatNumber(locale, details.vote_count) })}`
@@ -130,7 +148,9 @@ export async function MovieInfo({
             ? t("tv.about")
             : isBook
               ? t("book.about")
-              : t("movie.about")
+              : isGame
+                ? "Об игре"
+                : t("movie.about")
         }
       >
         {localized.tagline ? (
@@ -140,7 +160,11 @@ export async function MovieInfo({
           <p className={styles.overview}>{localized.overview}</p>
         ) : (
           <p className={styles.muted}>
-            {isBook ? t("book.overviewEmpty") : t("movie.overviewEmpty")}
+            {isBook
+              ? t("book.overviewEmpty")
+              : isGame
+                ? "Описание игры пока не добавлено."
+                : t("movie.overviewEmpty")}
           </p>
         )}
 
@@ -155,7 +179,7 @@ export async function MovieInfo({
           </dl>
         ) : null}
 
-        {!isBook && details.imdb_id ? (
+        {!isBook && !isGame && details.imdb_id ? (
           <p className={styles.links}>
             <a
               href={`https://www.imdb.com/title/tt${details.imdb_id.replace(/^tt/, "")}`}
@@ -167,7 +191,10 @@ export async function MovieInfo({
           </p>
         ) : null}
 
-        {tmdbId ? (
+        {isGame ? (
+          <p className={styles.source}>Данные предоставлены IGDB.</p>
+        ) : null}
+        {tmdbId && !isGame ? (
           <p className={styles.source}>
             {t("movie.credit")}{" "}
             <a
@@ -182,7 +209,7 @@ export async function MovieInfo({
         ) : null}
       </Card>
 
-      {!isBook && localized.cast.length > 0 ? (
+      {!isBook && !isGame && localized.cast.length > 0 ? (
         <Card title={t("movie.cast")}>
           <ul className={styles.castGrid}>
             {localized.cast.map((person, index) => {

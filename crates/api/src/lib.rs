@@ -9,6 +9,7 @@ pub mod config;
 pub mod db;
 pub mod error;
 pub mod export;
+pub mod games;
 pub mod http;
 pub mod import;
 pub mod items;

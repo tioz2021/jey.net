@@ -46,6 +46,15 @@ pub async fn refresh(
                 let book = crate::books::google::details(external_id, key).await?;
                 crate::books::snapshot(&book)
             }
+            Some("igdb") => {
+                let external_id = item.external_id.as_deref().ok_or_else(|| {
+                    AppError::validation_field("external_id", "game id is missing")
+                })?;
+                let id: u64 = external_id
+                    .parse()
+                    .map_err(|_| AppError::validation_field("external_id", "invalid game id"))?;
+                state.igdb.details(id).await?
+            }
             Some("tmdb") => {
                 let external_id = item
                     .external_id

@@ -117,6 +117,10 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     let tmdb = Arc::new(jey_api::movies::tmdb::TmdbClient::new(
         config.tmdb_read_token.clone(),
     ));
+    let igdb = Arc::new(jey_api::games::igdb::IgdbClient::new(
+        config.twitch_client_id.clone(),
+        config.twitch_client_secret.clone(),
+    ));
 
     jey_api::users::purge::spawn(pool.clone(), storage.clone(), config.purge_retention_days);
 
@@ -125,6 +129,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         mailer: mail::from_config(&config),
         storage,
         tmdb,
+        igdb,
         config: Arc::new(config),
     };
 

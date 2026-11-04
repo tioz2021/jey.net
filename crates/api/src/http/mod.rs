@@ -63,6 +63,7 @@ pub struct AppState {
     pub mailer: Arc<dyn Mailer>,
     pub storage: Arc<LocalStorage>,
     pub tmdb: Arc<crate::movies::tmdb::TmdbClient>,
+    pub igdb: Arc<crate::games::igdb::IgdbClient>,
 }
 
 /// Builds the full application router.
@@ -100,6 +101,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         // guest profiles must render them too.
         .route("/movies/image", get(crate::movies::image))
         .route("/books/image", get(crate::books::image))
+        .route("/games/image", get(crate::games::image))
         .route(
             "/public/users/{id}/items/{item_id}/episodes",
             get(crate::users::public::episodes),
@@ -129,6 +131,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/tv/{id}", get(crate::movies::tv_details))
         .route("/books/search", get(crate::books::search))
         .route("/books/{id}", get(crate::books::details))
+        .route("/games/search", get(crate::games::search))
+        .route("/games/{id}", get(crate::games::details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(

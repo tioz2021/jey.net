@@ -50,6 +50,15 @@ export function IconTv(props: IconProps) {
   );
 }
 
+export function IconGame(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M7 7h10a5 5 0 0 1 4.8 6.4l-1.5 5A2.5 2.5 0 0 1 17.9 20c-.8 0-1.5-.4-2-1l-1.3-1.6a2 2 0 0 0-1.6-.8h-2a2 2 0 0 0-1.6.8L8.1 19a2.6 2.6 0 0 1-2 1 2.5 2.5 0 0 1-2.4-1.6l-1.5-5A5 5 0 0 1 7 7Z" {...stroke()} />
+      <path d="M8 11v4M6 13h4M16 12h.01M18 14h.01" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconBook(props: IconProps) {
   return (
     <svg {...base(props)}>

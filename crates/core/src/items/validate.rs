@@ -164,11 +164,12 @@ fn clean_cover_url(value: Option<&str>) -> Result<Option<String>, DomainError> {
     };
     if value.chars().count() > 2048
         || !(value.starts_with("https://books.google.com/")
-            || value.starts_with("https://books.googleusercontent.com/"))
+            || value.starts_with("https://books.googleusercontent.com/")
+            || value.starts_with("https://images.igdb.com/"))
     {
         return Err(DomainError::validation_field(
             "details.cover_url",
-            "cover URL must point to Google Books",
+            "cover URL must point to a supported metadata provider",
         ));
     }
     Ok(Some(value.to_owned()))
@@ -380,6 +381,9 @@ fn clean_details(
             .map(|value| value.chars().take(32).collect()),
         cover_id: details.cover_id.filter(|id| *id > 0),
         cover_url: clean_cover_url(details.cover_url.as_deref())?,
+        platforms: clean_list(&details.platforms, 60)?,
+        developers: clean_list(&details.developers, 100)?,
+        publishers: clean_list(&details.publishers, 100)?,
         cast,
         genres: clean_list(&details.genres, 100)?,
         countries: clean_list(&details.countries, 100)?,
@@ -462,7 +466,7 @@ pub fn status_allowed(kind: ItemKind, status: ItemStatus) -> bool {
                 ItemStatus::Planned | ItemStatus::Done | ItemStatus::Dropped
             )
         }
-        ItemKind::Tv | ItemKind::Book | ItemKind::Other => true,
+        ItemKind::Tv | ItemKind::Book | ItemKind::Game | ItemKind::Other => true,
     }
 }
 

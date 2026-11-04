@@ -23,6 +23,7 @@ import type {
 import { CoverPicker } from "@/components/items/cover-picker";
 import { StarRating } from "@/components/forms/star-rating";
 import { BookSearch } from "@/components/items/book-search";
+import { GameSearch } from "@/components/items/game-search";
 import { MovieSearch } from "@/components/items/movie-search";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
@@ -35,6 +36,7 @@ const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
   tv: ["planned", "in_progress", "done", "dropped"],
   image: ["planned", "done", "dropped"],
   book: ["planned", "in_progress", "done", "dropped"],
+  game: ["planned", "in_progress", "done", "dropped"],
   other: ["planned", "in_progress", "done", "dropped"],
 };
 
@@ -42,6 +44,7 @@ const SUBTITLE_KEYS: Record<ItemKind, TranslationKey> = {
   movie: "form.subtitle.movie",
   tv: "form.subtitle.tv",
   book: "form.subtitle.book",
+  game: "form.subtitle.game",
   image: "form.subtitle.image",
   other: "form.subtitle.other",
 };
@@ -219,7 +222,10 @@ export function ItemForm({
   const [advanced, setAdvanced] = useState(
     () =>
       Boolean(itemId) ||
-      (startKind !== "movie" && startKind !== "tv" && startKind !== "book"),
+      (startKind !== "movie" &&
+        startKind !== "tv" &&
+        startKind !== "book" &&
+        startKind !== "game"),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
@@ -317,6 +323,40 @@ export function ItemForm({
     setCoverCleared(false);
   }
 
+  function applyGame(game: MovieDetails, igdbId: number) {
+    const developerLine = (game.developers ?? []).join(", ");
+    setValues((current) => ({
+      ...current,
+      title: game.original_title,
+      year: game.release_date ? game.release_date.slice(0, 4) : "",
+      subtitle: developerLine,
+      source_url: "",
+      external_source: "igdb",
+      external_id: String(igdbId),
+      details: {
+        ...game,
+        original_title: game.original_title,
+        authors: [],
+        publisher: game.publishers?.[0] ?? null,
+        cast: [],
+        countries: [],
+        languages: [],
+        companies: [],
+        budget: null,
+        revenue: null,
+        imdb_id: null,
+        translations: {},
+        number_of_seasons: null,
+        number_of_episodes: null,
+        seasons: [],
+        watched_episodes: [],
+      },
+    }));
+    setPosterPending(true);
+    setCoverUploadId(null);
+    setCoverCleared(false);
+  }
+
   function changeKind(kind: ItemKind) {
     setValues((current) => ({
       ...current,
@@ -329,7 +369,7 @@ export function ItemForm({
     }));
 
     // Books and images need the full form; films and series stay compact.
-    if (kind !== "movie" && kind !== "tv" && kind !== "book") {
+    if (kind !== "movie" && kind !== "tv" && kind !== "book" && kind !== "game") {
       setAdvanced(true);
     }
   }
@@ -341,7 +381,8 @@ export function ItemForm({
       !itemId &&
       (values.kind === "movie" ||
         values.kind === "tv" ||
-        values.kind === "book") &&
+        values.kind === "book" ||
+        values.kind === "game") &&
       !advanced;
     if (compactMedia && !values.title.trim()) {
       setErrors({ form: t("form.movieRequired") });
@@ -403,7 +444,8 @@ export function ItemForm({
     !itemId &&
     (values.kind === "movie" ||
       values.kind === "tv" ||
-      values.kind === "book");
+      values.kind === "book" ||
+      values.kind === "game");
   const submitError =
     errors.form ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;
@@ -467,6 +509,15 @@ export function ItemForm({
           selected={values.external_id ? values.title : null}
           selectedAuthors={values.subtitle || undefined}
           selectedCoverId={values.details?.cover_id ?? null}
+          selectedCoverUrl={values.details?.cover_url ?? null}
+        />
+      ) : null}
+
+      {values.kind === "game" ? (
+        <GameSearch
+          onSelect={applyGame}
+          selected={values.external_id ? values.title : null}
+          selectedPlatforms={(values.details?.platforms ?? []).join(", ") || undefined}
           selectedCoverUrl={values.details?.cover_url ?? null}
         />
       ) : null}
