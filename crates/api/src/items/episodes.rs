@@ -116,6 +116,77 @@ pub async fn season(
     })))
 }
 
+/// `POST /api/v1/items/{id}/episodes/{season}` — mark/unmark a whole season.
+pub async fn toggle_season(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path((raw_id, season_number)): Path<(String, i32)>,
+    Json(payload): Json<ToggleEpisode>,
+) -> Result<Json<Value>, AppError> {
+    if !(0..=100).contains(&season_number) {
+        return Err(AppError::validation_field(
+            "season",
+            "season is out of range",
+        ));
+    }
+
+    let item_id = parse_id(&raw_id)?;
+    let item = repo::get(&state.pool, current.user.id, item_id)
+        .await?
+        .ok_or_else(|| AppError::not_found("item not found"))?;
+    let external_id = tmdb_id(&item)?;
+    if !state.tmdb.configured() {
+        return Err(AppError::unavailable("TMDB is not configured"));
+    }
+
+    let season = state
+        .tmdb
+        .season(
+            external_id,
+            season_number,
+            language_for(&current.user.locale),
+        )
+        .await?;
+    let numbers: std::collections::BTreeSet<i32> = season
+        .episodes
+        .iter()
+        .map(|episode| episode.episode_number)
+        .collect();
+
+    let mut details = item
+        .details
+        .clone()
+        .ok_or_else(|| AppError::validation_field("details", "series has no metadata"))?;
+
+    details.watched_episodes.retain(|episode| {
+        !(episode.season_number == season_number && numbers.contains(&episode.episode_number))
+    });
+    if payload.watched {
+        details
+            .watched_episodes
+            .extend(numbers.iter().map(|episode_number| WatchedEpisode {
+                season_number,
+                episode_number: *episode_number,
+            }));
+        details
+            .watched_episodes
+            .sort_by_key(|episode| (episode.season_number, episode.episode_number));
+    }
+
+    let patch = jey_core::items::validate::validate_patch(&jey_core::items::ItemPatch {
+        details: Some(details.clone()),
+        ..jey_core::items::ItemPatch::default()
+    })?;
+    let updated = repo::update(&state.pool, current.user.id, item_id, &patch)
+        .await?
+        .ok_or_else(|| AppError::not_found("item not found"))?;
+
+    Ok(Json(json!({
+        "item": ItemView::from(updated),
+        "watched_total": details.watched_episodes.len(),
+    })))
+}
+
 /// `POST /api/v1/items/{id}/episodes/{season}/{episode}`
 pub async fn toggle(
     State(state): State<AppState>,

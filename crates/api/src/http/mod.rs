@@ -192,6 +192,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/items/{id}/refresh", post(crate::items::refresh::refresh))
         .route("/items/{id}/episodes", get(crate::items::episodes::season))
         .route(
+            "/items/{id}/episodes/{season}",
+            post(crate::items::episodes::toggle_season),
+        )
+        .route(
             "/items/{id}/episodes/{season}/{episode}",
             post(crate::items::episodes::toggle),
         )

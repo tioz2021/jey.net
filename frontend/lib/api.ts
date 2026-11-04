@@ -299,6 +299,12 @@ export const items = {
       { method: "POST", body: { watched } },
     ),
 
+  toggleSeason: (id: string, season: number, watched: boolean) =>
+    request<{ item: Item; watched_total: number }>(
+      `/items/${id}/episodes/${season}`,
+      { method: "POST", body: { watched } },
+    ),
+
   refresh: (id: string) =>
     request<ItemResponse>(`/items/${id}/refresh`, { method: "POST" }),
 

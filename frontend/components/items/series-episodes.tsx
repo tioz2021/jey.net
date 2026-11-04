@@ -52,6 +52,15 @@ export function SeriesEpisodes({
   const [pending, setPending] = useState<Set<number>>(new Set());
   const readOnly = Boolean(publicUserId);
 
+  // Keep local ticks in sync with a fresh server payload (e.g. after refresh).
+  useEffect(() => {
+    setWatchedSet(
+      new Set(
+        watched.map((episode) => key(episode.season_number, episode.episode_number)),
+      ),
+    );
+  }, [watched]);
+
   const total = totalEpisodes ?? seasons.reduce((sum, season) => sum + season.episode_count, 0);
 
   useEffect(() => {
@@ -118,9 +127,7 @@ export function SeriesEpisodes({
       return;
     }
     const numbers = episodes.map((episode) => episode.episode_number);
-    await Promise.all(
-      numbers.map((episode) => api.items.toggleEpisode(itemId, selected, episode, next)),
-    );
+    await api.items.toggleSeason(itemId, selected, next);
     setWatchedSet((current) => {
       const copy = new Set(current);
       for (const episode of numbers) {
