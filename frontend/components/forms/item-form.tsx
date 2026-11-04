@@ -228,7 +228,8 @@ export function ItemForm({
       (startKind !== "movie" &&
         startKind !== "tv" &&
         startKind !== "book" &&
-        startKind !== "game"),
+        startKind !== "game" &&
+        startKind !== "anime"),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
@@ -396,7 +397,13 @@ export function ItemForm({
     }));
 
     // Books and images need the full form; films and series stay compact.
-    if (kind !== "movie" && kind !== "tv" && kind !== "book" && kind !== "game") {
+    if (
+      kind !== "movie" &&
+      kind !== "tv" &&
+      kind !== "book" &&
+      kind !== "game" &&
+      kind !== "anime"
+    ) {
       setAdvanced(true);
     }
   }
