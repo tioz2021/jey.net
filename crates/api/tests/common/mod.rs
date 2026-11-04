@@ -114,6 +114,7 @@ impl TestClient {
             storage,
             tmdb: std::sync::Arc::new(jey_api::movies::tmdb::TmdbClient::new(None)),
             igdb: std::sync::Arc::new(jey_api::games::igdb::IgdbClient::new(None, None)),
+            anime: std::sync::Arc::new(jey_api::anime::AnimeClient::new()),
         };
 
         // Every test gets its own client address so rate-limit counters of one

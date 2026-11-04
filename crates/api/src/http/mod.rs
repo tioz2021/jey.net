@@ -64,6 +64,7 @@ pub struct AppState {
     pub storage: Arc<LocalStorage>,
     pub tmdb: Arc<crate::movies::tmdb::TmdbClient>,
     pub igdb: Arc<crate::games::igdb::IgdbClient>,
+    pub anime: Arc<crate::anime::AnimeClient>,
 }
 
 /// Builds the full application router.

@@ -3,6 +3,10 @@
 pub mod anilist;
 pub mod shikimori;
 
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
+
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::header::{CACHE_CONTROL, CONTENT_TYPE};
@@ -17,6 +21,131 @@ use crate::error::AppError;
 use crate::http::AppState;
 use crate::http::ratelimit;
 use crate::movies::SEARCH_RULE;
+use jey_core::items::MovieDetails;
+
+const SEARCH_TTL: Duration = Duration::from_secs(15 * 60);
+const DETAILS_TTL: Duration = Duration::from_secs(60 * 60);
+const CACHE_CAPACITY: usize = 200;
+
+/// Cached and concurrency-limited anime metadata client.
+pub struct AnimeClient {
+    search_cache: Mutex<HashMap<String, (Instant, Vec<SearchItem>)>>,
+    details_cache: Mutex<HashMap<String, (Instant, MovieDetails)>>,
+    permits: Arc<tokio::sync::Semaphore>,
+}
+
+impl Default for AnimeClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl AnimeClient {
+    pub fn new() -> Self {
+        Self {
+            search_cache: Mutex::new(HashMap::new()),
+            details_cache: Mutex::new(HashMap::new()),
+            permits: Arc::new(tokio::sync::Semaphore::new(4)),
+        }
+    }
+
+    pub async fn search(&self, query: &str, locale: &str) -> Result<Vec<SearchItem>, AppError> {
+        let key = format!("{locale}:{query}");
+        if let Some(value) = self.cached_search(&key) {
+            return Ok(value);
+        }
+
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("anime request limiter is closed"))?;
+        if let Some(value) = self.cached_search(&key) {
+            return Ok(value);
+        }
+
+        let russian = matches!(locale, "ru" | "uk");
+        let results = if russian {
+            let shikimori = shikimori::search(query).await.unwrap_or_default();
+            if shikimori.is_empty() {
+                anilist::search(query).await?
+            } else {
+                shikimori
+            }
+        } else {
+            let anilist = anilist::search(query).await.unwrap_or_default();
+            if anilist.is_empty() {
+                shikimori::search(query).await?
+            } else {
+                anilist
+            }
+        };
+
+        self.store_search(key, results.clone());
+        Ok(results)
+    }
+
+    pub async fn details(&self, id: &str) -> Result<MovieDetails, AppError> {
+        if let Some(value) = self.cached_details(id) {
+            return Ok(value);
+        }
+
+        let _permit = self
+            .permits
+            .acquire()
+            .await
+            .map_err(|_| AppError::internal("anime request limiter is closed"))?;
+        if let Some(value) = self.cached_details(id) {
+            return Ok(value);
+        }
+
+        let value = if let Some(id) = id.strip_prefix("al:") {
+            let id: u64 = id
+                .parse()
+                .map_err(|_| AppError::validation_field("id", "invalid AniList id"))?;
+            anilist::details(id).await?
+        } else if let Some(id) = id.strip_prefix("sh:") {
+            let id: u64 = id
+                .parse()
+                .map_err(|_| AppError::validation_field("id", "invalid Shikimori id"))?;
+            shikimori::details(id).await?
+        } else {
+            return Err(AppError::validation_field(
+                "id",
+                "anime id must start with al: or sh:",
+            ));
+        };
+
+        if let Ok(mut cache) = self.details_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(id.to_owned(), (Instant::now(), value.clone()));
+        }
+        Ok(value)
+    }
+
+    fn cached_search(&self, key: &str) -> Option<Vec<SearchItem>> {
+        let cache = self.search_cache.lock().ok()?;
+        let (at, value) = cache.get(key)?;
+        (at.elapsed() < SEARCH_TTL).then(|| value.clone())
+    }
+
+    fn store_search(&self, key: String, value: Vec<SearchItem>) {
+        if let Ok(mut cache) = self.search_cache.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(key, (Instant::now(), value));
+        }
+    }
+
+    fn cached_details(&self, id: &str) -> Option<MovieDetails> {
+        let cache = self.details_cache.lock().ok()?;
+        let (at, value) = cache.get(id)?;
+        (at.elapsed() < DETAILS_TTL).then(|| value.clone())
+    }
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchItem {
@@ -61,46 +190,16 @@ pub async fn search(
     )
     .await?;
 
-    let russian = matches!(current.user.locale.as_str(), "ru" | "uk");
-    let results = if russian {
-        let shikimori = shikimori::search(q).await.unwrap_or_default();
-        if shikimori.is_empty() {
-            anilist::search(q).await?
-        } else {
-            shikimori
-        }
-    } else {
-        let anilist = anilist::search(q).await.unwrap_or_default();
-        if anilist.is_empty() {
-            shikimori::search(q).await?
-        } else {
-            anilist
-        }
-    };
+    let results = state.anime.search(q, &current.user.locale).await?;
     Ok(Json(json!({ "results": results })).into_response())
 }
 
 pub async fn details(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     _current: CurrentUser,
     Path(id): Path<String>,
 ) -> Result<Response, AppError> {
-    let game = if let Some(id) = id.strip_prefix("al:") {
-        let id: u64 = id
-            .parse()
-            .map_err(|_| AppError::validation_field("id", "invalid AniList id"))?;
-        anilist::details(id).await?
-    } else if let Some(id) = id.strip_prefix("sh:") {
-        let id: u64 = id
-            .parse()
-            .map_err(|_| AppError::validation_field("id", "invalid Shikimori id"))?;
-        shikimori::details(id).await?
-    } else {
-        return Err(AppError::validation_field(
-            "id",
-            "anime id must start with al: or sh:",
-        ));
-    };
+    let game = state.anime.details(&id).await?;
     Ok(Json(json!({ "anime": game })).into_response())
 }
 
