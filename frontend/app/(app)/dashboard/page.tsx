@@ -63,7 +63,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const kindRows = (["movie", "tv", "book", "game"] as ItemKind[]).map(
+  const kindRows = (["movie", "tv", "book", "game", "anime"] as ItemKind[]).map(
     (kind) => ({
       label: t(KIND_KEYS[kind]),
       count: stats.by_kind[kind] ?? 0,

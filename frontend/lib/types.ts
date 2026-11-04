@@ -5,7 +5,7 @@
  * components work with these types and never touch raw responses.
  */
 
-export type ItemKind = "movie" | "tv" | "book" | "game" | "image" | "other";
+export type ItemKind = "movie" | "tv" | "book" | "game" | "anime" | "image" | "other";
 
 export type ItemStatus = "planned" | "in_progress" | "done" | "dropped";
 
@@ -68,6 +68,8 @@ export interface MovieDetails {
   platforms?: string[];
   developers?: string[];
   publishers?: string[];
+  anime_format?: string | null;
+  anime_season?: string | null;
   /** Old snapshots kept cast as plain names; the server normalises new ones. */
   cast: Array<CastMember | string>;
   genres: string[];
@@ -156,6 +158,16 @@ export interface GameSearchItem {
   cover_url: string | null;
   platforms: string[];
   summary: string | null;
+}
+
+export interface AnimeSearchItem {
+  anime_id: string;
+  source: "anilist" | "shikimori" | string;
+  title: string;
+  year: number | null;
+  cover_url: string | null;
+  format: string | null;
+  episodes: number | null;
 }
 
 export interface MovieDetailsResponse extends MovieDetails {

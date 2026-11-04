@@ -16,16 +16,18 @@ pub enum ItemKind {
     Tv,
     Book,
     Game,
+    Anime,
     Image,
     Other,
 }
 
 impl ItemKind {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Movie,
         Self::Tv,
         Self::Book,
         Self::Game,
+        Self::Anime,
         Self::Image,
         Self::Other,
     ];
@@ -36,6 +38,7 @@ impl ItemKind {
             Self::Tv => "tv",
             Self::Book => "book",
             Self::Game => "game",
+            Self::Anime => "anime",
             Self::Image => "image",
             Self::Other => "other",
         }
@@ -47,11 +50,14 @@ impl ItemKind {
             "tv" => Ok(Self::Tv),
             "book" => Ok(Self::Book),
             "game" => Ok(Self::Game),
+            "anime" => Ok(Self::Anime),
             "image" => Ok(Self::Image),
             "other" => Ok(Self::Other),
             other => Err(DomainError::validation_field(
                 "kind",
-                format!("kind must be one of: movie, tv, book, game, image, other; got {other:?}"),
+                format!(
+                    "kind must be one of: movie, tv, book, game, anime, image, other; got {other:?}"
+                ),
             )),
         }
     }
@@ -195,6 +201,11 @@ pub struct MovieDetails {
     pub developers: Vec<String>,
     #[serde(default)]
     pub publishers: Vec<String>,
+    /// Anime format and season, empty for other kinds.
+    #[serde(default)]
+    pub anime_format: Option<String>,
+    #[serde(default)]
+    pub anime_season: Option<String>,
     #[serde(default, deserialize_with = "deserialize_cast")]
     pub cast: Vec<CastMember>,
     #[serde(default)]

@@ -46,6 +46,24 @@ pub async fn refresh(
                 let book = crate::books::google::details(external_id, key).await?;
                 crate::books::snapshot(&book)
             }
+            Some("anilist") => {
+                let external_id = item.external_id.as_deref().ok_or_else(|| {
+                    AppError::validation_field("external_id", "anime id is missing")
+                })?;
+                let id: u64 = external_id
+                    .parse()
+                    .map_err(|_| AppError::validation_field("external_id", "invalid anime id"))?;
+                crate::anime::anilist::details(id).await?
+            }
+            Some("shikimori") => {
+                let external_id = item.external_id.as_deref().ok_or_else(|| {
+                    AppError::validation_field("external_id", "anime id is missing")
+                })?;
+                let id: u64 = external_id
+                    .parse()
+                    .map_err(|_| AppError::validation_field("external_id", "invalid anime id"))?;
+                crate::anime::shikimori::details(id).await?
+            }
             Some("igdb") => {
                 let external_id = item.external_id.as_deref().ok_or_else(|| {
                     AppError::validation_field("external_id", "game id is missing")

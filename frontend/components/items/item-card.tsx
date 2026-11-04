@@ -25,6 +25,7 @@ const KIND_ICONS = {
   tv: IconTv,
   book: IconBook,
   game: IconGame,
+  anime: IconTv,
   image: IconImage,
   other: IconOther,
 } as const;

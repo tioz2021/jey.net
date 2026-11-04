@@ -29,6 +29,7 @@ const KINDS: Array<{
   { kind: "tv", labelKey: "nav.series", Icon: IconTv },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
   { kind: "game", labelKey: "nav.games", Icon: IconGame },
+  { kind: "anime", labelKey: "nav.anime", Icon: IconTv },
 ];
 
 function kindFromLocation(): string | null {

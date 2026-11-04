@@ -3,6 +3,7 @@
 //! The binary in `main.rs` only wires this library together, which keeps the
 //! router importable from integration tests.
 
+pub mod anime;
 pub mod auth;
 pub mod books;
 pub mod config;

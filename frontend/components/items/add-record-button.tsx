@@ -10,13 +10,14 @@ import type { ItemKind } from "@/lib/types";
 
 import { ITEMS_QUERY_EVENT } from "./query-context";
 
-const KINDS = ["movie", "tv", "book", "game"] as const;
+const KINDS = ["movie", "tv", "book", "game", "anime"] as const;
 
 const LABEL_KEYS: Record<ItemKind, TranslationKey> = {
   movie: "items.add.movie",
   tv: "items.add.tv",
   book: "items.add.book",
   game: "items.add.game",
+  anime: "items.add.anime",
   image: "items.add.image",
   other: "items.add.other",
 };

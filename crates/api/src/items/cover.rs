@@ -116,6 +116,23 @@ pub async fn set_tmdb_poster(
             let (_, bytes) = crate::books::openlibrary::cover(cover_id, "L").await?;
             bytes
         }
+        Some("anilist") | Some("shikimori") => {
+            let url = item
+                .details
+                .as_ref()
+                .and_then(|details| details.cover_url.as_deref())
+                .ok_or_else(|| AppError::not_found("this anime has no cover"))?;
+            let response = reqwest::Client::new()
+                .get(url)
+                .header("User-Agent", "jey.net/0.1 (personal catalogue)")
+                .send()
+                .await
+                .map_err(AppError::internal)?;
+            if !response.status().is_success() {
+                return Err(AppError::not_found("cover not found"));
+            }
+            response.bytes().await.map_err(AppError::internal)?.to_vec()
+        }
         Some("igdb") => {
             let url = item
                 .details

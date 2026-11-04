@@ -194,6 +194,8 @@ impl IgdbClient {
             platforms: names(row.get("platforms")),
             developers,
             publishers,
+            anime_format: None,
+            anime_season: None,
             cast: Vec::new(),
             genres: names(row.get("genres")),
             countries: Vec::new(),

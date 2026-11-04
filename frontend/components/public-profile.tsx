@@ -11,14 +11,15 @@ import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
 import styles from "./public-profile.module.css";
 
-const ORDER: ItemKind[] = ["movie", "tv", "book", "game"];
+const ORDER: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 const PAGE_LIMIT = 12;
 
-const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "nav.games" | "nav.images" | "nav.other"> = {
+const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "nav.games" | "nav.anime" | "nav.images" | "nav.other"> = {
   movie: "nav.movies",
   tv: "nav.series",
   book: "nav.books",
   game: "nav.games",
+  anime: "nav.anime",
   image: "nav.images",
   other: "nav.other",
 };

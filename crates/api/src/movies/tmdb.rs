@@ -423,6 +423,8 @@ impl MovieDetails {
             platforms: Vec::new(),
             developers: Vec::new(),
             publishers: Vec::new(),
+            anime_format: None,
+            anime_season: None,
             cast: self
                 .cast
                 .iter()

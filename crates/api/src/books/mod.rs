@@ -211,6 +211,8 @@ pub fn snapshot(book: &openlibrary::BookDetails) -> jey_core::items::MovieDetail
         platforms: Vec::new(),
         developers: Vec::new(),
         publishers: Vec::new(),
+        anime_format: None,
+        anime_season: None,
         cast: Vec::new(),
         genres: book.subjects.clone(),
         countries: Vec::new(),

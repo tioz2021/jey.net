@@ -24,11 +24,12 @@ import { CoverPicker } from "@/components/items/cover-picker";
 import { StarRating } from "@/components/forms/star-rating";
 import { BookSearch } from "@/components/items/book-search";
 import { GameSearch } from "@/components/items/game-search";
+import { AnimeSearch } from "@/components/items/anime-search";
 import { MovieSearch } from "@/components/items/movie-search";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
-const KINDS: ItemKind[] = ["movie", "tv", "book", "game"];
+const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 
 /** Films and pictures are noted instantly; only books and notes are "in progress". */
 const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
@@ -37,6 +38,7 @@ const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
   image: ["planned", "done", "dropped"],
   book: ["planned", "in_progress", "done", "dropped"],
   game: ["planned", "in_progress", "done", "dropped"],
+  anime: ["planned", "in_progress", "done", "dropped"],
   other: ["planned", "in_progress", "done", "dropped"],
 };
 
@@ -45,6 +47,7 @@ const SUBTITLE_KEYS: Record<ItemKind, TranslationKey> = {
   tv: "form.subtitle.tv",
   book: "form.subtitle.book",
   game: "form.subtitle.game",
+  anime: "form.subtitle.anime",
   image: "form.subtitle.image",
   other: "form.subtitle.other",
 };
@@ -323,6 +326,30 @@ export function ItemForm({
     setCoverCleared(false);
   }
 
+  function applyAnime(anime: MovieDetails, animeId: string, source: string) {
+    const prefix = animeId.split(":")[0] ?? "";
+    const numericId = animeId.slice(prefix.length + 1);
+    setValues((current) => ({
+      ...current,
+      title: anime.original_title,
+      year: anime.release_date ? anime.release_date.slice(0, 4) : "",
+      subtitle: (anime.companies ?? []).join(", "),
+      source_url: source === "shikimori"
+        ? `https://shikimori.one/animes/${numericId}`
+        : `https://anilist.co/anime/${numericId}`,
+      external_source: source,
+      external_id: numericId,
+      details: {
+        ...anime,
+        authors: [], publisher: null, cast: [],
+        countries: [], languages: [], budget: null, revenue: null,
+        imdb_id: null, translations: {}, number_of_seasons: null,
+        seasons: [], watched_episodes: [],
+      },
+    }));
+    setPosterPending(true); setCoverUploadId(null); setCoverCleared(false);
+  }
+
   function applyGame(game: MovieDetails, igdbId: number) {
     const developerLine = (game.developers ?? []).join(", ");
     setValues((current) => ({
@@ -382,7 +409,8 @@ export function ItemForm({
       (values.kind === "movie" ||
         values.kind === "tv" ||
         values.kind === "book" ||
-        values.kind === "game") &&
+        values.kind === "game" ||
+        values.kind === "anime") &&
       !advanced;
     if (compactMedia && !values.title.trim()) {
       setErrors({ form: t("form.movieRequired") });
@@ -445,7 +473,8 @@ export function ItemForm({
     (values.kind === "movie" ||
       values.kind === "tv" ||
       values.kind === "book" ||
-      values.kind === "game");
+      values.kind === "game" ||
+      values.kind === "anime");
   const submitError =
     errors.form ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;
@@ -509,6 +538,15 @@ export function ItemForm({
           selected={values.external_id ? values.title : null}
           selectedAuthors={values.subtitle || undefined}
           selectedCoverId={values.details?.cover_id ?? null}
+          selectedCoverUrl={values.details?.cover_url ?? null}
+        />
+      ) : null}
+
+      {values.kind === "anime" ? (
+        <AnimeSearch
+          onSelect={applyAnime}
+          selected={values.external_id ? values.title : null}
+          selectedMeta={(values.details?.anime_format ?? undefined) as string | undefined}
           selectedCoverUrl={values.details?.cover_url ?? null}
         />
       ) : null}

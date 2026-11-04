@@ -21,6 +21,7 @@ import type {
   BookDetailsResponse,
   BookSearchItem,
   GameSearchItem,
+  AnimeSearchItem,
   MovieDetailsResponse,
   MovieSearchItem,
   UserResponse,
@@ -351,6 +352,18 @@ export const games = {
   get: (id: number) => request<{ game: MovieDetailsResponse }>(`/games/${id}`),
 };
 
+export const anime = {
+  search: (q: string) =>
+    request<{ results: AnimeSearchItem[] }>(
+      `/anime/search?q=${encodeURIComponent(q)}`,
+    ),
+
+  get: (id: string) =>
+    request<{ anime: MovieDetailsResponse }>(
+      `/anime/${encodeURIComponent(id)}`,
+    ),
+};
+
 export const tv = {
   search: (q: string) =>
     request<{ results: MovieSearchItem[] }>(
@@ -370,6 +383,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, books, games, items, movies, publicItems, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, games, items, movies, publicItems, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

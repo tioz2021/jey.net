@@ -165,7 +165,10 @@ fn clean_cover_url(value: Option<&str>) -> Result<Option<String>, DomainError> {
     if value.chars().count() > 2048
         || !(value.starts_with("https://books.google.com/")
             || value.starts_with("https://books.googleusercontent.com/")
-            || value.starts_with("https://images.igdb.com/"))
+            || value.starts_with("https://images.igdb.com/")
+            || value.starts_with("https://s4.anilist.co/")
+            || value.starts_with("https://shikimori.one/")
+            || value.starts_with("https://shikimori.me/"))
     {
         return Err(DomainError::validation_field(
             "details.cover_url",
@@ -384,6 +387,18 @@ fn clean_details(
         platforms: clean_list(&details.platforms, 60)?,
         developers: clean_list(&details.developers, 100)?,
         publishers: clean_list(&details.publishers, 100)?,
+        anime_format: details
+            .anime_format
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(40).collect()),
+        anime_season: details
+            .anime_season
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(40).collect()),
         cast,
         genres: clean_list(&details.genres, 100)?,
         countries: clean_list(&details.countries, 100)?,
@@ -466,7 +481,7 @@ pub fn status_allowed(kind: ItemKind, status: ItemStatus) -> bool {
                 ItemStatus::Planned | ItemStatus::Done | ItemStatus::Dropped
             )
         }
-        ItemKind::Tv | ItemKind::Book | ItemKind::Game | ItemKind::Other => true,
+        ItemKind::Tv | ItemKind::Book | ItemKind::Game | ItemKind::Anime | ItemKind::Other => true,
     }
 }
 
