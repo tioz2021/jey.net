@@ -166,6 +166,22 @@ fn clean_external(
     Ok((Some(source.to_ascii_lowercase()), Some(id.to_owned())))
 }
 
+fn clean_cover_url(value: Option<&str>) -> Result<Option<String>, DomainError> {
+    let Some(value) = value.map(str::trim).filter(|value| !value.is_empty()) else {
+        return Ok(None);
+    };
+    if value.chars().count() > 2048
+        || !(value.starts_with("https://books.google.com/")
+            || value.starts_with("https://books.googleusercontent.com/"))
+    {
+        return Err(DomainError::validation_field(
+            "details.cover_url",
+            "cover URL must point to Google Books",
+        ));
+    }
+    Ok(Some(value.to_owned()))
+}
+
 fn clean_details(
     details: Option<&crate::items::MovieDetails>,
 ) -> Result<Option<crate::items::MovieDetails>, DomainError> {
@@ -371,6 +387,7 @@ fn clean_details(
             .filter(|value| !value.is_empty())
             .map(|value| value.chars().take(32).collect()),
         cover_id: details.cover_id.filter(|id| *id > 0),
+        cover_url: clean_cover_url(details.cover_url.as_deref())?,
         cast,
         genres: clean_list(&details.genres, 100)?,
         countries: clean_list(&details.countries, 100)?,

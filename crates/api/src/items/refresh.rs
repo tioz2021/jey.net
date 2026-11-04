@@ -25,51 +25,63 @@ pub async fn refresh(
         .ok_or_else(|| AppError::not_found("item not found"))?;
 
     let source = item.external_source.as_deref();
-    let fresh = match source {
-        Some("openlibrary") => {
-            let external_id = item
-                .external_id
-                .as_deref()
-                .ok_or_else(|| AppError::validation_field("external_id", "book id is missing"))?;
-            let book = crate::books::openlibrary::details(external_id).await?;
-            crate::books::snapshot(&book)
-        }
-        Some("tmdb") => {
-            let external_id = item
-                .external_id
-                .as_deref()
-                .ok_or_else(|| AppError::validation_field("external_id", "TMDB id is missing"))?
-                .parse::<u64>()
-                .map_err(|_| {
-                    AppError::validation_field("external_id", "TMDB id is not a number")
+    let fresh =
+        match source {
+            Some("openlibrary") => {
+                let external_id = item.external_id.as_deref().ok_or_else(|| {
+                    AppError::validation_field("external_id", "book id is missing")
                 })?;
-
-            if !state.tmdb.configured() {
-                return Err(AppError::unavailable("TMDB is not configured"));
+                let book = crate::books::openlibrary::details(external_id).await?;
+                crate::books::snapshot(&book)
             }
-
-            let language = language_for(&current.user.locale);
-            if item.kind == jey_core::items::ItemKind::Tv {
-                state
-                    .tmdb
-                    .tv_details_all(external_id, language)
-                    .await?
-                    .snapshot()
-            } else {
-                state
-                    .tmdb
-                    .details_fresh(external_id, language)
-                    .await?
-                    .snapshot()
+            Some("googlebooks") => {
+                let external_id = item.external_id.as_deref().ok_or_else(|| {
+                    AppError::validation_field("external_id", "book id is missing")
+                })?;
+                let key = state
+                    .config
+                    .google_books_key
+                    .as_deref()
+                    .ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
+                let book = crate::books::google::details(external_id, key).await?;
+                crate::books::snapshot(&book)
             }
-        }
-        _ => {
-            return Err(AppError::validation_field(
-                "external_source",
-                "only records imported from TMDB or Open Library can be refreshed",
-            ));
-        }
-    };
+            Some("tmdb") => {
+                let external_id = item
+                    .external_id
+                    .as_deref()
+                    .ok_or_else(|| AppError::validation_field("external_id", "TMDB id is missing"))?
+                    .parse::<u64>()
+                    .map_err(|_| {
+                        AppError::validation_field("external_id", "TMDB id is not a number")
+                    })?;
+
+                if !state.tmdb.configured() {
+                    return Err(AppError::unavailable("TMDB is not configured"));
+                }
+
+                let language = language_for(&current.user.locale);
+                if item.kind == jey_core::items::ItemKind::Tv {
+                    state
+                        .tmdb
+                        .tv_details_all(external_id, language)
+                        .await?
+                        .snapshot()
+                } else {
+                    state
+                        .tmdb
+                        .details_fresh(external_id, language)
+                        .await?
+                        .snapshot()
+                }
+            }
+            _ => {
+                return Err(AppError::validation_field(
+                    "external_source",
+                    "only records imported from TMDB or Open Library can be refreshed",
+                ));
+            }
+        };
 
     let mut snapshot = fresh;
     if item.kind == jey_core::items::ItemKind::Tv {

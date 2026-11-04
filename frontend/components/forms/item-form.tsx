@@ -294,8 +294,11 @@ export function ItemForm({
       title: book.title,
       year: book.year ? String(book.year) : "",
       subtitle: authorLine,
-      source_url: `https://openlibrary.org/works/${book.book_id}`,
-      external_source: "openlibrary",
+      source_url:
+        book.source === "googlebooks"
+          ? `https://books.google.com/books?id=${encodeURIComponent(book.book_id.replace(/^gb:/, ""))}`
+          : `https://openlibrary.org/works/${book.book_id}`,
+      external_source: book.source,
       external_id: book.book_id,
       details: {
         original_title: book.title,
@@ -310,6 +313,7 @@ export function ItemForm({
         page_count: book.page_count,
         isbn: book.isbn,
         cover_id: book.cover_id,
+        cover_url: book.cover_url,
         cast: [],
         genres: book.subjects,
         countries: [],
@@ -481,6 +485,7 @@ export function ItemForm({
           selected={values.external_id ? values.title : null}
           selectedAuthors={values.subtitle || undefined}
           selectedCoverId={values.details?.cover_id ?? null}
+          selectedCoverUrl={values.details?.cover_url ?? null}
         />
       ) : null}
 

@@ -18,16 +18,19 @@ const FIELDS: &str = "key,title,author_name,first_publish_year,cover_i,isbn,publ
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchItem {
     pub book_id: String,
+    pub source: String,
     pub title: String,
     pub authors: Vec<String>,
     pub year: Option<i32>,
     pub cover_id: Option<i64>,
+    pub cover_url: Option<String>,
     pub isbn: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct BookDetails {
     pub book_id: String,
+    pub source: String,
     pub title: String,
     pub authors: Vec<String>,
     pub year: Option<i32>,
@@ -36,6 +39,7 @@ pub struct BookDetails {
     pub page_count: Option<i32>,
     pub isbn: Option<String>,
     pub cover_id: Option<i64>,
+    pub cover_url: Option<String>,
     pub subjects: Vec<String>,
 }
 
@@ -124,6 +128,7 @@ pub async fn search(query: &str) -> Result<Vec<SearchItem>, AppError> {
 
             Some(SearchItem {
                 book_id: id,
+                source: "openlibrary".to_owned(),
                 title,
                 authors: strings(doc.get("author_name")),
                 year: doc
@@ -131,6 +136,7 @@ pub async fn search(query: &str) -> Result<Vec<SearchItem>, AppError> {
                     .and_then(Value::as_i64)
                     .map(|year| year as i32),
                 cover_id: doc.get("cover_i").and_then(Value::as_i64),
+                cover_url: None,
                 isbn: first_string(doc.get("isbn")),
             })
         })
@@ -261,6 +267,7 @@ pub async fn details(book_id: &str) -> Result<BookDetails, AppError> {
 
     Ok(BookDetails {
         book_id: id,
+        source: "openlibrary".to_owned(),
         title: work
             .get("title")
             .and_then(Value::as_str)
@@ -278,6 +285,7 @@ pub async fn details(book_id: &str) -> Result<BookDetails, AppError> {
             .map(|pages| pages as i32),
         isbn,
         cover_id,
+        cover_url: None,
         subjects: strings(work.get("subjects"))
             .into_iter()
             .filter(|subject| {

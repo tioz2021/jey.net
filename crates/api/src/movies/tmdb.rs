@@ -419,6 +419,7 @@ impl MovieDetails {
             page_count: None,
             isbn: None,
             cover_id: None,
+            cover_url: None,
             cast: self
                 .cast
                 .iter()

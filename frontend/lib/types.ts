@@ -64,6 +64,7 @@ export interface MovieDetails {
   page_count?: number | null;
   isbn?: string | null;
   cover_id?: number | null;
+  cover_url?: string | null;
   /** Old snapshots kept cast as plain names; the server normalises new ones. */
   cast: Array<CastMember | string>;
   genres: string[];
@@ -125,6 +126,7 @@ export interface BookSearchItem {
   authors: string[];
   year: number | null;
   cover_id: number | null;
+  cover_url?: string | null;
   isbn: string | null;
 }
 
@@ -138,6 +140,8 @@ export interface BookDetailsResponse {
   page_count: number | null;
   isbn: string | null;
   cover_id: number | null;
+  cover_url: string | null;
+  source: "openlibrary" | "googlebooks" | string;
   subjects: string[];
 }
 

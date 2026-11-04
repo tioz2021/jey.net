@@ -175,6 +175,9 @@ pub struct MovieDetails {
     /// Open Library cover id, used to download the cover.
     #[serde(default)]
     pub cover_id: Option<i64>,
+    /// Google Books cover URL, used to download the cover.
+    #[serde(default)]
+    pub cover_url: Option<String>,
     #[serde(default, deserialize_with = "deserialize_cast")]
     pub cast: Vec<CastMember>,
     #[serde(default)]

@@ -1,5 +1,6 @@
 //! Book metadata from Open Library.
 
+pub mod google;
 pub mod openlibrary;
 
 use axum::Json;
@@ -22,7 +23,8 @@ pub struct SearchQuery {
 
 #[derive(Debug, Deserialize)]
 pub struct CoverQuery {
-    pub cover: i64,
+    pub cover: Option<i64>,
+    pub url: Option<String>,
     pub size: Option<String>,
 }
 
@@ -50,17 +52,36 @@ pub async fn search(
     )
     .await?;
 
-    let results = openlibrary::search(q).await?;
+    let mut results = openlibrary::search(q).await.unwrap_or_default();
+    if results.is_empty()
+        && let Some(key) = state.config.google_books_key.as_deref()
+    {
+        let locale = match current.user.locale.as_str() {
+            "ru" => "ru",
+            "uk" => "uk",
+            _ => "en",
+        };
+        results = google::search(q, key, locale).await.unwrap_or_default();
+    }
     Ok(Json(json!({ "results": results })).into_response())
 }
 
 /// `GET /api/v1/books/{id}`
 pub async fn details(
-    State(_state): State<crate::http::AppState>,
+    State(state): State<crate::http::AppState>,
     _current: CurrentUser,
     Path(id): Path<String>,
 ) -> Result<Response, AppError> {
-    let book = openlibrary::details(&id).await?;
+    let book = if id.starts_with("gb:") {
+        let key = state
+            .config
+            .google_books_key
+            .as_deref()
+            .ok_or_else(|| AppError::unavailable("Google Books is not configured"))?;
+        google::details(&id, key).await?
+    } else {
+        openlibrary::details(&id).await?
+    };
     Ok(Json(json!({ "book": book })).into_response())
 }
 
@@ -70,7 +91,14 @@ pub async fn image(
     Query(query): Query<CoverQuery>,
 ) -> Result<Response, AppError> {
     let size = query.size.as_deref().unwrap_or("M");
-    let (content_type, bytes) = openlibrary::cover(query.cover, size).await?;
+    let (content_type, bytes) = if let Some(url) = query.url.as_deref() {
+        google::cover(url).await?
+    } else {
+        let cover = query
+            .cover
+            .ok_or_else(|| AppError::validation_field("cover", "cover is required"))?;
+        openlibrary::cover(cover, size).await?
+    };
     let mut response = (StatusCode::OK, bytes).into_response();
     response.headers_mut().insert(
         axum::http::header::CONTENT_TYPE,
@@ -99,6 +127,7 @@ pub fn snapshot(book: &openlibrary::BookDetails) -> jey_core::items::MovieDetail
         page_count: book.page_count,
         isbn: book.isbn.clone(),
         cover_id: book.cover_id,
+        cover_url: book.cover_url.clone(),
         cast: Vec::new(),
         genres: book.subjects.clone(),
         countries: Vec::new(),

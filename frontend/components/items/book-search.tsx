@@ -2,13 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { IconBook } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { BookDetailsResponse, BookSearchItem } from "@/lib/types";
 
 import styles from "./movie-search.module.css";
 
-function coverUrl(coverId: number | null, size: "S" | "M" | "L") {
+function coverUrl(
+  coverId: number | null | undefined,
+  externalUrl: string | null | undefined,
+  size: "S" | "M" | "L",
+) {
+  if (externalUrl) {
+    return `/api/v1/books/image?url=${encodeURIComponent(externalUrl)}`;
+  }
   return coverId
     ? `/api/v1/books/image?size=${size}&cover=${encodeURIComponent(String(coverId))}`
     : null;
@@ -20,11 +28,13 @@ export function BookSearch({
   selected,
   selectedAuthors,
   selectedCoverId,
+  selectedCoverUrl,
 }: {
   onSelect: (book: BookDetailsResponse) => void;
   selected: string | null;
   selectedAuthors?: string;
   selectedCoverId?: number | null;
+  selectedCoverUrl?: string | null;
 }) {
   const { t } = useI18n();
   const [query, setQuery] = useState("");
@@ -36,6 +46,9 @@ export function BookSearch({
   const [active, setActive] = useState(-1);
   const [previewCover, setPreviewCover] = useState<number | null>(
     selectedCoverId ?? null,
+  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    selectedCoverUrl ?? null,
   );
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +127,7 @@ export function BookSearch({
       skipSearch.current = true;
       setQuery(response.book.title);
       setPreviewCover(response.book.cover_id);
+      setPreviewUrl(response.book.cover_url);
       setResults([]);
       setOpen(false);
     } catch {
@@ -176,15 +190,17 @@ export function BookSearch({
 
       {selected && !open ? (
         <div className={styles.selectedBox}>
-          {previewCover ? (
+          {previewCover || previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- local cover proxy
             <img
               alt=""
               className={styles.selectedPoster}
-              src={coverUrl(previewCover, "M") ?? ""}
+              src={coverUrl(previewCover, previewUrl, "M") ?? ""}
             />
           ) : (
-            <div aria-hidden="true" className={styles.selectedPoster} />
+            <div aria-hidden="true" className={styles.selectedPoster}>
+              <IconBook size={22} />
+            </div>
           )}
           <div className={styles.selectedInfo}>
             <p className={styles.selectedTitle}>{selected}</p>
@@ -225,12 +241,12 @@ export function BookSearch({
                     onMouseEnter={() => setActive(index)}
                     type="button"
                   >
-                    {coverUrl(item.cover_id, "S") ? (
+                    {coverUrl(item.cover_id, item.cover_url, "S") ? (
                       // eslint-disable-next-line @next/next/no-img-element -- local cover proxy
                       <img
                         alt=""
                         className={styles.poster}
-                        src={coverUrl(item.cover_id, "S") ?? ""}
+                        src={coverUrl(item.cover_id, item.cover_url, "S") ?? ""}
                       />
                     ) : (
                       <div aria-hidden="true" className={styles.poster} />
@@ -252,6 +268,10 @@ export function BookSearch({
             {t("bookSearch.source")}{" "}
             <a href="https://openlibrary.org" rel="noreferrer" target="_blank">
               Open Library
+            </a>
+            {" · "}
+            <a href="https://books.google.com" rel="noreferrer" target="_blank">
+              Google Books
             </a>
           </p>
         </div>

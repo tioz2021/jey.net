@@ -100,6 +100,8 @@ pub struct Config {
     pub google_redirect_url: Option<String>,
     /// TMDB v4 read token; movie search is disabled when absent.
     pub tmdb_read_token: Option<String>,
+    /// Google Books API key; the fallback book search is disabled when absent.
+    pub google_books_key: Option<String>,
     /// Days a deleted account is kept for recovery before the purge task.
     pub purge_retention_days: i32,
 }
@@ -210,6 +212,7 @@ impl Config {
         let google_client_secret = var("GOOGLE_CLIENT_SECRET");
         let google_redirect_url = var("GOOGLE_REDIRECT_URL");
         let tmdb_read_token = var("TMDB_READ_TOKEN");
+        let google_books_key = var("GOOGLE_BOOKS_API_KEY");
 
         Ok(Self {
             app_env,
@@ -228,6 +231,7 @@ impl Config {
             google_client_secret,
             google_redirect_url,
             tmdb_read_token,
+            google_books_key,
             purge_retention_days,
         })
     }
