@@ -50,6 +50,16 @@ export function IconTv(props: IconProps) {
   );
 }
 
+export function IconAnime(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect height="13" rx="1.5" width="18" x="3" y="6" {...stroke()} />
+      <path d="m9 10 5 2.5-5 2.5v-5Z" {...stroke()} />
+      <path d="M18 3v3M16.5 4.5h3" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconGame(props: IconProps) {
   return (
     <svg {...base(props)}>

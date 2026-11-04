@@ -39,6 +39,21 @@
   background: var(--color-surface);
 }
 
+.label {
+  min-width: 0;
+}
+
+.count {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.active .count {
+  color: var(--color-text);
+}
+
 .trashLink {
   margin-top: var(--space-1);
   border-top: 1px solid var(--color-border);
@@ -86,6 +101,10 @@
   .trashLink {
     margin-top: 0;
     border-top: 0;
+  }
+
+  .count {
+    display: none;
   }
 
   .active {

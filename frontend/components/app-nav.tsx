@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
+  IconAnime,
   IconBook,
   IconFilm,
   IconGame,
@@ -12,6 +13,8 @@ import {
   IconTrash,
   IconTv,
 } from "@/components/icons";
+import { api } from "@/lib/api";
+import type { Stats } from "@/lib/types";
 
 import { useI18n } from "@/lib/locale-context";
 import type { TranslationKey } from "@/lib/i18n";
@@ -27,10 +30,12 @@ const KINDS: Array<{
   { kind: null, labelKey: "nav.all", Icon: IconList },
   { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
   { kind: "tv", labelKey: "nav.series", Icon: IconTv },
+  { kind: "anime", labelKey: "nav.anime", Icon: IconAnime },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
   { kind: "game", labelKey: "nav.games", Icon: IconGame },
-  { kind: "anime", labelKey: "nav.anime", Icon: IconTv },
 ];
+
+const VISIBLE_KINDS = ["movie", "tv", "anime", "book", "game"] as const;
 
 function kindFromLocation(): string | null {
   return new URLSearchParams(window.location.search).get("kind");
@@ -41,11 +46,29 @@ export function AppNav() {
   const pathname = usePathname();
   const params = useSearchParams();
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
+  const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
   const onItems = pathname === "/items";
 
   useEffect(() => {
     setActiveKind(params.get("kind"));
   }, [params]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.stats
+      .get()
+      .then((stats: Stats) => {
+        if (!cancelled) {
+          setCounts(stats.by_kind);
+        }
+      })
+      .catch(() => {
+        // Counts are decorative; the catalogue must work if stats fail.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   // Filters change the URL without an App Router navigation, so the active
   // item has to follow our own event as well as back/forward.
@@ -102,7 +125,15 @@ export function AppNav() {
             }}
           >
             <Icon size={14} />
-            {t(labelKey)}
+            <span className={styles.label}>{t(labelKey)}</span>
+            <span className={styles.count}>
+              {kind === null
+                ? VISIBLE_KINDS.reduce(
+                    (total, key) => total + (counts[key] ?? 0),
+                    0,
+                  )
+                : (counts[kind] ?? 0)}
+            </span>
             </Link>
           );
         })}
