@@ -71,6 +71,10 @@
 }
 
 @media (width <= 1000px) {
+  .desktopSearch {
+    display: none;
+  }
+
   .head {
     display: none;
   }

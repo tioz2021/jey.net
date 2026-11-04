@@ -13,6 +13,7 @@ import { describeError } from "@/lib/messages";
 import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types";
 
 import { ItemsFilters } from "./filters";
+import { SearchBox } from "./search-box";
 import { useItemsQuery } from "./query-context";
 import { ItemCard } from "./item-card";
 import styles from "./item-list.module.css";
@@ -220,6 +221,9 @@ export function ItemList({
 
   return (
     <div className={styles.layout}>
+      <div className={styles.mobileSearch}>
+        <SearchBox />
+      </div>
       <ItemsFilters
         onSelect={() => setSelectionMode(true)}
         selectionMode={selectionMode}

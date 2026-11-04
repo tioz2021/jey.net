@@ -11,7 +11,7 @@ import styles from "./search-box.module.css";
 
 const DEBOUNCE_MS = 300;
 
-export function SearchBox() {
+export function SearchBox({ className }: { className?: string }) {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
   const urlQuery = params.get("q") ?? "";
@@ -66,7 +66,7 @@ export function SearchBox() {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.wrapper} ${className ?? ""}`}>
       <div className={styles.field}>
         <Input
           label={t("search.fieldLabel")}

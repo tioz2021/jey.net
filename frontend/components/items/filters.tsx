@@ -88,7 +88,7 @@ export function ItemsFilters({
       </button>
 
       <div className={styles.body} id="filters-body">
-        <SearchBox />
+        <SearchBox className={styles.desktopSearch} />
 
         <div className={styles.row}>
         <Select

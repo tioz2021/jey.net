@@ -139,3 +139,13 @@
     margin-left: auto;
   }
 }
+
+.mobileSearch {
+  display: none;
+}
+
+@media (width <= 1000px) {
+  .mobileSearch {
+    display: block;
+  }
+}
