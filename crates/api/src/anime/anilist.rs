@@ -7,6 +7,7 @@ use serde_json::{Value, json};
 
 use super::SearchItem;
 use crate::error::AppError;
+use crate::movies::tmdb::SimilarItem;
 use jey_core::items::MovieDetails;
 
 const ENDPOINT: &str = "https://graphql.anilist.co";
@@ -123,6 +124,35 @@ pub async fn search(query: &str) -> Result<Vec<SearchItem>, AppError> {
                             .get("episodes")
                             .and_then(Value::as_i64)
                             .map(|value| value as i32),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default())
+}
+
+pub async fn similar(id: u64) -> Result<Vec<SimilarItem>, AppError> {
+    let body = "query ($id: Int) { Media(id: $id, type: ANIME) { recommendations(perPage: 12, sort: RATING_DESC) { nodes { mediaRecommendation { id title { romaji english native } startDate { year } coverImage { extraLarge large } } } } } }";
+    let value = graphql(body, json!({ "id": id })).await?;
+    Ok(value
+        .pointer("/data/Media/recommendations/nodes")
+        .and_then(Value::as_array)
+        .map(|nodes| {
+            nodes
+                .iter()
+                .filter_map(|node| {
+                    let media = node.get("mediaRecommendation")?;
+                    let id = media.get("id").and_then(Value::as_u64)?;
+                    let title = title(media)?;
+                    Some(SimilarItem {
+                        source: "anilist".to_owned(),
+                        external_id: id,
+                        title,
+                        year: year(media),
+                        poster_path: None,
+                        cover_url: cover(media),
+                        kind: "anime".to_owned(),
+                        href: format!("https://anilist.co/anime/{id}"),
                     })
                 })
                 .collect()

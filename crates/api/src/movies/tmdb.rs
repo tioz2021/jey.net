@@ -21,6 +21,8 @@ pub struct SimilarItem {
     pub title: String,
     pub year: Option<i32>,
     pub poster_path: Option<String>,
+    pub cover_url: Option<String>,
+    pub kind: String,
     pub href: String,
 }
 
@@ -318,6 +320,8 @@ impl TmdbClient {
                                 .get("poster_path")
                                 .and_then(Value::as_str)
                                 .map(str::to_owned),
+                            cover_url: None,
+                            kind: media.to_owned(),
                             href: format!("https://www.themoviedb.org/{media}/{id}"),
                         })
                     })

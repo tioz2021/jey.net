@@ -12,6 +12,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::error::AppError;
+use crate::movies::tmdb::SimilarItem;
 use jey_core::items::MovieDetails;
 
 const API: &str = "https://api.igdb.com/v4";
@@ -279,6 +280,59 @@ impl IgdbClient {
             seasons: Vec::new(),
             watched_episodes: Vec::new(),
         })
+    }
+
+    pub async fn similar(&self, id: u64) -> Result<Vec<SimilarItem>, AppError> {
+        let row = self
+            .query(
+                "games",
+                format!("fields similar_games; where id = {id}; limit 1;"),
+            )
+            .await?
+            .into_iter()
+            .next()
+            .ok_or_else(|| AppError::not_found("game not found"))?;
+        let ids: Vec<String> = row
+            .get("similar_games")
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(Value::as_u64)
+                    .take(12)
+                    .map(|value| value.to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        if ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let rows = self
+            .query(
+                "games",
+                format!(
+                    "fields name,first_release_date,cover.url; where id = ({}); limit 12;",
+                    ids.join(",")
+                ),
+            )
+            .await?;
+        Ok(rows
+            .iter()
+            .filter_map(|row| {
+                let id = row.get("id").and_then(Value::as_u64)?;
+                let title = row.get("name").and_then(Value::as_str)?.to_owned();
+                Some(SimilarItem {
+                    source: "igdb".to_owned(),
+                    external_id: id,
+                    title,
+                    year: year(row.get("first_release_date").and_then(Value::as_i64)),
+                    poster_path: None,
+                    cover_url: cover(row),
+                    kind: "game".to_owned(),
+                    href: format!("https://www.igdb.com/games/{id}"),
+                })
+            })
+            .collect())
     }
 
     pub async fn cover(&self, url: &str) -> Result<(String, Vec<u8>), AppError> {

@@ -30,16 +30,21 @@ pub async fn similar(
     let Some(external_id) = external_id.and_then(|value| value.parse::<u64>().ok()) else {
         return Ok(Json(json!({ "items": [] })));
     };
-    if source != "tmdb" {
-        return Ok(Json(json!({ "items": [] })));
-    }
-    let language = match current.user.locale.as_str() {
-        "ru" => "ru-RU",
-        "uk" => "uk-UA",
-        _ => "en-US",
+    let items = match source.as_str() {
+        "tmdb" => {
+            let language = match current.user.locale.as_str() {
+                "ru" => "ru-RU",
+                "uk" => "uk-UA",
+                _ => "en-US",
+            };
+            let media = if kind == "tv" { "tv" } else { "movie" };
+            state.tmdb.similar(media, external_id, language).await?
+        }
+        "igdb" => state.igdb.similar(external_id).await?,
+        "anilist" => crate::anime::anilist::similar(external_id).await?,
+        "shikimori" => crate::anime::shikimori::similar(external_id).await?,
+        _ => Vec::new(),
     };
-    let media = if kind == "tv" { "tv" } else { "movie" };
-    let items = state.tmdb.similar(media, external_id, language).await?;
     Ok(Json(json!({ "items": items })))
 }
 

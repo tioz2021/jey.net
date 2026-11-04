@@ -321,6 +321,8 @@ export interface SimilarItem {
   title: string;
   year: number | null;
   poster_path: string | null;
+  cover_url: string | null;
+  kind: string;
   href: string;
 }
 

@@ -46,6 +46,16 @@ export function SimilarItems({ itemId }: { itemId: string }) {
                   alt=""
                   src={`/api/v1/movies/image?size=w185&path=${encodeURIComponent(item.poster_path)}`}
                 />
+              ) : item.cover_url ? (
+                // eslint-disable-next-line @next/next/no-img-element -- provider cover proxy
+                <img
+                  alt=""
+                  src={
+                    item.source === "igdb"
+                      ? `/api/v1/games/image?url=${encodeURIComponent(item.cover_url)}`
+                      : `/api/v1/anime/image?url=${encodeURIComponent(item.cover_url)}`
+                  }
+                />
               ) : (
                 <span aria-hidden="true" className={styles.placeholder} />
               )}

@@ -7,6 +7,7 @@ use serde_json::Value;
 
 use super::SearchItem;
 use crate::error::AppError;
+use crate::movies::tmdb::SimilarItem;
 use jey_core::items::MovieDetails;
 
 const BASE: &str = "https://shikimori.one/api";
@@ -94,6 +95,41 @@ pub async fn search(query: &str) -> Result<Vec<SearchItem>, AppError> {
             })
         })
         .collect())
+}
+
+pub async fn similar(id: u64) -> Result<Vec<SimilarItem>, AppError> {
+    let response = client()
+        .get(format!("{BASE}/animes/{id}/similar"))
+        .send()
+        .await
+        .map_err(AppError::internal)?;
+    if !response.status().is_success() {
+        return Ok(Vec::new());
+    }
+    let value: Value = response.json().await.map_err(AppError::internal)?;
+    Ok(value
+        .as_array()
+        .map(|items| {
+            items
+                .iter()
+                .take(12)
+                .filter_map(|item| {
+                    let id = item.get("id").and_then(Value::as_u64)?;
+                    let title = title(item)?;
+                    Some(SimilarItem {
+                        source: "shikimori".to_owned(),
+                        external_id: id,
+                        title,
+                        year: year(item),
+                        poster_path: None,
+                        cover_url: cover(item),
+                        kind: "anime".to_owned(),
+                        href: format!("https://shikimori.one/animes/{id}"),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default())
 }
 
 pub async fn details(id: u64) -> Result<MovieDetails, AppError> {
