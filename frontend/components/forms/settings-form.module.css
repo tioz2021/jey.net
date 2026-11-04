@@ -108,3 +108,7 @@
   font-size: var(--text-sm);
   color: var(--color-danger);
 }
+
+.privacyAnchor {
+  scroll-margin-top: 80px;
+}

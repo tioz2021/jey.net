@@ -461,6 +461,7 @@ export const uk = {
   'settings.progress': 'Показувати прогрес серіалів',
   'public.block': 'Заблокувати',
   'public.unblock': 'Розблокувати',
+  'public.privacy': 'Налаштування приватності',
   'public.follow': 'Підписатися',
   'public.following': 'Ви підписані',
   'public.followers': 'Підписників: {count}',

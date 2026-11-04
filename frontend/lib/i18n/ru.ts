@@ -460,6 +460,7 @@ export const ru = {
   'settings.progress': 'Показывать прогресс сериалов',
   'public.block': 'Заблокировать',
   'public.unblock': 'Разблокировать',
+  'public.privacy': 'Настройки приватности',
   'public.follow': 'Подписаться',
   'public.following': 'Вы подписаны',
   'public.followers': 'Подписчиков: {count}',

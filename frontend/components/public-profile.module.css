@@ -205,3 +205,8 @@
   gap: var(--space-3);
   flex-wrap: wrap;
 }
+
+.privacyLink {
+  font-size: var(--text-sm);
+  color: var(--color-link);
+}

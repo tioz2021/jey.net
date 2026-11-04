@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
@@ -188,6 +189,11 @@ export function PublicProfileView({
           <div className={styles.identityText}>
             <div className={styles.nameRow}>
               <h1 className={styles.name}>{profile.display_name}</h1>
+              {user?.id === profile.id ? (
+                <Link className={styles.privacyLink} href="/settings#privacy">
+                  {t("public.privacy")}
+                </Link>
+              ) : null}
               {user && user.id !== profile.id ? (
                 <>
                   {!blocked ? (

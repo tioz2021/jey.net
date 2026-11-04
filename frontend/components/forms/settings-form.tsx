@@ -163,6 +163,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         />
       </Card>
 
+      <div className={styles.privacyAnchor} id="privacy">
       <Card title={t("settings.profile")}>
         <form className={styles.form} onSubmit={saveProfile} noValidate>
           <Input
@@ -278,6 +279,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
           </div>
         </form>
       </Card>
+      </div>
 
       <Card title={t("settings.sessions")}>
         <p className={styles.muted}>

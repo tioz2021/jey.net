@@ -461,6 +461,7 @@ export const en = {
   'settings.progress': 'Show series progress',
   'public.block': 'Block',
   'public.unblock': 'Unblock',
+  'public.privacy': 'Privacy settings',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',
