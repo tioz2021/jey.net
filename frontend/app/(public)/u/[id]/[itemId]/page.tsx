@@ -19,7 +19,6 @@ import { formatDate, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import {
   localizedSubtitle,
-  localizedTags,
   localizedTitle,
 } from "@/lib/item-title";
 import { getPublicItem } from "@/lib/public-profile";
@@ -107,7 +106,6 @@ export default async function PublicItemPage({
 
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
-  const displayTags = localizedTags(item, locale);
   const KindIcon = KIND_ICONS[item.kind];
 
   return (
@@ -168,21 +166,6 @@ export default async function PublicItemPage({
                   )}
                 </dd>
               </div>
-
-              {displayTags.length > 0 ? (
-                <div className={styles.fact}>
-                  <dt>{t("item.tags")}</dt>
-                  <dd>
-                    <ul className={styles.tags}>
-                      {displayTags.map((tag) => (
-                        <li key={tag}>
-                          <Badge>{tag}</Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              ) : null}
 
               <div className={styles.fact}>
                 <dt>{t("public.updated")}</dt>

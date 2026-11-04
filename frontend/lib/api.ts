@@ -17,13 +17,11 @@ import type {
   ItemResponse,
   NewItem,
   Stats,
-  TagCount,
   TvSeasonResponse,
   BookDetailsResponse,
   BookSearchItem,
   MovieDetailsResponse,
   MovieSearchItem,
-  TagsResponse,
   UserResponse,
 } from "./types";
 
@@ -308,24 +306,6 @@ export const uploads = {
   },
 };
 
-export const tags = {
-  list: () => request<TagsResponse>("/tags"),
-
-  remove: (id: string) => request<void>(`/tags/${id}`, { method: "DELETE" }),
-
-  rename: (id: string, name: string) =>
-    request<{ tag: TagCount }>(`/tags/${id}`, {
-      method: "PATCH",
-      body: { name },
-    }),
-
-  merge: (id: string, intoId: string) =>
-    request<{ merged_into: string }>(`/tags/${id}/merge`, {
-      method: "POST",
-      body: { into_id: intoId },
-    }),
-};
-
 export const movies = {
   search: (q: string) =>
     request<{ results: MovieSearchItem[] }>(
@@ -380,6 +360,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, books, items, movies, publicItems, tv, tags, stats, transfer, uploads };
+export const api = { auth, books, items, movies, publicItems, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

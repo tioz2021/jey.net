@@ -24,7 +24,6 @@ import { CoverPicker } from "@/components/items/cover-picker";
 import { StarRating } from "@/components/forms/star-rating";
 import { BookSearch } from "@/components/items/book-search";
 import { MovieSearch } from "@/components/items/movie-search";
-import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
@@ -54,7 +53,6 @@ type Field =
   | "rating"
   | "review"
   | "source_url"
-  | "tags"
   | "form";
 
 type Errors = Partial<Record<Field, string>>;
@@ -72,7 +70,6 @@ interface Values {
   external_id: string;
   details: MovieDetails | null;
   public_hidden: boolean;
-  tags: string[];
 }
 
 const INITIAL: Values = {
@@ -88,7 +85,6 @@ const INITIAL: Values = {
   external_id: "",
   details: null,
   public_hidden: false,
-  tags: [],
 };
 
 function toValues(item?: Item, initialKind?: ItemKind): Values {
@@ -109,7 +105,6 @@ function toValues(item?: Item, initialKind?: ItemKind): Values {
     external_id: item.external_id ?? "",
     details: item.details,
     public_hidden: item.public_hidden ?? false,
-    tags: [...item.tags],
   };
 }
 
@@ -193,25 +188,10 @@ function validate(
       external_id: values.external_id || null,
       details: values.details,
       public_hidden: values.public_hidden,
-      tags: values.tags,
     },
   };
 }
 
-function mergeTags(current: string[], incoming: string[]): string[] {
-  const seen = new Set(current.map((tag) => tag.toLowerCase()));
-  const merged = [...current];
-
-  for (const tag of incoming) {
-    const key = tag.trim().toLowerCase();
-    if (key && key.length <= 40 && !seen.has(key) && merged.length < 20) {
-      seen.add(key);
-      merged.push(tag.trim());
-    }
-  }
-
-  return merged;
-}
 
 export function ItemForm({
   initial,
@@ -280,7 +260,7 @@ export function ItemForm({
         number_of_episodes: movie.number_of_episodes,
         seasons: movie.seasons,
       },
-      tags: mergeTags(current.tags, movie.genres),
+
     }));
     setPosterPending(true);
     setCoverUploadId(null);
@@ -330,7 +310,7 @@ export function ItemForm({
         seasons: [],
         watched_episodes: [],
       },
-      tags: mergeTags(current.tags, book.subjects),
+
     }));
     setPosterPending(true);
     setCoverUploadId(null);
@@ -425,7 +405,7 @@ export function ItemForm({
       values.kind === "tv" ||
       values.kind === "book");
   const submitError =
-    errors.form ?? errors.tags ?? Object.values(errors).find(Boolean);
+    errors.form ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;
 
   return (
@@ -559,12 +539,6 @@ export function ItemForm({
             />
             {t("form.hidePublic")}
           </label>
-
-          <TagInput
-            tags={values.tags}
-            onChange={(tags) => update("tags", tags)}
-            error={errors.tags}
-          />
 
           <CoverPicker
             currentUrl={

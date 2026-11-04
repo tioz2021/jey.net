@@ -10,7 +10,6 @@ import {
   IconList,
   IconSettings,
   IconStats,
-  IconTag,
 } from "@/components/icons";
 import { useI18n } from "@/lib/locale-context";
 import type { TranslationKey } from "@/lib/i18n";
@@ -23,7 +22,6 @@ const SECTIONS: Array<{
   Icon: typeof IconList;
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
-  { href: "/tags", labelKey: "nav.tags", Icon: IconTag },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];

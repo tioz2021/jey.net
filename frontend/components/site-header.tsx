@@ -11,7 +11,6 @@ import {
   IconList,
   IconSettings,
   IconStats,
-  IconTag,
 } from "@/components/icons";
 import { QuickAdd } from "@/components/quick-add";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,7 +27,6 @@ const SECTIONS: Array<{
   Icon: typeof IconList;
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
-  { href: "/tags", labelKey: "nav.tags", Icon: IconTag },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];

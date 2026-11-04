@@ -10,6 +10,5 @@ pub mod list;
 pub mod refresh;
 pub mod repo;
 pub mod search;
-pub mod tags;
 pub mod update;
 pub mod view;

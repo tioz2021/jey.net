@@ -23,7 +23,6 @@ const FIELD_KEYS: Record<string, TranslationKey> = {
   rating: "form.rating",
   review: "form.note",
   source_url: "field.source_url",
-  tags: "form.tags",
   kind: "form.kind",
   status: "form.status",
   locale: "field.locale",

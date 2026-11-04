@@ -10,11 +10,7 @@ import {
 } from "@/components/icons";
 import { Badge } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
-import {
-  localizedSubtitle,
-  localizedTags,
-  localizedTitle,
-} from "@/lib/item-title";
+import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import { RatingStars } from "@/components/items/rating-stars";
 import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
@@ -60,7 +56,6 @@ export interface ItemCardData {
   rating: number | null;
   review: string | null;
   cover_key: string | null;
-  tags: string[];
   deleted_at?: string | null;
   details?: {
     genres?: string[] | null;
@@ -93,7 +88,7 @@ export function ItemCard({
   const { t, locale } = useI18n();
   const title = localizedTitle(item, locale);
   const subtitle = localizedSubtitle(item, locale);
-  const tags = localizedTags(item, locale);
+
   const watchedEpisodes = item.details?.watched_episodes?.length ?? 0;
   const PlaceholderIcon = KIND_ICONS[item.kind];
   const meta = [
@@ -164,15 +159,6 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {tags.length > 0 ? (
-          <ul className={styles.tags}>
-            {tags.map((tag) => (
-              <li key={tag}>
-                <Badge>{tag}</Badge>
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </div>
     </article>
   );

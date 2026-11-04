@@ -22,7 +22,6 @@ import { formatDate as formatDateI18n, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import {
   localizedSubtitle,
-  localizedTags,
   localizedTitle,
 } from "@/lib/item-title";
 import { backendFetch } from "@/lib/server-api";
@@ -98,7 +97,6 @@ export default async function ItemPage({
   const { item } = (await response.json()) as ItemResponse;
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
-  const displayTags = localizedTags(item, locale);
   const KindIcon = KIND_ICONS[item.kind];
 
   let prevHref: string | null = null;
@@ -186,21 +184,6 @@ export default async function ItemPage({
                   )}
                 </dd>
               </div>
-
-              {displayTags.length > 0 ? (
-                <div className={styles.fact}>
-                  <dt>{t("item.tags")}</dt>
-                  <dd>
-                    <ul className={styles.tags}>
-                      {displayTags.map((tag) => (
-                        <li key={tag}>
-                          <Badge>{tag}</Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              ) : null}
 
               {item.source_url ? (
                 <div className={styles.fact}>

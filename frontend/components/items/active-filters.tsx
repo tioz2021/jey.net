@@ -65,11 +65,6 @@ function buildChips(
     });
   }
 
-  const tag = params.get("tag");
-  if (tag) {
-    chips.push({ key: "tag", label: t("active.tag", { tag }) });
-  }
-
   const sort = params.get("sort");
   if (sort && sort !== "created_desc") {
     chips.push({

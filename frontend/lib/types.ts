@@ -169,7 +169,6 @@ export interface Item {
   details: MovieDetails | null;
   details_fetched_at: string | null;
   public_hidden: boolean;
-  tags: string[];
   revision: number;
   sync_seq: number;
   created_at: string;
@@ -190,7 +189,6 @@ export interface NewItem {
   external_id?: string | null;
   details?: MovieDetails | null;
   public_hidden?: boolean;
-  tags?: string[];
 }
 
 /** Partial update: absent fields are left untouched by the server. */
@@ -221,12 +219,6 @@ export interface ItemNeighbors {
 export interface ItemList {
   items: Item[];
   next_cursor: string | null;
-}
-
-export interface TagCount {
-  id: string;
-  name: string;
-  item_count: number;
 }
 
 export interface YearCount {
@@ -279,7 +271,6 @@ export interface PublicItem {
   external_id: string | null;
   details: MovieDetails | null;
   public_hidden: boolean;
-  tags: string[];
   titles?: Record<string, string> | null;
   directors?: Record<string, string> | null;
   genres?: Record<string, string[]> | null;
@@ -312,6 +303,3 @@ export interface UploadResponse {
   upload: Upload;
 }
 
-export interface TagsResponse {
-  tags: TagCount[];
-}
