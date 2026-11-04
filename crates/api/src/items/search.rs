@@ -52,6 +52,9 @@ pub async fn search(
                i.title ilike $9 escape '\\'
                or i.subtitle ilike $9 escape '\\'
                or i.review ilike $9 escape '\\'
+               or similarity(i.title, $10) >= 0.3
+               or similarity(i.subtitle, $10) >= 0.3
+               or similarity(i.review, $10) >= 0.45
            )
          order by greatest(
              similarity(i.title, $10),

@@ -190,7 +190,16 @@ pub async fn search(
     )
     .await?;
 
-    let results = state.anime.search(q, &current.user.locale).await?;
+    let mut results = state.anime.search(q, &current.user.locale).await?;
+    if results.is_empty()
+        && let Some(prefix) = crate::fuzzy::prefix_for(q)
+    {
+        results = crate::fuzzy::rank(
+            state.anime.search(&prefix, &current.user.locale).await?,
+            q,
+            |item| &item.title,
+        );
+    }
     Ok(Json(json!({ "results": results })).into_response())
 }
 

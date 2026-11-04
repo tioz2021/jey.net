@@ -60,7 +60,14 @@ pub async fn search(
     .await?;
 
     let language = language_for(&current.user.locale);
-    let results = state.tmdb.search(q, language).await?;
+    let mut results = state.tmdb.search(q, language).await?;
+    if results.is_empty()
+        && let Some(prefix) = crate::fuzzy::prefix_for(q)
+    {
+        results = crate::fuzzy::rank(state.tmdb.search(&prefix, language).await?, q, |item| {
+            &item.title
+        });
+    }
 
     Ok(Json(json!({ "results": results })).into_response())
 }
@@ -89,7 +96,14 @@ pub async fn tv_search(
     ratelimit::enforce(&state.pool, SEARCH_RULE, &format!("tv:{}", current.user.id)).await?;
 
     let language = language_for(&current.user.locale);
-    let results = state.tmdb.search_tv(q, language).await?;
+    let mut results = state.tmdb.search_tv(q, language).await?;
+    if results.is_empty()
+        && let Some(prefix) = crate::fuzzy::prefix_for(q)
+    {
+        results = crate::fuzzy::rank(state.tmdb.search_tv(&prefix, language).await?, q, |item| {
+            &item.title
+        });
+    }
 
     Ok(Json(json!({ "results": results })).into_response())
 }

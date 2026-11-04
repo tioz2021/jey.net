@@ -50,7 +50,15 @@ pub async fn search(
         &format!("games:{}", current.user.id),
     )
     .await?;
-    Ok(Json(json!({ "results": state.igdb.search_cached(q).await? })).into_response())
+    let mut results = state.igdb.search_cached(q).await?;
+    if results.is_empty()
+        && let Some(prefix) = crate::fuzzy::prefix_for(q)
+    {
+        results = crate::fuzzy::rank(state.igdb.search_cached(&prefix).await?, q, |item| {
+            &item.title
+        });
+    }
+    Ok(Json(json!({ "results": results })).into_response())
 }
 
 pub async fn details(

@@ -177,10 +177,22 @@ pub async fn search(
         "uk" => "uk",
         _ => "en",
     };
-    let results = state
+    let mut results = state
         .books
         .search(q, locale, state.config.google_books_key.as_deref())
         .await?;
+    if results.is_empty()
+        && let Some(prefix) = crate::fuzzy::prefix_for(q)
+    {
+        results = crate::fuzzy::rank(
+            state
+                .books
+                .search(&prefix, locale, state.config.google_books_key.as_deref())
+                .await?,
+            q,
+            |item| &item.title,
+        );
+    }
     Ok(Json(json!({ "results": results })).into_response())
 }
 
