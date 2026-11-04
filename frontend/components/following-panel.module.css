@@ -1,0 +1,48 @@
+.privacy {
+  font-size: var(--text-sm);
+  color: var(--color-link);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 4px 8px;
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.person:hover {
+  border-color: var(--color-accent);
+}
+
+.person img,
+.initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}

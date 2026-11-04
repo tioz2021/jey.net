@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AddRecordButton } from "@/components/items/add-record-button";
 import { ItemList } from "@/components/items/item-list";
+import { FollowingPanel } from "@/components/following-panel";
 import { ItemsQueryProvider } from "@/components/items/query-context";
 import { PageHeader } from "@/components/ui";
 import { translate } from "@/lib/i18n";
@@ -70,6 +71,7 @@ export default async function ItemsPage({
             initialLoaded={initialLoaded}
             initialQuery={search}
           />
+          <FollowingPanel />
         </div>
       </ItemsQueryProvider>
     </main>

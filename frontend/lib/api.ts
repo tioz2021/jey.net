@@ -11,6 +11,7 @@ import type {
   ImportReport,
   UploadResponse,
   FollowState,
+  FollowingProfile,
   FeedItem,
   Item,
   ItemFilters,
@@ -321,6 +322,8 @@ export const movies = {
 };
 
 export const follows = {
+  following: () =>
+    request<{ people: FollowingProfile[] }>("/follows/following"),
   status: (id: string) =>
     request<FollowState>(`/users/${encodeURIComponent(id)}/follow`),
   follow: (id: string) =>

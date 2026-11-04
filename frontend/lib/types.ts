@@ -304,6 +304,12 @@ export interface PublicItem {
   progress_visible?: boolean;
 }
 
+export interface FollowingProfile {
+  id: string;
+  display_name: string;
+  avatar_key: string | null;
+}
+
 export interface FollowState {
   following: boolean;
   blocked?: boolean;
