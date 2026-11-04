@@ -27,6 +27,7 @@ export default async function NewItemPage({
     requested === "tv" ||
     requested === "book" ||
     requested === "game" ||
+    requested === "anime" ||
     requested === "image" ||
     requested === "other" ||
     requested === "movie"
