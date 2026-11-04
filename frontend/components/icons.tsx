@@ -40,6 +40,14 @@ export function IconBellOff(props: IconProps) {
   );
 }
 
+export function IconSparkles(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m12 3 1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3ZM19 15l.8 1.7L21.5 18l-1.7.8L19 20.5l-.8-1.7L16.5 18l1.7-.8L19 15Z" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconFeed(props: IconProps) {
   return (
     <svg {...base(props)}>

@@ -304,6 +304,13 @@ export interface PublicItem {
   progress_visible?: boolean;
 }
 
+export interface FriendRecommendation extends PublicItem {
+  author_id: string;
+  friends: string[];
+  friend_count: number;
+  average_rating: number;
+}
+
 export interface FollowingProfile {
   id: string;
   display_name: string;

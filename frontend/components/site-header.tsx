@@ -11,6 +11,7 @@ import { Logo } from "@/components/logo";
 import {
   IconFeed,
   IconList,
+  IconSparkles,
   IconSettings,
   IconStats,
 } from "@/components/icons";
@@ -30,6 +31,7 @@ const SECTIONS: Array<{
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
+  { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];

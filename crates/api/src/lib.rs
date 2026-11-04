@@ -20,3 +20,5 @@ pub mod movies;
 pub mod stats;
 pub mod telemetry;
 pub mod users;
+
+pub mod recommendations;
