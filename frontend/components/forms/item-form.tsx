@@ -28,7 +28,7 @@ import { MovieSearch } from "@/components/items/movie-search";
 import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
-const KINDS = Object.keys(KIND_KEYS) as ItemKind[];
+const KINDS: ItemKind[] = ["movie", "tv", "book", "game"];
 
 /** Films and pictures are noted instantly; only books and notes are "in progress". */
 const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {

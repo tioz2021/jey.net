@@ -8,9 +8,7 @@ import {
   IconBook,
   IconFilm,
   IconGame,
-  IconImage,
   IconList,
-  IconOther,
   IconTrash,
   IconTv,
 } from "@/components/icons";
@@ -31,8 +29,6 @@ const KINDS: Array<{
   { kind: "tv", labelKey: "nav.series", Icon: IconTv },
   { kind: "book", labelKey: "nav.books", Icon: IconBook },
   { kind: "game", labelKey: "nav.games", Icon: IconGame },
-  { kind: "image", labelKey: "nav.images", Icon: IconImage },
-  { kind: "other", labelKey: "nav.other", Icon: IconOther },
 ];
 
 function kindFromLocation(): string | null {

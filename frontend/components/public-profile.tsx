@@ -11,7 +11,7 @@ import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
 
 import styles from "./public-profile.module.css";
 
-const ORDER: ItemKind[] = ["movie", "tv", "book", "image", "other"];
+const ORDER: ItemKind[] = ["movie", "tv", "book", "game"];
 const PAGE_LIMIT = 12;
 
 const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "nav.games" | "nav.images" | "nav.other"> = {
@@ -34,16 +34,21 @@ export function PublicProfileView({
   const [active, setActive] = useState<ItemKind | "all">("all");
   const [expanded, setExpanded] = useState(false);
 
+  const visibleItems = useMemo(
+    () => items.filter((item) => ORDER.includes(item.kind)),
+    [items],
+  );
+
   const counts = useMemo(() => {
     const map = new Map<ItemKind, number>();
-    for (const item of items) {
+    for (const item of visibleItems) {
       map.set(item.kind, (map.get(item.kind) ?? 0) + 1);
     }
     return map;
-  }, [items]);
+  }, [visibleItems]);
 
   const kinds = ORDER.filter((kind) => (counts.get(kind) ?? 0) > 0);
-  const shown = expanded ? items : items.slice(0, PAGE_LIMIT);
+  const shown = expanded ? visibleItems : visibleItems.slice(0, PAGE_LIMIT);
   const visible =
     active === "all" ? shown : shown.filter((item) => item.kind === active);
 

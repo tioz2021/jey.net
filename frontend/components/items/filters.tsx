@@ -12,7 +12,7 @@ import { useItemsQuery } from "./query-context";
 import { SearchBox } from "./search-box";
 import styles from "./filters.module.css";
 
-const KINDS = Object.keys(KIND_KEYS) as ItemKind[];
+const KINDS: ItemKind[] = ["movie", "tv", "book", "game"];
 const STATUSES = Object.keys(STATUS_KEYS) as ItemStatus[];
 const SORTS = Object.keys(SORT_KEYS) as Sort[];
 
