@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { HeaderSearch } from "@/components/header-search";
+import { FeedBadge } from "@/components/feed-badge";
 import { LanguageSwitch } from "@/components/language-switch";
 import {
   IconList,
@@ -104,6 +105,7 @@ export function MobileMenu() {
                 >
                   <Icon size={16} />
                   {t(labelKey)}
+                  {href === "/feed" ? <FeedBadge /> : null}
                 </Link>
               );
             })}

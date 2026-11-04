@@ -246,3 +246,19 @@ button:not(:disabled):active {
     scroll-behavior: auto !important;
   }
 }
+
+.feed-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: 8px;
+}

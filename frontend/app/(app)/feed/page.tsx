@@ -10,6 +10,7 @@ import { Button, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
+import { markFeedSeen } from "@/components/feed-badge";
 import type { FeedItem } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -29,7 +30,10 @@ export default function FeedPage() {
     api.feed
       .get()
       .then((response) => {
-        if (!cancelled) setItems(response.items);
+        if (!cancelled) {
+          setItems(response.items);
+          markFeedSeen();
+        }
       })
       .catch((cause) => {
         if (!cancelled) setError(describeError(cause, i18n).text);

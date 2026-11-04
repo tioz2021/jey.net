@@ -279,6 +279,8 @@ export interface PublicProfile {
   banner_key: string | null;
   locale: string;
   created_at: string;
+  followers: number;
+  following: number;
 }
 
 export interface PublicItem {

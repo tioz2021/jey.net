@@ -102,6 +102,15 @@ pub async fn profile(
 ) -> Result<Json<Value>, AppError> {
     let user = load_public_user(&state.pool, id).await?;
     let items = load_public_items(&state.pool, id, &user.public_statuses).await?;
+    let (followers, following): (i64, i64) = sqlx::query_as(
+        "select
+            (select count(*) from follows where followee_id = $1),
+            (select count(*) from follows where follower_id = $1)",
+    )
+    .bind(id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
 
     Ok(Json(json!({
         "profile": {
@@ -111,6 +120,8 @@ pub async fn profile(
             "banner_key": user.banner_key,
             "locale": user.locale,
             "created_at": user.created_at,
+            "followers": followers,
+            "following": following,
         },
         "items": items,
     })))

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { HeaderSearch } from "@/components/header-search";
 import { LanguageSwitch } from "@/components/language-switch";
 import { MobileMenu } from "@/components/mobile-menu";
+import { FeedBadge } from "@/components/feed-badge";
 import { Logo } from "@/components/logo";
 import {
   IconList,
@@ -61,6 +62,7 @@ export function SiteHeader() {
               >
                 <Icon size={14} />
                 {t(labelKey)}
+                {href === "/feed" ? <FeedBadge /> : null}
               </Link>
             );
           })}

@@ -217,6 +217,8 @@ export function PublicProfileView({
               </p>
             ) : null}
             <p className={styles.meta}>
+              {t("public.followers", { count: profile.followers })} ·{" "}
+              {t("public.followingCount", { count: profile.following })} ·{" "}
               {visibleItems.length > 0
                 ? t("public.records", { count: visibleItems.length })
                 : t("public.none")}{" "}
