@@ -218,7 +218,6 @@ pub async fn following(
          from follows f
          join users u on u.id = f.followee_id
          where f.follower_id = $1
-           and f.notifications
            and u.is_public and u.deleted_at is null
          order by f.created_at desc",
     )
