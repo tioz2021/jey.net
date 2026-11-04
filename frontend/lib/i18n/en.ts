@@ -1,6 +1,9 @@
 import { ru } from "./ru";
 
 export const en = {
+  "offline.title": "No connection",
+  "offline.text": "The internet seems to be unavailable. Check your connection and try again.",
+  "offline.action": "Try again",
   "app.name": "jey.net",
   "app.tagline": "Personal portal",
   "app.skip": "Skip to content",

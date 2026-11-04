@@ -1,5 +1,8 @@
 /** Base dictionary: every other locale must provide exactly the same keys. */
 export const ru = {
+  "offline.title": "Нет соединения",
+  "offline.text": "Похоже, интернет пропал. Проверьте подключение и попробуйте снова.",
+  "offline.action": "Повторить",
   "app.name": "jey.net",
   "app.tagline": "Личный портал",
   "app.skip": "Перейти к содержимому",

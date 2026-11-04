@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 
+import { PwaRegister } from "@/components/pwa-register";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { translate } from "@/lib/i18n";
@@ -12,6 +13,10 @@ import "./globals.css";
 
 // The layout reads the locale cookie, so every route is rendered per request.
 export const dynamic = "force-dynamic";
+
+export const viewport: Viewport = {
+  themeColor: "#7c3aed",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
@@ -25,6 +30,16 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     applicationName: "jey.net",
+    manifest: "/manifest.webmanifest",
+    icons: {
+      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+      apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "jey.net",
+    },
     openGraph: {
       type: "website",
       siteName: "jey.net",
@@ -69,6 +84,7 @@ export default async function RootLayout({
         <a className="skip-link" href="#content">
           {translate(locale, "app.skip")}
         </a>
+        <PwaRegister />
         <LocaleProvider initialLocale={locale}>
           <UserProvider>
             <ToastProvider>

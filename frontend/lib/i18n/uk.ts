@@ -1,6 +1,9 @@
 import { ru } from "./ru";
 
 export const uk = {
+  "offline.title": "Немає з’єднання",
+  "offline.text": "Схоже, інтернет зник. Перевірте підключення й спробуйте ще раз.",
+  "offline.action": "Повторити",
   "app.name": "jey.net",
   "app.tagline": "Особистий портал",
   "app.skip": "Перейти до вмісту",
