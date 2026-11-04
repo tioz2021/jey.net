@@ -86,13 +86,13 @@ export default async function RootLayout({
           {translate(locale, "app.skip")}
         </a>
         <PwaRegister />
-        <PwaInstallPrompt />
         <LocaleProvider initialLocale={locale}>
           <UserProvider>
             <ToastProvider>
               <div id="content" tabIndex={-1}>
                 {children}
               </div>
+              <PwaInstallPrompt />
             </ToastProvider>
           </UserProvider>
         </LocaleProvider>
