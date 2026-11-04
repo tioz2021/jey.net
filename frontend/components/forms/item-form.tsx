@@ -30,6 +30,7 @@ import { useToast } from "@/components/toasts";
 import styles from "./item-form.module.css";
 
 const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
+const COMPACT_KINDS = new Set<ItemKind>(KINDS);
 
 /** Films and pictures are noted instantly; only books and notes are "in progress". */
 const STATUS_BY_KIND: Record<ItemKind, ItemStatus[]> = {
@@ -225,11 +226,7 @@ export function ItemForm({
   const [advanced, setAdvanced] = useState(
     () =>
       Boolean(itemId) ||
-      (startKind !== "movie" &&
-        startKind !== "tv" &&
-        startKind !== "book" &&
-        startKind !== "game" &&
-        startKind !== "anime"),
+      !COMPACT_KINDS.has(startKind),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
@@ -240,11 +237,17 @@ export function ItemForm({
   }
 
   function applyMovie(movie: MovieDetailsResponse) {
-    setValues((current) => ({
+    setValues((current) => {
+      const sameSeries =
+        current.kind === "tv" &&
+        current.external_source === "tmdb" &&
+        current.external_id === String(movie.tmdb_id);
+      return {
       ...current,
       title: movie.title,
       year: movie.year ? String(movie.year) : "",
       subtitle: movie.director ?? current.subtitle,
+      source_url: "",
       external_source: "tmdb",
       external_id: String(movie.tmdb_id),
       details: {
@@ -269,9 +272,12 @@ export function ItemForm({
         number_of_seasons: movie.number_of_seasons,
         number_of_episodes: movie.number_of_episodes,
         seasons: movie.seasons,
+        watched_episodes: sameSeries
+          ? (current.details?.watched_episodes ?? [])
+          : [],
       },
-
-    }));
+      };
+    });
     setPosterPending(true);
     setCoverUploadId(null);
     setCoverCleared(false);
@@ -386,24 +392,29 @@ export function ItemForm({
   }
 
   function changeKind(kind: ItemKind) {
-    setValues((current) => ({
-      ...current,
-      kind,
-      // A status that does not exist for the new kind would be rejected by
-      // the server, so fall back to the first allowed one.
-      status: STATUS_BY_KIND[kind].includes(current.status)
-        ? current.status
-        : (STATUS_BY_KIND[kind][0] ?? "planned"),
-    }));
-
-    // Books and images need the full form; films and series stay compact.
-    if (
-      kind !== "movie" &&
-      kind !== "tv" &&
-      kind !== "book" &&
-      kind !== "game" &&
-      kind !== "anime"
-    ) {
+    setValues((current) => {
+      const switching = current.kind !== kind;
+      const hadExternal = Boolean(current.external_id);
+      return {
+        ...current,
+        kind,
+        title: switching && hadExternal ? "" : current.title,
+        subtitle: switching && hadExternal ? "" : current.subtitle,
+        year: switching && hadExternal ? "" : current.year,
+        source_url: switching && hadExternal ? "" : current.source_url,
+        external_source: switching ? "" : current.external_source,
+        external_id: switching ? "" : current.external_id,
+        details: switching ? null : current.details,
+        status: STATUS_BY_KIND[kind].includes(current.status)
+          ? current.status
+          : (STATUS_BY_KIND[kind][0] ?? "planned"),
+      };
+    });
+    setErrors({});
+    setPosterPending(false);
+    setCoverUploadId(null);
+    setCoverCleared(false);
+    if (!COMPACT_KINDS.has(kind)) {
       setAdvanced(true);
     }
   }
@@ -411,14 +422,7 @@ export function ItemForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const compactMedia =
-      !itemId &&
-      (values.kind === "movie" ||
-        values.kind === "tv" ||
-        values.kind === "book" ||
-        values.kind === "game" ||
-        values.kind === "anime") &&
-      !advanced;
+    const compactMedia = !itemId && COMPACT_KINDS.has(values.kind) && !advanced;
     if (compactMedia && !values.title.trim()) {
       setErrors({ form: t("form.movieRequired") });
       return;
@@ -475,13 +479,7 @@ export function ItemForm({
     }
   }
 
-  const compactMedia =
-    !itemId &&
-    (values.kind === "movie" ||
-      values.kind === "tv" ||
-      values.kind === "book" ||
-      values.kind === "game" ||
-      values.kind === "anime");
+  const compactMedia = !itemId && COMPACT_KINDS.has(values.kind);
   const submitError =
     errors.form ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;

@@ -58,31 +58,31 @@ export async function MovieInfo({
 
   const facts: Array<[string, string]> = [];
   if (isAnime) {
-    if (details.anime_format) facts.push(["Формат", details.anime_format]);
+    if (details.anime_format) facts.push([t("anime.format"), details.anime_format]);
     if (details.number_of_episodes) {
-      facts.push(["Эпизоды", String(details.number_of_episodes)]);
+      facts.push([t("anime.episodes"), String(details.number_of_episodes)]);
     }
     if (details.companies?.length) {
-      facts.push(["Студия", details.companies.join(", ")]);
+      facts.push([t("anime.studio"), details.companies.join(", ")]);
     }
     if (details.release_date) {
       facts.push([t("movie.release"), details.release_date]);
     }
     if (details.vote_average_tenths) {
-      facts.push(["AniList", (details.vote_average_tenths / 10).toFixed(1)]);
+      facts.push([t("anime.rating"), (details.vote_average_tenths / 10).toFixed(1)]);
     }
   } else if (isGame) {
     if (details.developers?.length) {
-      facts.push(["Разработчик", details.developers.join(", ")]);
+      facts.push([t("game.developer"), details.developers.join(", ")]);
     }
     if (details.publishers?.length) {
-      facts.push(["Издатель", details.publishers.join(", ")]);
+      facts.push([t("game.publisher"), details.publishers.join(", ")]);
     }
     if (details.platforms?.length) {
-      facts.push(["Платформы", details.platforms.join(", ")]);
+      facts.push([t("game.platforms"), details.platforms.join(", ")]);
     }
     if (details.genres?.length) {
-      facts.push(["Жанры", details.genres.join(", ")]);
+      facts.push([t("game.genres"), details.genres.join(", ")]);
     }
     if (details.release_date) {
       facts.push([t("movie.release"), details.release_date]);
@@ -167,9 +167,9 @@ export async function MovieInfo({
             : isBook
               ? t("book.about")
               : isGame
-                ? "Об игре"
+                ? t("game.about")
                 : isAnime
-                  ? "Об аниме"
+                  ? t("anime.about")
                   : t("movie.about")
         }
       >
@@ -183,9 +183,9 @@ export async function MovieInfo({
             {isBook
               ? t("book.overviewEmpty")
               : isGame
-                ? "Описание игры пока не добавлено."
+                ? t("game.empty")
                 : isAnime
-                  ? "Описание аниме пока не добавлено."
+                  ? t("anime.empty")
                   : t("movie.overviewEmpty")}
           </p>
         )}
@@ -214,10 +214,10 @@ export async function MovieInfo({
         ) : null}
 
         {isGame ? (
-          <p className={styles.source}>Данные предоставлены IGDB.</p>
+          <p className={styles.source}>{t("game.credit")}</p>
         ) : null}
         {isAnime ? (
-          <p className={styles.source}>Данные предоставлены AniList / Shikimori.</p>
+          <p className={styles.source}>{t("anime.credit")}</p>
         ) : null}
         {tmdbId && !isGame && !isAnime ? (
           <p className={styles.source}>
