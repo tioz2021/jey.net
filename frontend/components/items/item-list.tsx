@@ -15,7 +15,6 @@ import type { Item, ItemFilters, ItemKind, ItemStatus, Sort } from "@/lib/types"
 import { ItemsFilters } from "./filters";
 import { useItemsQuery } from "./query-context";
 import { ItemCard } from "./item-card";
-import { SavedFilters } from "./saved-filters";
 import styles from "./item-list.module.css";
 
 const PAGE_SIZE = 20;
@@ -200,7 +199,6 @@ export function ItemList({
 
   return (
     <div className={styles.layout}>
-      <SavedFilters />
       <ItemsFilters
         onSelect={() => setSelectionMode(true)}
         selectionMode={selectionMode}

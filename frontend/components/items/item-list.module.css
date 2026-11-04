@@ -130,72 +130,6 @@
   outline-offset: 2px;
 }
 
-.saved {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 26px;
-}
-
-.savedTitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-.savedList {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.savedChip {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-.savedChip button {
-  padding: 3px 6px;
-  font: inherit;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-
-.savedDelete {
-  color: var(--color-text-muted) !important;
-}
-
-.savedSave {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.savedSave input {
-  width: 12rem;
-  min-height: 28px;
-  padding: 3px 6px;
-  font: inherit;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-}
-
-.savedSave button {
-  padding: 3px 8px;
-  font: inherit;
-  font-size: var(--text-sm);
-  color: var(--color-accent-contrast);
-  background: var(--color-accent);
-  border: 0;
-  cursor: pointer;
-}
 
 @media (width <= 480px) {
   .bulkClear {
@@ -203,8 +137,5 @@
   }
   .bulkDone {
     margin-left: auto;
-  }
-  .savedSave input {
-    width: 9rem;
   }
 }

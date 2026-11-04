@@ -24,6 +24,16 @@ function stroke(extra?: Record<string, unknown>) {
   };
 }
 
+export function IconFeed(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 6h9M4 12h7M4 18h9" {...stroke()} />
+      <path d="M17 6.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM17 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" {...stroke()} />
+      <path d="M19 4v4M17 6h4" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconList(props: IconProps) {
   return (
     <svg {...base(props)}>

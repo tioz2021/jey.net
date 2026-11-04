@@ -8,6 +8,7 @@ import { HeaderSearch } from "@/components/header-search";
 import { FeedBadge } from "@/components/feed-badge";
 import { LanguageSwitch } from "@/components/language-switch";
 import {
+  IconFeed,
   IconList,
   IconSettings,
   IconStats,
@@ -23,7 +24,7 @@ const SECTIONS: Array<{
   Icon: typeof IconList;
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
-  { href: "/feed", labelKey: "nav.feed", Icon: IconList },
+  { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];
