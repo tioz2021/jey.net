@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { HideRecommendation } from "@/components/hide-recommendation";
 import { Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import {
+  publicRecommendationKey,
+  useHiddenRecommendations,
+} from "@/lib/use-hidden-recommendations";
 import type {
   FriendRecommendation,
   TasteRecommendation,
@@ -19,6 +24,7 @@ type Highlight = FriendRecommendation | TasteRecommendation;
 export function RecommendationHighlights() {
   const { t } = useI18n();
   const [items, setItems] = useState<Highlight[]>([]);
+  const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +46,10 @@ export function RecommendationHighlights() {
     };
   }, []);
 
-  if (items.length === 0) return null;
+  const visible = items.filter(
+    (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
+  );
+  if (visible.length === 0) return null;
 
   return (
     <Card
@@ -48,8 +57,11 @@ export function RecommendationHighlights() {
       title={t("recommendations.homeTitle")}
     >
       <ul className={styles.list}>
-        {items.map((item) => (
+        {visible.map((item) => (
           <li key={`${item.author_id}-${item.id}`}>
+            <HideRecommendation
+              onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+            />
             <Link className={styles.item} href={`/u/${item.author_id}/${item.id}`}>
               {item.cover_key ? (
                 // eslint-disable-next-line @next/next/no-img-element -- local cover

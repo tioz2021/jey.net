@@ -23,6 +23,7 @@ export const en = {
   "recommendations.homeTitle": "Recommended for you",
   "recommendations.subtitle": "Picks based on your taste and people you follow.",
   "nav.recommendationsHint": "Recommendations: picks for you",
+  "recommendations.notInterested": "Not interested",
   "recommendations.title": "Recommendations",
   "recommendations.friendsTitle": "People you follow rated highly",
   "recommendations.emptyTitle": "No recommendations yet",

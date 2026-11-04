@@ -1,0 +1,19 @@
+.button {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.button:hover,
+.button:focus-visible {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}

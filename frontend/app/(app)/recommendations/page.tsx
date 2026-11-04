@@ -4,10 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
+import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import {
+  publicRecommendationKey,
+  useHiddenRecommendations,
+} from "@/lib/use-hidden-recommendations";
 import type {
   FriendRecommendation,
   TasteGenre,
@@ -22,6 +27,7 @@ export default function RecommendationsPage() {
   const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
   const [genres, setGenres] = useState<TasteGenre[]>([]);
   const [loading, setLoading] = useState(true);
+  const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +50,13 @@ export default function RecommendationsPage() {
     };
   }, []);
 
+  const visibleTaste = tasteItems.filter(
+    (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
+  );
+  const visibleFriends = items.filter(
+    (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
+  );
+
   return (
     <main>
       <PageHeader subtitle={t("recommendations.subtitle")} title={t("recommendations.title")} />
@@ -59,19 +72,24 @@ export default function RecommendationsPage() {
                 </li>
               ))}
             </ul>
-            {tasteItems.length > 0 ? (
+            {visibleTaste.length > 0 ? (
               <ul className={styles.list}>
-                {tasteItems.map((item) => (
+                {visibleTaste.map((item) => (
                   <li key={`${item.author_id}-${item.id}`}>
                     <p className={styles.reason}>
                       {t("recommendations.tasteReason", {
                         genres: item.matched_genres.join(", "),
                       })}
                     </p>
-                    <ItemCard
-                      href={`/u/${item.author_id}/${item.id}`}
-                      item={item}
-                    />
+                    <div className={styles.itemWithHide}>
+                      <ItemCard
+                        href={`/u/${item.author_id}/${item.id}`}
+                        item={item}
+                      />
+                      <HideRecommendation
+                        onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -82,14 +100,14 @@ export default function RecommendationsPage() {
         )}
       </Card>
       <Card title={t("recommendations.friendsTitle")}>
-        {!loading && items.length === 0 ? (
+        {!loading && visibleFriends.length === 0 ? (
           <EmptyState
             text={t("recommendations.emptyText")}
             title={t("recommendations.emptyTitle")}
           />
         ) : (
           <ul className={styles.list}>
-            {items.map((item) => (
+            {visibleFriends.map((item) => (
               <li key={`${item.author_id}-${item.id}`}>
                 <p className={styles.reason}>
                   {t("recommendations.reason", {
@@ -100,15 +118,20 @@ export default function RecommendationsPage() {
                     <span> · {item.friend_count}</span>
                   ) : null}
                 </p>
-                <ItemCard
-                  href={`/u/${item.author_id}/${item.id}`}
-                  item={item}
-                />
+                <div className={styles.itemWithHide}>
+                  <ItemCard
+                    href={`/u/${item.author_id}/${item.id}`}
+                    item={item}
+                  />
+                  <HideRecommendation
+                    onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+                  />
+                </div>
               </li>
             ))}
           </ul>
         )}
-        {!loading && items.length > 0 ? (
+        {!loading && visibleFriends.length > 0 ? (
           <p className={styles.note}>
             <Link href="/feed">{t("recommendations.feedLink")}</Link>
           </p>

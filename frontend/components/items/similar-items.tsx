@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+import { HideRecommendation } from "@/components/hide-recommendation";
 import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import {
+  similarRecommendationKey,
+  useHiddenRecommendations,
+} from "@/lib/use-hidden-recommendations";
 import type { SimilarItem } from "@/lib/types";
 
 import styles from "./similar-items.module.css";
@@ -13,6 +18,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
   const { t } = useI18n();
   const [items, setItems] = useState<SimilarItem[]>([]);
   const [expanded, setExpanded] = useState(false);
+  const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
@@ -27,13 +33,16 @@ export function SimilarItems({ itemId }: { itemId: string }) {
     };
   }, [itemId]);
 
-  if (items.length === 0) return null;
+  const visible = items.filter(
+    (item) => !hidden.has(similarRecommendationKey(item.source, item.external_id)),
+  );
+  if (visible.length === 0) return null;
 
   return (
     <Card title={t("similar.title")}>
       <ul className={styles.list}>
-        {(expanded ? items : items.slice(0, 6)).map((item) => (
-          <li key={`${item.source}-${item.external_id}`}>
+        {(expanded ? visible : visible.slice(0, 6)).map((item) => (
+          <li className={styles.withHide} key={`${item.source}-${item.external_id}`}>
             <a
               className={styles.card}
               href={item.href}
@@ -66,10 +75,13 @@ export function SimilarItems({ itemId }: { itemId: string }) {
               <span className={styles.title}>{item.title}</span>
               {item.year ? <span className={styles.year}>{item.year}</span> : null}
             </a>
+            <HideRecommendation
+              onHide={() => hide(similarRecommendationKey(item.source, item.external_id))}
+            />
           </li>
         ))}
       </ul>
-      {items.length > 6 ? (
+      {visible.length > 6 ? (
         <Button
           onClick={() => setExpanded((value) => !value)}
           size="sm"
@@ -77,7 +89,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
         >
           {expanded
             ? t("similar.collapse")
-            : t("similar.showAll", { count: items.length })}
+            : t("similar.showAll", { count: visible.length })}
         </Button>
       ) : null}
     </Card>
