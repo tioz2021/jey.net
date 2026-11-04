@@ -593,11 +593,32 @@ fn parse_tv_details(value: &Value) -> Option<MovieDetails> {
                 items
                     .iter()
                     .filter_map(|item| item.get("name").and_then(Value::as_str))
+                    .map(str::trim)
+                    .filter(|name| !name.is_empty())
                     .map(str::to_owned)
                     .collect()
             })
             .unwrap_or_default()
     };
+
+    let language_names = value
+        .get("spoken_languages")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| {
+                    item.get("name")
+                        .and_then(Value::as_str)
+                        .filter(|name| !name.trim().is_empty())
+                        .or_else(|| item.get("english_name").and_then(Value::as_str))
+                })
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
 
     let cast = value
         .get("credits")
@@ -727,7 +748,7 @@ fn parse_tv_details(value: &Value) -> Option<MovieDetails> {
                     .collect()
             })
             .unwrap_or_default(),
-        languages: names("spoken_languages"),
+        languages: language_names,
         companies,
         budget: None,
         revenue: None,
@@ -784,11 +805,32 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
                 items
                     .iter()
                     .filter_map(|item| item.get("name").and_then(Value::as_str))
+                    .map(str::trim)
+                    .filter(|name| !name.is_empty())
                     .map(str::to_owned)
                     .collect()
             })
             .unwrap_or_default()
     };
+
+    let language_names = value
+        .get("spoken_languages")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| {
+                    item.get("name")
+                        .and_then(Value::as_str)
+                        .filter(|name| !name.trim().is_empty())
+                        .or_else(|| item.get("english_name").and_then(Value::as_str))
+                })
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
 
     let release_date = value
         .get("release_date")
@@ -858,7 +900,7 @@ fn parse_details(value: &Value) -> Option<MovieDetails> {
             .unwrap_or_default(),
         genres: names("genres"),
         countries: names("production_countries"),
-        languages: names("spoken_languages"),
+        languages: language_names,
         companies: names("production_companies"),
         budget: value
             .get("budget")
@@ -948,6 +990,22 @@ mod tests {
         assert_eq!(movie.cast[0].tmdb_id, 3894);
         assert_eq!(movie.genres, vec!["Ужасы"]);
         assert_eq!(movie.runtime, Some(103));
+    }
+
+    #[test]
+    fn empty_localized_language_falls_back_to_english() {
+        let movie = parse_details(&json!({
+            "id": 4476,
+            "title": "Легенды осени",
+            "original_title": "Legends of the Fall",
+            "spoken_languages": [
+                { "name": "", "english_name": "Cornish", "iso_639_1": "kw" },
+                { "name": "English", "english_name": "English", "iso_639_1": "en" }
+            ]
+        }))
+        .expect("details");
+
+        assert_eq!(movie.languages, vec!["Cornish", "English"]);
     }
 
     #[test]
