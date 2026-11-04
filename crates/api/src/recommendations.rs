@@ -172,20 +172,41 @@ async fn load_similar(
 
         let mut candidates: Vec<BookSearchItem> = Vec::new();
         if let Some(author) = authors.first() {
-            let field = if source == "googlebooks" {
-                "inauthor"
+            // Cannot await inside the closure; fill synchronously through a helper query.
+            if source == "googlebooks" {
+                let query = format!("inauthor:\"{}\"", author.replace('"', "\\\""));
+                candidates.extend(search_books(state, "googlebooks", &query, book_language).await);
             } else {
-                "author"
-            };
-            let query = format!("{field}:\"{}\"", author.replace('"', "\\\""));
-            candidates.extend(search_books(state, &source, &query, book_language).await);
+                let query = format!("author:\"{}\"", author.replace('"', "\\\""));
+                candidates.extend(search_books(state, "openlibrary", &query, book_language).await);
+                if let Some(key) = state.config.google_books_key.as_deref() {
+                    let query = format!("inauthor:\"{}\"", author.replace('"', "\\\""));
+                    candidates.extend(
+                        crate::books::google::search(&query, key, book_language)
+                            .await
+                            .unwrap_or_default(),
+                    );
+                }
+            }
         }
         // If the author is not enough, add subject matches; keep the author matches first.
         if candidates.len() < 8
             && let Some(subject) = subjects.first()
         {
-            let query = format!("subject:\"{}\"", subject.replace('"', "\\\""));
-            candidates.extend(search_books(state, &source, &query, book_language).await);
+            if source == "googlebooks" {
+                let query = format!("subject:\"{}\"", subject.replace('"', "\\\""));
+                candidates.extend(search_books(state, "googlebooks", &query, book_language).await);
+            } else {
+                let query = format!("subject:\"{}\"", subject.replace('"', "\\\""));
+                candidates.extend(search_books(state, "openlibrary", &query, book_language).await);
+                if let Some(key) = state.config.google_books_key.as_deref() {
+                    candidates.extend(
+                        crate::books::google::search(&query, key, book_language)
+                            .await
+                            .unwrap_or_default(),
+                    );
+                }
+            }
         }
 
         let wanted_authors: Vec<String> =
