@@ -172,6 +172,16 @@
 
 
 @media (width <= 640px) {
+  .tab {
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  .more {
+    min-height: 42px;
+    padding: 8px var(--space-4);
+  }
+
   .banner {
     height: 80px;
   }

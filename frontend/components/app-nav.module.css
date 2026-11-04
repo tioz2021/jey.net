@@ -81,18 +81,15 @@
 
   .body {
     flex-direction: row;
-    gap: var(--space-1);
-    overflow-x: auto;
-    padding: 0 var(--space-4);
-    scrollbar-width: none;
-  }
-
-  .body::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+    overflow: visible;
+    padding: 0 var(--space-2);
   }
 
   .link {
-    flex: none;
+    flex: 0 1 auto;
+    min-height: 44px;
     padding: 10px var(--space-2);
     border-left: 0;
     border-bottom: 2px solid transparent;
@@ -100,6 +97,7 @@
 
   .trashLink {
     margin-top: 0;
+    margin-left: auto;
     border-top: 0;
   }
 
