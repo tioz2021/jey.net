@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { AddRecordButton } from "@/components/items/add-record-button";
 import { ItemList } from "@/components/items/item-list";
-import { FollowingPanel } from "@/components/following-panel";
 import { ItemsQueryProvider } from "@/components/items/query-context";
 import { PageHeader } from "@/components/ui";
 import { translate } from "@/lib/i18n";
@@ -65,7 +64,6 @@ export default async function ItemsPage({
           the list height. */}
       <ItemsQueryProvider initialSearch={search}>
         <div style={{ display: "grid", gap: "var(--space-4)" }}>
-          <FollowingPanel />
           <ItemList
             initialCursor={initialCursor}
             initialItems={initialItems}

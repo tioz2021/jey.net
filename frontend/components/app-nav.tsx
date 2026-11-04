@@ -19,6 +19,7 @@ import type { Stats } from "@/lib/types";
 import { useI18n } from "@/lib/locale-context";
 import type { TranslationKey } from "@/lib/i18n";
 
+import { FollowingSidebar } from "./following-sidebar";
 import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
 
@@ -85,6 +86,7 @@ export function AppNav() {
   }, []);
 
   return (
+    <div className={styles.column}>
     <aside className={styles.nav} aria-label="Типы записей">
       <p className={styles.head}>{t("nav.types")}</p>
       <div className={styles.body}>
@@ -150,5 +152,7 @@ export function AppNav() {
         </Link>
       </div>
     </aside>
+    <FollowingSidebar />
+    </div>
   );
 }

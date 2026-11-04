@@ -1,7 +1,14 @@
-.nav {
+.column {
   position: sticky;
   top: 64px;
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.nav {
+  position: static;
   overflow: hidden;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
@@ -66,6 +73,10 @@
 }
 
 @media (width <= 1000px) {
+  .column {
+    position: static;
+  }
+
   .nav {
     position: static;
     display: flex;
