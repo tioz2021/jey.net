@@ -9,6 +9,7 @@ export const en = {
   "recommendations.tasteEmpty": "Not enough ratings to understand your taste yet. Rate 8–10 records.",
   "recommendations.tasteReason": "Because you like: {genres}",
   "recommendations.tasteNoItems": "No matches with public records yet.",
+  "similar.title": "Similar",
   "recommendations.title": "Recommendations",
   "recommendations.friendsTitle": "Friends rated highly",
   "recommendations.emptyTitle": "No recommendations yet",

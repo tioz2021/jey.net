@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
 import { MovieInfo } from "@/components/items/movie-info";
+import { SimilarItems } from "@/components/items/similar-items";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -240,6 +241,8 @@ export default async function ItemPage({
               <p className={styles.review}>{item.review}</p>
             </Card>
           ) : null}
+
+          <SimilarItems itemId={item.id} />
 
           {item.details ? (
             <MovieInfo

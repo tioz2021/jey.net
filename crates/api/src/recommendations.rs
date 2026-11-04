@@ -8,6 +8,41 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
+/// `GET /api/v1/items/{id}/similar` — provider suggestions for one record.
+pub async fn similar(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let row: Option<(String, Option<String>, Option<String>)> = sqlx::query_as(
+        "select kind, external_source, external_id from items
+         where id = $1 and user_id = $2 and deleted_at is null",
+    )
+    .bind(id)
+    .bind(current.user.id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let (kind, source, external_id) = row.ok_or_else(|| AppError::not_found("record"))?;
+    let Some(source) = source else {
+        return Ok(Json(json!({ "items": [] })));
+    };
+    let Some(external_id) = external_id.and_then(|value| value.parse::<u64>().ok()) else {
+        return Ok(Json(json!({ "items": [] })));
+    };
+    if source != "tmdb" {
+        return Ok(Json(json!({ "items": [] })));
+    }
+    let language = match current.user.locale.as_str() {
+        "ru" => "ru-RU",
+        "uk" => "uk-UA",
+        _ => "en-US",
+    };
+    let media = if kind == "tv" { "tv" } else { "movie" };
+    let items = state.tmdb.similar(media, external_id, language).await?;
+    Ok(Json(json!({ "items": items })))
+}
+
 /// `GET /api/v1/recommendations/friends`
 pub async fn friends(
     State(state): State<AppState>,

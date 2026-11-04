@@ -315,6 +315,15 @@ export interface TasteRecommendation extends PublicItem {
   matched_genres: string[];
 }
 
+export interface SimilarItem {
+  source: string;
+  external_id: number;
+  title: string;
+  year: number | null;
+  poster_path: string | null;
+  href: string;
+}
+
 export interface FriendRecommendation extends PublicItem {
   author_id: string;
   friends: string[];

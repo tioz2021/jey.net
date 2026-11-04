@@ -15,6 +15,16 @@ const CACHE_TTL: Duration = Duration::from_secs(24 * 60 * 60);
 const CACHE_CAPACITY: usize = 500;
 
 #[derive(Debug, Clone, Serialize)]
+pub struct SimilarItem {
+    pub source: String,
+    pub external_id: u64,
+    pub title: String,
+    pub year: Option<i32>,
+    pub poster_path: Option<String>,
+    pub href: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct SearchItem {
     pub tmdb_id: u64,
     pub title: String,
@@ -265,6 +275,55 @@ impl TmdbClient {
                 .to_owned(),
             episodes,
         })
+    }
+
+    pub async fn similar(
+        &self,
+        media: &str,
+        id: u64,
+        language: &str,
+    ) -> Result<Vec<SimilarItem>, AppError> {
+        let value = self
+            .get_json(
+                &format!("{media}/{id}/recommendations"),
+                &[("language", language)],
+                false,
+            )
+            .await?;
+        Ok(value
+            .get("results")
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|item| {
+                        let id = item.get("id").and_then(Value::as_u64)?;
+                        let title = item
+                            .get("title")
+                            .or_else(|| item.get("name"))
+                            .and_then(Value::as_str)?
+                            .to_owned();
+                        let date = item
+                            .get("release_date")
+                            .or_else(|| item.get("first_air_date"))
+                            .and_then(Value::as_str);
+                        Some(SimilarItem {
+                            source: "tmdb".to_owned(),
+                            external_id: id,
+                            title,
+                            year: date
+                                .and_then(|date| date.get(..4))
+                                .and_then(|year| year.parse().ok()),
+                            poster_path: item
+                                .get("poster_path")
+                                .and_then(Value::as_str)
+                                .map(str::to_owned),
+                            href: format!("https://www.themoviedb.org/{media}/{id}"),
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default())
     }
 
     async fn details_inner(

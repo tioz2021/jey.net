@@ -14,6 +14,7 @@ import type {
   FollowingProfile,
   FeedItem,
   FriendRecommendation,
+  SimilarItem,
   TasteRecommendation,
   TasteGenre,
   Item,
@@ -298,6 +299,8 @@ export const items = {
   refresh: (id: string) =>
     request<ItemResponse>(`/items/${id}/refresh`, { method: "POST" }),
 
+  similar: (id: string) =>
+    request<{ items: SimilarItem[] }>(`/items/${encodeURIComponent(id)}/similar`),
   setPoster: (id: string) =>
     request<ItemResponse>(`/items/${id}/poster`, { method: "POST" }),
 
