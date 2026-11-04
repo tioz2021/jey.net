@@ -16,14 +16,19 @@ export function FollowingSidebar() {
 
   useEffect(() => {
     let cancelled = false;
-    api.follows
-      .following()
-      .then((response) => {
-        if (!cancelled) setPeople(response.people);
-      })
-      .catch(() => {});
+    const load = () => {
+      api.follows
+        .following()
+        .then((response) => {
+          if (!cancelled) setPeople(response.people);
+        })
+        .catch(() => {});
+    };
+    load();
+    window.addEventListener("jey:following-changed", load);
     return () => {
       cancelled = true;
+      window.removeEventListener("jey:following-changed", load);
     };
   }, []);
 
