@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaRegister } from "@/components/pwa-register";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
@@ -85,6 +86,7 @@ export default async function RootLayout({
           {translate(locale, "app.skip")}
         </a>
         <PwaRegister />
+        <PwaInstallPrompt />
         <LocaleProvider initialLocale={locale}>
           <UserProvider>
             <ToastProvider>
