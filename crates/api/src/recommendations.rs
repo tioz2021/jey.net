@@ -7,6 +7,14 @@ use serde_json::{Value, json};
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::movies::tmdb::SimilarItem;
+
+type SimilarRow = (
+    String,
+    Option<String>,
+    Option<String>,
+    Option<serde_json::Value>,
+);
 
 /// `GET /api/v1/items/{id}/similar` — provider suggestions for one record.
 pub async fn similar(
@@ -14,20 +22,97 @@ pub async fn similar(
     current: CurrentUser,
     axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
 ) -> Result<Json<Value>, AppError> {
-    let row: Option<(String, Option<String>, Option<String>)> = sqlx::query_as(
-        "select kind, external_source, external_id from items
-         where id = $1 and user_id = $2 and deleted_at is null",
+    let row: Option<SimilarRow> = sqlx::query_as(
+        "select kind, external_source, external_id, details from items
+             where id = $1 and user_id = $2 and deleted_at is null",
     )
     .bind(id)
     .bind(current.user.id)
     .fetch_optional(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let (kind, source, external_id) = row.ok_or_else(|| AppError::not_found("record"))?;
+    let (kind, source, external_id, details) = row.ok_or_else(|| AppError::not_found("record"))?;
     let Some(source) = source else {
         return Ok(Json(json!({ "items": [] })));
     };
-    let Some(external_id) = external_id.and_then(|value| value.parse::<u64>().ok()) else {
+    let Some(external_id) = external_id else {
+        return Ok(Json(json!({ "items": [] })));
+    };
+
+    if source == "openlibrary" || source == "googlebooks" {
+        let details = details.unwrap_or_default();
+        let author = details
+            .get("authors")
+            .and_then(serde_json::Value::as_array)
+            .and_then(|authors| authors.first())
+            .and_then(serde_json::Value::as_str);
+        let subject = details
+            .get("genres")
+            .and_then(serde_json::Value::as_array)
+            .and_then(|genres| genres.first())
+            .and_then(serde_json::Value::as_str);
+        let (field, term) = if let Some(author) = author {
+            (
+                if source == "googlebooks" {
+                    "inauthor"
+                } else {
+                    "author"
+                },
+                author,
+            )
+        } else if let Some(subject) = subject {
+            ("subject", subject)
+        } else {
+            return Ok(Json(json!({ "items": [] })));
+        };
+        let query = format!("{field}:\"{}\"", term.replace('"', "\\\""));
+        let candidates = if source == "googlebooks" {
+            match state.config.google_books_key.as_deref() {
+                Some(key) => crate::books::google::search(
+                    &query,
+                    key,
+                    match current.user.locale.as_str() {
+                        "ru" => "ru",
+                        "uk" => "uk",
+                        _ => "en",
+                    },
+                )
+                .await
+                .unwrap_or_default(),
+                None => Vec::new(),
+            }
+        } else {
+            crate::books::openlibrary::search(&query)
+                .await
+                .unwrap_or_default()
+        };
+        let items: Vec<SimilarItem> = candidates
+            .into_iter()
+            .filter(|book| book.book_id != external_id)
+            .take(12)
+            .map(|book| SimilarItem {
+                source: book.source.clone(),
+                external_id: book.book_id.clone(),
+                title: book.title,
+                year: book.year,
+                poster_path: None,
+                cover_url: book.cover_url,
+                cover_id: book.cover_id,
+                kind: "book".to_owned(),
+                href: if book.source == "googlebooks" {
+                    format!(
+                        "https://books.google.com/books?id={}",
+                        book.book_id.trim_start_matches("gb:")
+                    )
+                } else {
+                    format!("https://openlibrary.org/works/{}", book.book_id)
+                },
+            })
+            .collect();
+        return Ok(Json(json!({ "items": items })));
+    }
+
+    let Some(external_id) = external_id.parse::<u64>().ok() else {
         return Ok(Json(json!({ "items": [] })));
     };
     let items = match source.as_str() {

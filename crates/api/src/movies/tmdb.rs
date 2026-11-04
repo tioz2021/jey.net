@@ -17,11 +17,12 @@ const CACHE_CAPACITY: usize = 500;
 #[derive(Debug, Clone, Serialize)]
 pub struct SimilarItem {
     pub source: String,
-    pub external_id: u64,
+    pub external_id: String,
     pub title: String,
     pub year: Option<i32>,
     pub poster_path: Option<String>,
     pub cover_url: Option<String>,
+    pub cover_id: Option<i64>,
     pub kind: String,
     pub href: String,
 }
@@ -311,7 +312,7 @@ impl TmdbClient {
                             .and_then(Value::as_str);
                         Some(SimilarItem {
                             source: "tmdb".to_owned(),
-                            external_id: id,
+                            external_id: id.to_string(),
                             title,
                             year: date
                                 .and_then(|date| date.get(..4))
@@ -321,6 +322,7 @@ impl TmdbClient {
                                 .and_then(Value::as_str)
                                 .map(str::to_owned),
                             cover_url: None,
+                            cover_id: None,
                             kind: media.to_owned(),
                             href: format!("https://www.themoviedb.org/{media}/{id}"),
                         })

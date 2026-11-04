@@ -323,11 +323,12 @@ impl IgdbClient {
                 let title = row.get("name").and_then(Value::as_str)?.to_owned();
                 Some(SimilarItem {
                     source: "igdb".to_owned(),
-                    external_id: id,
+                    external_id: id.to_string(),
                     title,
                     year: year(row.get("first_release_date").and_then(Value::as_i64)),
                     poster_path: None,
                     cover_url: cover(row),
+                    cover_id: None,
                     kind: "game".to_owned(),
                     href: format!("https://www.igdb.com/games/{id}"),
                 })

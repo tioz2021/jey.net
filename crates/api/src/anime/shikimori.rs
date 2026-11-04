@@ -118,11 +118,12 @@ pub async fn similar(id: u64) -> Result<Vec<SimilarItem>, AppError> {
                     let title = title(item)?;
                     Some(SimilarItem {
                         source: "shikimori".to_owned(),
-                        external_id: id,
+                        external_id: id.to_string(),
                         title,
                         year: year(item),
                         poster_path: None,
                         cover_url: cover(item),
+                        cover_id: None,
                         kind: "anime".to_owned(),
                         href: format!("https://shikimori.one/animes/{id}"),
                     })

@@ -317,11 +317,12 @@ export interface TasteRecommendation extends PublicItem {
 
 export interface SimilarItem {
   source: string;
-  external_id: number;
+  external_id: string;
   title: string;
   year: number | null;
   poster_path: string | null;
   cover_url: string | null;
+  cover_id: number | null;
   kind: string;
   href: string;
 }

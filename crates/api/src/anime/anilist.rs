@@ -146,11 +146,12 @@ pub async fn similar(id: u64) -> Result<Vec<SimilarItem>, AppError> {
                     let title = title(media)?;
                     Some(SimilarItem {
                         source: "anilist".to_owned(),
-                        external_id: id,
+                        external_id: id.to_string(),
                         title,
                         year: year(media),
                         poster_path: None,
                         cover_url: cover(media),
+                        cover_id: None,
                         kind: "anime".to_owned(),
                         href: format!("https://anilist.co/anime/{id}"),
                     })
