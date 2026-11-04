@@ -465,6 +465,8 @@ export const en = {
   'public.followingTitle': 'My subscriptions',
   'public.followingEmpty': 'You are not subscribed to anyone yet.',
   'public.allFollowing': 'All subscriptions ({count})',
+  'public.muteFollowing': 'Mute updates from “{name}”',
+  'public.unmuteFollowing': 'Unmute updates from “{name}”',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',

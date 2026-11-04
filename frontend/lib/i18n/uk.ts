@@ -465,6 +465,8 @@ export const uk = {
   'public.followingTitle': 'Мої підписки',
   'public.followingEmpty': 'Ви поки ні на кого не підписані.',
   'public.allFollowing': 'Усі підписки ({count})',
+  'public.muteFollowing': 'Вимкнути новини «{name}»',
+  'public.unmuteFollowing': 'Увімкнути новини «{name}»',
   'public.follow': 'Підписатися',
   'public.following': 'Ви підписані',
   'public.followers': 'Підписників: {count}',

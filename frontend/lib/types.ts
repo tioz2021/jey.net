@@ -308,6 +308,7 @@ export interface FollowingProfile {
   id: string;
   display_name: string;
   avatar_key: string | null;
+  notifications: boolean;
 }
 
 export interface FollowState {

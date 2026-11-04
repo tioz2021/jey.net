@@ -324,6 +324,11 @@ export const movies = {
 export const follows = {
   following: () =>
     request<{ people: FollowingProfile[] }>("/follows/following"),
+  notifications: (id: string, enabled: boolean) =>
+    request<{ enabled: boolean }>(
+      `/users/${encodeURIComponent(id)}/follow/notifications`,
+      { method: "PATCH", body: { enabled } },
+    ),
   status: (id: string) =>
     request<FollowState>(`/users/${encodeURIComponent(id)}/follow`),
   follow: (id: string) =>

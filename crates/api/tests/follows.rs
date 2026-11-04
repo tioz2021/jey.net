@@ -28,6 +28,12 @@ async fn follows_blocks_and_feed_respect_public_boundaries() {
     let (bob, bob_email, bob_cookie, bob_user) = account("Bob").await;
     let bob_id = bob_user["id"].as_str().expect("bob id");
 
+    // Accounts start public; make Bob private for the boundary check.
+    let made_private = bob
+        .patch("/api/v1/me", json!({ "is_public": false }), &bob_cookie)
+        .await;
+    assert_eq!(made_private.status, 200, "body: {}", made_private.body);
+
     // Bob is private: Alice cannot follow him.
     let private = alice
         .post_with_cookie(
@@ -95,6 +101,38 @@ async fn follows_blocks_and_feed_respect_public_boundaries() {
     assert_eq!(items[0]["title"], "Bob's public film");
     assert_eq!(items[0]["author_name"], "Bob");
     assert_eq!(items[0]["author_id"], bob_id);
+
+    let following = alice
+        .get("/api/v1/follows/following", Some(&alice_cookie))
+        .await;
+    assert_eq!(following.status, 200, "body: {}", following.body);
+    assert_eq!(following.body["people"][0]["notifications"], true);
+
+    let muted = alice
+        .patch(
+            &format!("/api/v1/users/{bob_id}/follow/notifications"),
+            json!({ "enabled": false }),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(muted.status, 200, "body: {}", muted.body);
+    let muted_feed = alice.get("/api/v1/feed", Some(&alice_cookie)).await;
+    assert_eq!(muted_feed.status, 200);
+    assert!(
+        muted_feed.body["items"]
+            .as_array()
+            .expect("array")
+            .is_empty()
+    );
+
+    let unmuted = alice
+        .patch(
+            &format!("/api/v1/users/{bob_id}/follow/notifications"),
+            json!({ "enabled": true }),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(unmuted.status, 200, "body: {}", unmuted.body);
 
     // Blocking removes the relationship and hides the feed.
     let blocked = alice

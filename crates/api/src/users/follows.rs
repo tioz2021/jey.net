@@ -141,6 +141,7 @@ pub async fn feed(
          join users u on u.id = f.followee_id
          join items i on i.user_id = u.id
          where f.follower_id = $1
+           and f.notifications
            and u.is_public and u.deleted_at is null
            and i.status = ANY(u.public_statuses)
            and not i.public_hidden and i.deleted_at is null
@@ -211,11 +212,13 @@ pub async fn following(
         "select jsonb_build_object(
             'id', u.id,
             'display_name', u.display_name,
-            'avatar_key', u.avatar_key
+            'avatar_key', u.avatar_key,
+            'notifications', f.notifications
          )
          from follows f
          join users u on u.id = f.followee_id
          where f.follower_id = $1
+           and f.notifications
            and u.is_public and u.deleted_at is null
          order by f.created_at desc",
     )
@@ -224,4 +227,33 @@ pub async fn following(
     .await
     .map_err(AppError::internal)?;
     Ok(Json(json!({ "people": people })))
+}
+
+/// `PATCH /api/v1/users/{id}/follow/notifications` — mute/unmute a follow.
+pub async fn notifications(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(target): Path<Uuid>,
+    Json(payload): Json<NotificationsPayload>,
+) -> Result<Json<Value>, AppError> {
+    let changed = sqlx::query(
+        "update follows set notifications = $3
+         where follower_id = $1 and followee_id = $2",
+    )
+    .bind(current.user.id)
+    .bind(target)
+    .bind(payload.enabled)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected();
+    if changed == 0 {
+        return Err(AppError::not_found("follow"));
+    }
+    Ok(Json(json!({ "enabled": payload.enabled })))
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct NotificationsPayload {
+    pub enabled: bool,
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
+import { IconBell, IconBellOff } from "@/components/icons";
 import { useI18n } from "@/lib/locale-context";
 import type { FollowingProfile } from "@/lib/types";
 
@@ -32,6 +33,17 @@ export function FollowingSidebar() {
     };
   }, []);
 
+  async function toggleNotifications(person: FollowingProfile) {
+    const enabled = !person.notifications;
+    await api.follows.notifications(person.id, enabled);
+    setPeople((current) =>
+      current.map((item) =>
+        item.id === person.id ? { ...item, notifications: enabled } : item,
+      ),
+    );
+    window.dispatchEvent(new Event("jey:following-changed"));
+  }
+
   return (
     <section className={styles.panel} aria-label={t("public.followingTitle")}>
       <p className={styles.head}>{t("public.followingTitle")}</p>
@@ -40,7 +52,7 @@ export function FollowingSidebar() {
       ) : (
         <ul className={styles.list}>
           {people.slice(0, 10).map((person) => (
-            <li key={person.id}>
+            <li className={styles.personRow} key={person.id}>
               <Link className={styles.person} href={`/u/${person.id}`}>
                 {person.avatar_key ? (
                   // eslint-disable-next-line @next/next/no-img-element -- local avatar
@@ -52,6 +64,30 @@ export function FollowingSidebar() {
                 )}
                 <span className={styles.name}>{person.display_name}</span>
               </Link>
+              <button
+                aria-label={t(
+                  person.notifications
+                    ? "public.muteFollowing"
+                    : "public.unmuteFollowing",
+                  { name: person.display_name },
+                )}
+                aria-pressed={person.notifications}
+                className={styles.bell}
+                onClick={() => void toggleNotifications(person)}
+                title={t(
+                  person.notifications
+                    ? "public.muteFollowing"
+                    : "public.unmuteFollowing",
+                  { name: person.display_name },
+                )}
+                type="button"
+              >
+                {person.notifications ? (
+                  <IconBell size={14} />
+                ) : (
+                  <IconBellOff size={14} />
+                )}
+              </button>
             </li>
           ))}
         </ul>
