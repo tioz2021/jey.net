@@ -161,7 +161,7 @@ export function GameSearch({
           </button>
         </div>
       ) : (
-        <p className={styles.hint}>{t("gameSearch.label")}</p>
+        <p className={styles.hint}>{t("gameSearch.hint")}</p>
       )}
 
       {open ? (

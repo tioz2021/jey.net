@@ -118,7 +118,7 @@ export function AnimeSearch({
             {t("animeSearch.replace")}
           </button>
         </div>
-      ) : <p className={styles.hint}>{t("animeSearch.label")}</p>}
+      ) : <p className={styles.hint}>{t("animeSearch.hint")}</p>}
 
       {open ? (
         <div className={styles.dropdown}>
