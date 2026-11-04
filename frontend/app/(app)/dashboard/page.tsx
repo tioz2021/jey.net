@@ -63,11 +63,13 @@ export default async function DashboardPage() {
     );
   }
 
-  const kindRows = (Object.keys(KIND_KEYS) as ItemKind[]).map((kind) => ({
-    label: t(KIND_KEYS[kind]),
-    count: stats.by_kind[kind] ?? 0,
-    href: `/items?kind=${kind}`,
-  }));
+  const kindRows = (["movie", "tv", "book", "game"] as ItemKind[]).map(
+    (kind) => ({
+      label: t(KIND_KEYS[kind]),
+      count: stats.by_kind[kind] ?? 0,
+      href: `/items?kind=${kind}`,
+    }),
+  );
 
   const statusRows = (Object.keys(STATUS_KEYS) as ItemStatus[]).map(
     (status) => ({
