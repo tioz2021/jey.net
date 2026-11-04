@@ -171,6 +171,31 @@ pub async fn feed(
     Ok(Json(json!({ "items": items })))
 }
 
+/// `GET /api/v1/blocks` — profiles blocked by the current account.
+pub async fn blocked(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let people: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', u.id,
+            'display_name', u.display_name,
+            'avatar_key', u.avatar_key,
+            'blocked_at', b.created_at
+         )
+         from blocks b
+         join users u on u.id = b.blocked_id
+         where b.blocker_id = $1 and u.deleted_at is null
+         order by b.created_at desc
+         limit 200",
+    )
+    .bind(current.user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "people": people })))
+}
+
 /// `POST /api/v1/users/{id}/block`
 pub async fn block(
     State(state): State<AppState>,

@@ -10,6 +10,7 @@ import { ApiError } from "./errors";
 import type {
   ImportReport,
   UploadResponse,
+  BlockedProfile,
   FollowState,
   FollowingProfile,
   FeedItem,
@@ -355,6 +356,7 @@ export const follows = {
     request<{ blocked: boolean }>(`/users/${encodeURIComponent(id)}/block`, {
       method: "DELETE",
     }),
+  blocked: () => request<{ people: BlockedProfile[] }>("/blocks"),
 };
 
 export const notifications = {

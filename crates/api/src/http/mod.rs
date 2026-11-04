@@ -119,6 +119,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me", get(me).patch(update_me).delete(delete_me))
         .route("/me/password", post(change_password))
         .route("/feed", get(crate::users::follows::feed))
+        .route("/blocks", get(crate::users::follows::blocked))
         .route("/notifications", get(crate::users::notifications::list))
         .route(
             "/notifications/read",

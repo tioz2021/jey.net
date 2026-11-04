@@ -349,6 +349,13 @@ export interface FollowingProfile {
   notifications: boolean;
 }
 
+export interface BlockedProfile {
+  id: string;
+  display_name: string;
+  avatar_key: string | null;
+  blocked_at: string;
+}
+
 export interface NotificationItem {
   id: string;
   kind: "follow" | string;
