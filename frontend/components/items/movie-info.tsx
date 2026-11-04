@@ -66,6 +66,9 @@ export async function MovieInfo({
     if (details.platforms?.length) {
       facts.push(["Платформы", details.platforms.join(", ")]);
     }
+    if (details.genres?.length) {
+      facts.push(["Жанры", details.genres.join(", ")]);
+    }
     if (details.release_date) {
       facts.push([t("movie.release"), details.release_date]);
     }
