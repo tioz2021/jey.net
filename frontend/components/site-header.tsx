@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { HeaderSearch } from "@/components/header-search";
 import { LanguageSwitch } from "@/components/language-switch";
 import { MobileMenu } from "@/components/mobile-menu";
 import { FeedBadge } from "@/components/feed-badge";
@@ -75,9 +74,6 @@ export function SiteHeader() {
           {loading ? null : user ? (
             <>
               <div className={styles.tools}>
-                <div className={styles.search}>
-                <HeaderSearch />
-              </div>
                 <QuickAdd />
                 <ThemeToggle />
               </div>

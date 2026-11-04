@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { HeaderSearch } from "@/components/header-search";
 import { FeedBadge } from "@/components/feed-badge";
 import { LanguageSwitch } from "@/components/language-switch";
 import {
@@ -58,18 +57,6 @@ export function MobileMenu() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      document.querySelector<HTMLInputElement>("#mobile-search")?.focus();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [open]);
-
   return (
     <div className={styles.wrap}>
       <button
@@ -86,10 +73,6 @@ export function MobileMenu() {
 
       {open ? (
         <div className={styles.panel} id="mobile-sections">
-          <div className={styles.search}>
-            <HeaderSearch id="mobile-search" />
-          </div>
-
           <div className={styles.language}>
             <LanguageSwitch />
           </div>

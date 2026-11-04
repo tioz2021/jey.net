@@ -59,10 +59,6 @@
   margin-left: auto;
 }
 
-.search {
-  display: flex;
-}
-
 /* Search, add and theme live in one compact toolbar. */
 .tools {
   display: flex;
