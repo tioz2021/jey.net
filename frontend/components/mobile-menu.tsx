@@ -22,6 +22,7 @@ const SECTIONS: Array<{
   Icon: typeof IconList;
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
+  { href: "/feed", labelKey: "nav.feed", Icon: IconList },
   { href: "/dashboard", labelKey: "nav.stats", Icon: IconStats },
   { href: "/settings", labelKey: "nav.settings", Icon: IconSettings },
 ];

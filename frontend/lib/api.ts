@@ -11,6 +11,7 @@ import type {
   ImportReport,
   UploadResponse,
   FollowState,
+  FeedItem,
   Item,
   ItemFilters,
   ItemList,
@@ -332,6 +333,10 @@ export const follows = {
     }),
 };
 
+export const feed = {
+  get: () => request<{ items: FeedItem[] }>("/feed"),
+};
+
 export const publicItems = {
   episodes: (userId: string, itemId: string, season: number) =>
     fetch(
@@ -397,6 +402,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, follows, games, items, movies, publicItems, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, feed, follows, games, items, movies, publicItems, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

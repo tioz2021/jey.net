@@ -308,6 +308,11 @@ export interface FollowState {
   following_count: number;
 }
 
+export interface FeedItem extends PublicItem {
+  author_id: string;
+  author_name: string;
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];
