@@ -462,6 +462,8 @@ export const uk = {
   'public.block': 'Заблокувати',
   'public.unblock': 'Розблокувати',
   'public.privacy': 'Налаштування приватності',
+  'public.followingTitle': 'Мої підписки',
+  'public.followingEmpty': 'Ви поки ні на кого не підписані.',
   'public.follow': 'Підписатися',
   'public.following': 'Ви підписані',
   'public.followers': 'Підписників: {count}',

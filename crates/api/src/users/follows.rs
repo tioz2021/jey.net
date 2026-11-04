@@ -201,3 +201,27 @@ pub async fn unblock(
         .map_err(AppError::internal)?;
     Ok(Json(json!({ "blocked": false })))
 }
+
+/// `GET /api/v1/follows/following` — profiles the current account follows.
+pub async fn following(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let people: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', u.id,
+            'display_name', u.display_name,
+            'avatar_key', u.avatar_key
+         )
+         from follows f
+         join users u on u.id = f.followee_id
+         where f.follower_id = $1
+           and u.is_public and u.deleted_at is null
+         order by f.created_at desc",
+    )
+    .bind(current.user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "people": people })))
+}

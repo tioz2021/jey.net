@@ -462,6 +462,8 @@ export const en = {
   'public.block': 'Block',
   'public.unblock': 'Unblock',
   'public.privacy': 'Privacy settings',
+  'public.followingTitle': 'My subscriptions',
+  'public.followingEmpty': 'You are not subscribed to anyone yet.',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',
