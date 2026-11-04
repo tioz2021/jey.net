@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { ItemActions } from "@/components/items/item-actions";
 import { MovieInfo } from "@/components/items/movie-info";
 import { SimilarItems } from "@/components/items/similar-items";
+import { MovieCast } from "@/components/items/movie-cast";
+import { ItemReview } from "@/components/items/item-review";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -236,14 +238,6 @@ export default async function ItemPage({
         <div className={styles.main}>
           <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
 
-          {item.review ? (
-            <Card title={t("item.note")}>
-              <p className={styles.review}>{item.review}</p>
-            </Card>
-          ) : null}
-
-          <SimilarItems itemId={item.id} />
-
           {item.details ? (
             <MovieInfo
               details={item.details}
@@ -264,6 +258,12 @@ export default async function ItemPage({
               totalEpisodes={item.details.number_of_episodes}
               watched={item.details.watched_episodes ?? []}
             />
+          ) : null}
+
+          {item.review ? <ItemReview text={item.review} /> : null}
+          <SimilarItems itemId={item.id} />
+          {item.details ? (
+            <MovieCast details={item.details} locale={locale} />
           ) : null}
         </div>
       </div>

@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
+import { ItemReview } from "@/components/items/item-review";
+import { MovieCast } from "@/components/items/movie-cast";
 import {
   IconBook,
   IconFilm,
@@ -13,7 +15,7 @@ import {
   IconOther,
   IconTv,
 } from "@/components/icons";
-import { Badge, Card } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import { STATUS_TONES } from "@/lib/labels";
 import { formatDate, translate } from "@/lib/i18n";
@@ -183,12 +185,6 @@ export default async function PublicItemPage({
         </aside>
 
         <div className={styles.main}>
-          {item.review ? (
-            <Card title={t("public.itemNote")}>
-              <p className={styles.review}>{item.review}</p>
-            </Card>
-          ) : null}
-
           {item.details ? (
             <MovieInfo
               details={item.details}
@@ -211,6 +207,12 @@ export default async function PublicItemPage({
               totalEpisodes={item.details.number_of_episodes}
               watched={item.details.watched_episodes ?? []}
             />
+          ) : null}
+          {item.review ? (
+            <ItemReview text={item.review} title={t("public.itemNote")} />
+          ) : null}
+          {item.details ? (
+            <MovieCast details={item.details} locale={locale} />
           ) : null}
         </div>
       </div>

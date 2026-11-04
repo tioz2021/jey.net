@@ -1,4 +1,3 @@
-import { CastPhoto } from "@/components/items/cast-photo";
 import { Card } from "@/components/ui";
 import { formatMoney, formatNumber, translate } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -37,10 +36,6 @@ export async function MovieInfo({
       translation && translation.companies.length > 0
         ? translation.companies
         : (details.companies ?? []),
-    cast:
-      translation && translation.cast.length > 0
-        ? translation.cast
-        : (details.cast ?? []),
   };
   const t = (
     key: Parameters<typeof translate>[1],
@@ -234,52 +229,7 @@ export async function MovieInfo({
         ) : null}
       </Card>
 
-      {!isBook && !isGame && !isAnime && localized.cast.length > 0 ? (
-        <Card title={t("movie.cast")}>
-          <ul className={styles.castGrid}>
-            {localized.cast.map((person, index) => {
-              const member =
-                typeof person === "string"
-                  ? {
-                      tmdb_id: 0,
-                      name: person,
-                      character: null,
-                      profile_path: null,
-                    }
-                  : person;
-              const body = (
-                <>
-                  <CastPhoto
-                    name={member.name}
-                    profilePath={member.profile_path}
-                  />
-                  <span className={styles.castName}>{member.name}</span>
-                  {member.character ? (
-                    <span className={styles.character}>{member.character}</span>
-                  ) : null}
-                </>
-              );
-
-              return (
-                <li key={`${member.name}-${index}`}>
-                  {member.tmdb_id > 0 ? (
-                    <a
-                      className={styles.castCard}
-                      href={`https://www.themoviedb.org/person/${member.tmdb_id}`}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {body}
-                    </a>
-                  ) : (
-                    <div className={styles.castCard}>{body}</div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      ) : null}
     </>
   );
 }
+
