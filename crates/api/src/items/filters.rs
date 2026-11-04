@@ -165,19 +165,23 @@ mod tests {
     }
 
     #[test]
-    fn blank_tag_is_ignored() {
-        let query = ListQuery {
-            tag: Some("   ".to_owned()),
-            ..ListQuery::default()
-        };
-
-        assert_eq!(Filters::parse(&query).expect("valid").tag, None);
+    fn new_kinds_are_accepted() {
+        for kind in ["game", "anime"] {
+            let query = ListQuery {
+                kind: Some(kind.to_owned()),
+                ..ListQuery::default()
+            };
+            assert_eq!(
+                Filters::parse(&query).expect("valid kind").kind,
+                Some(ItemKind::parse(kind).expect("known kind"))
+            );
+        }
     }
 
     #[test]
     fn unknown_kind_and_status_are_rejected() {
         let bad_kind = ListQuery {
-            kind: Some("game".to_owned()),
+            kind: Some("podcast".to_owned()),
             ..ListQuery::default()
         };
         assert!(Filters::parse(&bad_kind).is_err());

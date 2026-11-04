@@ -22,7 +22,6 @@ fn new_movie(title: &str) -> NewItem {
         external_id: None,
         details: None,
         public_hidden: false,
-        tags: vec!["Sci-Fi".to_owned(), "nolan".to_owned()],
     }
 }
 
@@ -39,7 +38,6 @@ async fn create_read_and_list() {
     assert_eq!(created.kind, ItemKind::Movie);
     assert_eq!(created.rating, Some(9));
     assert_eq!(created.revision.get(), 1);
-    assert_eq!(created.tags, vec!["nolan".to_owned(), "Sci-Fi".to_owned()]);
 
     let fetched = repo::get(&pool, user, created.id)
         .await
@@ -100,7 +98,6 @@ async fn update_changes_fields_and_bumps_revision() {
     let patch = ItemPatch {
         title: Some("Interstellar (2014)".to_owned()),
         rating: Some(10),
-        tags: Some(vec!["space".to_owned()]),
         ..ItemPatch::default()
     };
 
@@ -112,7 +109,6 @@ async fn update_changes_fields_and_bumps_revision() {
     assert_eq!(updated.title, "Interstellar (2014)");
     assert_eq!(updated.rating, Some(10));
     assert_eq!(updated.revision.get(), 2);
-    assert_eq!(updated.tags, vec!["space".to_owned()]);
 
     purge_test_user(&pool, user).await;
 }
@@ -174,7 +170,6 @@ async fn list_filters_by_kind_and_status() {
             kind: ItemKind::Book,
             title: "Dune".to_owned(),
             status: ItemStatus::Planned,
-            tags: vec![],
             ..new_movie("Dune")
         },
     )
@@ -214,7 +209,6 @@ fn json_shape_uses_snake_case() {
         external_id: None,
         details: None,
         public_hidden: false,
-        tags: vec![],
     };
 
     let value = json!(item);
@@ -260,7 +254,6 @@ async fn create_item_endpoint_stores_and_normalises() {
                 "year": 2014,
                 "status": "done",
                 "rating": 9,
-                "tags": ["Sci-Fi", "sci-fi", " nolan ", ""]
             }),
             &cookie,
         )
@@ -272,7 +265,6 @@ async fn create_item_endpoint_stores_and_normalises() {
     assert_eq!(created.body["item"]["rating"], 9);
     assert_eq!(created.body["item"]["revision"], 1);
     assert_eq!(created.body["item"]["sync_seq"], 0);
-    assert_eq!(created.body["item"]["tags"], json!(["nolan", "Sci-Fi"]));
     assert!(
         created.body["item"]["created_at"]
             .as_str()
@@ -300,15 +292,6 @@ async fn create_item_reports_validation_errors() {
         (
             json!({ "kind": "movie", "title": "X", "status": "done", "year": 1500 }),
             "year",
-        ),
-        (
-            json!({
-                "kind": "movie",
-                "title": "X",
-                "status": "done",
-                "tags": (0..21).map(|index| format!("tag-{index}")).collect::<Vec<_>>()
-            }),
-            "tags",
         ),
     ];
 
@@ -413,7 +396,6 @@ async fn list_paginates_without_gaps_or_duplicates() {
                 external_id: None,
                 details: None,
                 public_hidden: false,
-                tags: vec![],
             },
         )
         .await
@@ -462,7 +444,7 @@ async fn list_rejects_bad_parameters() {
         ("/api/v1/items?limit=101", "limit"),
         ("/api/v1/items?cursor=not-a-cursor", "cursor"),
         ("/api/v1/items?sort=random", "sort"),
-        ("/api/v1/items?kind=game", "kind"),
+        ("/api/v1/items?kind=podcast", "kind"),
         ("/api/v1/items?status=lost", "status"),
     ] {
         let response = client.get(url, Some(&cookie)).await;
@@ -500,7 +482,6 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
                 external_id: None,
                 details: None,
                 public_hidden: false,
-                tags: vec![],
             },
         )
         .await
@@ -524,7 +505,6 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
             external_id: None,
             details: None,
             public_hidden: false,
-            tags: vec![],
         },
     )
     .await
@@ -570,7 +550,6 @@ async fn update_item_changes_only_the_given_fields() {
                 "year": 2014,
                 "status": "done",
                 "rating": 7,
-                "tags": ["sci-fi", "space"]
             }),
             &cookie,
         )
@@ -599,7 +578,6 @@ async fn update_item_changes_only_the_given_fields() {
     assert_eq!(item["subtitle"], "Christopher Nolan");
     assert_eq!(item["year"], 2014);
     assert_eq!(item["status"], "done");
-    assert_eq!(item["tags"], json!(["sci-fi", "space"]));
     assert_eq!(item["revision"], 2, "the revision is bumped");
 
     let updated_at = chrono::DateTime::parse_from_rfc3339(item["updated_at"].as_str().expect("ts"))
@@ -608,65 +586,6 @@ async fn update_item_changes_only_the_given_fields() {
     assert!(updated_at >= created_at, "updated_at moves forward");
 
     client.cleanup(&email).await;
-}
-
-#[tokio::test]
-async fn update_item_replaces_tags_and_validates_input() {
-    let (client, email, cookie) = logged_in_client().await;
-
-    let created = client
-        .post_with_cookie(
-            "/api/v1/items",
-            json!({ "kind": "book", "title": "Dune", "status": "done", "tags": ["old"] }),
-            &cookie,
-        )
-        .await;
-    let id = created.body["item"]["id"].as_str().expect("id").to_owned();
-
-    let retagged = client
-        .patch(
-            &format!("/api/v1/items/{id}"),
-            json!({ "tags": ["  New  ", "another"] }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(retagged.status, 200);
-    assert_eq!(retagged.body["item"]["tags"], json!(["another", "New"]));
-
-    let empty = client
-        .patch(&format!("/api/v1/items/{id}"), json!({}), &cookie)
-        .await;
-    assert_eq!(empty.status, 400);
-
-    let bad_rating = client
-        .patch(
-            &format!("/api/v1/items/{id}"),
-            json!({ "rating": 0 }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(bad_rating.status, 400);
-    assert_eq!(bad_rating.body["error"]["details"]["field"], "rating");
-
-    let malformed = client
-        .patch("/api/v1/items/not-a-uuid", json!({ "rating": 5 }), &cookie)
-        .await;
-    assert_eq!(malformed.status, 400);
-    assert_eq!(malformed.body["error"]["details"]["field"], "id");
-
-    // Another account cannot touch the record.
-    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
-    let foreign = stranger
-        .patch(
-            &format!("/api/v1/items/{id}"),
-            json!({ "title": "Hijacked" }),
-            &stranger_cookie,
-        )
-        .await;
-    assert_eq!(foreign.status, 404);
-
-    client.cleanup(&email).await;
-    stranger.cleanup(&stranger_email).await;
 }
 
 #[tokio::test]
@@ -925,244 +844,18 @@ async fn trash_lists_binned_records_and_can_be_purged() {
 }
 
 #[tokio::test]
-async fn tags_are_counted_and_deleted_without_touching_items() {
-    let (client, email, cookie) = logged_in_client().await;
-
-    for title in ["Dune", "Dune Messiah"] {
-        let response = client
-            .post_with_cookie(
-                "/api/v1/items",
-                json!({
-                    "kind": "book",
-                    "title": title,
-                    "status": "done",
-                    "tags": ["dune", "frank-herbert"]
-                }),
-                &cookie,
-            )
-            .await;
-        assert_eq!(response.status, 201);
-    }
-
-    // Reusing a tag must not create a second one.
-    let tags = client.get("/api/v1/tags", Some(&cookie)).await;
-    assert_eq!(tags.status, 200, "body: {}", tags.body);
-    let list = tags.body["tags"].as_array().expect("array");
-    assert_eq!(list.len(), 2, "two distinct tags");
-    let dune = list
-        .iter()
-        .find(|tag| tag["name"] == "dune")
-        .expect("dune tag");
-    assert_eq!(dune["item_count"], 2);
-
-    // Deleting one record lowers the counter but keeps the tag.
-    let items = client.get("/api/v1/items", Some(&cookie)).await;
-    let first_id = items.body["items"][0]["id"]
-        .as_str()
-        .expect("id")
-        .to_owned();
-    client
-        .delete(&format!("/api/v1/items/{first_id}"), json!({}), &cookie)
-        .await;
-
-    let after_delete = client.get("/api/v1/tags", Some(&cookie)).await;
-    let dune_after = after_delete.body["tags"]
-        .as_array()
-        .expect("array")
-        .iter()
-        .find(|tag| tag["name"] == "dune")
-        .expect("dune tag");
-    assert_eq!(dune_after["item_count"], 1);
-
-    // Removing the tag detaches it from the record, which stays alive.
-    let tag_id = dune["id"].as_str().expect("tag id").to_owned();
-    let deleted = client
-        .delete(&format!("/api/v1/tags/{tag_id}"), json!({}), &cookie)
-        .await;
-    assert_eq!(deleted.status, 204);
-
-    let remaining = client.get("/api/v1/tags", Some(&cookie)).await;
-    assert_eq!(remaining.body["tags"].as_array().expect("array").len(), 1);
-
-    let items_still_there = client.get("/api/v1/items", Some(&cookie)).await;
-    assert_eq!(
-        items_still_there.body["items"]
-            .as_array()
-            .expect("array")
-            .len(),
-        1
-    );
-
-    // Unknown and foreign tags are 404.
-    let missing = client
-        .delete(
-            &format!("/api/v1/tags/{}", uuid::Uuid::new_v4()),
-            json!({}),
-            &cookie,
-        )
-        .await;
-    assert_eq!(missing.status, 404);
-
-    let malformed = client
-        .delete("/api/v1/tags/not-a-uuid", json!({}), &cookie)
-        .await;
-    assert_eq!(malformed.status, 400);
-
-    client.cleanup(&email).await;
-}
-
-#[tokio::test]
-async fn tags_can_be_renamed_and_merged() {
-    let (client, email, cookie) = logged_in_client().await;
-
-    for (title, tags) in [
-        ("Dune", json!(["dune", "frank-herbert"])),
-        ("Dune Messiah", json!(["dune"])),
-        ("Children of Dune", json!(["frank-herbert"])),
-    ] {
-        let response = client
-            .post_with_cookie(
-                "/api/v1/items",
-                json!({
-                    "kind": "book",
-                    "title": title,
-                    "status": "done",
-                    "tags": tags
-                }),
-                &cookie,
-            )
-            .await;
-        assert_eq!(response.status, 201, "body: {}", response.body);
-    }
-
-    let tags = client.get("/api/v1/tags", Some(&cookie)).await;
-    let list = tags.body["tags"].as_array().expect("array").clone();
-    let dune = list.iter().find(|tag| tag["name"] == "dune").expect("dune");
-    let herbert = list
-        .iter()
-        .find(|tag| tag["name"] == "frank-herbert")
-        .expect("herbert");
-    let dune_id = dune["id"].as_str().expect("id").to_owned();
-    let herbert_id = herbert["id"].as_str().expect("id").to_owned();
-
-    // Rename keeps both links.
-    let renamed = client
-        .patch(
-            &format!("/api/v1/tags/{dune_id}"),
-            json!({ "name": "dune-saga" }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(renamed.status, 200, "body: {}", renamed.body);
-    assert_eq!(renamed.body["tag"]["name"], "dune-saga");
-
-    // A second tag with the same name is a conflict.
-    let duplicate = client
-        .patch(
-            &format!("/api/v1/tags/{herbert_id}"),
-            json!({ "name": "Dune-Saga" }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(duplicate.status, 409);
-
-    // Merge moves the links and removes the source tag.
-    let merged = client
-        .post_with_cookie(
-            &format!("/api/v1/tags/{herbert_id}/merge"),
-            json!({ "into_id": dune_id }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(merged.status, 200, "body: {}", merged.body);
-
-    let after = client.get("/api/v1/tags", Some(&cookie)).await;
-    let after_list = after.body["tags"].as_array().expect("array");
-    assert_eq!(after_list.len(), 1);
-    assert_eq!(after_list[0]["name"], "dune-saga");
-    assert_eq!(after_list[0]["item_count"], 3);
-
-    // The records kept both original tags through the rename and merge.
-    let items = client.get("/api/v1/items", Some(&cookie)).await;
-    let first = &items.body["items"][0];
-    let item_tags = first["tags"].as_array().expect("array").clone();
-    assert!(item_tags.iter().any(|tag| tag == "dune-saga"));
-
-    // Merging into itself and into unknown tags is rejected.
-    let same = client
-        .post_with_cookie(
-            &format!("/api/v1/tags/{dune_id}/merge"),
-            json!({ "into_id": dune_id }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(same.status, 400);
-
-    let unknown = client
-        .post_with_cookie(
-            &format!("/api/v1/tags/{dune_id}/merge"),
-            json!({ "into_id": uuid::Uuid::new_v4() }),
-            &cookie,
-        )
-        .await;
-    assert_eq!(unknown.status, 404);
-
-    client.cleanup(&email).await;
-}
-
-#[tokio::test]
-async fn tags_are_private_per_user() {
-    let (client, email, cookie) = logged_in_client().await;
-    let (stranger, stranger_email, stranger_cookie) = logged_in_client().await;
-
-    client
-        .post_with_cookie(
-            "/api/v1/items",
-            json!({ "kind": "movie", "title": "Interstellar", "status": "done", "tags": ["space"] }),
-            &cookie,
-        )
-        .await;
-
-    let their_tags = stranger.get("/api/v1/tags", Some(&stranger_cookie)).await;
-    assert!(
-        their_tags.body["tags"]
-            .as_array()
-            .expect("array")
-            .is_empty(),
-        "tags of another account are invisible"
-    );
-
-    let tag_id = client.get("/api/v1/tags", Some(&cookie)).await.body["tags"][0]["id"]
-        .as_str()
-        .expect("tag id")
-        .to_owned();
-
-    let foreign_delete = stranger
-        .delete(
-            &format!("/api/v1/tags/{tag_id}"),
-            json!({}),
-            &stranger_cookie,
-        )
-        .await;
-    assert_eq!(foreign_delete.status, 404);
-
-    client.cleanup(&email).await;
-    stranger.cleanup(&stranger_email).await;
-}
-
-#[tokio::test]
 async fn list_filters_combine_with_and() {
     let (client, email, cookie) = logged_in_client().await;
     let pool = pool().await;
     let user_id = common::user_id_by_email(&pool, &email).await;
 
     let samples = [
-        ("Interstellar", ItemKind::Movie, 9, 2014, vec!["sci-fi"]),
-        ("First Man", ItemKind::Movie, 5, 2020, vec!["drama"]),
-        ("Dune", ItemKind::Book, 10, 2015, vec!["sci-fi"]),
+        ("Interstellar", ItemKind::Movie, 9, 2014),
+        ("First Man", ItemKind::Movie, 5, 2020),
+        ("Dune", ItemKind::Book, 10, 2015),
     ];
 
-    for (title, kind, rating, year, tags) in samples {
+    for (title, kind, rating, year) in samples {
         repo::create(
             &pool,
             user_id,
@@ -1180,7 +873,6 @@ async fn list_filters_combine_with_and() {
                 external_id: None,
                 details: None,
                 public_hidden: false,
-                tags: tags.into_iter().map(str::to_owned).collect(),
             },
         )
         .await
@@ -1201,15 +893,6 @@ async fn list_filters_combine_with_and() {
         .await;
     assert_eq!(movies_rated.status, 200);
     assert_eq!(titles(&movies_rated.body), vec!["Interstellar"]);
-
-    let unknown_tag = client
-        .get("/api/v1/items?tag=does-not-exist", Some(&cookie))
-        .await;
-    assert_eq!(unknown_tag.status, 200, "an unknown tag is not an error");
-    assert!(titles(&unknown_tag.body).is_empty());
-
-    let sci_fi = client.get("/api/v1/items?tag=SCI-FI", Some(&cookie)).await;
-    assert_eq!(titles(&sci_fi.body).len(), 2, "tag matching ignores case");
 
     let years = client
         .get("/api/v1/items?year_from=2015&year_to=2020", Some(&cookie))

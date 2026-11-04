@@ -6,7 +6,7 @@
 use chrono::{DateTime, Utc};
 use jey_core::items::{Item, ItemKind, ItemPatch, ItemStatus, NewItem};
 use jey_core::sync::{DeviceId, Revision, SyncSeq, Timestamp};
-use sqlx::{AssertSqlSafe, PgPool, Postgres, Transaction};
+use sqlx::{AssertSqlSafe, PgPool};
 use uuid::Uuid;
 
 use crate::error::AppError;

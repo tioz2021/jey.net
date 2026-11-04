@@ -25,10 +25,7 @@ async fn account() -> (TestClient, String, String) {
 async fn export_then_import_restores_everything() {
     let (source, source_email, source_cookie) = account().await;
 
-    for (title, kind, tags) in [
-        ("Interstellar", "movie", vec!["sci-fi", "nolan"]),
-        ("Dune", "book", vec!["sci-fi"]),
-    ] {
+    for (title, kind) in [("Interstellar", "movie"), ("Dune", "book")] {
         let created = source
             .post_with_cookie(
                 "/api/v1/items",
@@ -36,8 +33,7 @@ async fn export_then_import_restores_everything() {
                     "kind": kind,
                     "title": title,
                     "status": "done",
-                    "rating": 9,
-                    "tags": tags
+                    "rating": 9
                 }),
                 &source_cookie,
             )
@@ -68,7 +64,6 @@ async fn export_then_import_restores_everything() {
         .iter()
         .find(|item| item["title"] == "Dune")
         .expect("dune is restored");
-    assert_eq!(dune["tags"], json!(["sci-fi"]));
     assert_eq!(dune["rating"], 9);
 
     // Importing the same file again changes nothing.
@@ -81,10 +76,6 @@ async fn export_then_import_restores_everything() {
 
     let still_two = target.get("/api/v1/items", Some(&target_cookie)).await;
     assert_eq!(still_two.body["items"].as_array().expect("array").len(), 2);
-
-    // Tags were restored, not duplicated.
-    let tags = target.get("/api/v1/tags", Some(&target_cookie)).await;
-    assert_eq!(tags.body["tags"].as_array().expect("array").len(), 2);
 
     source.cleanup(&source_email).await;
     target.cleanup(&target_email).await;
@@ -145,8 +136,7 @@ async fn export_csv_quotes_awkward_values() {
                 "kind": "book",
                 "title": "Dune, or \"Arrakis\"",
                 "status": "done",
-                "review": "Первая строка\nВторая строка",
-                "tags": ["sci-fi", "classic"]
+                "review": "Первая строка\nВторая строка"
             }),
             &cookie,
         )
@@ -162,7 +152,6 @@ async fn export_csv_quotes_awkward_values() {
     assert!(csv.starts_with("id,kind,title,subtitle,year,status,rating,"));
     assert!(csv.contains("\"Dune, or \"\"Arrakis\"\"\""));
     assert!(csv.contains("\"Первая строка\nВторая строка\""));
-    assert!(csv.contains("classic; sci-fi"));
     assert_eq!(csv.lines().count(), 3, "header + record + trailing newline");
 
     let bad_format = client.get("/api/v1/export?format=xml", Some(&cookie)).await;

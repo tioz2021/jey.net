@@ -65,6 +65,8 @@ fn test_config() -> Config {
         google_redirect_url: std::env::var("GOOGLE_REDIRECT_URL").ok(),
         tmdb_read_token: None,
         google_books_key: None,
+        twitch_client_id: None,
+        twitch_client_secret: None,
         purge_retention_days: 30,
     }
 }
@@ -111,6 +113,7 @@ impl TestClient {
             mailer: mailer.clone(),
             storage,
             tmdb: std::sync::Arc::new(jey_api::movies::tmdb::TmdbClient::new(None)),
+            igdb: std::sync::Arc::new(jey_api::games::igdb::IgdbClient::new(None, None)),
         };
 
         // Every test gets its own client address so rate-limit counters of one

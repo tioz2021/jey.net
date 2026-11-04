@@ -62,7 +62,9 @@ jobs:
         run: cargo build --workspace --all-targets
 
       - name: Run tests
-        run: cargo test --workspace
+        # GC tests scan the shared test media directory; isolate them from
+        # parallel upload tests.
+        run: cargo test --workspace -- --test-threads=1
 
       - name: Apply migrations
         run: cargo run --quiet -p jey-api -- migrate

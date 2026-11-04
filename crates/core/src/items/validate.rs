@@ -597,6 +597,7 @@ mod tests {
             external_source: None,
             external_id: None,
             details: None,
+            public_hidden: false,
         }
     }
 
@@ -636,28 +637,6 @@ mod tests {
 
         item.year = Some(1800);
         assert!(validate_new(&item).is_ok());
-    }
-
-    #[test]
-    fn too_many_tags_are_rejected() {
-        let mut item = new_item();
-        item.tags = (0..21).map(|index| format!("tag-{index}")).collect();
-
-        let error = validate_new(&item).expect_err("too many tags");
-        assert!(error.to_string().contains("at most 20"));
-    }
-
-    #[test]
-    fn tags_are_trimmed_and_deduplicated() {
-        let tags = vec![
-            "  sci-fi ".to_owned(),
-            "SCI-FI".to_owned(),
-            String::new(),
-            "nolan".to_owned(),
-        ];
-
-        let normalised = normalise_tags(&tags).expect("valid tags");
-        assert_eq!(normalised, vec!["sci-fi".to_owned(), "nolan".to_owned()]);
     }
 
     #[test]
