@@ -354,6 +354,23 @@ fn clean_details(
             .filter(|value| !value.is_empty())
             .map(str::to_owned),
         director: director.map(str::to_owned),
+        authors: clean_list(&details.authors, 20)?,
+        publisher: details
+            .publisher
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(300).collect()),
+        page_count: details
+            .page_count
+            .filter(|pages| (1..=100_000).contains(pages)),
+        isbn: details
+            .isbn
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(32).collect()),
+        cover_id: details.cover_id.filter(|id| *id > 0),
         cast,
         genres: clean_list(&details.genres, 100)?,
         countries: clean_list(&details.countries, 100)?,

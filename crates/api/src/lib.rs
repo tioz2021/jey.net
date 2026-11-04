@@ -4,6 +4,7 @@
 //! router importable from integration tests.
 
 pub mod auth;
+pub mod books;
 pub mod config;
 pub mod db;
 pub mod error;

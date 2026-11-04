@@ -155,7 +155,8 @@ export default async function ItemPage({
 
           <div className={styles.railPanel}>
             <div className={styles.actions}>
-              {item.external_source === "tmdb" ? (
+              {item.external_source === "tmdb" ||
+              item.external_source === "openlibrary" ? (
                 <RefreshMovieButton itemId={item.id} />
               ) : null}
               <ItemActions itemId={item.id} title={displayTitle} />

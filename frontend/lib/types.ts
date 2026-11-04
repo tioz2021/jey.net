@@ -59,6 +59,11 @@ export interface MovieDetails {
   release_date: string | null;
   status: string | null;
   director: string | null;
+  authors?: string[] | null;
+  publisher?: string | null;
+  page_count?: number | null;
+  isbn?: string | null;
+  cover_id?: number | null;
   /** Old snapshots kept cast as plain names; the server normalises new ones. */
   cast: Array<CastMember | string>;
   genres: string[];
@@ -112,6 +117,28 @@ export interface MovieSearchItem {
   year: number | null;
   poster_path: string | null;
   overview: string | null;
+}
+
+export interface BookSearchItem {
+  book_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  cover_id: number | null;
+  isbn: string | null;
+}
+
+export interface BookDetailsResponse {
+  book_id: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  overview: string | null;
+  publisher: string | null;
+  page_count: number | null;
+  isbn: string | null;
+  cover_id: number | null;
+  subjects: string[];
 }
 
 export interface MovieDetailsResponse extends MovieDetails {

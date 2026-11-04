@@ -163,6 +163,18 @@ pub struct MovieDetails {
     pub status: Option<String>,
     #[serde(default)]
     pub director: Option<String>,
+    /// Book authors; empty for films and series.
+    #[serde(default)]
+    pub authors: Vec<String>,
+    #[serde(default)]
+    pub publisher: Option<String>,
+    #[serde(default)]
+    pub page_count: Option<i32>,
+    #[serde(default)]
+    pub isbn: Option<String>,
+    /// Open Library cover id, used to download the cover.
+    #[serde(default)]
+    pub cover_id: Option<i64>,
     #[serde(default, deserialize_with = "deserialize_cast")]
     pub cast: Vec<CastMember>,
     #[serde(default)]

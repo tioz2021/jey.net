@@ -67,47 +67,63 @@ pub async fn set_tmdb_poster(
         .await?
         .ok_or_else(|| AppError::not_found("item not found"))?;
 
-    if item.external_source.as_deref() != Some("tmdb") {
-        return Err(AppError::validation_field(
-            "external_source",
-            "poster download is only available for TMDB records",
-        ));
-    }
+    let source = item.external_source.as_deref();
+    let bytes: Vec<u8> = match source {
+        Some("tmdb") => {
+            let external_id = item
+                .external_id
+                .as_deref()
+                .ok_or_else(|| AppError::validation_field("external_id", "TMDB id is missing"))?
+                .parse::<u64>()
+                .map_err(|_| {
+                    AppError::validation_field("external_id", "TMDB id is not a number")
+                })?;
 
-    let external_id = item
-        .external_id
-        .as_deref()
-        .ok_or_else(|| AppError::validation_field("external_id", "TMDB id is missing"))?
-        .parse::<u64>()
-        .map_err(|_| AppError::validation_field("external_id", "TMDB id is not a number"))?;
+            if !state.tmdb.configured() {
+                return Err(AppError::unavailable("TMDB is not configured"));
+            }
 
-    if !state.tmdb.configured() {
-        return Err(AppError::unavailable("TMDB is not configured"));
-    }
+            let language = crate::movies::language_for(&current.user.locale);
+            let details = if item.kind == jey_core::items::ItemKind::Tv {
+                state.tmdb.tv_details(external_id, language).await?
+            } else {
+                state.tmdb.details(external_id, language).await?
+            };
 
-    let language = crate::movies::language_for(&current.user.locale);
-    let details = if item.kind == jey_core::items::ItemKind::Tv {
-        state.tmdb.tv_details(external_id, language).await?
-    } else {
-        state.tmdb.details(external_id, language).await?
+            let path = details
+                .poster_path
+                .ok_or_else(|| AppError::not_found("this film has no poster"))?;
+
+            let response = reqwest::Client::new()
+                .get(format!("https://image.tmdb.org/t/p/w1280{path}"))
+                .timeout(std::time::Duration::from_secs(20))
+                .send()
+                .await
+                .map_err(AppError::internal)?;
+
+            if !response.status().is_success() {
+                return Err(AppError::internal("poster download failed"));
+            }
+
+            response.bytes().await.map_err(AppError::internal)?.to_vec()
+        }
+        Some("openlibrary") => {
+            let cover_id = item
+                .details
+                .as_ref()
+                .and_then(|details| details.cover_id)
+                .ok_or_else(|| AppError::not_found("this book has no cover"))?;
+            let (_, bytes) = crate::books::openlibrary::cover(cover_id, "L").await?;
+            bytes
+        }
+        _ => {
+            return Err(AppError::validation_field(
+                "external_source",
+                "automatic covers are available for TMDB and Open Library records",
+            ));
+        }
     };
 
-    let path = details
-        .poster_path
-        .ok_or_else(|| AppError::not_found("this film has no poster"))?;
-
-    let response = reqwest::Client::new()
-        .get(format!("https://image.tmdb.org/t/p/w1280{path}"))
-        .timeout(std::time::Duration::from_secs(20))
-        .send()
-        .await
-        .map_err(AppError::internal)?;
-
-    if !response.status().is_success() {
-        return Err(AppError::internal("poster download failed"));
-    }
-
-    let bytes = response.bytes().await.map_err(AppError::internal)?;
     let used = media::used_bytes(&state.pool, current.user.id).await?;
     let stored = media::save(
         &state.storage,

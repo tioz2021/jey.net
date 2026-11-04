@@ -47,11 +47,31 @@ export async function MovieInfo({
     values?: Record<string, string | number>,
   ) => translate(locale, key, values);
 
+  const isBook = kind === "book";
+  const bookAuthors = details.authors?.length
+    ? details.authors
+    : details.director
+      ? [details.director]
+      : [];
+
   const facts: Array<[string, string]> = [];
-  if (details.original_title) {
+  if (isBook) {
+    if (bookAuthors.length > 0) {
+      facts.push([t("book.authors"), bookAuthors.join(", ")]);
+    }
+    if (details.publisher) {
+      facts.push([t("book.publisher"), details.publisher]);
+    }
+    if (details.page_count) {
+      facts.push([t("book.pages"), String(details.page_count)]);
+    }
+    if (details.isbn) {
+      facts.push([t("book.isbn"), details.isbn]);
+    }
+  } else if (details.original_title) {
     facts.push([t("movie.originalTitle"), details.original_title]);
   }
-  if (details.runtime) {
+  if (!isBook && details.runtime) {
     facts.push([
       t("movie.runtime"),
       t("movie.minutes", { count: details.runtime }),
@@ -69,7 +89,7 @@ export async function MovieInfo({
       String(details.number_of_episodes),
     ]);
   }
-  if (details.release_date) {
+  if (!isBook && details.release_date) {
     facts.push([t("movie.release"), details.release_date]);
   }
   const countries = localized.countries;
@@ -85,16 +105,16 @@ export async function MovieInfo({
   if (companies.length > 0) {
     facts.push([t("movie.studios"), companies.join(", ")]);
   }
-  if (details.budget) {
+  if (!isBook && details.budget) {
     facts.push([t("movie.budget"), formatMoney(locale, details.budget)]);
   }
-  if (details.revenue) {
+  if (!isBook && details.revenue) {
     facts.push([t("movie.revenue"), formatMoney(locale, details.revenue)]);
   }
-  if (details.imdb_id) {
+  if (!isBook && details.imdb_id) {
     facts.push(["IMDb", `tt${details.imdb_id.replace(/^tt/, "")}`]);
   }
-  if (details.vote_average_tenths) {
+  if (!isBook && details.vote_average_tenths) {
     const score = (details.vote_average_tenths / 10).toFixed(1);
     const votes = details.vote_count
       ? ` · ${t("movie.votes", { count: formatNumber(locale, details.vote_count) })}`
@@ -104,14 +124,24 @@ export async function MovieInfo({
 
   return (
     <>
-      <Card title={kind === "tv" ? t("tv.about") : t("movie.about")}>
+      <Card
+        title={
+          kind === "tv"
+            ? t("tv.about")
+            : isBook
+              ? t("book.about")
+              : t("movie.about")
+        }
+      >
         {localized.tagline ? (
           <p className={styles.tagline}>«{localized.tagline}»</p>
         ) : null}
         {localized.overview ? (
           <p className={styles.overview}>{localized.overview}</p>
         ) : (
-          <p className={styles.muted}>{t("movie.overviewEmpty")}</p>
+          <p className={styles.muted}>
+            {isBook ? t("book.overviewEmpty") : t("movie.overviewEmpty")}
+          </p>
         )}
 
         {facts.length > 0 ? (
@@ -125,7 +155,7 @@ export async function MovieInfo({
           </dl>
         ) : null}
 
-        {details.imdb_id ? (
+        {!isBook && details.imdb_id ? (
           <p className={styles.links}>
             <a
               href={`https://www.imdb.com/title/tt${details.imdb_id.replace(/^tt/, "")}`}
@@ -152,7 +182,7 @@ export async function MovieInfo({
         ) : null}
       </Card>
 
-      {localized.cast.length > 0 ? (
+      {!isBook && localized.cast.length > 0 ? (
         <Card title={t("movie.cast")}>
           <ul className={styles.castGrid}>
             {localized.cast.map((person, index) => {

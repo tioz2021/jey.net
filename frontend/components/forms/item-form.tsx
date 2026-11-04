@@ -14,6 +14,7 @@ import type {
   Item,
   ItemKind,
   ItemStatus,
+  BookDetailsResponse,
   MovieDetails,
   MovieDetailsResponse,
   NewItem,
@@ -21,6 +22,7 @@ import type {
 
 import { CoverPicker } from "@/components/items/cover-picker";
 import { StarRating } from "@/components/forms/star-rating";
+import { BookSearch } from "@/components/items/book-search";
 import { MovieSearch } from "@/components/items/movie-search";
 import { TagInput } from "@/components/items/tag-input";
 import { useToast } from "@/components/toasts";
@@ -185,7 +187,9 @@ function validate(
       rating,
       review: values.review.trim() || null,
       source_url: sourceUrl || null,
-      external_source: values.external_id ? "tmdb" : null,
+      external_source: values.external_id
+        ? values.external_source || "tmdb"
+        : null,
       external_id: values.external_id || null,
       details: values.details,
       public_hidden: values.public_hidden,
@@ -234,7 +238,8 @@ export function ItemForm({
   const startKind = initial?.kind ?? lockKind ?? initialKind ?? "movie";
   const [advanced, setAdvanced] = useState(
     () =>
-      Boolean(itemId) || (startKind !== "movie" && startKind !== "tv"),
+      Boolean(itemId) ||
+      (startKind !== "movie" && startKind !== "tv" && startKind !== "book"),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
@@ -282,6 +287,52 @@ export function ItemForm({
     setCoverCleared(false);
   }
 
+  function applyBook(book: BookDetailsResponse) {
+    const authorLine = book.authors.join(", ");
+    setValues((current) => ({
+      ...current,
+      title: book.title,
+      year: book.year ? String(book.year) : "",
+      subtitle: authorLine,
+      source_url: `https://openlibrary.org/works/${book.book_id}`,
+      external_source: "openlibrary",
+      external_id: book.book_id,
+      details: {
+        original_title: book.title,
+        overview: book.overview,
+        tagline: null,
+        runtime: null,
+        release_date: book.year ? `${book.year}-01-01` : null,
+        status: null,
+        director: authorLine || null,
+        authors: book.authors,
+        publisher: book.publisher,
+        page_count: book.page_count,
+        isbn: book.isbn,
+        cover_id: book.cover_id,
+        cast: [],
+        genres: book.subjects,
+        countries: [],
+        languages: [],
+        companies: [],
+        budget: null,
+        revenue: null,
+        imdb_id: null,
+        vote_average_tenths: null,
+        vote_count: null,
+        translations: {},
+        number_of_seasons: null,
+        number_of_episodes: null,
+        seasons: [],
+        watched_episodes: [],
+      },
+      tags: mergeTags(current.tags, book.subjects),
+    }));
+    setPosterPending(true);
+    setCoverUploadId(null);
+    setCoverCleared(false);
+  }
+
   function changeKind(kind: ItemKind) {
     setValues((current) => ({
       ...current,
@@ -294,7 +345,7 @@ export function ItemForm({
     }));
 
     // Books and images need the full form; films and series stay compact.
-    if (kind !== "movie" && kind !== "tv") {
+    if (kind !== "movie" && kind !== "tv" && kind !== "book") {
       setAdvanced(true);
     }
   }
@@ -304,7 +355,9 @@ export function ItemForm({
 
     const compactMedia =
       !itemId &&
-      (values.kind === "movie" || values.kind === "tv") &&
+      (values.kind === "movie" ||
+        values.kind === "tv" ||
+        values.kind === "book") &&
       !advanced;
     if (compactMedia && !values.title.trim()) {
       setErrors({ form: t("form.movieRequired") });
@@ -363,7 +416,10 @@ export function ItemForm({
   }
 
   const compactMedia =
-    !itemId && (values.kind === "movie" || values.kind === "tv");
+    !itemId &&
+    (values.kind === "movie" ||
+      values.kind === "tv" ||
+      values.kind === "book");
   const showExtra = !compactMedia || advanced;
 
   return (
@@ -416,6 +472,15 @@ export function ItemForm({
             initial?.cover_key ? `/media/${initial.cover_key}` : null
           }
           selectedYear={values.year || undefined}
+        />
+      ) : null}
+
+      {values.kind === "book" ? (
+        <BookSearch
+          onSelect={applyBook}
+          selected={values.external_id ? values.title : null}
+          selectedAuthors={values.subtitle || undefined}
+          selectedCoverId={values.details?.cover_id ?? null}
         />
       ) : null}
 

@@ -100,6 +100,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         // Public: TMDB posters and actor portraits are not private data, and
         // guest profiles must render them too.
         .route("/movies/image", get(crate::movies::image))
+        .route("/books/image", get(crate::books::image))
         .route(
             "/public/users/{id}/items/{item_id}/episodes",
             get(crate::users::public::episodes),
@@ -127,6 +128,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/movies/{id}", get(crate::movies::details))
         .route("/tv/search", get(crate::movies::tv_search))
         .route("/tv/{id}", get(crate::movies::tv_details))
+        .route("/books/search", get(crate::books::search))
+        .route("/books/{id}", get(crate::books::details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(

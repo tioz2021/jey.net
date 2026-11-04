@@ -19,6 +19,8 @@ import type {
   Stats,
   TagCount,
   TvSeasonResponse,
+  BookDetailsResponse,
+  BookSearchItem,
   MovieDetailsResponse,
   MovieSearchItem,
   TagsResponse,
@@ -347,6 +349,18 @@ export const publicItems = {
     }),
 };
 
+export const books = {
+  search: (q: string) =>
+    request<{ results: BookSearchItem[] }>(
+      `/books/search?q=${encodeURIComponent(q)}`,
+    ),
+
+  get: (id: string) =>
+    request<{ book: BookDetailsResponse }>(
+      `/books/${encodeURIComponent(id)}`,
+    ),
+};
+
 export const tv = {
   search: (q: string) =>
     request<{ results: MovieSearchItem[] }>(
@@ -366,6 +380,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { auth, items, movies, publicItems, tv, tags, stats, transfer, uploads };
+export const api = { auth, books, items, movies, publicItems, tv, tags, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

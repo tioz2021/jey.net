@@ -18,6 +18,9 @@ async fn movie_endpoints_require_auth_and_a_tmdb_token() {
     let anonymous_tv = client.get("/api/v1/tv/search?q=test", None).await;
     assert_eq!(anonymous_tv.status, 401);
 
+    let anonymous_books = client.get("/api/v1/books/search?q=test", None).await;
+    assert_eq!(anonymous_books.status, 401);
+
     let registered = client
         .post(
             "/api/v1/auth/register",

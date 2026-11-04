@@ -414,6 +414,11 @@ impl MovieDetails {
             release_date: self.release_date.clone(),
             status: self.status.clone(),
             director: self.director.clone(),
+            authors: Vec::new(),
+            publisher: None,
+            page_count: None,
+            isbn: None,
+            cover_id: None,
             cast: self
                 .cast
                 .iter()
