@@ -176,10 +176,7 @@ pub async fn item(
                     ),
                     '{}'::jsonb
                 ) as genres,
-                i.updated_at,
-                coalesce(
-                    array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
-                    '{}'
+                i.updated_at
          from items i
          where i.id = $2
            and i.user_id = $1
@@ -347,16 +344,12 @@ async fn load_public_items(
                     ),
                     '{}'::jsonb
                 ) as genres,
-                i.updated_at,
-                coalesce(
-                    array_agg(t.name order by lower(t.name)) filter (where t.name is not null),
-                    '{}'
+                i.updated_at
          from items i
          where i.user_id = $1
            and i.status = ANY($2)
            and not i.public_hidden
            and i.deleted_at is null
-         group by i.id
          order by i.updated_at desc
          limit $3",
     )
