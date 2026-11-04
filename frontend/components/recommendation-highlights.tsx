@@ -66,7 +66,7 @@ export function RecommendationHighlights() {
               ) : (
                 <span aria-hidden="true" className={styles.placeholder} />
               )}
-              <span>
+              <span className={styles.copy}>
                 <span className={styles.title}>{item.title}</span>
                 {item.year ? <span className={styles.meta}>{item.year}</span> : null}
               </span>
