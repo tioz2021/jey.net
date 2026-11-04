@@ -116,6 +116,9 @@ impl TestClient {
             igdb: std::sync::Arc::new(jey_api::games::igdb::IgdbClient::new(None, None)),
             anime: std::sync::Arc::new(jey_api::anime::AnimeClient::new()),
             books: std::sync::Arc::new(jey_api::books::BookClient::new()),
+            recommendations: std::sync::Arc::new(
+                jey_api::recommendations::RecommendationCache::new(),
+            ),
         };
 
         // Every test gets its own client address so rate-limit counters of one

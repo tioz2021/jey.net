@@ -12,6 +12,7 @@ export const en = {
   "similar.showAll": "Show all ({count})",
   "similar.collapse": "Collapse",
   "similar.title": "Similar",
+  "recommendations.homeTitle": "Recommended for you",
   "recommendations.title": "Recommendations",
   "recommendations.friendsTitle": "Friends rated highly",
   "recommendations.emptyTitle": "No recommendations yet",

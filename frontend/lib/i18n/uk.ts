@@ -12,6 +12,7 @@ export const uk = {
   "similar.showAll": "Показати всі ({count})",
   "similar.collapse": "Згорнути",
   "similar.title": "Схоже",
+  "recommendations.homeTitle": "Рекомендації для вас",
   "recommendations.title": "Рекомендації",
   "recommendations.friendsTitle": "Друзі високо оцінили",
   "recommendations.emptyTitle": "Поки немає рекомендацій",

@@ -1,5 +1,9 @@
 //! Recommendations from public ratings of followed profiles.
 
+use std::collections::HashMap;
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+
 use axum::Json;
 use axum::extract::State;
 use serde_json::{Value, json};
@@ -8,6 +12,43 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 use crate::movies::tmdb::SimilarItem;
+
+const CACHE_TTL: Duration = Duration::from_secs(30 * 60);
+const CACHE_CAPACITY: usize = 200;
+
+/// Short-lived cache for the aggregate recommendation endpoints.
+pub struct RecommendationCache {
+    values: Mutex<HashMap<String, (Instant, Value)>>,
+}
+
+impl Default for RecommendationCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl RecommendationCache {
+    pub fn new() -> Self {
+        Self {
+            values: Mutex::new(HashMap::new()),
+        }
+    }
+
+    fn get(&self, key: &str) -> Option<Value> {
+        let cache = self.values.lock().ok()?;
+        let (at, value) = cache.get(key)?;
+        (at.elapsed() < CACHE_TTL).then(|| value.clone())
+    }
+
+    fn set(&self, key: String, value: Value) {
+        if let Ok(mut cache) = self.values.lock() {
+            if cache.len() >= CACHE_CAPACITY {
+                cache.clear();
+            }
+            cache.insert(key, (Instant::now(), value));
+        }
+    }
+}
 
 type SimilarRow = (
     String,
@@ -22,6 +63,10 @@ pub async fn similar(
     current: CurrentUser,
     axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
 ) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("similar:{}", id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
     let row: Option<SimilarRow> = sqlx::query_as(
         "select kind, external_source, external_id, details from items
              where id = $1 and user_id = $2 and deleted_at is null",
@@ -130,7 +175,9 @@ pub async fn similar(
         "shikimori" => crate::anime::shikimori::similar(external_id).await?,
         _ => Vec::new(),
     };
-    Ok(Json(json!({ "items": items })))
+    let payload = json!({ "items": items });
+    state.recommendations.set(cache_key, payload.clone());
+    Ok(Json(payload))
 }
 
 /// `GET /api/v1/recommendations/friends`
@@ -138,6 +185,10 @@ pub async fn friends(
     State(state): State<AppState>,
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("friends:{}", current.user.id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
     let items: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', i.id,
@@ -193,7 +244,9 @@ pub async fn friends(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({ "items": items })))
+    let payload = json!({ "items": items });
+    state.recommendations.set(cache_key, payload.clone());
+    Ok(Json(payload))
 }
 
 /// `GET /api/v1/recommendations/taste` — genres from high ratings and public matches.
@@ -201,6 +254,10 @@ pub async fn taste(
     State(state): State<AppState>,
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("taste:{}", current.user.id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
     let genres: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object('name', genre, 'count', count(*))
          from items i
@@ -291,5 +348,7 @@ pub async fn taste(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({ "genres": genres, "items": items })))
+    let payload = json!({ "genres": genres, "items": items });
+    state.recommendations.set(cache_key, payload.clone());
+    Ok(Json(payload))
 }

@@ -123,6 +123,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
     ));
     let anime = Arc::new(jey_api::anime::AnimeClient::new());
     let books = Arc::new(jey_api::books::BookClient::new());
+    let recommendations = Arc::new(jey_api::recommendations::RecommendationCache::new());
 
     jey_api::users::purge::spawn(pool.clone(), storage.clone(), config.purge_retention_days);
 
@@ -134,6 +135,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         igdb,
         anime,
         books,
+        recommendations,
         config: Arc::new(config),
     };
 

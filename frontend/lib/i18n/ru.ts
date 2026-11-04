@@ -11,6 +11,7 @@ export const ru = {
   "similar.showAll": "Показать все ({count})",
   "similar.collapse": "Свернуть",
   "similar.title": "Похожее",
+  "recommendations.homeTitle": "Рекомендации для вас",
   "recommendations.title": "Рекомендации",
   "recommendations.friendsTitle": "Друзья высоко оценили",
   "recommendations.emptyTitle": "Пока нет рекомендаций",
