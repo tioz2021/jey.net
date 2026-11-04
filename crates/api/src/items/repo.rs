@@ -267,8 +267,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
                and ($7::boolean or i.deleted_at is null)
                and ($2::text is null or i.kind = $2)
                and ($3::text is null or i.status = $3)
-               and ($8::text is null or exists (
-                   select 1
+               and ($8::text is null or true)
                and ($9::int is null or i.year >= $9)
                and ($10::int is null or i.year <= $10)
                and ($11::int is null or i.rating >= $11)
@@ -284,13 +283,10 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
              i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
              i.device_id,
-             i.created_at, i.updated_at, i.deleted_at,
-             coalesce(
-                 array_agg(t.name order by lower(t.name)) filter (where t.id is not null),
-                 '{{}}'
+             i.created_at, i.updated_at, i.deleted_at
          from items i
          join page p on p.id = i.id
-              order by {order}"
+         order by {order}"
     );
 
     let (cursor_value, cursor_id) = match cursor {
