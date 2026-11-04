@@ -14,7 +14,13 @@ import type { SimilarItem } from "@/lib/types";
 
 import styles from "./similar-items.module.css";
 
-export function SimilarItems({ itemId }: { itemId: string }) {
+export function SimilarItems({
+  itemId,
+  publicView = false,
+}: {
+  itemId: string;
+  publicView?: boolean;
+}) {
   const { t } = useI18n();
   const [items, setItems] = useState<SimilarItem[]>([]);
   const [expanded, setExpanded] = useState(false);
@@ -22,8 +28,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    api.items
-      .similar(itemId)
+    (publicView ? api.publicItems.similar(itemId) : api.items.similar(itemId))
       .then((response) => {
         if (!cancelled) setItems(response.items);
       })
@@ -31,7 +36,7 @@ export function SimilarItems({ itemId }: { itemId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [itemId]);
+  }, [itemId, publicView]);
 
   const visible = items.filter(
     (item) => !hidden.has(similarRecommendationKey(item.source, item.external_id)),

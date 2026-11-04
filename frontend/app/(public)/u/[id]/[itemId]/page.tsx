@@ -7,6 +7,7 @@ import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { ItemReview } from "@/components/items/item-review";
 import { MovieCast } from "@/components/items/movie-cast";
+import { SimilarItems } from "@/components/items/similar-items";
 import {
   IconBook,
   IconFilm,
@@ -211,6 +212,7 @@ export default async function PublicItemPage({
               watched={item.details.watched_episodes ?? []}
             />
           ) : null}
+          <SimilarItems itemId={item.id} publicView />
           {item.details ? (
             <MovieCast details={item.details} locale={locale} />
           ) : null}

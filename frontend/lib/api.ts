@@ -388,6 +388,11 @@ export const publicUsers = {
 };
 
 export const publicItems = {
+  similar: (id: string) =>
+    request<{ items: SimilarItem[] }>(
+      `/public/items/${encodeURIComponent(id)}/similar`,
+      { redirectOnUnauthorized: false },
+    ),
   episodes: (userId: string, itemId: string, season: number) =>
     fetch(
       `/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/episodes?season=${encodeURIComponent(String(season))}`,

@@ -110,6 +110,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/users/{id}/items/{item_id}/episodes",
             get(crate::users::public::episodes),
         )
+        .route(
+            "/public/items/{id}/similar",
+            get(crate::recommendations::public_similar),
+        )
         .route("/auth/logout", post(logout))
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))

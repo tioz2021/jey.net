@@ -57,31 +57,51 @@ type SimilarRow = (
     Option<serde_json::Value>,
 );
 
-/// `GET /api/v1/items/{id}/similar` — provider suggestions for one record.
-pub async fn similar(
-    State(state): State<AppState>,
-    current: CurrentUser,
-    axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
-) -> Result<Json<Value>, AppError> {
-    let cache_key = format!("similar:{}", id);
-    if let Some(value) = state.recommendations.get(&cache_key) {
-        return Ok(Json(value));
+fn languages(locale: &str) -> (&'static str, &'static str) {
+    match locale {
+        "ru" => ("ru-RU", "ru"),
+        "uk" => ("uk-UA", "uk"),
+        _ => ("en-US", "en"),
     }
-    let row: Option<SimilarRow> = sqlx::query_as(
-        "select kind, external_source, external_id, details from items
-             where id = $1 and user_id = $2 and deleted_at is null",
-    )
-    .bind(id)
-    .bind(current.user.id)
-    .fetch_optional(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+}
+
+async fn load_similar(
+    state: &AppState,
+    id: uuid::Uuid,
+    owner: Option<uuid::Uuid>,
+    tmdb_language: &str,
+    book_language: &str,
+) -> Result<Value, AppError> {
+    let row: Option<SimilarRow> = match owner {
+        Some(user_id) => sqlx::query_as(
+            "select kind, external_source, external_id, details from items
+                 where id = $1 and user_id = $2 and deleted_at is null",
+        )
+        .bind(id)
+        .bind(user_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(AppError::internal)?,
+        None => sqlx::query_as(
+            "select i.kind, i.external_source, i.external_id, i.details
+                 from items i
+                 join users u on u.id = i.user_id
+                 where i.id = $1 and i.deleted_at is null
+                   and not i.public_hidden
+                   and u.is_public and u.deleted_at is null
+                   and i.status = ANY(u.public_statuses)",
+        )
+        .bind(id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(AppError::internal)?,
+    };
     let (kind, source, external_id, details) = row.ok_or_else(|| AppError::not_found("record"))?;
     let Some(source) = source else {
-        return Ok(Json(json!({ "items": [] })));
+        return Ok(json!({ "items": [] }));
     };
     let Some(external_id) = external_id else {
-        return Ok(Json(json!({ "items": [] })));
+        return Ok(json!({ "items": [] }));
     };
 
     if source == "openlibrary" || source == "googlebooks" {
@@ -108,22 +128,14 @@ pub async fn similar(
         } else if let Some(subject) = subject {
             ("subject", subject)
         } else {
-            return Ok(Json(json!({ "items": [] })));
+            return Ok(json!({ "items": [] }));
         };
         let query = format!("{field}:\"{}\"", term.replace('"', "\\\""));
         let candidates = if source == "googlebooks" {
             match state.config.google_books_key.as_deref() {
-                Some(key) => crate::books::google::search(
-                    &query,
-                    key,
-                    match current.user.locale.as_str() {
-                        "ru" => "ru",
-                        "uk" => "uk",
-                        _ => "en",
-                    },
-                )
-                .await
-                .unwrap_or_default(),
+                Some(key) => crate::books::google::search(&query, key, book_language)
+                    .await
+                    .unwrap_or_default(),
                 None => Vec::new(),
             }
         } else {
@@ -154,28 +166,61 @@ pub async fn similar(
                 },
             })
             .collect();
-        return Ok(Json(json!({ "items": items })));
+        return Ok(json!({ "items": items }));
     }
 
     let Some(external_id) = external_id.parse::<u64>().ok() else {
-        return Ok(Json(json!({ "items": [] })));
+        return Ok(json!({ "items": [] }));
     };
     let items = match source.as_str() {
         "tmdb" => {
-            let language = match current.user.locale.as_str() {
-                "ru" => "ru-RU",
-                "uk" => "uk-UA",
-                _ => "en-US",
-            };
             let media = if kind == "tv" { "tv" } else { "movie" };
-            state.tmdb.similar(media, external_id, language).await?
+            state
+                .tmdb
+                .similar(media, external_id, tmdb_language)
+                .await?
         }
         "igdb" => state.igdb.similar(external_id).await?,
         "anilist" => crate::anime::anilist::similar(external_id).await?,
         "shikimori" => crate::anime::shikimori::similar(external_id).await?,
         _ => Vec::new(),
     };
-    let payload = json!({ "items": items });
+    Ok(json!({ "items": items }))
+}
+
+/// `GET /api/v1/items/{id}/similar` — provider suggestions for one record.
+pub async fn similar(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("similar:{}", id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
+    let (tmdb_language, book_language) = languages(&current.user.locale);
+    let payload = load_similar(
+        &state,
+        id,
+        Some(current.user.id),
+        tmdb_language,
+        book_language,
+    )
+    .await?;
+    state.recommendations.set(cache_key, payload.clone());
+    Ok(Json(payload))
+}
+
+/// `GET /api/v1/public/items/{id}/similar` — the same block for guests.
+pub async fn public_similar(
+    State(state): State<AppState>,
+    axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("public-similar:{}", id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
+    let payload = load_similar(&state, id, None, "ru-RU", "ru").await?;
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }
