@@ -201,17 +201,10 @@ export function ItemList({
   return (
     <div className={styles.layout}>
       <SavedFilters />
-      <div className={styles.toolbar}>
-        {!selectionMode && items.length > 0 ? (
-          <Button
-            onClick={() => setSelectionMode(true)}
-            variant="secondary"
-          >
-            {t("bulk.selectMode")}
-          </Button>
-        ) : null}
-      </div>
-      <ItemsFilters />
+      <ItemsFilters
+        onSelect={() => setSelectionMode(true)}
+        selectionMode={selectionMode}
+      />
 
       {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>

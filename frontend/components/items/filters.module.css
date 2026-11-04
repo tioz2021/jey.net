@@ -97,6 +97,10 @@
   }
 }
 
+.select {
+  margin-left: auto;
+}
+
 .foot {
   display: flex;
   flex-wrap: wrap;

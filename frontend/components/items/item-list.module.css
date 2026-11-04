@@ -81,11 +81,6 @@
   color: var(--color-text);
 }
 
-.toolbar {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .item {
   position: relative;
 }

@@ -16,7 +16,13 @@ const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 const STATUSES = Object.keys(STATUS_KEYS) as ItemStatus[];
 const SORTS = Object.keys(SORT_KEYS) as Sort[];
 
-export function ItemsFilters() {
+export function ItemsFilters({
+  onSelect,
+  selectionMode = false,
+}: {
+  onSelect?: () => void;
+  selectionMode?: boolean;
+}) {
   const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const [open, setOpen] = useState(false);
@@ -142,7 +148,16 @@ export function ItemsFilters() {
           >
             {t("filters.reset")}
           </Button>
-
+          {onSelect && !selectionMode ? (
+            <Button
+              className={styles.select}
+              onClick={onSelect}
+              size="sm"
+              variant="ghost"
+            >
+              {t("bulk.selectMode")}
+            </Button>
+          ) : null}
         </div>
       </div>
 
