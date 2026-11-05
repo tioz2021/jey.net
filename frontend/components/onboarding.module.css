@@ -45,3 +45,65 @@
 .cta {
   transition: transform var(--transition-fast);
 }
+
+.stepGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.stepCard {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-2);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.stepCard:hover {
+  border-color: var(--color-accent);
+}
+
+.stepNumber {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.stepText {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.privacy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+  border-left: 2px solid var(--color-accent);
+}
+
+.privacy p {
+  margin: 0;
+}
+
+@media (width <= 700px) {
+  .stepGrid {
+    grid-template-columns: 1fr;
+  }
+}
