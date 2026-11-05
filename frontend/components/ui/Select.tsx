@@ -23,6 +23,7 @@ export interface SelectProps
   hint?: string;
   error?: string;
   hideLabel?: boolean;
+  compact?: boolean;
   children: ReactNode;
   value?: string | number;
   defaultValue?: string | number;
@@ -53,6 +54,7 @@ export function Select({
   hint,
   error,
   hideLabel = false,
+  compact = false,
   id,
   children,
   className,
@@ -146,7 +148,10 @@ export function Select({
       <span className={hideLabel ? "visually-hidden" : styles.label} id={labelId}>
         {label}
       </span>
-      <div className={styles.selectRoot} ref={ref}>
+      <div
+        className={`${styles.selectRoot} ${compact ? styles.selectCompact : ""}`}
+        ref={ref}
+      >
         <button
           {...(rest as Record<string, unknown>)}
           aria-controls={listId}
@@ -155,7 +160,9 @@ export function Select({
           aria-haspopup="listbox"
           aria-invalid={error ? true : undefined}
           aria-labelledby={labelId}
-          className={`${styles.selectTrigger} ${error ? styles.invalid : ""}`}
+          className={`${styles.selectTrigger} ${
+            compact ? styles.selectTriggerCompact : ""
+          } ${error ? styles.invalid : ""}`}
           disabled={disabled}
           id={selectId}
           onClick={() => {
@@ -173,7 +180,9 @@ export function Select({
         {name ? <input name={name} type="hidden" value={current} /> : null}
         <ul
           aria-labelledby={labelId}
-          className={`${styles.selectMenu} ${open ? styles.selectMenuOpen : ""}`}
+          className={`${styles.selectMenu} ${
+            compact ? styles.selectMenuCompact : ""
+          } ${open ? styles.selectMenuOpen : ""}`}
           id={listId}
           role="listbox"
         >
@@ -182,6 +191,8 @@ export function Select({
               aria-disabled={option.disabled || undefined}
               aria-selected={option.value === current}
               className={`${styles.selectOption} ${
+                compact ? styles.selectOptionCompact : ""
+              } ${
                 index === activeIndex ? styles.selectOptionActive : ""
               } ${option.value === current ? styles.selectOptionSelected : ""}`}
               key={`${option.value}-${index}`}

@@ -124,6 +124,7 @@ export function ItemsFilters({
 
         <Select
           className={styles.select}
+          compact={compact}
           hideLabel={compact}
           label={t("filters.status")}
           value={searchParams.get("status") ?? ""}
@@ -139,6 +140,7 @@ export function ItemsFilters({
 
         <Select
           className={styles.select}
+          compact={compact}
           hideLabel={compact}
           label={t("filters.sort")}
           value={searchParams.get("sort") ?? "created_desc"}

@@ -217,3 +217,26 @@
     transition: none;
   }
 }
+
+
+.selectCompact {
+  width: 100%;
+  min-width: 0;
+}
+
+.selectTriggerCompact {
+  min-height: 30px;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+.selectMenuCompact {
+  max-height: 220px;
+  padding: 2px;
+}
+
+.selectOptionCompact {
+  gap: var(--space-1);
+  padding: 4px 6px;
+  font-size: 10px;
+}
