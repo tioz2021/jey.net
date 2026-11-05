@@ -33,7 +33,7 @@ pub async fn search(
 
     let rows = sqlx::query_as::<_, ItemRow>(
         "select
-             i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+             i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
              i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
              i.created_at, i.updated_at, i.deleted_at
@@ -114,7 +114,7 @@ async fn semantic_search(
 ) -> Result<Vec<ItemRow>, AppError> {
     let rows = sqlx::query_as::<_, ItemRow>(
         "select
-             i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+             i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
              i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
              i.created_at, i.updated_at, i.deleted_at

@@ -8,6 +8,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize)]
 pub struct ItemView {
     pub id: Uuid,
+    pub slug: String,
     pub kind: ItemKind,
     pub title: String,
     pub subtitle: Option<String>,
@@ -33,6 +34,7 @@ impl From<Item> for ItemView {
     fn from(item: Item) -> Self {
         Self {
             id: item.id,
+            slug: item.slug,
             kind: item.kind,
             title: item.title,
             subtitle: item.subtitle,

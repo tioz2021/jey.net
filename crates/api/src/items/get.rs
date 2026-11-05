@@ -11,6 +11,27 @@ use crate::http::AppState;
 use crate::items::repo;
 use crate::items::view::ItemView;
 
+/// `GET /api/v1/items/by-slug/{slug}` — owner's canonical item lookup.
+pub async fn get_by_slug(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(slug): Path<String>,
+) -> Result<Json<Value>, AppError> {
+    let id: Option<Uuid> = sqlx::query_scalar(
+        "select id from items
+         where user_id = $1 and slug = $2 and deleted_at is null",
+    )
+    .bind(current.user.id)
+    .bind(&slug)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some(id) = id else {
+        return Err(AppError::not_found("item not found"));
+    };
+    get_item(State(state), current, Path(id.to_string())).await
+}
+
 pub async fn get_item(
     State(state): State<AppState>,
     current: CurrentUser,

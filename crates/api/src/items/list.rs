@@ -317,6 +317,7 @@ mod tests {
     fn item(title: &str, rating: Option<u8>) -> Item {
         Item {
             id: Uuid::new_v4(),
+            slug: title.to_lowercase().replace(" ", "-"),
             user_id: Uuid::new_v4(),
             kind: ItemKind::Movie,
             title: title.to_owned(),

@@ -158,7 +158,7 @@ pub async fn feed(
 ) -> Result<Json<Value>, AppError> {
     let items: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
-            'id', i.id, 'slug', i.slug, 'author_id', u.id, 'author_name', u.display_name,
+            'id', i.id, 'slug', i.slug, 'author_id', u.id, 'author_name', u.display_name, 'author_handle', u.handle,
             'kind', i.kind, 'title', i.title, 'subtitle', i.subtitle,
             'year', i.year, 'status', i.status, 'rating', i.rating,
             'review', i.review, 'cover_key', i.cover_key,

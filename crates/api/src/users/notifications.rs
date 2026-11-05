@@ -285,6 +285,7 @@ pub async fn list(
             'item_id', n.item_id,
             'item_slug', i.slug,
             'item_author_id', i.user_id,
+            'item_author_handle', owner.handle,
             'item_title', i.title,
             'item_kind', i.kind,
             'comment_id', n.comment_id,

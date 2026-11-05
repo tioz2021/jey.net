@@ -71,8 +71,8 @@ export default function NotificationsPage() {
           <ul className={styles.list}>
             {items.map((item) => {
               const itemHref =
-                item.item_slug
-                  ? `/cart/${item.item_slug}`
+                item.item_slug && item.item_author_handle
+                  ? `/u/${item.item_author_handle}/item/${item.item_slug}`
                   : `/u/${item.actor_id}`;
               const isComment = item.kind === "comment";
               const isReply = item.kind === "reply";

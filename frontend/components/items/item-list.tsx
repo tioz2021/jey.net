@@ -6,6 +6,7 @@ import { Button, Select } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
 import { Onboarding } from "@/components/onboarding";
 import { useI18n } from "@/lib/locale-context";
+import { useUser } from "@/lib/user-context";
 import { STATUS_KEYS } from "@/lib/i18n/labels";
 import { ListSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
@@ -50,6 +51,7 @@ export function ItemList({
 }) {
   const i18n = useI18n();
   const { t } = i18n;
+  const { user } = useUser();
   const { params: searchParams, update } = useItemsQuery();
   const query = searchParams.toString();
   const filters = useMemo(() => parseFilters(new URLSearchParams(query)), [query]);
@@ -387,7 +389,7 @@ export function ItemList({
                   </label>
                 ) : null}
                 <ItemCard
-                  href={`/items/${item.id}${query ? `?${query}` : ""}`}
+                  href={`${user?.handle && item.slug ? `/u/${user.handle}/item/${item.slug}` : `/items/${item.id}`}${query ? `?${query}` : ""}`}
                   item={item}
                   query={filters.q}
                   selected={selectionMode && selected.has(item.id)}

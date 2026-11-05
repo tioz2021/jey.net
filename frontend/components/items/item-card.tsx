@@ -14,6 +14,7 @@ import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import { RatingStars } from "@/components/items/rating-stars";
 import { useI18n } from "@/lib/locale-context";
+import { useUser } from "@/lib/user-context";
 import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemStatus } from "@/lib/types";
 
@@ -52,6 +53,7 @@ function Highlight({ text, query }: { text: string; query?: string }) {
 /** Fields a card needs; `Item` satisfies this too. */
 export interface ItemCardData {
   id: string;
+  slug?: string;
   kind: ItemKind;
   title: string;
   subtitle: string | null;
@@ -92,8 +94,13 @@ export function ItemCard({
   selected?: boolean;
   reactions?: boolean;
 }) {
-  const target = href ?? `/items/${item.id}`;
   const { t, locale } = useI18n();
+  const { user } = useUser();
+  const target =
+    href ??
+    (user?.handle && item.slug
+      ? `/u/${user.handle}/item/${item.slug}`
+      : `/items/${item.id}`);
   const title = localizedTitle(item, locale);
   const subtitle = localizedSubtitle(item, locale);
 

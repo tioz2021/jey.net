@@ -13,7 +13,7 @@ use crate::error::AppError;
 
 const SELECT_BY_ID: &str = r#"
     select
-        i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+        i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
@@ -24,7 +24,7 @@ const SELECT_BY_ID: &str = r#"
 
 const SELECT_ALL: &str = r#"
     select
-        i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+        i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
@@ -36,7 +36,7 @@ const SELECT_ALL: &str = r#"
 
 const SELECT_LIST: &str = r#"
     select
-        i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+        i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
         i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
@@ -53,6 +53,7 @@ const SELECT_LIST: &str = r#"
 #[derive(Debug, sqlx::FromRow)]
 pub struct ItemRow {
     id: Uuid,
+    slug: String,
     user_id: Uuid,
     kind: String,
     title: String,
@@ -82,6 +83,7 @@ impl TryFrom<ItemRow> for Item {
     fn try_from(row: ItemRow) -> Result<Self, Self::Error> {
         Ok(Self {
             id: row.id,
+            slug: row.slug,
             user_id: row.user_id,
             kind: ItemKind::parse(&row.kind)?,
             title: row.title,
@@ -279,7 +281,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
              limit $6
          )
          select
-             i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+             i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
              i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
              i.device_id,

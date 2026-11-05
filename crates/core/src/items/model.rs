@@ -272,6 +272,8 @@ where
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Item {
     pub id: Uuid,
+    #[serde(default)]
+    pub slug: String,
     pub user_id: Uuid,
     pub kind: ItemKind,
     pub title: String,

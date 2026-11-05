@@ -247,6 +247,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/anime/{id}", get(crate::anime::details))
         .route("/items", post(create_item).get(list_items))
         .route("/items/ids", get(crate::items::list::list_ids))
+        .route("/items/by-slug/{slug}", get(crate::items::get::get_by_slug))
         .route("/items/{id}/neighbors", get(crate::items::list::neighbors))
         .route(
             "/items/{id}",

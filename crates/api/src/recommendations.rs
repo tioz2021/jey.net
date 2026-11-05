@@ -451,6 +451,7 @@ pub async fn taste(
              'slug', i.slug,
              'author_id', u.id,
              'author_name', u.display_name,
+             'author_handle', u.handle,
              'kind', i.kind,
              'title', i.title,
              'subtitle', i.subtitle,

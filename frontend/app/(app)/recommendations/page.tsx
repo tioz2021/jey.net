@@ -87,7 +87,7 @@ export default function RecommendationsPage() {
                       />
                     </div>
                     <ItemCard
-                      href={`/cart/${item.slug}`}
+                      href={`/u/${item.author_handle}/item/${item.slug}`}
                       item={item}
                       reactions
                     />
@@ -125,7 +125,7 @@ export default function RecommendationsPage() {
                   />
                 </div>
                 <ItemCard
-                  href={`/cart/${item.slug}`}
+                  href={`/u/${item.author_handle}/item/${item.slug}`}
                   item={item}
                   reactions
                 />

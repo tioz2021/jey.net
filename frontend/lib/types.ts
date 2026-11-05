@@ -182,6 +182,7 @@ export interface MovieDetailsResponse extends MovieDetails {
 
 export interface Item {
   id: string;
+  slug: string;
   kind: ItemKind;
   title: string;
   subtitle: string | null;
@@ -317,6 +318,7 @@ export interface TasteGenre {
 export interface TasteRecommendation extends PublicItem {
   author_id: string;
   author_name: string;
+  author_handle: string;
   matched_genres: string[];
 }
 
@@ -334,6 +336,7 @@ export interface SimilarItem {
 
 export interface FriendRecommendation extends PublicItem {
   author_id: string;
+  author_handle: string;
   friends: string[];
   friend_count: number;
   average_rating: number;
@@ -399,6 +402,7 @@ export interface NotificationItem {
   item_id: string | null;
   item_slug: string | null;
   item_author_id: string | null;
+  item_author_handle: string | null;
   item_title: string | null;
   item_kind: string | null;
   comment_id: string | null;
@@ -551,6 +555,7 @@ export interface FollowState {
 export interface FeedItem extends PublicItem {
   author_id: string;
   author_name: string;
+  author_handle: string;
 }
 
 export interface ReactionLiker {

@@ -299,12 +299,12 @@ export function PublicProfileView({
                 {shownGroups.map((group) => (
                   <section className={styles.group} key={group.kind}>
                     <h2 className={styles.groupTitle}>{group.label}</h2>
-                    <ItemGrid items={group.items} />
+                    <ItemGrid handle={profile.handle} items={group.items} />
                   </section>
                 ))}
               </div>
             ) : (
-              <ItemGrid items={shown} />
+              <ItemGrid handle={profile.handle} items={shown} />
             )}
 
             {active === "all" && visibleItems.length > PAGE_LIMIT ? (
@@ -325,13 +325,13 @@ export function PublicProfileView({
   );
 }
 
-function ItemGrid({ items }: { items: PublicItem[] }) {
+function ItemGrid({ items, handle }: { items: PublicItem[]; handle: string }) {
   return (
     <ul className={styles.grid}>
       {items.map((item) => (
         <li key={item.id}>
           <ItemCard
-            href={`/cart/${item.slug}`}
+            href={`/u/${handle}/item/${item.slug}`}
             item={{ ...item, deleted_at: null }}
             reactions
           />
