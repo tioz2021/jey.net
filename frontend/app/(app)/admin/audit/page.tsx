@@ -120,6 +120,7 @@ export default async function AdminAuditPage({
                   <th>{t("admin.action")}</th>
                   <th>{t("admin.target")}</th>
                   <th>{t("admin.details")}</th>
+                  <th>JSON</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,7 +133,8 @@ export default async function AdminAuditPage({
                       {row.target_label ?? row.target_id ?? row.target_type}
                       <small>{row.target_type}</small>
                     </td>
-                    <td><span title={JSON.stringify(row.details)}>{humanDetails(row, t)}</span></td>
+                    <td><span>{humanDetails(row, t)}</span></td>
+                    <td><code className={styles.json}>{JSON.stringify(row.details)}</code></td>
                   </tr>
                 ))}
               </tbody>

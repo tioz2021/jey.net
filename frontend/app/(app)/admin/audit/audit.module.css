@@ -81,3 +81,18 @@
 .table td span {
   overflow-wrap: anywhere;
 }
+
+.table {
+  min-width: 980px;
+}
+
+.table td:nth-child(6) {
+  min-width: 260px;
+}
+
+.json {
+  display: block;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

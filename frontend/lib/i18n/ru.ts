@@ -257,6 +257,7 @@ export const ru = {
   "admin.siteConfirm": "Подтвердить",
   "admin.siteConfirmTitle": "Сохранить настройки сайта?",
   "admin.siteConfirmText": "Изменения сразу появятся на сайте.",
+  "admin.json": "JSON",
   "admin.title": "Админка",
   "admin.subtitle": "Состояние сайта, люди и модерация в одном месте.",
   "admin.overview": "Обзор",

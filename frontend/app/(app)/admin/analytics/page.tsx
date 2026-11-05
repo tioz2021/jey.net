@@ -97,14 +97,16 @@ export default async function AnalyticsPage() {
           <p className={styles.muted}>{t("analytics.empty")}</p>
         ) : (
           <div className={styles.chart} aria-label={t("analytics.daily")}>
-            {data.daily.map((day) => (
+            {data.daily.map((day, index) => (
               <div className={styles.column} key={day.date}>
                 <span
                   className={styles.bar}
                   style={{ height: `${Math.max(3, (day.views / maxViews) * 100)}%` }}
                   title={`${date(day.date)}: ${day.views}`}
                 />
-                <small>{date(day.date)}</small>
+                {index % 5 === 0 || index === data.daily.length - 1 ? (
+                  <small>{date(day.date)}</small>
+                ) : null}
               </div>
             ))}
           </div>

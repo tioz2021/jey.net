@@ -258,6 +258,7 @@ export const en = {
   "admin.siteConfirm": "Confirm",
   "admin.siteConfirmTitle": "Save site settings?",
   "admin.siteConfirmText": "Changes take effect on the site immediately.",
+  "admin.json": "JSON",
   "admin.title": "Admin",
   "admin.subtitle": "Site health, people and moderation in one place.",
   "admin.overview": "Overview",

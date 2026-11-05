@@ -258,6 +258,7 @@ export const uk = {
   "admin.siteConfirm": "Підтвердити",
   "admin.siteConfirmTitle": "Зберегти налаштування сайту?",
   "admin.siteConfirmText": "Зміни одразу з’являться на сайті.",
+  "admin.json": "JSON",
   "admin.title": "Адмінка",
   "admin.subtitle": "Стан сайту, люди та модерація в одному місці.",
   "admin.overview": "Огляд",
