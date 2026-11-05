@@ -66,8 +66,13 @@ pub async fn list(
     public_item_author(&state.pool, user_id, item_id).await?;
     let limit = query.limit.unwrap_or(5).clamp(1, 20);
     let offset = query.offset.unwrap_or(0).clamp(0, 100_000);
+    // Count only comments that the list can actually render: live top-level
+    // records authored by live users. A reply to a deleted root is not visible.
     let total: i64 = sqlx::query_scalar(
-        "select count(*) from comments where item_id = $1 and deleted_at is null",
+        "select count(*)
+         from comments c join users u on u.id = c.user_id
+         where c.item_id = $1 and c.parent_id is null
+           and c.deleted_at is null and u.deleted_at is null",
     )
     .bind(item_id)
     .fetch_one(&state.pool)

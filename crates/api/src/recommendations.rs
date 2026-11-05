@@ -35,6 +35,13 @@ impl RecommendationCache {
         }
     }
 
+    /// Drop aggregate caches after a user disappears or changes visibility.
+    pub fn clear(&self) {
+        if let Ok(mut cache) = self.values.lock() {
+            cache.clear();
+        }
+    }
+
     fn get(&self, key: &str) -> Option<Value> {
         let cache = self.values.lock().ok()?;
         let (at, value) = cache.get(key)?;

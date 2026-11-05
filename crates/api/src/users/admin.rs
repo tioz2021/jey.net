@@ -315,6 +315,7 @@ pub async fn set_test(
         json!({}),
     )
     .await;
+    state.recommendations.clear();
     Ok(Json(json!({ "is_test": payload.is_test })))
 }
 
@@ -364,6 +365,7 @@ pub async fn purge_test_data(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+    state.recommendations.clear();
     crate::audit::record(
         &state,
         &current,

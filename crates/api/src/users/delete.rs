@@ -91,6 +91,7 @@ pub async fn delete_me(
     .map_err(AppError::internal)?;
 
     transaction.commit().await.map_err(AppError::internal)?;
+    state.recommendations.clear();
 
     let cookie = session::cleared_session_cookie(state.config.is_production());
     let mut response = StatusCode::NO_CONTENT.into_response();
