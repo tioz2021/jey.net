@@ -18,7 +18,7 @@ export function NotificationBell() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let timer: number | null = null;
     const POLL_MS = 30_000;
 
     const clearTimer = () => {
@@ -34,7 +34,7 @@ export function NotificationBell() {
       timer = window.setTimeout(() => void load(), POLL_MS);
     };
 
-    const load = async () => {
+    async function load() {
       try {
         const response = await api.notifications.list();
         if (!cancelled) setUnread(response.unread);
@@ -43,7 +43,7 @@ export function NotificationBell() {
       } finally {
         schedule();
       }
-    };
+    }
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
