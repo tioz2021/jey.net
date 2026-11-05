@@ -340,6 +340,8 @@ export interface PublicUserCard {
   avatar_key: string | null;
   item_count: number;
   followers: number;
+  created_at: string;
+  last_active: string | null;
 }
 
 export interface FollowingProfile {

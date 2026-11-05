@@ -80,11 +80,16 @@ pub struct PublicUserEntry {
     pub avatar_key: Option<String>,
     pub item_count: i64,
     pub followers: i64,
+    pub created_at: DateTime<Utc>,
+    pub last_active: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct PeopleQuery {
     pub q: Option<String>,
+    pub sort: Option<String>,
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
 }
 
 /// `GET /api/v1/public/users`
@@ -102,25 +107,42 @@ pub async fn list(
         ));
     }
     let pattern = format!("%{q}%");
-    let users = sqlx::query_as::<_, PublicUserEntry>(
+    let limit = query.limit.unwrap_or(24).clamp(1, 60);
+    let offset = query.offset.unwrap_or(0).clamp(0, 100_000);
+    let order = match query.sort.as_deref().unwrap_or("name") {
+        "active" => "last_active desc nulls last, u.display_name asc",
+        "new" => "u.created_at desc, u.id desc",
+        "items" => "item_count desc, u.display_name asc",
+        _ => "u.display_name asc, u.id asc",
+    };
+    let sql = format!(
         "select u.id, u.display_name, u.avatar_key,
                 (select count(*) from items i
                  where i.user_id = u.id and i.status = ANY(u.public_statuses)
                    and not i.public_hidden and i.deleted_at is null) as item_count,
-                (select count(*) from follows f where f.followee_id = u.id) as followers
+                (select count(*) from follows f where f.followee_id = u.id) as followers,
+                u.created_at,
+                (select max(i.updated_at) from items i
+                 where i.user_id = u.id and i.status = ANY(u.public_statuses)
+                   and not i.public_hidden and i.deleted_at is null) as last_active
          from users u
          where u.is_public and u.deleted_at is null
            and ($1 = '' or u.display_name ilike $2)
-         order by u.display_name asc
-         limit 60",
-    )
-    .bind(q)
-    .bind(pattern)
-    .fetch_all(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+         order by {order}
+         limit $3 offset $4"
+    );
+    // `order` is chosen from a fixed whitelist above; no user input reaches SQL.
+    let users = sqlx::query_as::<_, PublicUserEntry>(sqlx::AssertSqlSafe(sql))
+        .bind(q)
+        .bind(pattern)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    let next_offset = (users.len() as i64 == limit).then_some(offset + limit);
 
-    Ok(Json(json!({ "users": users })))
+    Ok(Json(json!({ "users": users, "next_offset": next_offset })))
 }
 
 /// `GET /api/v1/public/users/{id}`

@@ -386,11 +386,21 @@ export const recommendations = {
 };
 
 export const publicUsers = {
-  search: (q: string) =>
-    request<{ users: PublicUserCard[] }>(
-      `/public/users?q=${encodeURIComponent(q)}`,
-      { redirectOnUnauthorized: false },
-    ),
+  search: (
+    q: string,
+    options: { sort?: string; offset?: number; limit?: number } = {},
+  ) => {
+    const params = new URLSearchParams({ q });
+    if (options.sort) params.set("sort", options.sort);
+    if (options.offset) params.set("offset", String(options.offset));
+    if (options.limit) params.set("limit", String(options.limit));
+    return request<{
+      users: PublicUserCard[];
+      next_offset: number | null;
+    }>(`/public/users?${params.toString()}`, {
+      redirectOnUnauthorized: false,
+    });
+  },
 };
 
 export const publicItems = {
