@@ -156,9 +156,14 @@ export function UserMenu({ user }: { user: User }) {
             {t("account.stats")}
           </Link>
           {user.is_admin ? (
-            <Link className={styles.item} href="/reports" role="menuitem">
-              {t("account.moderation")}
-            </Link>
+            <>
+              <Link className={styles.item} href="/analytics" role="menuitem">
+                {t("account.analytics")}
+              </Link>
+              <Link className={styles.item} href="/reports" role="menuitem">
+                {t("account.moderation")}
+              </Link>
+            </>
           ) : null}
           <button
             className={`${styles.item} ${styles.danger}`}

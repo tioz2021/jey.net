@@ -41,6 +41,14 @@ pub async fn create_item(
     )
     .await?;
 
+    crate::analytics::record(
+        &state.pool,
+        "item_created",
+        None,
+        Some(&current.user.locale),
+    )
+    .await;
+
     crate::users::notifications::notify_new_item(
         &state,
         current.user.id,

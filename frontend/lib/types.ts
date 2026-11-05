@@ -397,6 +397,13 @@ export interface NotificationItem {
   read: boolean;
 }
 
+export interface AnalyticsSummary {
+  days: number;
+  counts: Record<string, number>;
+  daily: Array<{ date: string; views: number; events: number }>;
+  paths: Array<{ path: string; count: number }>;
+}
+
 export interface FollowState {
   following: boolean;
   blocked?: boolean;

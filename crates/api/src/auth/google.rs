@@ -157,6 +157,10 @@ pub async fn callback(
         },
     };
 
+    if created {
+        crate::analytics::record(&state.pool, "registration", None, None).await;
+    }
+
     let user_agent = headers
         .get(axum::http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok());

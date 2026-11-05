@@ -52,12 +52,16 @@ pub async fn search(
     .await?;
     let mut results = state.igdb.search_cached(q).await?;
     if crate::fuzzy::needs_fallback(q, &results, |item| &item.title) {
+        crate::analytics::record(&state.pool, "provider_fallback", None, None).await;
         let mut candidates = std::mem::take(&mut results);
         for prefix in crate::fuzzy::prefixes_for(q) {
             candidates.extend(state.igdb.search_cached(&prefix).await?);
         }
         results = crate::fuzzy::rank(candidates, q, |item| &item.title);
         results.truncate(8);
+    }
+    if results.is_empty() {
+        crate::analytics::record(&state.pool, "search_failed", None, None).await;
     }
     Ok(Json(json!({ "results": results })).into_response())
 }

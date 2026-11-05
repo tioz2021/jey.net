@@ -92,6 +92,10 @@ pub async fn search(
         rows
     };
 
+    if rows.is_empty() && !query.trim().is_empty() {
+        crate::analytics::record(pool, "search_failed", None, None).await;
+    }
+
     rows.into_iter()
         .map(Item::try_from)
         .collect::<Result<Vec<_>, AppError>>()

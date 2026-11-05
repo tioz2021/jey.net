@@ -123,7 +123,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/logout", post(logout))
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))
-        .route("/auth/password-reset/confirm", post(confirm_reset));
+        .route("/auth/password-reset/confirm", post(confirm_reset))
+        .route("/analytics/event", post(crate::analytics::event));
 
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
@@ -241,6 +242,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::items::episodes::toggle),
         )
         .route("/stats", get(stats))
+        .route("/analytics/summary", get(crate::analytics::summary))
         .route("/export", get(export))
         .route(
             "/import",
