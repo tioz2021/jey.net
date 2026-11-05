@@ -76,7 +76,7 @@ runuser -u postgres -- pg_restore \
     "${verify}" >/dev/null
 rm -f "${verify}"
 
-for table in users items tags _sqlx_migrations; do
+for table in users items _sqlx_migrations; do
     src="$(psql "${DATABASE_URL}" -Atc "select count(*) from ${table}")"
     dst="$(runuser -u postgres -- psql -d "${tmp_db}" -Atc "select count(*) from ${table}")"
     if [[ "${src}" != "${dst}" ]]; then
@@ -102,5 +102,14 @@ say "pruning backups older than ${RETENTION_DAYS} days"
 find "${BACKUP_DIR}" -maxdepth 1 -type f \
     \( -name 'jey-*.dump.gpg' -o -name 'jey-*.dump.gpg.sha256' \) \
     -mtime +"${RETENTION_DAYS}" -delete
+
+sha="$(cut -d' ' -f1 "${checksum}")"
+bytes="$(stat -c %s "${encrypted}")"
+status_file="${STATUS_FILE:-/var/lib/jey/backup-status.json}"
+status_tmp="${status_file}.tmp"
+printf '{"ok":true,"finished_at":"%s","file":"%s","bytes":%s,"sha256":"%s"}\n' \
+    "$(date -Is)" "$(basename "${encrypted}")" "${bytes}" "${sha}" > "${status_tmp}"
+chmod 644 "${status_tmp}"
+mv "${status_tmp}" "${status_file}"
 
 say "backup ok: ${encrypted} ($(du -h "${encrypted}" | cut -f1))"

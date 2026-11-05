@@ -441,6 +441,24 @@ export interface AdminUsersResponse {
   total: number;
 }
 
+export interface SystemStatus {
+  version: string;
+  services: { api: string; web: string; caddy: string; postgres: string };
+  disk: { total: number; used: number };
+  memory: { total: number; available: number };
+  migrations: { count: number; latest: number | null; installed_at: string | null };
+  errors_24h: number;
+  backup: {
+    ok?: boolean;
+    missing?: boolean;
+    finished_at?: string;
+    file?: string;
+    bytes?: number;
+    sha256?: string;
+  };
+  last_deploy_at: string | null;
+}
+
 export interface AdminAction {
   id: number;
   admin_id: string | null;

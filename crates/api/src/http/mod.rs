@@ -84,6 +84,24 @@ pub fn router(state: AppState) -> Router {
         .with_state(state)
 }
 
+async fn track_errors(
+    State(state): State<AppState>,
+    request: axum::extract::Request,
+    next: middleware::Next,
+) -> Response {
+    let path = request.uri().path().to_owned();
+    let response = next.run(request).await;
+    if response.status().is_server_error() {
+        let status = response.status().as_u16() as i16;
+        let _ = sqlx::query("insert into system_errors (path, status) values ($1, $2)")
+            .bind(&path)
+            .bind(status)
+            .execute(&state.pool)
+            .await;
+    }
+    response
+}
+
 fn api_v1(state: AppState) -> Router<AppState> {
     let public = Router::new()
         // Same liveness probe as /health, exposed under the versioned prefix
@@ -247,6 +265,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me/presence", post(crate::analytics::presence))
         .route("/admin/users", get(crate::users::admin::list))
         .route("/admin/audit", get(crate::audit::list))
+        .route("/admin/system", get(crate::system::status))
         .route(
             "/admin/users/{id}/sessions/revoke",
             post(crate::users::admin::revoke_sessions),
@@ -272,6 +291,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
 
     public
         .merge(protected)
+        .layer(middleware::from_fn_with_state(state.clone(), track_errors))
         .route_layer(middleware::from_fn_with_state(
             state,
             require_allowed_origin,

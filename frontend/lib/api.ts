@@ -41,6 +41,7 @@ import type {
   UserResponse,
   AdminUsersResponse,
   AdminActionsResponse,
+  SystemStatus,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -584,6 +585,7 @@ export const admin = {
     request<AdminActionsResponse>(
       `/admin/audit?action=${encodeURIComponent(action)}&offset=${offset}&limit=${limit}`,
     ),
+  system: () => request<SystemStatus>("/admin/system"),
 };
 
 export const transfer = {
