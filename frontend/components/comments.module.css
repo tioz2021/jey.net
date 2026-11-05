@@ -100,3 +100,7 @@
 .more {
   margin-bottom: var(--space-3);
 }
+
+.form {
+  scroll-margin-top: 72px;
+}

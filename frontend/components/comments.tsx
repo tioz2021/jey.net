@@ -153,11 +153,13 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
                     const reduced = window.matchMedia(
                       "(prefers-reduced-motion: reduce)",
                     ).matches;
+                    formRef.current
+                      ?.querySelector("textarea")
+                      ?.focus({ preventScroll: true });
                     formRef.current?.scrollIntoView({
                       behavior: reduced ? "auto" : "smooth",
                       block: "center",
                     });
-                    formRef.current?.querySelector("textarea")?.focus();
                   });
                 }}
                 type="button"

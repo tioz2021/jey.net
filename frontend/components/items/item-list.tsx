@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
 import { Onboarding } from "@/components/onboarding";
 import { useI18n } from "@/lib/locale-context";
@@ -189,7 +189,9 @@ export function ItemList({
   }
 
   const selectedItems = items.filter((item) => selected.has(item.id));
-  const hasActiveSelection = selectedItems.some((item) => !item.deleted_at);
+  // Selected ids can include pages not loaded yet, so the action row follows
+  // the selection itself; deleted entries only affect the restore action.
+  const hasActiveSelection = selected.size > 0;
   const hasDeletedSelection = selectedItems.some((item) => item.deleted_at);
 
   async function loadMore() {
@@ -221,80 +223,87 @@ export function ItemList({
 
       {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>
-          <span className={styles.bulkCount}>
-            {t("bulk.selected", { count: selected.size })}
-          </span>
-          <button
-            className={styles.bulkClear}
-            disabled={selectAllBusy}
-            onClick={() => void selectAll()}
-            type="button"
-          >
-            {selectAllBusy ? "…" : t("bulk.selectAll")}
-          </button>
-          {selected.size > 0 ? (
+          <div className={styles.bulkTop}>
+            <div className={styles.bulkSummary}>
+              <span className={styles.bulkCount}>
+                {t("bulk.selected", { count: selected.size })}
+              </span>
+              <button
+                className={styles.bulkSelectAll}
+                disabled={selectAllBusy}
+                onClick={() => void selectAll()}
+                type="button"
+              >
+                {selectAllBusy ? "…" : t("bulk.selectAll")}
+              </button>
+              {selected.size > 0 ? (
+                <button
+                  className={styles.bulkClear}
+                  onClick={() => setSelected(new Set())}
+                  type="button"
+                >
+                  {t("bulk.clear")}
+                </button>
+              ) : null}
+            </div>
             <button
-              className={styles.bulkClear}
-              onClick={() => setSelected(new Set())}
+              className={styles.bulkDone}
+              onClick={() => {
+                setSelectionMode(false);
+                setSelected(new Set());
+              }}
               type="button"
             >
-              {t("bulk.clear")}
+              {t("bulk.done")}
             </button>
-          ) : null}
-          {hasActiveSelection ? (
-            <>
-              <select
-                aria-label={t("bulk.status")}
-                className={styles.bulkSelect}
-                onChange={(event) =>
-                  setBulkStatus(event.target.value as ItemStatus | "")
-                }
-                value={bulkStatus}
-              >
-                <option value="">{t("bulk.status")}</option>
-                {(
-                  ["planned", "in_progress", "done", "dropped"] as ItemStatus[]
-                ).map((status) => (
-                  <option key={status} value={status}>
-                    {t(STATUS_KEYS[status])}
-                  </option>
-                ))}
-              </select>
-              <Button
-                disabled={!bulkStatus || bulkBusy}
-                onClick={() => void runBulk("status")}
-                variant="secondary"
-              >
-                {t("bulk.apply")}
-              </Button>
+          </div>
+          <p className={styles.bulkHint}>{t("bulk.hint")}</p>
+          <div className={styles.bulkActions}>
+            {hasActiveSelection ? (
+              <>
+                <Select
+                  className={styles.bulkStatus}
+                  label={t("bulk.status")}
+                  value={bulkStatus}
+                  onChange={(event) =>
+                    setBulkStatus(event.target.value as ItemStatus | "")
+                  }
+                >
+                  <option value="">{t("bulk.status")}</option>
+                  {(
+                    ["planned", "in_progress", "done", "dropped"] as ItemStatus[]
+                  ).map((status) => (
+                    <option key={status} value={status}>
+                      {t(STATUS_KEYS[status])}
+                    </option>
+                  ))}
+                </Select>
+                <Button
+                  disabled={!bulkStatus || bulkBusy}
+                  onClick={() => void runBulk("status")}
+                  variant="secondary"
+                >
+                  {t("bulk.apply")}
+                </Button>
+                <Button
+                  disabled={bulkBusy}
+                  onClick={() => void runBulk("trash")}
+                  variant="secondary"
+                >
+                  {t("bulk.trash")}
+                </Button>
+              </>
+            ) : null}
+            {hasDeletedSelection ? (
               <Button
                 disabled={bulkBusy}
-                onClick={() => void runBulk("trash")}
+                onClick={() => void runBulk("restore")}
                 variant="secondary"
               >
-                {t("bulk.trash")}
+                {t("bulk.restore")}
               </Button>
-            </>
-          ) : null}
-          {hasDeletedSelection ? (
-            <Button
-              disabled={bulkBusy}
-              onClick={() => void runBulk("restore")}
-              variant="secondary"
-            >
-              {t("bulk.restore")}
-            </Button>
-          ) : null}
-          <button
-            className={styles.bulkDone}
-            onClick={() => {
-              setSelectionMode(false);
-              setSelected(new Set());
-            }}
-            type="button"
-          >
-            {t("bulk.done")}
-          </button>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

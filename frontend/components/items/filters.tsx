@@ -155,7 +155,7 @@ export function ItemsFilters({
               size="sm"
               variant="ghost"
             >
-              {t("bulk.selectMode")}
+              {t("bulk.selectModeLong")}
             </Button>
           ) : null}
         </div>
