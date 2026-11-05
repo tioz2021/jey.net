@@ -87,9 +87,10 @@
 }
 
 .table td:nth-child(2) {
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 230px;
+  overflow-x: auto;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 .role {
@@ -156,10 +157,6 @@
 
 .actions .danger {
   color: var(--color-danger);
-}
-
-.table td:nth-child(2) {
-  max-width: 180px;
 }
 
 .table th:nth-child(5) {

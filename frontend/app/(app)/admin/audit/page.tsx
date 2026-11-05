@@ -23,6 +23,45 @@ const ACTIONS = [
   "report.resolved",
 ];
 
+function humanDetails(
+  row: AdminActionsResponse["actions"][number],
+  t: (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) => string,
+) {
+  const details = row.details as Record<string, unknown>;
+  const onOff = (value: unknown) =>
+    value ? t("admin.auditEnabled") : t("admin.auditDisabled");
+  switch (row.action) {
+    case "site.updated":
+      return `${t("admin.siteAnnouncement")}: ${onOff(details.announcement_active)} · ${t("admin.siteMaintenance")}: ${onOff(details.maintenance)} · ${t("admin.siteRegistration")}: ${onOff(details.registration_enabled)}`;
+    case "user.role_changed":
+      return `${t("admin.role")}: ${String(details.role ?? "—")}`;
+    case "user.sessions_revoked":
+      return `${t("admin.auditSessions")}: ${String(details.revoked ?? "—")}`;
+    case "user.suspended":
+      return details.reason ? `${t("admin.suspend")} · ${t("admin.auditReason")}: ${String(details.reason)}` : t("admin.suspend");
+    case "user.restored":
+      return t("admin.restore");
+    case "user.test_marked":
+      return t("admin.testMark");
+    case "user.test_unmarked":
+      return t("admin.testUnmark");
+    case "test_data.purged":
+      return `${t("admin.auditDeleted")}: ${String(details.users ?? "—")}`;
+    case "content.hidden":
+      return t("admin.auditContentHidden");
+    case "content.restored":
+      return t("admin.auditContentRestored");
+    case "report.reopened":
+      return t("reports.reopen");
+    case "report.resolved":
+    case "report.dismissed":
+    case "report.archived":
+      return `${t("admin.auditStatus")}: ${String(details.status ?? row.action)}`;
+    default:
+      return Object.keys(details).length > 0 ? JSON.stringify(details) : "—";
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
   return { title: `${translate(locale, "admin.audit")} — jey.net` };
@@ -93,7 +132,7 @@ export default async function AdminAuditPage({
                       {row.target_label ?? row.target_id ?? row.target_type}
                       <small>{row.target_type}</small>
                     </td>
-                    <td><code>{Object.keys(row.details).length > 0 ? JSON.stringify(row.details) : "—"}</code></td>
+                    <td><span title={JSON.stringify(row.details)}>{humanDetails(row, t)}</span></td>
                   </tr>
                 ))}
               </tbody>

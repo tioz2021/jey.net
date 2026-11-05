@@ -67,3 +67,17 @@
   margin: 0;
   color: var(--color-text-muted);
 }
+
+.table td {
+  padding: 10px 8px;
+  line-height: 1.45;
+  vertical-align: top;
+}
+
+.table td:nth-child(5) {
+  min-width: 260px;
+}
+
+.table td span {
+  overflow-wrap: anywhere;
+}

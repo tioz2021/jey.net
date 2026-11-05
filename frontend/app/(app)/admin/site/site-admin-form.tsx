@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Button, Card, Dialog, PageHeader } from "@/components/ui";
 import { useToast } from "@/components/toasts";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
@@ -16,6 +16,7 @@ export function SiteAdminForm() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export function SiteAdminForm() {
         registration_enabled: settings.registration_enabled,
       });
       setSettings(saved);
+      setConfirmOpen(false);
       notify({ tone: "success", title: t("admin.siteSaved"), text: "", requestId: null });
     } catch {
       notify({ tone: "error", title: t("admin.siteError"), text: "", requestId: null });
@@ -102,7 +104,20 @@ export function SiteAdminForm() {
           {t("admin.siteRegistration")}
         </label>
       </Card>
-      <Button loading={busy} onClick={() => void save()}>{t("admin.siteSave")}</Button>
+      <Button onClick={() => setConfirmOpen(true)}>{t("admin.siteSave")}</Button>
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setConfirmOpen(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>
+            <Button loading={busy} onClick={() => void save()} size="sm">{t("admin.siteConfirm")}</Button>
+          </>
+        }
+        onClose={() => setConfirmOpen(false)}
+        open={confirmOpen}
+        title={t("admin.siteConfirmTitle")}
+      >
+        <p>{t("admin.siteConfirmText")}</p>
+      </Dialog>
     </main>
   );
 }

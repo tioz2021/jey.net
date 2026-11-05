@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
-import { Badge, Button, Card, Dialog, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, Dialog, PageHeader, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -154,18 +154,30 @@ export default function ReportsPage() {
         </button>
       </div>
       <div className={styles.filters}>
-        <select aria-label={t("reports.filterReason")} onChange={(event) => setReasonFilter(event.target.value)} value={reasonFilter}>
+        <Select
+          className={styles.filterSelect}
+          hideLabel
+          label={t("reports.filterReason")}
+          onChange={(event) => setReasonFilter(event.target.value)}
+          value={reasonFilter}
+        >
           <option value="">{t("reports.allReasons")}</option>
           {Object.keys(REASON_KEYS).map((reason) => (
             <option key={reason} value={reason}>{t(REASON_KEYS[reason] ?? "report.reason.other")}</option>
           ))}
-        </select>
-        <select aria-label={t("reports.filterType")} onChange={(event) => setTypeFilter(event.target.value)} value={typeFilter}>
+        </Select>
+        <Select
+          className={styles.filterSelect}
+          hideLabel
+          label={t("reports.filterType")}
+          onChange={(event) => setTypeFilter(event.target.value)}
+          value={typeFilter}
+        >
           <option value="">{t("reports.allTypes")}</option>
           {Object.keys(TARGET_KEYS).map((type) => (
             <option key={type} value={type}>{t(TARGET_KEYS[type] ?? "report.target.item")}</option>
           ))}
-        </select>
+        </Select>
         {tab === "open" && canModerate && selected.size > 0 ? (
           <>
             <span className={styles.selected}>{t("reports.selected", { count: selected.size })}</span>

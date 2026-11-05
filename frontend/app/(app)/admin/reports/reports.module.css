@@ -130,3 +130,18 @@
   border-left: 3px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
+
+.filters {
+  align-items: flex-end;
+}
+
+.filterSelect {
+  width: 190px;
+  max-width: 100%;
+}
+
+@media (width <= 480px) {
+  .filterSelect {
+    width: 100%;
+  }
+}
