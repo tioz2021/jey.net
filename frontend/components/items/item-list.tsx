@@ -393,6 +393,7 @@ export function ItemList({
                   item={item}
                   query={filters.q}
                   selected={selectionMode && selected.has(item.id)}
+                  showContinue
                 />
               </li>
             ))}

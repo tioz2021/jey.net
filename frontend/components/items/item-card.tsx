@@ -19,6 +19,7 @@ import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemProgress, ItemStatus } from "@/lib/types";
 
 import { CardReaction } from "./card-reaction";
+import { ContinueLink } from "./continue-link";
 import { RestoreButton } from "./restore-button";
 import styles from "./item-card.module.css";
 
@@ -67,6 +68,7 @@ export interface ItemCardData {
     genres?: string[] | null;
     number_of_episodes?: number | null;
     watched_episodes?: Array<{ season_number: number; episode_number: number }> | null;
+    seasons?: import("@/lib/types").SeasonSummary[] | null;
     page_count?: number | null;
     progress?: ItemProgress | null;
     translations?: Record<
@@ -89,12 +91,14 @@ export function ItemCard({
   href,
   selected = false,
   reactions = false,
+  showContinue = false,
 }: {
   item: ItemCardData;
   query?: string;
   href?: string;
   selected?: boolean;
   reactions?: boolean;
+  showContinue?: boolean;
 }) {
   const { t, locale } = useI18n();
   const { user } = useUser();
@@ -231,6 +235,11 @@ export function ItemCard({
       {reactions ? (
         <div className={styles.reactionSlot}>
           <CardReaction itemId={item.id} />
+        </div>
+      ) : null}
+      {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
+        <div className={styles.continueSlot}>
+          <ContinueLink details={item.details} kind={item.kind} target={target} />
         </div>
       ) : null}
     </div>

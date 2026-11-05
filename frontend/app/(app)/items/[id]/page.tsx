@@ -8,6 +8,7 @@ import { SimilarItems } from "@/components/items/similar-items";
 import { MovieCast } from "@/components/items/movie-cast";
 import { ItemReview } from "@/components/items/item-review";
 import { ProgressEditor } from "@/components/items/progress-editor";
+import { AnimeContinue } from "@/components/items/anime-continue";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -87,6 +88,10 @@ export default async function ItemPage({
       query.set(key, value);
     }
   }
+
+  const continueSeason = raw.season ? Number(raw.season) : undefined;
+  const continueEpisode =
+    raw.continue === "1" && raw.episode ? Number(raw.episode) : undefined;
 
   const queryString = query.toString();
   const backHref = `/items${queryString ? `?${queryString}` : ""}`;
@@ -259,6 +264,7 @@ export default async function ItemPage({
             />
           ) : null}
 
+          <AnimeContinue item={item} />
           <ProgressEditor item={item} />
 
           {item.review ? <ItemReview text={item.review} /> : null}
@@ -271,6 +277,8 @@ export default async function ItemPage({
               seasons={item.details.seasons}
               totalEpisodes={item.details.number_of_episodes}
               watched={item.details.watched_episodes ?? []}
+              initialSeason={continueSeason}
+              highlightEpisode={continueEpisode}
             />
           ) : null}
 

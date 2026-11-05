@@ -23,12 +23,16 @@ export function SeriesEpisodes({
   watched,
   totalEpisodes,
   publicUserId,
+  initialSeason,
+  highlightEpisode,
 }: {
   itemId: string;
   seasons: SeasonSummary[];
   watched: WatchedEpisode[];
   totalEpisodes?: number | null;
   publicUserId?: string;
+  initialSeason?: number;
+  highlightEpisode?: number;
 }) {
   const { t } = useI18n();
   const available = useMemo(
@@ -39,7 +43,10 @@ export function SeriesEpisodes({
     [seasons],
   );
   const [selected, setSelected] = useState<number>(
-    available.find((season) => season.season_number > 0)?.season_number ??
+    (initialSeason !== undefined &&
+      available.some((season) => season.season_number === initialSeason)
+      ? initialSeason
+      : available.find((season) => season.season_number > 0)?.season_number) ??
       available[0]?.season_number ??
       1,
   );
@@ -62,6 +69,7 @@ export function SeriesEpisodes({
   }, [watched]);
 
   const total = totalEpisodes ?? seasons.reduce((sum, season) => sum + season.episode_count, 0);
+  const highlight = highlightEpisode;
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +102,16 @@ export function SeriesEpisodes({
       cancelled = true;
     };
   }, [itemId, publicUserId, selected, t]);
+
+  useEffect(() => {
+    if (loading || highlight === undefined) {
+      return;
+    }
+    const element = document.getElementById(
+      `episode-${selected}-${highlight}`,
+    );
+    element?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [loading, highlight, selected]);
 
   async function toggle(episode: number, next: boolean) {
     if (readOnly) {
@@ -197,7 +215,13 @@ export function SeriesEpisodes({
             {episodes.map((episode) => {
               const checked = watchedSet.has(key(selected, episode.episode_number));
               return (
-                <li className={styles.episode} key={episode.episode_number}>
+                <li
+                  className={`${styles.episode} ${
+                    highlight === episode.episode_number ? styles.highlight : ""
+                  }`}
+                  id={`episode-${selected}-${episode.episode_number}`}
+                  key={episode.episode_number}
+                >
                   {readOnly ? (
                     <span
                       aria-label={

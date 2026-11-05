@@ -238,3 +238,27 @@
   background: var(--color-accent);
   border-radius: inherit;
 }
+
+
+.continueSlot {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  max-width: calc(100% - 16px);
+}
+
+.continue {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-on-accent);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
