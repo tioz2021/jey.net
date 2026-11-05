@@ -40,6 +40,7 @@ import type {
   MovieSearchItem,
   UserResponse,
   AdminUsersResponse,
+  AdminActionsResponse,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -579,6 +580,10 @@ export const admin = {
     ),
   deleteUser: (id: string) =>
     request<void>(`/admin/users/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  audit: (action = "", offset = 0, limit = 100) =>
+    request<AdminActionsResponse>(
+      `/admin/audit?action=${encodeURIComponent(action)}&offset=${offset}&limit=${limit}`,
+    ),
 };
 
 export const transfer = {

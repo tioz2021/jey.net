@@ -122,12 +122,23 @@ pub async fn revoke_sessions(
             "cannot revoke your own sessions here",
         ));
     }
+    let (name, _) = target(&state, id).await?;
     let deleted = sqlx::query("delete from sessions where user_id = $1")
         .bind(id)
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?
         .rows_affected();
+    crate::audit::record(
+        &state,
+        &current,
+        "user.sessions_revoked",
+        "user",
+        Some(id),
+        Some(&name),
+        json!({ "revoked": deleted }),
+    )
+    .await;
     Ok(Json(json!({ "revoked": deleted })))
 }
 
@@ -148,7 +159,7 @@ pub async fn suspend(
     if id == current.user.id {
         return Err(AppError::validation_field("id", "cannot suspend yourself"));
     }
-    let (_, is_admin) = target(&state, id).await?;
+    let (name, is_admin) = target(&state, id).await?;
     if is_admin {
         return Err(AppError::validation_field(
             "id",
@@ -176,7 +187,20 @@ pub async fn suspend(
             .await
             .map_err(AppError::internal)?;
     }
-    let _ = reason;
+    crate::audit::record(
+        &state,
+        &current,
+        if payload.suspended {
+            "user.suspended"
+        } else {
+            "user.restored"
+        },
+        "user",
+        Some(id),
+        Some(&name),
+        json!({ "reason": reason }),
+    )
+    .await;
     Ok(Json(json!({ "suspended": payload.suspended })))
 }
 
@@ -219,6 +243,21 @@ pub async fn set_admin(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+    let (name, _) = target(&state, id).await?;
+    crate::audit::record(
+        &state,
+        &current,
+        if payload.is_admin {
+            "user.admin_granted"
+        } else {
+            "user.admin_removed"
+        },
+        "user",
+        Some(id),
+        Some(&name),
+        json!({}),
+    )
+    .await;
     Ok(Json(json!({ "is_admin": payload.is_admin })))
 }
 
@@ -232,7 +271,7 @@ pub async fn delete(
     if id == current.user.id {
         return Err(AppError::validation_field("id", "cannot delete yourself"));
     }
-    let (_, is_admin) = target(&state, id).await?;
+    let (name, is_admin) = target(&state, id).await?;
     if is_admin {
         return Err(AppError::validation_field(
             "id",
@@ -263,5 +302,15 @@ pub async fn delete(
     .await
     .map_err(AppError::internal)?;
     tx.commit().await.map_err(AppError::internal)?;
+    crate::audit::record(
+        &state,
+        &current,
+        "user.deleted",
+        "user",
+        Some(id),
+        Some(&name),
+        json!({}),
+    )
+    .await;
     Ok(StatusCode::NO_CONTENT)
 }

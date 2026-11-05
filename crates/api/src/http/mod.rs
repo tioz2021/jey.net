@@ -246,6 +246,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/analytics/audience", get(crate::analytics::audience))
         .route("/me/presence", post(crate::analytics::presence))
         .route("/admin/users", get(crate::users::admin::list))
+        .route("/admin/audit", get(crate::audit::list))
         .route(
             "/admin/users/{id}/sessions/revoke",
             post(crate::users::admin::revoke_sessions),

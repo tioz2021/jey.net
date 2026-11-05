@@ -5,6 +5,7 @@
 
 pub mod analytics;
 pub mod anime;
+pub mod audit;
 pub mod auth;
 pub mod books;
 pub mod comments;

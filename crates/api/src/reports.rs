@@ -235,6 +235,16 @@ pub async fn resolve(
         if changed == 0 {
             return Err(AppError::not_found("report"));
         }
+        crate::audit::record(
+            &state,
+            &current,
+            "report.reopened",
+            &target_type,
+            Some(target_id),
+            None,
+            json!({ "report_id": id }),
+        )
+        .await;
         return Ok(Json(json!({ "ok": true })));
     }
 
@@ -271,6 +281,16 @@ pub async fn resolve(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+        crate::audit::record(
+            &state,
+            &current,
+            "content.restored",
+            &target_type,
+            Some(target_id),
+            None,
+            json!({ "report_id": id }),
+        )
+        .await;
         return Ok(Json(json!({ "ok": true })));
     }
 
@@ -310,5 +330,24 @@ pub async fn resolve(
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    let action = if payload.hide_target {
+        "content.hidden"
+    } else if payload.status == "archived" {
+        "report.archived"
+    } else if payload.status == "dismissed" {
+        "report.dismissed"
+    } else {
+        "report.resolved"
+    };
+    crate::audit::record(
+        &state,
+        &current,
+        action,
+        &target_type,
+        Some(target_id),
+        None,
+        json!({ "report_id": id, "status": payload.status, "hide_target": payload.hide_target }),
+    )
+    .await;
     Ok(Json(json!({ "ok": true })))
 }

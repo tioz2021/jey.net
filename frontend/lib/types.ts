@@ -441,6 +441,23 @@ export interface AdminUsersResponse {
   total: number;
 }
 
+export interface AdminAction {
+  id: number;
+  admin_id: string | null;
+  admin_name: string;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  target_label: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AdminActionsResponse {
+  actions: AdminAction[];
+  total: number;
+}
+
 export interface AnalyticsAudience {
   stats: {
     total_users: number;
