@@ -449,6 +449,7 @@ export interface AdminUser {
   display_name: string;
   is_public: boolean;
   is_admin: boolean;
+  is_test: boolean;
   suspended_at: string | null;
   created_at: string;
   last_seen_at: string | null;
@@ -459,6 +460,7 @@ export interface AdminUser {
 export interface AdminUsersResponse {
   users: AdminUser[];
   total: number;
+  test_total: number;
 }
 
 export interface SystemStatus {

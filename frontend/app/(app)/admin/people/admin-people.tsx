@@ -14,7 +14,8 @@ type Pending =
   | { kind: "sessions"; user: AdminUser }
   | { kind: "suspend"; user: AdminUser }
   | { kind: "delete"; user: AdminUser }
-  | { kind: "admin"; user: AdminUser };
+  | { kind: "admin"; user: AdminUser }
+  | { kind: "test"; user: AdminUser };
 
 export function AdminPeople() {
   const { t, date } = useI18n();
@@ -26,6 +27,9 @@ export function AdminPeople() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [testTotal, setTestTotal] = useState(0);
+  const [purgeOpen, setPurgeOpen] = useState(false);
+  const [purgeWord, setPurgeWord] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(search.trim()), 300);
@@ -39,6 +43,7 @@ export function AdminPeople() {
       .then((response) => {
         setUsers((current) => (append ? [...current, ...response.users] : response.users));
         setTotal(response.total);
+        setTestTotal(response.test_total);
       })
       .catch(() =>
           notify({
@@ -62,6 +67,27 @@ export function AdminPeople() {
 
   function ask(kind: Pending["kind"], user: AdminUser) {
     setPending({ kind, user } as Pending);
+  }
+
+  async function purge() {
+    if (purgeWord.trim() !== "delete") return;
+    setBusy(true);
+    try {
+      const result = await api.admin.purgeTestData();
+      setPurgeOpen(false);
+      setPurgeWord("");
+      notify({
+        tone: "success",
+        title: t("admin.testPurged", { count: result.deleted }),
+        text: "",
+        requestId: null,
+      });
+      load();
+    } catch {
+      notify({ tone: "error", title: t("admin.actionError"), text: "", requestId: null });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function confirm() {
@@ -88,6 +114,9 @@ export function AdminPeople() {
       } else if (pending.kind === "admin") {
         await api.admin.setAdmin(pending.user.id, !pending.user.is_admin);
         notify({ tone: "success", title: t("admin.adminChanged"), text: "", requestId: null });
+      } else if (pending.kind === "test") {
+        await api.admin.setTest(pending.user.id, !pending.user.is_test);
+        notify({ tone: "success", title: t("admin.testChanged"), text: "", requestId: null });
       } else {
         await api.admin.deleteUser(pending.user.id);
         notify({ tone: "success", title: t("admin.userDeleted"), text: "", requestId: null });
@@ -110,7 +139,9 @@ export function AdminPeople() {
           : t("admin.suspendTitle")
         : pending.kind === "admin"
           ? t("admin.adminTitle")
-          : t("admin.deleteTitle")
+          : pending.kind === "test"
+            ? t("admin.testTitle")
+            : t("admin.deleteTitle")
     : "";
   const text = pending
     ? t("admin.actionText", { name: pending.user.display_name })
@@ -125,6 +156,13 @@ export function AdminPeople() {
         <div><strong>{users.filter((user) => user.is_admin).length}</strong><span>admin</span></div>
         <div><strong>{users.filter((user) => user.suspended_at).length}</strong><span>{t("admin.suspended")}</span></div>
       </section>
+
+      <Card title={t("admin.testData")}>
+        <p className={styles.muted}>{t("admin.testDataHint", { count: testTotal })}</p>
+        <Button disabled={testTotal === 0} onClick={() => setPurgeOpen(true)} variant="danger">
+          {t("admin.purgeTest")}
+        </Button>
+      </Card>
 
       <Card title={t("admin.allUsers")}>
         <div className={styles.searchRow}>
@@ -159,6 +197,7 @@ export function AdminPeople() {
                       {user.display_name}
                       {user.is_admin ? <span className={styles.role}>admin</span> : null}
                       {user.suspended_at ? <span className={styles.role}>{t("admin.suspended")}</span> : null}
+                      {user.is_test ? <span className={styles.testRole}>{t("admin.testMarked")}</span> : null}
                       {!user.is_public ? <span className={styles.role}>{t("analytics.private")}</span> : null}
                     </td>
                     <td>{user.email}</td>
@@ -172,6 +211,9 @@ export function AdminPeople() {
                         </button>
                         <button onClick={() => ask("admin", user)} type="button">
                           {user.is_admin ? t("admin.unadmin") : t("admin.makeAdmin")}
+                        </button>
+                        <button onClick={() => ask("test", user)} type="button">
+                          {user.is_test ? t("admin.testUnmark") : t("admin.testMark")}
                         </button>
                         <button className={styles.danger} onClick={() => ask("delete", user)} type="button">
                           {t("admin.delete")}
@@ -205,6 +247,26 @@ export function AdminPeople() {
         title={title}
       >
         <p>{text}</p>
+      </Dialog>
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => { setPurgeOpen(false); setPurgeWord(""); }} size="sm" variant="secondary">{t("common.cancel")}</Button>
+            <Button disabled={purgeWord.trim() !== "delete"} loading={busy} onClick={() => void purge()} size="sm" variant="danger">{t("admin.purgeConfirm")}</Button>
+          </>
+        }
+        onClose={() => { setPurgeOpen(false); setPurgeWord(""); }}
+        open={purgeOpen}
+        title={t("admin.purgeTitle")}
+      >
+        <p>{t("admin.purgeText", { count: testTotal })}</p>
+        <input
+          aria-label={t("admin.purgeWord")}
+          className={styles.confirmInput}
+          onChange={(event) => setPurgeWord(event.target.value)}
+          placeholder={t("admin.purgeWord")}
+          value={purgeWord}
+        />
       </Dialog>
     </main>
   );

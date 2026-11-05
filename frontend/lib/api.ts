@@ -580,6 +580,16 @@ export const admin = {
       `/admin/users/${encodeURIComponent(id)}/admin`,
       { method: "PATCH", body: { is_admin } },
     ),
+  setTest: (id: string, is_test: boolean) =>
+    request<{ is_test: boolean }>(
+      `/admin/users/${encodeURIComponent(id)}/test`,
+      { method: "PATCH", body: { is_test } },
+    ),
+  purgeTestData: () =>
+    request<{ deleted: number }>("/admin/test-data/purge", {
+      method: "POST",
+      body: { confirm: "delete" },
+    }),
   deleteUser: (id: string) =>
     request<void>(`/admin/users/${encodeURIComponent(id)}`, { method: "DELETE" }),
   audit: (action = "", offset = 0, limit = 100) =>

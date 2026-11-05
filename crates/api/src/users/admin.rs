@@ -57,6 +57,7 @@ pub async fn list(
              'display_name', u.display_name,
              'is_public', u.is_public,
              'is_admin', coalesce(u.is_admin, false),
+             'is_test', u.is_test,
              'suspended_at', u.suspended_at,
              'created_at', u.created_at,
              'last_seen_at', s.last_seen_at,
@@ -96,7 +97,14 @@ pub async fn list(
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "users": rows, "total": total })))
+    let test_total: i64 =
+        sqlx::query_scalar("select count(*) from users where is_test and deleted_at is null")
+            .fetch_one(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    Ok(Json(
+        json!({ "users": rows, "total": total, "test_total": test_total }),
+    ))
 }
 
 async fn target(state: &AppState, id: Uuid) -> Result<(String, bool), AppError> {
@@ -259,6 +267,113 @@ pub async fn set_admin(
     )
     .await;
     Ok(Json(json!({ "is_admin": payload.is_admin })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TestInput {
+    pub is_test: bool,
+}
+
+/// `PATCH /api/v1/admin/users/{id}/test`
+pub async fn set_test(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<TestInput>,
+) -> Result<Json<Value>, AppError> {
+    require_admin(&state, &current).await?;
+    let (name, is_admin) = target(&state, id).await?;
+    if is_admin {
+        return Err(AppError::validation_field(
+            "id",
+            "cannot mark an administrator as test",
+        ));
+    }
+    sqlx::query(
+        "update users
+         set is_test = $2,
+             is_public = case when $2 then false else is_public end
+         where id = $1",
+    )
+    .bind(id)
+    .bind(payload.is_test)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    crate::audit::record(
+        &state,
+        &current,
+        if payload.is_test {
+            "user.test_marked"
+        } else {
+            "user.test_unmarked"
+        },
+        "user",
+        Some(id),
+        Some(&name),
+        json!({}),
+    )
+    .await;
+    Ok(Json(json!({ "is_test": payload.is_test })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PurgeInput {
+    pub confirm: String,
+}
+
+/// `POST /api/v1/admin/test-data/purge`
+pub async fn purge_test_data(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Json(payload): Json<PurgeInput>,
+) -> Result<Json<Value>, AppError> {
+    require_admin(&state, &current).await?;
+    if payload.confirm.trim() != "delete" {
+        return Err(AppError::validation_field(
+            "confirm",
+            "type delete to confirm",
+        ));
+    }
+    let admins: i64 = sqlx::query_scalar(
+        "select count(*) from users where is_test and coalesce(is_admin, false) and deleted_at is null",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    if admins > 0 {
+        return Err(AppError::validation_field(
+            "id",
+            "unmark test administrators before purging",
+        ));
+    }
+    let users: Vec<Uuid> = sqlx::query_scalar(
+        "select id from users where is_test and deleted_at is null and id <> $1",
+    )
+    .bind(current.user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let count = users.len();
+    if count == 0 {
+        return Ok(Json(json!({ "deleted": 0 })));
+    }
+    sqlx::query("delete from users where id = any($1) and is_test")
+        .bind(&users)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    crate::audit::record(
+        &state,
+        &current,
+        "test_data.purged",
+        "test_data",
+        None,
+        None,
+        json!({ "users": count }),
+    )
+    .await;
+    Ok(Json(json!({ "deleted": count })))
 }
 
 /// `DELETE /api/v1/admin/users/{id}`
