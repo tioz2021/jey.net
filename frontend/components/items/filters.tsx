@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Button, Input, Select } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
 import {
   KIND_KEYS,
   SORT_KEYS,
@@ -53,10 +53,6 @@ export function ItemsFilters({
     "kind",
     "status",
     "month",
-    "year_from",
-    "year_to",
-    "rating_min",
-    "rating_max",
   ].filter((key) => searchParams.has(key)).length +
     (searchParams.has("sort") && searchParams.get("sort") !== "created_desc"
       ? 1
@@ -147,50 +143,6 @@ export function ItemsFilters({
           ))}
         </Select>
         </div>
-
-        {selectedKind ? (
-          <div className={styles.rangeRow}>
-            <Input
-              className={styles.rangeInput}
-              label={t("filters.yearFrom")}
-              min={1800}
-              onChange={(event) => setParam("year_from", event.target.value)}
-              placeholder="1800"
-              type="number"
-              value={searchParams.get("year_from") ?? ""}
-            />
-            <Input
-              className={styles.rangeInput}
-              label={t("filters.yearTo")}
-              max={2100}
-              min={1800}
-              onChange={(event) => setParam("year_to", event.target.value)}
-              placeholder="2100"
-              type="number"
-              value={searchParams.get("year_to") ?? ""}
-            />
-            <Input
-              className={styles.rangeInput}
-              label={t("filters.ratingMin")}
-              max={10}
-              min={1}
-              onChange={(event) => setParam("rating_min", event.target.value)}
-              placeholder="1"
-              type="number"
-              value={searchParams.get("rating_min") ?? ""}
-            />
-            <Input
-              className={styles.rangeInput}
-              label={t("filters.ratingMax")}
-              max={10}
-              min={1}
-              onChange={(event) => setParam("rating_max", event.target.value)}
-              placeholder="10"
-              type="number"
-              value={searchParams.get("rating_max") ?? ""}
-            />
-          </div>
-        ) : null}
 
         <div className={styles.foot}>
           <Button

@@ -56,23 +56,6 @@ function buildChips(
     });
   }
 
-  const yearFrom = params.get("year_from");
-  const yearTo = params.get("year_to");
-  if (yearFrom) {
-    chips.push({ key: "year_from", label: t("active.yearFrom", { year: yearFrom }) });
-  }
-  if (yearTo) {
-    chips.push({ key: "year_to", label: t("active.yearTo", { year: yearTo }) });
-  }
-  const ratingMin = params.get("rating_min");
-  const ratingMax = params.get("rating_max");
-  if (ratingMin) {
-    chips.push({ key: "rating_min", label: t("active.ratingMin", { rating: ratingMin }) });
-  }
-  if (ratingMax) {
-    chips.push({ key: "rating_max", label: t("active.ratingMax", { rating: ratingMax }) });
-  }
-
   const month = params.get("month");
   if (month) {
     chips.push({

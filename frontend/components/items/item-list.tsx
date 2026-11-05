@@ -34,10 +34,6 @@ function parseFilters(params: URLSearchParams): ItemFilters {
     tag: tag ?? undefined,
     q: params.get("q") ?? undefined,
     month: params.get("month") ?? undefined,
-    year_from: params.has("year_from") ? Number(params.get("year_from")) : undefined,
-    year_to: params.has("year_to") ? Number(params.get("year_to")) : undefined,
-    rating_min: params.has("rating_min") ? Number(params.get("rating_min")) : undefined,
-    rating_max: params.has("rating_max") ? Number(params.get("rating_max")) : undefined,
     limit: PAGE_SIZE,
   };
 }
@@ -65,10 +61,6 @@ export function ItemList({
     "tag",
     "q",
     "month",
-    "year_from",
-    "year_to",
-    "rating_min",
-    "rating_max",
   ].some((key) => searchParams.has(key));
 
   const [items, setItems] = useState<Item[]>(initialItems);

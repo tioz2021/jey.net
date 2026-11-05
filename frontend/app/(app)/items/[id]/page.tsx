@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
 import { KindDetails } from "@/components/items/details";
+import { MovieCast } from "@/components/items/movie-cast";
 import { SimilarItems } from "@/components/items/similar-items";
 
 import { ItemReview } from "@/components/items/item-review";
@@ -255,14 +256,14 @@ export default async function ItemPage({
 
           <KindDetails item={item} locale={locale} />
 
-          <AnimeContinue item={item} />
-          <ProgressEditor item={item} />
+          {item.review ? <ItemReview text={item.review} /> : null}
 
           {item.body ? (
             <ItemReview text={item.body} title={t("item.privateNote")} />
           ) : null}
 
-          {item.review ? <ItemReview text={item.review} /> : null}
+          <AnimeContinue item={item} />
+          <ProgressEditor item={item} />
 
           {item.kind === "tv" &&
           item.details?.seasons &&
@@ -275,6 +276,10 @@ export default async function ItemPage({
               initialSeason={continueSeason}
               highlightEpisode={continueEpisode}
             />
+          ) : null}
+
+          {item.details && (item.kind === "movie" || item.kind === "tv") ? (
+            <MovieCast details={item.details} locale={locale} />
           ) : null}
 
           <SimilarItems itemId={item.id} />
