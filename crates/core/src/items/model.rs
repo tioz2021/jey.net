@@ -295,6 +295,8 @@ pub struct Item {
     pub status: ItemStatus,
     pub rating: Option<u8>,
     pub review: Option<String>,
+    #[serde(default)]
+    pub body: Option<String>,
     pub source_url: Option<String>,
     pub cover_key: Option<String>,
     #[serde(default)]
@@ -330,6 +332,8 @@ pub struct NewItem {
     #[serde(default)]
     pub review: Option<String>,
     #[serde(default)]
+    pub body: Option<String>,
+    #[serde(default)]
     pub source_url: Option<String>,
     #[serde(default)]
     pub external_source: Option<String>,
@@ -359,6 +363,8 @@ pub struct ItemPatch {
     #[serde(default)]
     pub review: Option<String>,
     #[serde(default)]
+    pub body: Option<String>,
+    #[serde(default)]
     pub source_url: Option<String>,
     #[serde(default)]
     pub external_source: Option<String>,
@@ -380,6 +386,7 @@ impl ItemPatch {
             && self.status.is_none()
             && self.rating.is_none()
             && self.review.is_none()
+            && self.body.is_none()
             && self.source_url.is_none()
             && self.external_source.is_none()
             && self.external_id.is_none()

@@ -14,7 +14,7 @@ use crate::error::AppError;
 const SELECT_BY_ID: &str = r#"
     select
         i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.review, i.body, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
         i.created_at, i.updated_at, i.deleted_at
@@ -25,7 +25,7 @@ const SELECT_BY_ID: &str = r#"
 const SELECT_ALL: &str = r#"
     select
         i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.review, i.body, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
         i.created_at, i.updated_at, i.deleted_at
@@ -37,7 +37,7 @@ const SELECT_ALL: &str = r#"
 const SELECT_LIST: &str = r#"
     select
         i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-        i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.review, i.body, i.source_url, i.cover_key, i.public_hidden, i.external_source,
         i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
         i.device_id,
         i.created_at, i.updated_at, i.deleted_at
@@ -62,6 +62,7 @@ pub struct ItemRow {
     status: String,
     rating: Option<i16>,
     review: Option<String>,
+    body: Option<String>,
     source_url: Option<String>,
     cover_key: Option<String>,
     public_hidden: bool,
@@ -92,6 +93,7 @@ impl TryFrom<ItemRow> for Item {
             status: ItemStatus::parse(&row.status)?,
             rating: row.rating.map(|value| value as u8),
             review: row.review,
+            body: row.body,
             source_url: row.source_url,
             cover_key: row.cover_key,
             public_hidden: row.public_hidden,
@@ -139,10 +141,10 @@ pub async fn create(
     sqlx::query(
         "insert into items
              (id, user_id, kind, title, subtitle, year, status, rating, review,
-              source_url, public_hidden, external_source, external_id, details,
+              body, source_url, public_hidden, external_source, external_id, details,
               details_fetched_at, device_id)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-                 case when $14::jsonb is null then null else now() end, $15)",
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+                 case when $15::jsonb is null then null else now() end, $16)",
     )
     .bind(id)
     .bind(user_id)
@@ -153,6 +155,7 @@ pub async fn create(
     .bind(new.status.as_str())
     .bind(new.rating.map(i16::from))
     .bind(&new.review)
+    .bind(&new.body)
     .bind(&new.source_url)
     .bind(new.public_hidden)
     .bind(&new.external_source)
@@ -282,7 +285,7 @@ pub async fn list_page(pool: &PgPool, page: ListPage) -> Result<Vec<Item>, AppEr
          )
          select
              i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
-             i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+             i.review, i.body, i.source_url, i.cover_key, i.public_hidden, i.external_source,
              i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
              i.device_id,
              i.created_at, i.updated_at, i.deleted_at
@@ -425,13 +428,14 @@ pub async fn update(
              status = coalesce($7, status),
              rating = coalesce($8, rating),
              review = coalesce($9, review),
-             source_url = coalesce($10, source_url),
-             public_hidden = coalesce($11, public_hidden),
-             external_source = coalesce($12, external_source),
-             external_id = coalesce($13, external_id),
-             details = coalesce($14, details),
+             body = coalesce($10, body),
+             source_url = coalesce($11, source_url),
+             public_hidden = coalesce($12, public_hidden),
+             external_source = coalesce($13, external_source),
+             external_id = coalesce($14, external_id),
+             details = coalesce($15, details),
              details_fetched_at = case
-                 when $14::jsonb is not null then now()
+                 when $15::jsonb is not null then now()
                  else details_fetched_at
              end,
              revision = revision + 1
@@ -447,6 +451,7 @@ pub async fn update(
     .bind(patch.status.map(ItemStatus::as_str))
     .bind(patch.rating.map(i16::from))
     .bind(&patch.review)
+    .bind(&patch.body)
     .bind(&patch.source_url)
     .bind(patch.public_hidden)
     .bind(&patch.external_source)

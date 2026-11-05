@@ -38,6 +38,10 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
         )?),
         None => None,
     };
+    let body = match item.body.as_deref() {
+        Some(value) => Some(clean_optional_text("body", value, MAX_REVIEW_LENGTH, true)?),
+        None => None,
+    };
     let source_url = match item.source_url.as_deref() {
         Some(value) => Some(clean_url(value)?),
         None => None,
@@ -57,6 +61,7 @@ pub fn validate_new(item: &NewItem) -> Result<NewItem, DomainError> {
         status: item.status,
         rating: item.rating,
         review,
+        body,
         source_url,
         external_source,
         external_id,
@@ -89,6 +94,10 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         )?),
         None => None,
     };
+    let body = match patch.body.as_deref() {
+        Some(value) => Some(clean_optional_text("body", value, MAX_REVIEW_LENGTH, true)?),
+        None => None,
+    };
     let source_url = match patch.source_url.as_deref() {
         Some(value) => Some(clean_url(value)?),
         None => None,
@@ -111,6 +120,7 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         status: patch.status,
         rating: patch.rating,
         review,
+        body,
         source_url,
         external_source,
         external_id,
@@ -618,6 +628,7 @@ mod tests {
             status: ItemStatus::Done,
             rating: Some(9),
             review: None,
+            body: None,
             source_url: None,
             external_source: None,
             external_id: None,

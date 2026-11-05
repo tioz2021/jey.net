@@ -326,6 +326,7 @@ mod tests {
             status: jey_core::items::ItemStatus::Done,
             rating,
             review: None,
+            body: None,
             source_url: None,
             external_source: None,
             external_id: None,

@@ -197,6 +197,7 @@ export interface Item {
   status: ItemStatus;
   rating: number | null;
   review: string | null;
+  body: string | null;
   source_url: string | null;
   cover_key: string | null;
   external_source: string | null;
@@ -219,6 +220,7 @@ export interface NewItem {
   status: ItemStatus;
   rating?: number | null;
   review?: string | null;
+  body?: string | null;
   source_url?: string | null;
   external_source?: string | null;
   external_id?: string | null;

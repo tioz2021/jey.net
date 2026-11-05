@@ -47,6 +47,8 @@ step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 
 step "cargo test"
+# Test uploads are disposable and must not leak between runs.
+rm -rf "${ROOT_DIR}/var/test-media"
 # Integration tests share one PostgreSQL database. Running them in parallel
 # makes rate-limit and registration tests race each other, so keep this
 # preflight deterministic even though it takes a little longer.

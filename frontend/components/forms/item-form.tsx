@@ -59,6 +59,7 @@ type Field =
   | "year"
   | "rating"
   | "review"
+  | "body"
   | "source_url"
   | "form";
 
@@ -72,6 +73,7 @@ interface Values {
   status: ItemStatus;
   rating: string;
   review: string;
+  body: string;
   source_url: string;
   external_source: string;
   external_id: string;
@@ -87,6 +89,7 @@ const INITIAL: Values = {
   status: "done",
   rating: "",
   review: "",
+  body: "",
   source_url: "",
   external_source: "",
   external_id: "",
@@ -107,6 +110,7 @@ function toValues(item?: Item, initialKind?: ItemKind): Values {
     status: item.status,
     rating: item.rating === null ? "" : String(item.rating),
     review: item.review ?? "",
+    body: item.body ?? "",
     source_url: item.source_url ?? "",
     external_source: item.external_source ?? "",
     external_id: item.external_id ?? "",
@@ -166,6 +170,9 @@ function validate(
   if (values.review.length > 20_000) {
     errors.review = t("validation.max20000");
   }
+  if (values.body.length > 20_000) {
+    errors.body = t("validation.max20000");
+  }
 
   const sourceUrl = values.source_url.trim();
   if (sourceUrl && !/^https?:\/\//.test(sourceUrl)) {
@@ -188,6 +195,7 @@ function validate(
       status: values.status,
       rating,
       review: values.review.trim() || null,
+      body: values.body.trim() || null,
       source_url: sourceUrl || null,
       external_source: values.external_id
         ? values.external_source || "tmdb"
@@ -669,6 +677,15 @@ export function ItemForm({
         value={values.review}
         onChange={(event) => update("review", event.target.value)}
         error={errors.review}
+      />
+
+      <Textarea
+        label={t("form.privateNote")}
+        hint={t("form.privateNoteHint")}
+        rows={5}
+        value={values.body}
+        onChange={(event) => update("body", event.target.value)}
+        error={errors.body}
       />
 
       <div className={styles.actions}>

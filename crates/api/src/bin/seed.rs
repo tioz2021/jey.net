@@ -211,6 +211,7 @@ fn build_item(index: usize) -> NewItem {
         status,
         rating,
         review,
+        body: None,
         source_url: None,
         external_source: None,
         external_id: None,

@@ -3,9 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ItemActions } from "@/components/items/item-actions";
-import { MovieInfo } from "@/components/items/movie-info";
+import { KindDetails } from "@/components/items/details";
 import { SimilarItems } from "@/components/items/similar-items";
-import { MovieCast } from "@/components/items/movie-cast";
+
 import { ItemReview } from "@/components/items/item-review";
 import { ProgressEditor } from "@/components/items/progress-editor";
 import { AnimeContinue } from "@/components/items/anime-continue";
@@ -253,19 +253,14 @@ export default async function ItemPage({
         <div className={styles.main}>
           <ItemNeighbors nextHref={nextHref} prevHref={prevHref} />
 
-          {item.details ? (
-            <MovieInfo
-              details={item.details}
-              kind={item.kind}
-              locale={locale}
-              tmdbId={
-                item.external_source === "tmdb" ? item.external_id : null
-              }
-            />
-          ) : null}
+          <KindDetails item={item} locale={locale} />
 
           <AnimeContinue item={item} />
           <ProgressEditor item={item} />
+
+          {item.body ? (
+            <ItemReview text={item.body} title={t("item.privateNote")} />
+          ) : null}
 
           {item.review ? <ItemReview text={item.review} /> : null}
 
@@ -283,9 +278,6 @@ export default async function ItemPage({
           ) : null}
 
           <SimilarItems itemId={item.id} />
-          {item.details ? (
-            <MovieCast details={item.details} locale={locale} />
-          ) : null}
         </div>
       </div>
     </main>
