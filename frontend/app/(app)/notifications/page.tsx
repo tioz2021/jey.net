@@ -77,6 +77,7 @@ export default function NotificationsPage() {
               const isComment = item.kind === "comment";
               const isReply = item.kind === "reply";
               const isReaction = item.kind === "reaction";
+              const isReport = item.kind === "report";
               return (
               <li className={`${styles.item} ${item.read ? "" : styles.unread}`} key={item.id}>
                 <Link href={`/u/${item.actor_id}`}>
@@ -125,6 +126,13 @@ export default function NotificationsPage() {
                         <Link href={itemHref}>
                           {item.item_title ?? t("notifications.itemFallback")}
                         </Link>
+                      </>
+                    ) : isReport ? (
+                      <>
+                        {t("notifications.reportProcessed")}
+                        {item.item_id ? (
+                          <>{" "}<Link href={itemHref}>{item.item_title ?? t("notifications.itemFallback")}</Link></>
+                        ) : null}
                       </>
                     ) : (
                       t("notifications.followedYou")

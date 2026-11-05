@@ -144,6 +144,9 @@ pub async fn list(
             'resolved_at', r.resolved_at,
             'reporter_name', reporter.display_name,
             'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, '—'),
+            'target_preview', coalesce(i.title, left(c.body, 300), target_user.display_name, '—'),
+            'target_author', coalesce(ia.display_name, ca.display_name, target_user.display_name),
+            'target_author_id', coalesce(ia.id, ca.id, target_user.id),
             'target_available', case
                 when r.target_type = 'item'
                     then i.id is not null and i.deleted_at is null and not i.public_hidden
@@ -175,6 +178,8 @@ pub async fn list(
          left join comments c on r.target_type = 'comment' and c.id = r.target_id
          left join items ci on ci.id = c.item_id
          left join users target_user on r.target_type = 'profile' and target_user.id = r.target_id
+         left join users ia on ia.id = i.user_id
+         left join users ca on ca.id = c.user_id
          order by (r.status = 'open') desc, r.created_at desc
          limit 400",
     )
@@ -212,13 +217,25 @@ pub async fn resolve(
             "status must be resolved, dismissed, open, archived or restore",
         ));
     }
-    let target: Option<(String, Uuid)> =
-        sqlx::query_as("select target_type, target_id from reports where id = $1")
-            .bind(id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?;
-    let Some((target_type, target_id)) = target else {
+    let target: Option<(Uuid, String, Uuid, Option<Uuid>, String)> = sqlx::query_as(
+        "select r.reporter_id, r.target_type, r.target_id,
+                case
+                    when r.target_type = 'item' then i.id
+                    when r.target_type = 'comment' then c.item_id
+                    else null
+                end,
+                coalesce(i.title, left(c.body, 120), tu.display_name, '—')
+         from reports r
+         left join items i on r.target_type = 'item' and i.id = r.target_id
+         left join comments c on r.target_type = 'comment' and c.id = r.target_id
+         left join users tu on r.target_type = 'profile' and tu.id = r.target_id
+         where r.id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((reporter_id, target_type, target_id, item_id, target_label)) = target else {
         return Err(AppError::not_found("report"));
     };
 
@@ -241,7 +258,7 @@ pub async fn resolve(
             "report.reopened",
             &target_type,
             Some(target_id),
-            None,
+            Some(&target_label),
             json!({ "report_id": id }),
         )
         .await;
@@ -287,7 +304,7 @@ pub async fn resolve(
             "content.restored",
             &target_type,
             Some(target_id),
-            None,
+            Some(&target_label),
             json!({ "report_id": id }),
         )
         .await;
@@ -345,9 +362,23 @@ pub async fn resolve(
         action,
         &target_type,
         Some(target_id),
-        None,
+        Some(&target_label),
         json!({ "report_id": id, "status": payload.status, "hide_target": payload.hide_target }),
     )
     .await;
+    if matches!(
+        payload.status.as_str(),
+        "resolved" | "dismissed" | "archived"
+    ) {
+        crate::users::notifications::notify_report(
+            &state,
+            reporter_id,
+            current.user.id,
+            id,
+            item_id,
+            &payload.status,
+        )
+        .await;
+    }
     Ok(Json(json!({ "ok": true })))
 }

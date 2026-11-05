@@ -92,3 +92,41 @@
     flex-wrap: wrap;
   }
 }
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filters select {
+  min-height: 34px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.selected {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.check {
+  flex: none;
+  margin-top: 4px;
+}
+
+.preview {
+  margin: var(--space-2) 0 0;
+  padding: 7px 9px;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}

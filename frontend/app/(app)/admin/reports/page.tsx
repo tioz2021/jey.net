@@ -35,6 +35,10 @@ export default function ReportsPage() {
   const [tab, setTab] = useState<"open" | "history">("open");
   const [pending, setPending] = useState<{ report: Report; action: Action } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reasonFilter, setReasonFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<Action | null>(null);
 
   function load() {
     setError(null);
@@ -47,6 +51,7 @@ export default function ReportsPage() {
       })
       .catch(() => setError(t("reports.forbidden")))
       .finally(() => setLoading(false));
+    setSelected(new Set());
   }
 
   useEffect(() => {
@@ -92,6 +97,24 @@ export default function ReportsPage() {
     }
   }
 
+  async function runBulk() {
+    if (!bulkAction || selected.size === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const status = bulkAction === "archive" ? "archived" : bulkAction === "dismissed" ? "dismissed" : "resolved";
+      await Promise.all(
+        [...selected].map((reportId) => api.reports.resolve(reportId, status)),
+      );
+      setBulkAction(null);
+      load();
+    } catch {
+      setError(t("reports.error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function targetLink(report: Report) {
     return report.target_url ? (
       <Link className={styles.targetLink} href={report.target_url}>
@@ -109,7 +132,11 @@ export default function ReportsPage() {
     );
   }
 
-  const visible = tab === "open" ? reports : history;
+  const visible = (tab === "open" ? reports : history).filter(
+    (report) =>
+      (!reasonFilter || report.reason === reasonFilter) &&
+      (!typeFilter || report.target_type === typeFilter),
+  );
 
   return (
     <main>
@@ -123,6 +150,27 @@ export default function ReportsPage() {
           {t("reports.history")} ({history.length})
         </button>
       </div>
+      <div className={styles.filters}>
+        <select aria-label={t("reports.filterReason")} onChange={(event) => setReasonFilter(event.target.value)} value={reasonFilter}>
+          <option value="">{t("reports.allReasons")}</option>
+          {Object.keys(REASON_KEYS).map((reason) => (
+            <option key={reason} value={reason}>{t(REASON_KEYS[reason] ?? "report.reason.other")}</option>
+          ))}
+        </select>
+        <select aria-label={t("reports.filterType")} onChange={(event) => setTypeFilter(event.target.value)} value={typeFilter}>
+          <option value="">{t("reports.allTypes")}</option>
+          {Object.keys(TARGET_KEYS).map((type) => (
+            <option key={type} value={type}>{t(TARGET_KEYS[type] ?? "report.target.item")}</option>
+          ))}
+        </select>
+        {tab === "open" && selected.size > 0 ? (
+          <>
+            <span className={styles.selected}>{t("reports.selected", { count: selected.size })}</span>
+            <Button onClick={() => setBulkAction("resolved")} size="sm" variant="secondary">{t("reports.resolve")}</Button>
+            <Button onClick={() => setBulkAction("dismissed")} size="sm" variant="secondary">{t("reports.dismiss")}</Button>
+          </>
+        ) : null}
+      </div>
       <Card>
         {!loading && visible.length === 0 ? (
           <EmptyState
@@ -133,6 +181,19 @@ export default function ReportsPage() {
           <ul className={styles.list}>
             {visible.map((report) => (
               <li className={styles.item} key={report.id}>
+                {tab === "open" ? (
+                  <input
+                    aria-label={t("reports.selectOne", { name: report.target_label })}
+                    checked={selected.has(report.id)}
+                    className={styles.check}
+                    onChange={(event) => {
+                      const next = new Set(selected);
+                      if (event.target.checked) next.add(report.id); else next.delete(report.id);
+                      setSelected(next);
+                    }}
+                    type="checkbox"
+                  />
+                ) : null}
                 <div>
                   <p className={styles.head}>
                     <strong>{t(REASON_KEYS[report.reason] ?? "report.reason.other")}</strong>
@@ -160,6 +221,14 @@ export default function ReportsPage() {
                   <p className={styles.target}>
                     {t(TARGET_KEYS[report.target_type] ?? "report.target.item")}: {targetLink(report)}
                   </p>
+                  {report.target_preview ? (
+                    <p className={styles.preview}>«{report.target_preview}»</p>
+                  ) : null}
+                  {report.target_author ? (
+                    <p className={styles.meta}>
+                      {t("reports.author", { name: report.target_author })}
+                    </p>
+                  ) : null}
                   <p className={styles.meta}>
                     {t("reports.reporter", { name: report.reporter_name })}
                   </p>
@@ -223,6 +292,19 @@ export default function ReportsPage() {
               ? t("reports.confirmDismissText")
               : t("reports.confirmResolveText")}
         </p>
+      </Dialog>
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setBulkAction(null)} size="sm" variant="secondary">{t("common.cancel")}</Button>
+            <Button loading={busy} onClick={() => void runBulk()} size="sm">{t("reports.confirm")}</Button>
+          </>
+        }
+        onClose={() => setBulkAction(null)}
+        open={bulkAction !== null}
+        title={t("reports.bulkTitle", { count: selected.size })}
+      >
+        <p>{bulkAction === "dismissed" ? t("reports.bulkDismiss") : t("reports.bulkResolve")}</p>
       </Dialog>
     </main>
   );

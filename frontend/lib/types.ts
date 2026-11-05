@@ -369,6 +369,9 @@ export interface Report {
   created_at: string;
   reporter_name: string;
   target_label: string;
+  target_preview: string | null;
+  target_author: string | null;
+  target_author_id: string | null;
   target_url: string | null;
   target_available: boolean;
   resolved_at: string | null;
@@ -393,6 +396,7 @@ export interface NotificationItem {
   item_kind: string | null;
   comment_id: string | null;
   comment_body: string | null;
+  report_id: string | null;
   created_at: string;
   read: boolean;
 }

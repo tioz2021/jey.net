@@ -236,6 +236,40 @@ pub async fn notify_social(
     }
 }
 
+/// Tells the reporter that a moderator reached a decision.
+pub async fn notify_report(
+    state: &AppState,
+    reporter_id: Uuid,
+    admin_id: Uuid,
+    report_id: Uuid,
+    item_id: Option<Uuid>,
+    status: &str,
+) {
+    if reporter_id == admin_id {
+        return;
+    }
+    let body = match status {
+        "archived" => "Контент скрыт по вашей жалобе",
+        "dismissed" => "Жалоба отклонена",
+        _ => "Жалоба рассмотрена",
+    };
+    let inserted = sqlx::query(
+        "insert into notifications (id, user_id, actor_id, kind, item_id, report_id)
+         values ($1, $2, $3, 'report', $4, $5)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(reporter_id)
+    .bind(admin_id)
+    .bind(item_id)
+    .bind(report_id)
+    .execute(&state.pool)
+    .await
+    .is_ok();
+    if inserted {
+        crate::push::send_to_user(state, reporter_id, "Жалоба обработана", body, "/").await;
+    }
+}
+
 /// `GET /api/v1/notifications`
 pub async fn list(
     State(state): State<AppState>,
@@ -254,6 +288,7 @@ pub async fn list(
             'item_kind', i.kind,
             'comment_id', n.comment_id,
             'comment_body', left(c.body, 120),
+            'report_id', n.report_id,
             'created_at', n.created_at,
             'read', n.read_at is not null
          )
@@ -267,6 +302,7 @@ pub async fn list(
            and (n.comment_id is null or c.deleted_at is null)
            and (
                n.kind = 'follow'
+               or n.kind = 'report'
                or (i.id is not null and not i.public_hidden and i.deleted_at is null
                    and i.status = ANY(owner.public_statuses))
            )
