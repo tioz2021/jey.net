@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
   const legacyItem = pathname.match(
     /^\/items\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/,
   );
-  if (legacyItem?.[1]) {
+  if (legacyItem?.[1] && request.headers.get("x-jey-item") !== "1") {
     const cookie = request.headers.get("cookie") ?? "";
     const itemResponse = await fetch(
       `${BACKEND_URL}/api/v1/items/${legacyItem[1]}`,
