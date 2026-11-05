@@ -399,6 +399,7 @@ export const ru = {
   "report.sent": "Жалоба отправлена",
   "report.error": "Не удалось отправить жалобу",
   "reports.reporter": "Пожаловался(ась): {name}",
+  "reports.hide": "Скрыть",
   "reports.resolve": "Решено",
   "reports.dismiss": "Отклонить",
   'settings.title': 'Настройки',

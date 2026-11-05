@@ -400,6 +400,7 @@ export const en = {
   "report.sent": "Report submitted",
   "report.error": "Could not submit the report",
   "reports.reporter": "Reported by: {name}",
+  "reports.hide": "Hide",
   "reports.resolve": "Resolve",
   "reports.dismiss": "Dismiss",
   'settings.title': 'Settings',

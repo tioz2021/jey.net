@@ -400,6 +400,7 @@ export const uk = {
   "report.sent": "Скаргу надіслано",
   "report.error": "Не вдалося надіслати скаргу",
   "reports.reporter": "Поскаржився(-лася): {name}",
+  "reports.hide": "Сховати",
   "reports.resolve": "Вирішено",
   "reports.dismiss": "Відхилити",
   'settings.title': 'Налаштування',

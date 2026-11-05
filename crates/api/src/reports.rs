@@ -21,6 +21,8 @@ pub struct NewReport {
 #[derive(Debug, Deserialize)]
 pub struct ResolveReport {
     pub status: String,
+    #[serde(default)]
+    pub hide_target: bool,
 }
 
 async fn is_admin(state: &AppState, user_id: Uuid) -> Result<bool, AppError> {
@@ -173,7 +175,43 @@ pub async fn resolve(
             "status must be resolved or dismissed",
         ));
     }
-    let changed = sqlx::query(
+    let target: Option<(String, Uuid)> = sqlx::query_as(
+        "select target_type, target_id from reports where id = $1 and status = 'open'",
+    )
+    .bind(id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((target_type, target_id)) = target else {
+        return Err(AppError::not_found("report"));
+    };
+    if payload.hide_target {
+        match target_type.as_str() {
+            "item" => {
+                sqlx::query("update items set public_hidden = true where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            "comment" => {
+                sqlx::query("update comments set deleted_at = now() where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            "profile" => {
+                sqlx::query("update users set is_public = false where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            _ => {}
+        }
+    }
+    sqlx::query(
         "update reports set status = $1, resolved_at = now(), resolved_by = $2
          where id = $3 and status = 'open'",
     )
@@ -182,10 +220,6 @@ pub async fn resolve(
     .bind(id)
     .execute(&state.pool)
     .await
-    .map_err(AppError::internal)?
-    .rows_affected();
-    if changed == 0 {
-        return Err(AppError::not_found("report"));
-    }
+    .map_err(AppError::internal)?;
     Ok(Json(json!({ "ok": true })))
 }

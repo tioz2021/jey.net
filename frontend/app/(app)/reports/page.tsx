@@ -38,10 +38,14 @@ export default function ReportsPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  async function resolve(id: string, status: "resolved" | "dismissed") {
+  async function resolve(
+    id: string,
+    status: "resolved" | "dismissed",
+    hideTarget = false,
+  ) {
     setBusy(id);
     try {
-      await api.reports.resolve(id, status);
+      await api.reports.resolve(id, status, hideTarget);
       setReports((current) => current.filter((report) => report.id !== id));
     } catch {
       setError(t("reports.error"));
@@ -77,8 +81,16 @@ export default function ReportsPage() {
                 <div className={styles.actions}>
                   <Button
                     loading={busy === report.id}
+                    onClick={() => void resolve(report.id, "resolved", true)}
+                    size="sm"
+                  >
+                    {t("reports.hide")}
+                  </Button>
+                  <Button
+                    loading={busy === report.id}
                     onClick={() => void resolve(report.id, "resolved")}
                     size="sm"
+                    variant="secondary"
                   >
                     {t("reports.resolve")}
                   </Button>
