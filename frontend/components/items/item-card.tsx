@@ -213,12 +213,29 @@ export function ItemCard({
         ) : null}
 
         {item.kind === "tv" && watchedEpisodes > 0 ? (
-          <p className={styles.episodeProgress}>
-            {t("tvEpisodes.progress", {
-              watched: watchedEpisodes,
-              total: item.details?.number_of_episodes ?? "—",
-            })}
-          </p>
+          <div className={styles.progress}>
+            <span>
+              {t("tvEpisodes.progress", {
+                watched: watchedEpisodes,
+                total: item.details?.number_of_episodes ?? "—",
+              })}
+            </span>
+            {item.details?.number_of_episodes ? (
+              <div className={styles.progressTrack}>
+                <div
+                  className={styles.progressBar}
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.round(
+                        (watchedEpisodes / item.details.number_of_episodes) * 100,
+                      ),
+                    )}%`,
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {item.rating ? (
