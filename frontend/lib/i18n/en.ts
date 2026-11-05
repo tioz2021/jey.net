@@ -47,6 +47,7 @@ export const en = {
   "notifications.markAll": "Mark all as read",
   "notifications.addedItem": "added a new record:",
   "notifications.itemFallback": "record",
+  "comments.loadMore": "Show more",
   "comments.title": "Comments ({count})",
   "comments.loading": "Loading…",
   "comments.empty": "No comments yet.",

@@ -15,6 +15,9 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
   const { t, date } = useI18n();
   const { user } = useUser();
   const [comments, setComments] = useState<Comment[]>([]);
+  const [total, setTotal] = useState(0);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,9 +28,28 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
     setLoading(true);
     api.comments
       .list(userId, itemId)
-      .then((response) => setComments(response.comments))
+      .then((response) => {
+        setComments(response.comments);
+        setTotal(response.total);
+        setNextOffset(response.next_offset);
+      })
       .catch(() => setError(t("comments.loadError")))
       .finally(() => setLoading(false));
+  }
+
+  async function loadMore() {
+    if (nextOffset === null) return;
+    setLoadingMore(true);
+    try {
+      const response = await api.comments.list(userId, itemId, nextOffset);
+      setComments((current) => [...current, ...response.comments]);
+      setTotal(response.total);
+      setNextOffset(response.next_offset);
+    } catch {
+      setError(t("comments.loadError"));
+    } finally {
+      setLoadingMore(false);
+    }
   }
 
   useEffect(() => {
@@ -103,13 +125,24 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
   }
 
   return (
-    <Card title={t("comments.title", { count: comments.length })}>
+    <Card title={t("comments.title", { count: total })}>
       {loading ? <p className={styles.muted}>{t("comments.loading")}</p> : null}
       {!loading && comments.length === 0 ? (
         <p className={styles.muted}>{t("comments.empty")}</p>
       ) : null}
       {comments.length > 0 ? (
         <ul className={styles.list}>{comments.map((comment) => renderComment(comment))}</ul>
+      ) : null}
+      {nextOffset !== null ? (
+        <Button
+          className={styles.more}
+          loading={loadingMore}
+          onClick={() => void loadMore()}
+          size="sm"
+          variant="secondary"
+        >
+          {t("comments.loadMore")}
+        </Button>
       ) : null}
       {error ? <p className={styles.error}>{error}</p> : null}
       {user ? (

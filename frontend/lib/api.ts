@@ -393,9 +393,13 @@ export const recommendations = {
 };
 
 export const comments = {
-  list: (userId: string, itemId: string) =>
-    request<{ comments: Comment[] }>(
-      `/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/comments`,
+  list: (userId: string, itemId: string, offset = 0) =>
+    request<{
+      comments: Comment[];
+      total: number;
+      next_offset: number | null;
+    }>(
+      `/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/comments?offset=${offset}&limit=5`,
       { redirectOnUnauthorized: false },
     ),
   create: (userId: string, itemId: string, body: string, parentId?: string) =>

@@ -46,6 +46,7 @@ export const ru = {
   "notifications.markAll": "Отметить всё прочитанным",
   "notifications.addedItem": "добавил(а) новую запись:",
   "notifications.itemFallback": "запись",
+  "comments.loadMore": "Показать ещё",
   "comments.title": "Комментарии ({count})",
   "comments.loading": "Загрузка…",
   "comments.empty": "Пока комментариев нет.",

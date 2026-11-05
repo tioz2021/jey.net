@@ -1,7 +1,7 @@
 //! Comments on public records.
 
 use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
@@ -14,6 +14,12 @@ use crate::http::AppState;
 pub struct NewComment {
     pub body: String,
     pub parent_id: Option<Uuid>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct CommentQuery {
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
 }
 
 /// Checks the profile/item visibility and returns the item author.
@@ -54,9 +60,20 @@ async fn blocked_between(pool: &sqlx::PgPool, a: Uuid, b: Uuid) -> Result<bool, 
 pub async fn list(
     State(state): State<AppState>,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
+    Query(query): Query<CommentQuery>,
 ) -> Result<Json<Value>, AppError> {
     public_item_author(&state.pool, user_id, item_id).await?;
-    let rows: Vec<Value> = sqlx::query_scalar(
+    let limit = query.limit.unwrap_or(5).clamp(1, 20);
+    let offset = query.offset.unwrap_or(0).clamp(0, 100_000);
+    let total: i64 = sqlx::query_scalar(
+        "select count(*) from comments where item_id = $1 and deleted_at is null",
+    )
+    .bind(item_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    let mut top: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', c.id,
             'parent_id', c.parent_id,
@@ -68,40 +85,84 @@ pub async fn list(
          )
          from comments c
          join users u on u.id = c.user_id
-         where c.item_id = $1 and c.deleted_at is null and u.deleted_at is null
-         order by c.created_at asc",
+         where c.item_id = $1 and c.parent_id is null
+           and c.deleted_at is null and u.deleted_at is null
+         order by c.created_at desc, c.id desc
+         limit $2 offset $3",
     )
     .bind(item_id)
+    .bind(limit + 1)
+    .bind(offset)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    let has_more = top.len() as i64 > limit;
+    if has_more {
+        top.truncate(limit as usize);
+    }
 
-    let mut top: Vec<Value> = Vec::new();
+    let ids: Vec<Uuid> = top
+        .iter()
+        .filter_map(|row| {
+            row.get("id")
+                .and_then(Value::as_str)
+                .and_then(|id| Uuid::parse_str(id).ok())
+        })
+        .collect();
+    for row in &mut top {
+        row["replies"] = json!([]);
+    }
+
     let mut replies: std::collections::BTreeMap<Uuid, Vec<Value>> =
         std::collections::BTreeMap::new();
-    for row in rows {
-        if let Some(parent) = row
-            .get("parent_id")
+    if !ids.is_empty() {
+        let children: Vec<Value> = sqlx::query_scalar(
+            "select jsonb_build_object(
+                'id', c.id,
+                'parent_id', c.parent_id,
+                'body', c.body,
+                'created_at', c.created_at,
+                'author_id', u.id,
+                'author_name', u.display_name,
+                'author_avatar', u.avatar_key
+             )
+             from comments c
+             join users u on u.id = c.user_id
+             where c.item_id = $1 and c.parent_id = ANY($2)
+               and c.deleted_at is null and u.deleted_at is null
+             order by c.created_at asc, c.id asc",
+        )
+        .bind(item_id)
+        .bind(&ids)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        for mut child in children {
+            child["replies"] = json!([]);
+            if let Some(parent) = child
+                .get("parent_id")
+                .and_then(Value::as_str)
+                .and_then(|id| Uuid::parse_str(id).ok())
+            {
+                replies.entry(parent).or_default().push(child);
+            }
+        }
+    }
+    for row in &mut top {
+        if let Some(id) = row
+            .get("id")
             .and_then(Value::as_str)
             .and_then(|id| Uuid::parse_str(id).ok())
         {
-            replies.entry(parent).or_default().push(row);
-        } else {
-            top.push(row);
+            row["replies"] = json!(replies.remove(&id).unwrap_or_default());
         }
     }
-    let comments: Vec<Value> = top
-        .into_iter()
-        .map(|mut comment| {
-            let id = comment
-                .get("id")
-                .and_then(Value::as_str)
-                .and_then(|id| Uuid::parse_str(id).ok());
-            comment["replies"] = json!(id.and_then(|id| replies.remove(&id)).unwrap_or_default());
-            comment
-        })
-        .collect();
-    Ok(Json(json!({ "comments": comments })))
+
+    Ok(Json(json!({
+        "comments": top,
+        "total": total,
+        "next_offset": if has_more { Some(offset + limit) } else { None },
+    })))
 }
 
 /// `POST /api/v1/public/users/{user_id}/items/{item_id}/comments`

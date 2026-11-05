@@ -47,6 +47,7 @@ export const uk = {
   "notifications.markAll": "Позначити все прочитаними",
   "notifications.addedItem": "додав(ла) новий запис:",
   "notifications.itemFallback": "запис",
+  "comments.loadMore": "Показати ще",
   "comments.title": "Коментарі ({count})",
   "comments.loading": "Завантаження…",
   "comments.empty": "Поки коментарів немає.",
