@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const publicResponse = await fetch(
-      `${BACKEND_URL}/api/v1/public/cart/${encodeURIComponent(slug)}`,
+      `${BACKEND_URL}/api/v1/public/users/${encodeURIComponent(ownerCartMatch[1])}/items/by-slug/${encodeURIComponent(slug)}`,
       { cache: "no-store" },
     );
     if (publicResponse.ok) {
@@ -101,7 +101,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (itemMatch?.[2]) {
+  if (itemMatch?.[1] && itemMatch[2]) {
     const slug = itemMatch[2];
     const privateResponse = await fetch(
       `${BACKEND_URL}/api/v1/items/by-slug/${encodeURIComponent(slug)}`,
@@ -122,7 +122,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const publicResponse = await fetch(
-      `${BACKEND_URL}/api/v1/public/cart/${encodeURIComponent(slug)}`,
+      `${BACKEND_URL}/api/v1/public/users/${encodeURIComponent(itemMatch[1])}/items/by-slug/${encodeURIComponent(slug)}`,
       { cache: "no-store" },
     );
     if (publicResponse.ok) {

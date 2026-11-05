@@ -266,7 +266,41 @@ async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppE
     .ok_or_else(|| AppError::not_found("profile"))
 }
 
-/// `GET /api/v1/public/cart/{slug}` — resolve a canonical item URL.
+/// `GET /api/v1/public/users/{id}/items/by-slug/{slug}` — owner-scoped card.
+pub async fn by_slug_for_user(
+    State(state): State<AppState>,
+    Path((reference, slug)): Path<(String, String)>,
+) -> Result<Json<Value>, AppError> {
+    let user_id = resolve_user_id(&state.pool, &reference).await?;
+    let item_id: Option<Uuid> = sqlx::query_scalar(
+        "select i.id from items i
+         join users u on u.id = i.user_id
+         where i.user_id = $1 and i.slug = $2
+           and i.deleted_at is null and not i.public_hidden
+           and i.status = ANY(u.public_statuses)
+           and u.is_public and u.deleted_at is null and u.suspended_at is null",
+    )
+    .bind(user_id)
+    .bind(&slug)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some(item_id) = item_id else {
+        return Err(AppError::not_found("record"));
+    };
+    let handle: String = sqlx::query_scalar("select handle from users where id = $1")
+        .bind(user_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    Ok(Json(json!({
+        "item_id": item_id,
+        "user_id": user_id,
+        "handle": handle,
+    })))
+}
+
+/// `GET /api/v1/public/cart/{slug}` — legacy slug lookup.
 pub async fn by_slug(
     State(state): State<AppState>,
     Path(slug): Path<String>,
