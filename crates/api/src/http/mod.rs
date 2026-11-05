@@ -293,6 +293,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             axum::routing::patch(crate::users::admin::set_test),
         )
         .route(
+            "/admin/users/{id}/role",
+            axum::routing::patch(crate::users::admin::set_role),
+        )
+        .route(
             "/admin/test-data/purge",
             post(crate::users::admin::purge_test_data),
         )

@@ -56,16 +56,7 @@ pub async fn list(
     current: CurrentUser,
     Query(query): Query<ListQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let admin: bool =
-        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-            .bind(current.user.id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?
-            .unwrap_or(false);
-    if !admin {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let limit = query.limit.clamp(1, 100);
     let offset = query.offset.max(0);
     let action = query.action.trim();

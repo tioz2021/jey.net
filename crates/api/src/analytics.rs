@@ -204,16 +204,7 @@ pub async fn summary(
     current: CurrentUser,
     Query(query): Query<SummaryQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let admin: bool =
-        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-            .bind(current.user.id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?
-            .unwrap_or(false);
-    if !admin {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let days = query.days.clamp(7, 90);
     let counts: Value = sqlx::query_scalar(
         "select coalesce(jsonb_object_agg(name, total), '{}'::jsonb)
@@ -355,16 +346,7 @@ pub async fn audience(
     State(state): State<AppState>,
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
-    let admin: bool =
-        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-            .bind(current.user.id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?
-            .unwrap_or(false);
-    if !admin {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let online: Value = sqlx::query_scalar(
         "select coalesce(jsonb_agg(row order by row->>'last_seen_at' desc), '[]'::jsonb)
          from (

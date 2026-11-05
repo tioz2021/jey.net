@@ -45,7 +45,7 @@ pub async fn list(
     current: CurrentUser,
     Query(query): Query<ListQuery>,
 ) -> Result<Json<Value>, AppError> {
-    require_admin(&state, &current).await?;
+    crate::users::access::require_staff(&state, &current).await?;
     let q = query.q.trim();
     let pattern = format!("%{q}%");
     let limit = query.limit.clamp(1, 100);
@@ -58,6 +58,7 @@ pub async fn list(
              'is_public', u.is_public,
              'is_admin', coalesce(u.is_admin, false),
              'is_test', u.is_test,
+             'role', u.role,
              'suspended_at', u.suspended_at,
              'created_at', u.created_at,
              'last_seen_at', s.last_seen_at,
@@ -122,7 +123,7 @@ pub async fn revoke_sessions(
     current: CurrentUser,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
-    require_admin(&state, &current).await?;
+    crate::users::access::require_moderator(&state, &current).await?;
     target(&state, id).await?;
     if id == current.user.id {
         return Err(AppError::validation_field(
@@ -163,7 +164,7 @@ pub async fn suspend(
     Path(id): Path<Uuid>,
     Json(payload): Json<SuspendInput>,
 ) -> Result<Json<Value>, AppError> {
-    require_admin(&state, &current).await?;
+    crate::users::access::require_moderator(&state, &current).await?;
     if id == current.user.id {
         return Err(AppError::validation_field("id", "cannot suspend yourself"));
     }
@@ -245,7 +246,7 @@ pub async fn set_admin(
             ));
         }
     }
-    sqlx::query("update users set is_admin = $2 where id = $1")
+    sqlx::query("update users set is_admin = $2, role = case when $2 then 'admin' else 'user' end where id = $1")
         .bind(id)
         .bind(payload.is_admin)
         .execute(&state.pool)
@@ -374,6 +375,62 @@ pub async fn purge_test_data(
     )
     .await;
     Ok(Json(json!({ "deleted": count })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RoleInput {
+    pub role: String,
+}
+
+/// `PATCH /api/v1/admin/users/{id}/role`
+pub async fn set_role(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<RoleInput>,
+) -> Result<Json<Value>, AppError> {
+    crate::users::access::require_admin(&state, &current).await?;
+    if !matches!(
+        payload.role.as_str(),
+        "user" | "viewer" | "moderator" | "admin"
+    ) {
+        return Err(AppError::validation_field("role", "unknown role"));
+    }
+    let (name, _) = target(&state, id).await?;
+    if id == current.user.id && payload.role != "admin" {
+        return Err(AppError::validation_field("role", "cannot demote yourself"));
+    }
+    if payload.role != "admin" {
+        let admins: i64 = sqlx::query_scalar(
+            "select count(*) from users where role = 'admin' and deleted_at is null",
+        )
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        if admins <= 1 {
+            return Err(AppError::validation_field(
+                "role",
+                "at least one administrator is required",
+            ));
+        }
+    }
+    sqlx::query("update users set role = $2, is_admin = ($2 = 'admin') where id = $1")
+        .bind(id)
+        .bind(&payload.role)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    crate::audit::record(
+        &state,
+        &current,
+        "user.role_changed",
+        "user",
+        Some(id),
+        Some(&name),
+        json!({ "role": payload.role }),
+    )
+    .await;
+    Ok(Json(json!({ "role": payload.role })))
 }
 
 /// `DELETE /api/v1/admin/users/{id}`

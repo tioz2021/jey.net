@@ -26,6 +26,7 @@ pub struct UserView {
     pub public_statuses: Vec<String>,
     pub public_show_progress: bool,
     pub is_admin: bool,
+    pub role: String,
     pub avatar_key: Option<String>,
     pub banner_key: Option<String>,
     pub has_password: bool,
@@ -45,6 +46,7 @@ pub struct UserRow {
     pub public_statuses: Vec<String>,
     pub public_show_progress: bool,
     pub is_admin: bool,
+    pub role: String,
     pub avatar_key: Option<String>,
     pub banner_key: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -65,6 +67,7 @@ impl From<UserRow> for UserView {
             public_statuses: row.public_statuses,
             public_show_progress: row.public_show_progress,
             is_admin: row.is_admin,
+            role: row.role,
             avatar_key: row.avatar_key,
             banner_key: row.banner_key,
             has_password: row.password_hash.is_some(),
@@ -151,7 +154,7 @@ pub async fn create(
         "insert into users (id, handle, email, password_hash, display_name)
          values ($1, $2, $3, $4, $5)
          returning id, handle, email::text as email, display_name, locale,
-                   email_verified_at, is_public, public_statuses, public_show_progress, is_admin, avatar_key, banner_key, created_at, password_hash, google_sub",
+                   email_verified_at, is_public, public_statuses, public_show_progress, is_admin, role, avatar_key, banner_key, created_at, password_hash, google_sub",
     )
     .bind(id)
     .bind(handle)
@@ -174,7 +177,7 @@ pub async fn create(
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, handle, email::text as email, display_name, locale,
-                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, avatar_key, banner_key, created_at, password_hash, google_sub
+                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, role, avatar_key, banner_key, created_at, password_hash, google_sub
          from users
          where email = $1 and deleted_at is null and suspended_at is null",
     )
@@ -191,7 +194,7 @@ pub async fn find_by_google_sub(
 ) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, handle, email::text as email, display_name, locale,
-                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, avatar_key, banner_key, created_at, password_hash, google_sub
+                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, role, avatar_key, banner_key, created_at, password_hash, google_sub
          from users
          where google_sub = $1 and deleted_at is null and suspended_at is null",
     )
@@ -214,7 +217,7 @@ pub async fn create_google(
         "insert into users (id, handle, email, display_name, google_sub, email_verified_at)
          values ($1, $2, $3, $4, $5, now())
          returning id, handle, email::text as email, display_name, locale,
-                   email_verified_at, is_public, public_statuses, public_show_progress, is_admin, avatar_key, banner_key, created_at, password_hash, google_sub",
+                   email_verified_at, is_public, public_statuses, public_show_progress, is_admin, role, avatar_key, banner_key, created_at, password_hash, google_sub",
     )
     .bind(id)
     .bind(handle)
@@ -249,7 +252,7 @@ pub async fn link_google(pool: &PgPool, user_id: Uuid, google_sub: &str) -> Resu
 pub async fn find_by_id(pool: &PgPool, id: Uuid) -> Result<Option<UserRow>, AppError> {
     sqlx::query_as::<_, UserRow>(
         "select id, handle, email::text as email, display_name, locale,
-                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, avatar_key, banner_key, created_at, password_hash, google_sub
+                email_verified_at, is_public, public_statuses, public_show_progress, is_admin, role, avatar_key, banner_key, created_at, password_hash, google_sub
          from users
          where id = $1 and deleted_at is null and suspended_at is null",
     )

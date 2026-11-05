@@ -25,15 +25,6 @@ pub struct ResolveReport {
     pub hide_target: bool,
 }
 
-async fn is_admin(state: &AppState, user_id: Uuid) -> Result<bool, AppError> {
-    sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-        .bind(user_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(AppError::internal)
-        .map(|value| value.unwrap_or(false))
-}
-
 /// `POST /api/v1/reports`
 pub async fn create(
     State(state): State<AppState>,
@@ -129,9 +120,7 @@ pub async fn list(
     State(state): State<AppState>,
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
-    if !is_admin(&state, current.user.id).await? {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let rows: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', r.id,
@@ -205,9 +194,7 @@ pub async fn resolve(
     Path(id): Path<Uuid>,
     Json(payload): Json<ResolveReport>,
 ) -> Result<Json<Value>, AppError> {
-    if !is_admin(&state, current.user.id).await? {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_moderator(&state, &current).await?;
     if !matches!(
         payload.status.as_str(),
         "resolved" | "dismissed" | "open" | "archived" | "restore"

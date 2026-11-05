@@ -26,6 +26,7 @@ export interface User {
   email_verified: boolean;
   is_public: boolean;
   is_admin?: boolean;
+  role: "user" | "viewer" | "moderator" | "admin";
   public_statuses: string[];
   public_show_progress: boolean;
   avatar_key: string | null;
@@ -449,6 +450,7 @@ export interface AdminUser {
   display_name: string;
   is_public: boolean;
   is_admin: boolean;
+  role: "user" | "viewer" | "moderator" | "admin";
   is_test: boolean;
   suspended_at: string | null;
   created_at: string;

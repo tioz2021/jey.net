@@ -580,6 +580,11 @@ export const admin = {
       `/admin/users/${encodeURIComponent(id)}/admin`,
       { method: "PATCH", body: { is_admin } },
     ),
+  setRole: (id: string, role: "user" | "viewer" | "moderator" | "admin") =>
+    request<{ role: string }>(`/admin/users/${encodeURIComponent(id)}/role`, {
+      method: "PATCH",
+      body: { role },
+    }),
   setTest: (id: string, is_test: boolean) =>
     request<{ is_test: boolean }>(
       `/admin/users/${encodeURIComponent(id)}/test`,

@@ -155,7 +155,7 @@ export function UserMenu({ user }: { user: User }) {
           <Link className={styles.item} href="/dashboard" role="menuitem">
             {t("account.stats")}
           </Link>
-          {user.is_admin ? (
+          {user.role !== "user" ? (
             <Link className={styles.item} href="/admin" role="menuitem">
               {t("account.admin")}
             </Link>

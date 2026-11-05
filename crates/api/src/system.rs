@@ -82,16 +82,7 @@ pub async fn status(
     State(state): State<AppState>,
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
-    let admin: bool =
-        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-            .bind(current.user.id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?
-            .unwrap_or(false);
-    if !admin {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let (api, web, caddy, postgres) = tokio::join!(
         service("jey-api"),
         service("jey-web"),
@@ -153,16 +144,7 @@ pub async fn errors(
     current: CurrentUser,
     Query(query): Query<ErrorsQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let admin: bool =
-        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
-            .bind(current.user.id)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(AppError::internal)?
-            .unwrap_or(false);
-    if !admin {
-        return Err(AppError::forbidden("admin only"));
-    }
+    crate::users::access::require_staff(&state, &current).await?;
     let days = query.days.clamp(1, 90);
     let rows: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(

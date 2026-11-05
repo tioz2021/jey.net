@@ -231,6 +231,8 @@ export const en = {
   "admin.purgeWord": "Type delete to confirm",
   "admin.purgeConfirm": "Delete forever",
   "admin.testPurged": "Test accounts deleted: {count}",
+  "admin.role": "Role",
+  "admin.roleChanged": "Role changed",
   "admin.title": "Admin",
   "admin.subtitle": "Site health, people and moderation in one place.",
   "admin.overview": "Overview",

@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const response = await backendFetch("/me");
   if (!response.ok) redirect("/login");
   const { user } = (await response.json()) as UserResponse;
-  if (!user.is_admin) redirect("/items");
+  if (!["viewer", "moderator", "admin"].includes(user.role)) redirect("/items");
 
   return (
     <div className={styles.shell}>

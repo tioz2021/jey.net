@@ -230,6 +230,8 @@ export const ru = {
   "admin.purgeWord": "Введите delete для подтверждения",
   "admin.purgeConfirm": "Удалить навсегда",
   "admin.testPurged": "Удалено тестовых аккаунтов: {count}",
+  "admin.role": "Роль",
+  "admin.roleChanged": "Роль изменена",
   "admin.title": "Админка",
   "admin.subtitle": "Состояние сайта, люди и модерация в одном месте.",
   "admin.overview": "Обзор",

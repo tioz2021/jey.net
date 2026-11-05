@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Button, Card, Dialog, PageHeader } from "@/components/ui";
 import { useToast } from "@/components/toasts";
+import { useUser } from "@/lib/user-context";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { AdminUser } from "@/lib/types";
@@ -20,6 +21,9 @@ type Pending =
 export function AdminPeople() {
   const { t, date } = useI18n();
   const { notify } = useToast();
+  const { user: me } = useUser();
+  const isAdmin = me?.role === "admin";
+  const canModerate = isAdmin || me?.role === "moderator";
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -90,6 +94,16 @@ export function AdminPeople() {
     }
   }
 
+  async function changeRole(user: AdminUser, role: "user" | "viewer" | "moderator" | "admin") {
+    try {
+      await api.admin.setRole(user.id, role);
+      notify({ tone: "success", title: t("admin.roleChanged"), text: "", requestId: null });
+      load();
+    } catch {
+      notify({ tone: "error", title: t("admin.actionError"), text: "", requestId: null });
+    }
+  }
+
   async function confirm() {
     if (!pending) return;
     setBusy(true);
@@ -157,12 +171,12 @@ export function AdminPeople() {
         <div><strong>{users.filter((user) => user.suspended_at).length}</strong><span>{t("admin.suspended")}</span></div>
       </section>
 
-      <Card title={t("admin.testData")}>
+      {isAdmin ? <Card title={t("admin.testData")}>
         <p className={styles.muted}>{t("admin.testDataHint", { count: testTotal })}</p>
         <Button disabled={testTotal === 0} onClick={() => setPurgeOpen(true)} variant="danger">
           {t("admin.purgeTest")}
         </Button>
-      </Card>
+      </Card> : null}
 
       <Card title={t("admin.allUsers")}>
         <div className={styles.searchRow}>
@@ -197,6 +211,7 @@ export function AdminPeople() {
                       {user.display_name}
                       {user.is_admin ? <span className={styles.role}>admin</span> : null}
                       {user.suspended_at ? <span className={styles.role}>{t("admin.suspended")}</span> : null}
+                      {user.role !== "user" ? <span className={styles.role}>{user.role}</span> : null}
                       {user.is_test ? <span className={styles.testRole}>{t("admin.testMarked")}</span> : null}
                       {!user.is_public ? <span className={styles.role}>{t("analytics.private")}</span> : null}
                     </td>
@@ -205,19 +220,35 @@ export function AdminPeople() {
                     <td>{dateTime(user.last_seen_at)}</td>
                     <td>
                       <div className={styles.actions}>
-                        <button onClick={() => ask("sessions", user)} type="button">{t("admin.sessions")}</button>
-                        <button onClick={() => ask("suspend", user)} type="button">
-                          {user.suspended_at ? t("admin.restore") : t("admin.suspend")}
-                        </button>
-                        <button onClick={() => ask("admin", user)} type="button">
-                          {user.is_admin ? t("admin.unadmin") : t("admin.makeAdmin")}
-                        </button>
-                        <button onClick={() => ask("test", user)} type="button">
-                          {user.is_test ? t("admin.testUnmark") : t("admin.testMark")}
-                        </button>
-                        <button className={styles.danger} onClick={() => ask("delete", user)} type="button">
-                          {t("admin.delete")}
-                        </button>
+                        {canModerate ? (
+                          <>
+                            <button onClick={() => ask("sessions", user)} type="button">{t("admin.sessions")}</button>
+                            <button onClick={() => ask("suspend", user)} type="button">
+                              {user.suspended_at ? t("admin.restore") : t("admin.suspend")}
+                            </button>
+                          </>
+                        ) : null}
+                        {isAdmin ? (
+                          <>
+                            <select
+                              aria-label={t("admin.role")}
+                              className={styles.roleSelect}
+                              onChange={(event) => void changeRole(user, event.target.value as AdminUser["role"])}
+                              value={user.role}
+                            >
+                              <option value="user">user</option>
+                              <option value="viewer">viewer</option>
+                              <option value="moderator">moderator</option>
+                              <option value="admin">admin</option>
+                            </select>
+                            <button onClick={() => ask("test", user)} type="button">
+                              {user.is_test ? t("admin.testUnmark") : t("admin.testMark")}
+                            </button>
+                            <button className={styles.danger} onClick={() => ask("delete", user)} type="button">
+                              {t("admin.delete")}
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

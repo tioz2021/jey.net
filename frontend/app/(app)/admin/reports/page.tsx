@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Badge, Button, Card, Dialog, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { useUser } from "@/lib/user-context";
 import type { TranslationKey } from "@/lib/i18n";
 import type { Report } from "@/lib/types";
 
@@ -28,6 +29,8 @@ type Action = "archive" | "resolved" | "dismissed";
 
 export default function ReportsPage() {
   const { t, date } = useI18n();
+  const { user } = useUser();
+  const canModerate = user?.role === "admin" || user?.role === "moderator";
   const [reports, setReports] = useState<Report[]>([]);
   const [history, setHistory] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,7 +166,7 @@ export default function ReportsPage() {
             <option key={type} value={type}>{t(TARGET_KEYS[type] ?? "report.target.item")}</option>
           ))}
         </select>
-        {tab === "open" && selected.size > 0 ? (
+        {tab === "open" && canModerate && selected.size > 0 ? (
           <>
             <span className={styles.selected}>{t("reports.selected", { count: selected.size })}</span>
             <Button onClick={() => setBulkAction("resolved")} size="sm" variant="secondary">{t("reports.resolve")}</Button>
@@ -181,7 +184,7 @@ export default function ReportsPage() {
           <ul className={styles.list}>
             {visible.map((report) => (
               <li className={styles.item} key={report.id}>
-                {tab === "open" ? (
+                {tab === "open" && canModerate ? (
                   <input
                     aria-label={t("reports.selectOne", { name: report.target_label })}
                     checked={selected.has(report.id)}
@@ -234,7 +237,7 @@ export default function ReportsPage() {
                   </p>
                   {report.details ? <p className={styles.details}>{report.details}</p> : null}
                 </div>
-                {tab === "open" ? (
+                {tab === "open" && canModerate ? (
                   <div className={styles.actions}>
                     {report.target_available ? (
                       <Button onClick={() => setPending({ report, action: "archive" })} size="sm">

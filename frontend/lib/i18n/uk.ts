@@ -231,6 +231,8 @@ export const uk = {
   "admin.purgeWord": "Введіть delete для підтвердження",
   "admin.purgeConfirm": "Видалити назавжди",
   "admin.testPurged": "Видалено тестових акаунтів: {count}",
+  "admin.role": "Роль",
+  "admin.roleChanged": "Роль змінено",
   "admin.title": "Адмінка",
   "admin.subtitle": "Стан сайту, люди та модерація в одному місці.",
   "admin.overview": "Огляд",
