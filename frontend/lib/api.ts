@@ -371,6 +371,21 @@ export const follows = {
   blocked: () => request<{ people: BlockedProfile[] }>("/blocks"),
 };
 
+export const push = {
+  key: () =>
+    request<{ key: string }>("/push/key", { redirectOnUnauthorized: false }),
+  subscribe: (subscription: PushSubscriptionJSON) =>
+    request<{ ok: boolean }>("/push/subscribe", {
+      method: "POST",
+      body: subscription,
+    }),
+  unsubscribe: (endpoint: string) =>
+    request<{ ok: boolean }>("/push/subscribe", {
+      method: "DELETE",
+      body: { endpoint },
+    }),
+};
+
 export const notifications = {
   list: () =>
     request<{ items: NotificationItem[]; unread: number }>("/notifications"),
@@ -525,6 +540,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, comments, feed, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, comments, feed, push, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

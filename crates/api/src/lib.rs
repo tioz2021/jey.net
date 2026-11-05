@@ -23,5 +23,6 @@ pub mod stats;
 pub mod telemetry;
 pub mod users;
 
+pub mod push;
 pub mod reactions;
 pub mod recommendations;

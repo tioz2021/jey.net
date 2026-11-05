@@ -67,6 +67,8 @@ fn test_config() -> Config {
         google_books_key: None,
         twitch_client_id: None,
         twitch_client_secret: None,
+        vapid_public_key: None,
+        vapid_private_key: None,
         purge_retention_days: 30,
     }
 }

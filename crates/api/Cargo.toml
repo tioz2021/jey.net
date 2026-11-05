@@ -9,6 +9,8 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+web-push-native = "0.4"
+base64ct = "1"
 jey-core = { path = "../core" }
 
 argon2 = "0.6"

@@ -42,9 +42,11 @@ pub async fn create_item(
     .await?;
 
     crate::users::notifications::notify_new_item(
-        &state.pool,
+        &state,
         current.user.id,
+        &current.user.display_name,
         item.id,
+        &item.title,
         item.status.as_str(),
         item.public_hidden,
     )

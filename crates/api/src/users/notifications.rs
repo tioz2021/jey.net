@@ -75,9 +75,11 @@ pub async fn update_settings(
 ///
 /// Failures are intentionally non-fatal for the item creation request.
 pub async fn notify_new_item(
-    pool: &sqlx::PgPool,
+    state: &AppState,
     actor_id: Uuid,
+    actor_name: &str,
     item_id: Uuid,
+    item_title: &str,
     status: &str,
     public_hidden: bool,
 ) {
@@ -105,8 +107,40 @@ pub async fn notify_new_item(
     .bind(actor_id)
     .bind(item_id)
     .bind(status)
-    .execute(pool)
+    .execute(&state.pool)
     .await;
+
+    let recipients: Vec<Uuid> = sqlx::query_scalar(
+        "select f.follower_id
+         from follows f
+         join users follower on follower.id = f.follower_id
+         join users actor on actor.id = $1
+         where f.followee_id = $1
+           and f.notifications
+           and coalesce((follower.notification_prefs->>'item')::boolean, true)
+           and follower.deleted_at is null
+           and $2 = ANY(actor.public_statuses)
+           and not exists (
+               select 1 from blocks b
+               where (b.blocker_id = $1 and b.blocked_id = f.follower_id)
+                  or (b.blocker_id = f.follower_id and b.blocked_id = $1)
+           )",
+    )
+    .bind(actor_id)
+    .bind(status)
+    .fetch_all(&state.pool)
+    .await
+    .unwrap_or_default();
+    for recipient in recipients {
+        crate::push::send_to_user(
+            state,
+            recipient,
+            "Новая запись",
+            &format!("{actor_name} добавил(а) «{item_title}»"),
+            &format!("/u/{actor_id}/{item_id}"),
+        )
+        .await;
+    }
 }
 
 /// `GET /api/v1/notifications`

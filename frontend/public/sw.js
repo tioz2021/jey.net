@@ -1,5 +1,5 @@
 /* jey.net offline shell. API responses are never cached: they are private. */
-const CACHE = "jey-shell-v2";
+const CACHE = "jey-shell-v3";
 const OFFLINE = "/offline";
 const PRECACHE = [OFFLINE, "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
@@ -67,4 +67,34 @@ self.addEventListener("fetch", (event) => {
       ),
     );
   }
+});
+
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+  const title = data.title || "jey.net";
+  const options = {
+    body: data.body || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    data: { url: data.url || "/notifications" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/notifications";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const existing = windows.find((client) => client.url.includes(new URL(url, self.location.origin).pathname));
+      if (existing) return existing.focus();
+      return clients.openWindow(url);
+    }),
+  );
 });

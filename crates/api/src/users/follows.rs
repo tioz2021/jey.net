@@ -92,6 +92,14 @@ pub async fn follow(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+        crate::push::send_to_user(
+            &state,
+            target,
+            "Новый подписчик",
+            &format!("{} подписался(-ась) на вас", current.user.display_name),
+            "/notifications",
+        )
+        .await;
     }
     let (followers, following) = counts(&state.pool, target).await?;
     Ok(Json(

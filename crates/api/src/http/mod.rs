@@ -96,6 +96,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/users/{id}/items/{item_id}",
             get(crate::users::public::item),
         )
+        .route("/push/key", get(crate::push::public_key))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/auth/google/start", get(crate::auth::google::start))
@@ -147,6 +148,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::reactions::toggle),
         )
         .route("/notifications", get(crate::users::notifications::list))
+        .route(
+            "/push/subscribe",
+            post(crate::push::subscribe).delete(crate::push::unsubscribe),
+        )
         .route(
             "/notifications/settings",
             get(crate::users::notifications::get_settings)

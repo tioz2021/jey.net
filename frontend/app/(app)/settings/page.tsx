@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { BlockedProfiles } from "@/components/blocked-profiles";
 import { NotificationSettings } from "@/components/notification-settings";
+import { PushSettings } from "@/components/push-settings";
 import { ExportPanel } from "@/components/export-panel";
 import { ShareProfile } from "@/components/share-profile";
 import { SettingsForm } from "@/components/forms/settings-form";
@@ -46,6 +47,7 @@ export default async function SettingsPage() {
       <div className={styles.stack}>
         <SettingsForm initialUser={user} />
         <NotificationSettings />
+        <PushSettings />
         <BlockedProfiles />
         <ShareProfile />
         <ExportPanel />

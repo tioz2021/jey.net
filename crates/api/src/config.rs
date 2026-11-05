@@ -105,6 +105,9 @@ pub struct Config {
     /// Twitch app credentials; IGDB game search is disabled when absent.
     pub twitch_client_id: Option<String>,
     pub twitch_client_secret: Option<String>,
+    /// VAPID keys for browser push. Both are absent when push is disabled.
+    pub vapid_public_key: Option<String>,
+    pub vapid_private_key: Option<String>,
     /// Days a deleted account is kept for recovery before the purge task.
     pub purge_retention_days: i32,
 }
@@ -218,6 +221,8 @@ impl Config {
         let google_books_key = var("GOOGLE_BOOKS_API_KEY");
         let twitch_client_id = var("TWITCH_CLIENT_ID");
         let twitch_client_secret = var("TWITCH_CLIENT_SECRET");
+        let vapid_public_key = var("VAPID_PUBLIC_KEY");
+        let vapid_private_key = var("VAPID_PRIVATE_KEY");
 
         Ok(Self {
             app_env,
@@ -239,6 +244,8 @@ impl Config {
             google_books_key,
             twitch_client_id,
             twitch_client_secret,
+            vapid_public_key,
+            vapid_private_key,
             purge_retention_days,
         })
     }
