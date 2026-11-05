@@ -87,9 +87,6 @@
   min-width: 0;
 }
 
-.bodyWithContinue {
-  padding-bottom: 1.5rem;
-}
 
 .header {
   display: flex;
@@ -244,12 +241,13 @@
 }
 
 
-.continueSlot {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
+.cardFooter {
+  position: relative;
   z-index: 2;
-  max-width: calc(100% - 16px);
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--space-2);
 }
 
 .continue {
@@ -265,4 +263,11 @@
   white-space: nowrap;
   background: var(--color-accent);
   border-radius: var(--radius-sm);
+}
+
+
+.actionDate {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }

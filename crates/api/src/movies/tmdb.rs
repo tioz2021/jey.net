@@ -515,6 +515,8 @@ impl MovieDetails {
             seasons: self.seasons.clone(),
             watched_episodes: Vec::new(),
             progress: None,
+            last_action_at: None,
+            rewatch_count: None,
         }
     }
 }

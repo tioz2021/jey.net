@@ -240,6 +240,12 @@ pub struct MovieDetails {
     pub watched_episodes: Vec<WatchedEpisode>,
     #[serde(default)]
     pub progress: Option<Progress>,
+    /// When the last meaningful action happened, ISO date/time.
+    #[serde(default)]
+    pub last_action_at: Option<String>,
+    /// How many times the owner rewatched a film.
+    #[serde(default)]
+    pub rewatch_count: Option<i32>,
 }
 
 /// Manual progress for kinds that are consumed over time.

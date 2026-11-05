@@ -96,6 +96,8 @@ export interface MovieDetails {
   seasons?: SeasonSummary[];
   watched_episodes?: WatchedEpisode[];
   progress?: ItemProgress | null;
+  last_action_at?: string | null;
+  rewatch_count?: number | null;
 }
 
 export interface WatchedEpisode {

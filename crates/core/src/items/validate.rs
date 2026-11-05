@@ -475,6 +475,15 @@ fn clean_details(
             watched
         },
         progress: details.progress.clone(),
+        last_action_at: details
+            .last_action_at
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.chars().take(40).collect()),
+        rewatch_count: details
+            .rewatch_count
+            .filter(|value| (0..=10_000).contains(value)),
         number_of_seasons: details
             .number_of_seasons
             .filter(|value| (0..=100).contains(value)),

@@ -74,6 +74,8 @@ export interface ItemCardData {
     anime_format?: string | null;
     platforms?: string[] | null;
     progress?: ItemProgress | null;
+    last_action_at?: string | null;
+    rewatch_count?: number | null;
     translations?: Record<
       string,
       {
@@ -124,7 +126,7 @@ export function ItemCard({
           ? item.details.anime_format.toUpperCase()
           : item.kind === "anime" && item.details?.number_of_episodes
             ? t("card.episodes", { count: item.details.number_of_episodes })
-            : (item.kind === "game" ? item.details?.platforms?.slice(0, 2).join(" · ") : null);
+            : (item.kind === "game" ? item.details?.platforms?.[0] : null);
   const progressTotal =
     progress?.total ??
     (item.kind === "anime"
@@ -136,6 +138,12 @@ export function ItemCard({
     progress && progressTotal && progressTotal > 0
       ? Math.min(100, Math.round((progress.current / progressTotal) * 100))
       : null;
+  const actionDate = item.details?.last_action_at
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+        new Date(item.details.last_action_at),
+      )
+    : null;
+  const rewatches = item.details?.rewatch_count ?? 0;
   const PlaceholderIcon = KIND_ICONS[item.kind];
   const meta = [
     t(KIND_KEYS[item.kind]),
@@ -162,13 +170,7 @@ export function ItemCard({
         )}
       </div>
 
-      <div
-        className={`${styles.body} ${
-          showContinue && (item.kind === "tv" || item.kind === "anime")
-            ? styles.bodyWithContinue
-            : ""
-        }`}
-      >
+      <div className={styles.body}>
         <div className={styles.header}>
           <h2 className={styles.title}>
             <Highlight text={title} query={query} />
@@ -185,7 +187,10 @@ export function ItemCard({
         <p className={styles.meta}>{meta.join(" · ")}</p>
 
         {item.kind === "anime" || item.kind === "book" || item.kind === "game" ? (
-          progress && (progress.current > 0 || progressTotal) ? (
+          progress &&
+          (item.kind === "book"
+            ? progress.current > 0
+            : progress.current > 0 || progressTotal) ? (
             <div className={styles.progress}>
               <span>
                 {item.kind === "anime"
@@ -248,6 +253,15 @@ export function ItemCard({
           </div>
         ) : null}
 
+        {actionDate ? (
+          <p className={styles.actionDate}>
+            {t("card.lastAction", { date: actionDate })}
+            {rewatches > 0
+              ? ` · ${t("card.rewatched", { count: rewatches })}`
+              : ""}
+          </p>
+        ) : null}
+
         {item.review ? <p className={styles.review}>{item.review}</p> : null}
 
         {item.deleted_at ? (
@@ -257,6 +271,11 @@ export function ItemCard({
           </div>
         ) : null}
 
+        {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
+          <div className={styles.cardFooter}>
+            <ContinueLink details={item.details} kind={item.kind} target={target} />
+          </div>
+        ) : null}
       </div>
     </article>
   );
@@ -272,11 +291,6 @@ export function ItemCard({
       {reactions ? (
         <div className={styles.reactionSlot}>
           <CardReaction itemId={item.id} />
-        </div>
-      ) : null}
-      {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
-        <div className={styles.continueSlot}>
-          <ContinueLink details={item.details} kind={item.kind} target={target} />
         </div>
       ) : null}
     </div>

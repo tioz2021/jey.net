@@ -280,6 +280,8 @@ impl IgdbClient {
             seasons: Vec::new(),
             watched_episodes: Vec::new(),
             progress: None,
+            last_action_at: None,
+            rewatch_count: None,
         })
     }
 

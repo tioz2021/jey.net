@@ -10,6 +10,7 @@ import { SimilarItems } from "@/components/items/similar-items";
 import { ItemReview } from "@/components/items/item-review";
 import { ProgressEditor } from "@/components/items/progress-editor";
 import { AnimeContinue } from "@/components/items/anime-continue";
+import { ActionDate } from "@/components/items/action-date";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -262,6 +263,7 @@ export default async function ItemPage({
             <ItemReview text={item.body} title={t("item.privateNote")} />
           ) : null}
 
+          <ActionDate item={item} />
           <AnimeContinue item={item} />
           <ProgressEditor item={item} />
 
