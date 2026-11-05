@@ -130,7 +130,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/feed", get(crate::users::follows::feed))
         .route("/blocks", get(crate::users::follows::blocked))
         .route(
-            "/public/users/{user_id}/items/{item_id}/comments",
+            "/public/users/{id}/items/{item_id}/comments",
             post(crate::comments::create),
         )
         .route(
