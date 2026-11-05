@@ -383,6 +383,17 @@ export interface FeedItem extends PublicItem {
   author_name: string;
 }
 
+export interface Comment {
+  id: string;
+  parent_id: string | null;
+  body: string;
+  created_at: string;
+  author_id: string;
+  author_name: string;
+  author_avatar: string | null;
+  replies: Comment[];
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];

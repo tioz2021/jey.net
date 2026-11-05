@@ -114,6 +114,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/items/{id}/similar",
             get(crate::recommendations::public_similar),
         )
+        .route(
+            "/public/users/{id}/items/{item_id}/comments",
+            get(crate::comments::list),
+        )
         .route("/auth/logout", post(logout))
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))
@@ -125,6 +129,14 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me/password", post(change_password))
         .route("/feed", get(crate::users::follows::feed))
         .route("/blocks", get(crate::users::follows::blocked))
+        .route(
+            "/public/users/{user_id}/items/{item_id}/comments",
+            post(crate::comments::create),
+        )
+        .route(
+            "/comments/{id}",
+            axum::routing::delete(crate::comments::remove),
+        )
         .route("/notifications", get(crate::users::notifications::list))
         .route(
             "/notifications/read",

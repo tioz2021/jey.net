@@ -6,6 +6,7 @@
 pub mod anime;
 pub mod auth;
 pub mod books;
+pub mod comments;
 pub mod config;
 pub mod db;
 pub mod error;

@@ -20,6 +20,7 @@ import type {
   SimilarItem,
   TasteRecommendation,
   TasteGenre,
+  Comment,
   Item,
   ItemFilters,
   ItemList,
@@ -391,6 +392,23 @@ export const recommendations = {
     ),
 };
 
+export const comments = {
+  list: (userId: string, itemId: string) =>
+    request<{ comments: Comment[] }>(
+      `/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/comments`,
+      { redirectOnUnauthorized: false },
+    ),
+  create: (userId: string, itemId: string, body: string, parentId?: string) =>
+    request<{ id: string }>(
+      `/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/comments`,
+      { method: "POST", body: { body, parent_id: parentId ?? null } },
+    ),
+  remove: (id: string) =>
+    request<{ deleted: boolean }>(`/comments/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+};
+
 export const publicUsers = {
   search: (
     q: string,
@@ -479,6 +497,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, feed, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, comments, feed, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };
