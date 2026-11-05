@@ -423,6 +423,24 @@ export interface AudienceRegistration {
   items: number;
 }
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  display_name: string;
+  is_public: boolean;
+  is_admin: boolean;
+  suspended_at: string | null;
+  created_at: string;
+  last_seen_at: string | null;
+  online: boolean;
+  items: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  total: number;
+}
+
 export interface AnalyticsAudience {
   stats: {
     total_users: number;

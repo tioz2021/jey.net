@@ -39,6 +39,7 @@ import type {
   MovieDetailsResponse,
   MovieSearchItem,
   UserResponse,
+  AdminUsersResponse,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -556,11 +557,35 @@ export const stats = {
   get: () => request<Stats>("/stats"),
 };
 
+export const admin = {
+  users: (q = "", offset = 0, limit = 50) =>
+    request<AdminUsersResponse>(
+      `/admin/users?q=${encodeURIComponent(q)}&offset=${offset}&limit=${limit}`,
+    ),
+  revokeSessions: (id: string) =>
+    request<{ revoked: number }>(
+      `/admin/users/${encodeURIComponent(id)}/sessions/revoke`,
+      { method: "POST" },
+    ),
+  suspend: (id: string, suspended: boolean) =>
+    request<{ suspended: boolean }>(
+      `/admin/users/${encodeURIComponent(id)}/suspension`,
+      { method: "PATCH", body: { suspended } },
+    ),
+  setAdmin: (id: string, is_admin: boolean) =>
+    request<{ is_admin: boolean }>(
+      `/admin/users/${encodeURIComponent(id)}/admin`,
+      { method: "PATCH", body: { is_admin } },
+    ),
+  deleteUser: (id: string) =>
+    request<void>(`/admin/users/${encodeURIComponent(id)}`, { method: "DELETE" }),
+};
+
 export const transfer = {
   import: (file: { items: NewItem[] }) =>
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { admin, anime, auth, books, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

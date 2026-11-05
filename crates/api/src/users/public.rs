@@ -132,7 +132,7 @@ pub async fn list(
                  where i.user_id = u.id and i.status = ANY(u.public_statuses)
                    and not i.public_hidden and i.deleted_at is null) as last_active
          from users u
-         where u.is_public and u.deleted_at is null
+         where u.is_public and u.deleted_at is null and u.suspended_at is null
            and (
                $1 = ''
                or u.display_name ilike $2
@@ -235,7 +235,7 @@ async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppE
         "select id, display_name, avatar_key, banner_key, locale,
                 public_statuses, public_show_progress, created_at
          from users
-         where id = $1 and is_public and deleted_at is null",
+         where id = $1 and is_public and deleted_at is null and suspended_at is null",
     )
     .bind(id)
     .fetch_optional(pool)

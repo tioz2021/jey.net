@@ -245,6 +245,23 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/analytics/summary", get(crate::analytics::summary))
         .route("/analytics/audience", get(crate::analytics::audience))
         .route("/me/presence", post(crate::analytics::presence))
+        .route("/admin/users", get(crate::users::admin::list))
+        .route(
+            "/admin/users/{id}/sessions/revoke",
+            post(crate::users::admin::revoke_sessions),
+        )
+        .route(
+            "/admin/users/{id}/suspension",
+            axum::routing::patch(crate::users::admin::suspend),
+        )
+        .route(
+            "/admin/users/{id}/admin",
+            axum::routing::patch(crate::users::admin::set_admin),
+        )
+        .route(
+            "/admin/users/{id}",
+            axum::routing::delete(crate::users::admin::delete),
+        )
         .route("/export", get(export))
         .route(
             "/import",

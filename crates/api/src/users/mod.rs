@@ -1,5 +1,6 @@
 //! User records and the endpoints that read or update a profile.
 
+pub mod admin;
 pub mod avatar;
 pub mod banner;
 pub mod delete;
