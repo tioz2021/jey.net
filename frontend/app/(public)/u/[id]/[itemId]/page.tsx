@@ -63,7 +63,7 @@ export async function generateMetadata({
 
   const requestHeaders = await headers();
   const canonicalPath =
-    requestHeaders.get("x-jey-canonical") ?? `/u/${id}/item/${item.slug}`;
+    requestHeaders.get("x-jey-canonical") ?? `/u/${id}/cart/${item.slug}`;
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
   const description = [

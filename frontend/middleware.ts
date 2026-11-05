@@ -40,13 +40,25 @@ export async function middleware(request: NextRequest) {
   const cartMatch = pathname.match(CART_PATH);
 
   if (ownerCartMatch?.[1] && ownerCartMatch[2]) {
-    return NextResponse.redirect(
-      externalUrl(
-        request,
-        `/u/${encodeURIComponent(ownerCartMatch[1])}/item/${ownerCartMatch[2]}`,
-      ),
-      308,
+    const slug = ownerCartMatch[2];
+    const publicResponse = await fetch(
+      `${BACKEND_URL}/api/v1/public/users/${encodeURIComponent(ownerCartMatch[1])}/items/by-slug/${encodeURIComponent(slug)}`,
+      { cache: "no-store" },
     );
+    if (publicResponse.ok) {
+      const data = (await publicResponse.json()) as {
+        user_id: string;
+        item_id: string;
+      };
+      const headers = new Headers(request.headers);
+      headers.set("x-jey-cart", "1");
+      headers.set("x-jey-canonical", pathname);
+      return NextResponse.rewrite(
+        internalUrl(request, `/u/${data.user_id}/${data.item_id}`),
+        { request: { headers } },
+      );
+    }
+    return NextResponse.next();
   }
 
   if (editMatch?.[2]) {
@@ -97,16 +109,12 @@ export async function middleware(request: NextRequest) {
       { cache: "no-store" },
     );
     if (publicResponse.ok) {
-      const data = (await publicResponse.json()) as {
-        user_id: string;
-        item_id: string;
-      };
-      const headers = new Headers(request.headers);
-      headers.set("x-jey-cart", "1");
-      headers.set("x-jey-canonical", pathname);
-      return NextResponse.rewrite(
-        internalUrl(request, `/u/${data.user_id}/${data.item_id}`),
-        { request: { headers } },
+      return NextResponse.redirect(
+        externalUrl(
+          request,
+          `/u/${encodeURIComponent(itemMatch[1])}/cart/${encodeURIComponent(slug)}`,
+        ),
+        308,
       );
     }
     return NextResponse.next();
@@ -122,7 +130,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(
         externalUrl(
           request,
-          `/u/${encodeURIComponent(data.handle)}/item/${cartMatch[1]}`,
+          `/u/${encodeURIComponent(data.handle)}/cart/${cartMatch[1]}`,
         ),
         308,
       );
