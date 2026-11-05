@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
@@ -73,14 +74,14 @@ export async function generateMetadata({
     title: `${displayTitle} — jey.net`,
     description,
     alternates: {
-      canonical: `/u/${id}/${itemId}`,
-      languages: languageAlternates(`/u/${id}/${itemId}`),
+      canonical: `/cart/${item.slug}`,
+      languages: languageAlternates(`/cart/${item.slug}`),
     },
     openGraph: {
       type: "article",
       title: displayTitle,
       description,
-      url: `/u/${id}/${itemId}`,
+      url: `/cart/${item.slug}`,
       images: item.cover_key
         ? [`/media/${item.cover_key}`]
         : ["/og.png"],
@@ -111,6 +112,11 @@ export default async function PublicItemPage({
 
   if (!item) {
     notFound();
+  }
+
+  const requestHeaders = await headers();
+  if (!requestHeaders.get("x-jey-cart")) {
+    redirect(`/cart/${item.slug}`);
   }
 
   const displayTitle = localizedTitle(item, locale);

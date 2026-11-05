@@ -289,6 +289,7 @@ export interface PublicProfile {
 
 export interface PublicItem {
   id: string;
+  slug: string;
   kind: ItemKind;
   title: string;
   subtitle: string | null;

@@ -57,6 +57,7 @@ export const getPublicItem = cache(
     const { item } = (await own.json()) as { item: Item };
     return {
       id: item.id,
+      slug: item.id,
       kind: item.kind,
       title: item.title,
       subtitle: item.subtitle,

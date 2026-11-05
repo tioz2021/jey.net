@@ -40,6 +40,7 @@ struct PublicUserRow {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct PublicItemView {
     pub id: Uuid,
+    pub slug: String,
     pub kind: String,
     pub title: String,
     pub subtitle: Option<String>,
@@ -59,6 +60,7 @@ pub struct PublicItemView {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct PublicItemDetail {
     pub id: Uuid,
+    pub slug: String,
     pub kind: String,
     pub title: String,
     pub subtitle: Option<String>,
@@ -264,6 +266,33 @@ async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppE
     .ok_or_else(|| AppError::not_found("profile"))
 }
 
+/// `GET /api/v1/public/cart/{slug}` — resolve a canonical item URL.
+pub async fn by_slug(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+) -> Result<Json<Value>, AppError> {
+    let row: Option<(Uuid, Uuid, String)> = sqlx::query_as(
+        "select i.id, i.user_id, u.handle
+         from items i join users u on u.id = i.user_id
+         where i.slug = $1
+           and i.deleted_at is null and not i.public_hidden
+           and i.status = ANY(u.public_statuses)
+           and u.is_public and u.deleted_at is null and u.suspended_at is null",
+    )
+    .bind(&slug)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((item_id, user_id, handle)) = row else {
+        return Err(AppError::not_found("record"));
+    };
+    Ok(Json(json!({
+        "item_id": item_id,
+        "user_id": user_id,
+        "handle": handle,
+    })))
+}
+
 /// `GET /api/v1/public/users/{id}/items/{item_id}`
 ///
 /// One finished record of a public profile; anything else answers `404`.
@@ -275,6 +304,7 @@ pub async fn item(
 
     let item = sqlx::query_as::<_, PublicItemDetail>(
         "select i.id,
+                i.slug,
                 i.kind,
                 i.title,
                 i.subtitle,
@@ -443,6 +473,7 @@ async fn load_public_items(
 ) -> Result<Vec<PublicItemView>, AppError> {
     sqlx::query_as::<_, PublicItemView>(
         "select i.id,
+                i.slug,
                 i.kind,
                 i.title,
                 i.subtitle,
