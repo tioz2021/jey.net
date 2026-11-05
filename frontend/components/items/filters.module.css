@@ -190,43 +190,53 @@
 
 
 .compact .body :global(label) {
-  font-size: var(--text-sm);
+  font-size: 10px;
   font-weight: 600;
 }
 
 .compact .body :global(input),
 .compact .body :global(button) {
-  font-size: var(--text-sm);
+  font-size: 11px;
 }
 
 .compact .body :global(input) {
-  padding: 7px 8px;
+  padding: 6px 7px;
+}
+
+.compact .body :global(button) {
+  min-height: 30px;
+  padding: 6px 8px;
 }
 
 
 .compact .head {
-  display: none;
+  display: block;
+  padding: 6px var(--space-2);
+  font-size: 10px;
 }
 
 .compact .toggle {
-  display: flex;
+  display: none;
 }
 
 .compact .body {
   display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2);
 }
 
-.compact:not(.open) .row,
-.compact:not(.open) .foot {
-  display: none;
+.compact .row {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.compact .foot {
+  display: flex;
 }
 
 .compact .chips {
-  display: none;
-}
-
-.compact.open .chips {
   display: block;
+  padding: 0 var(--space-2) var(--space-2);
 }
 
 .compact .desktopSearch {

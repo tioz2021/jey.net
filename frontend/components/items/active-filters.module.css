@@ -57,9 +57,10 @@
   max-width: 100%;
   min-width: 0;
   height: auto;
-  min-height: 24px;
-  padding: 3px 6px;
+  min-height: 20px;
+  padding: 2px 5px;
   overflow: hidden;
+  font-size: 10px;
   text-align: left;
 }
 

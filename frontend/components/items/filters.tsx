@@ -70,6 +70,7 @@ export function ItemsFilters({
         {t("filters.title")}
       </h2>
 
+      {compact ? null : (
       <button
         aria-controls="filters-body"
         aria-expanded={open}
@@ -99,6 +100,7 @@ export function ItemsFilters({
           />
         </svg>
       </button>
+      )}
 
       <div className={styles.body} id="filters-body">
         <SearchBox className={styles.desktopSearch} />
