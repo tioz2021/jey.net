@@ -37,9 +37,10 @@ bash scripts/staging.sh reset
 
 ## Что происходит
 
-- база: `jey_staging`, отдельно от `jey`;
+- схема `jey_staging` внутри локальной базы `jey` (если нет права
+  создавать отдельную БД); таблицы staging изолированы `search_path`;
 - API: `127.0.0.1:8081`;
-- web: `127.0.0.1:3001`;
+- web: `127.0.0.1:3001` (standalone `node server.js`);
 - медиа: `var/staging-media`;
 - письма: `var/staging-mail`;
 - логи: `.staging/logs/`.

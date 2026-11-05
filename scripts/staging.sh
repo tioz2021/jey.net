@@ -27,18 +27,31 @@ set +a
 : "${BIND_ADDR:?BIND_ADDR is required}"
 : "${PUBLIC_URL:?PUBLIC_URL is required}"
 
-ADMIN_URL="${DATABASE_URL%/*}/postgres"
-DB_NAME="${DATABASE_URL##*/}"
-DB_NAME="${DB_NAME%%\?*}"
+BASE_DATABASE_URL="${DATABASE_URL%%\?*}"
+if [[ -n "${STAGING_SCHEMA:-}" ]]; then
+    DB_NAME="${STAGING_SCHEMA}"
+    DATABASE_URL="${BASE_DATABASE_URL}?options=-c%20search_path%3D${STAGING_SCHEMA}%2Cpublic"
+else
+    ADMIN_URL="${DATABASE_URL%/*}/postgres"
+    DB_NAME="${DATABASE_URL##*/}"
+    DB_NAME="${DB_NAME%%\?*}"
+fi
 mkdir -p "${STATE}/logs" "${MEDIA_DIR}" "${MAIL_DIR}"
 
 db_exists() {
+    if [[ -n "${STAGING_SCHEMA:-}" ]]; then
+        psql "${BASE_DATABASE_URL}" -Atc             "select 1 from information_schema.schemata where schema_name = '${STAGING_SCHEMA}'"             2>/dev/null | grep -qx 1
+        return
+    fi
     psql "${ADMIN_URL}" -Atc "select 1 from pg_database where datname = '${DB_NAME}'" 2>/dev/null | grep -qx 1
 }
 
 create_db() {
     if db_exists; then
-        say "database ${DB_NAME} already exists"
+        say "staging ${DB_NAME} already exists"
+    elif [[ -n "${STAGING_SCHEMA:-}" ]]; then
+        psql "${BASE_DATABASE_URL}" -v ON_ERROR_STOP=1             -c "create schema \"${STAGING_SCHEMA}\""
+        say "created schema ${STAGING_SCHEMA}"
     else
         psql "${ADMIN_URL}" -v ON_ERROR_STOP=1 -c "create database ${DB_NAME}"
         say "created database ${DB_NAME}"
@@ -115,8 +128,12 @@ up() {
     (
         cd "${ROOT}/frontend"
         BACKEND_URL="http://${BIND_ADDR}" PUBLIC_URL="${PUBLIC_URL}" npm run build
-        BACKEND_URL="http://${BIND_ADDR}" PUBLIC_URL="${PUBLIC_URL}" \
-            nohup npm run start -- -p "${PUBLIC_URL##*:}" >"${STATE}/logs/web.log" 2>&1 &
+        # next build uses output: standalone; run that server rather than the
+        # unsupported `next start` path.
+        rm -rf .next/standalone/.next/static .next/standalone/public
+        cp -R .next/static .next/standalone/.next/static
+        cp -R public .next/standalone/public
+        nohup env             NODE_ENV=production             HOSTNAME=127.0.0.1             PORT="${PUBLIC_URL##*:}"             BACKEND_URL="http://${BIND_ADDR}"             PUBLIC_URL="${PUBLIC_URL}"             node .next/standalone/server.js >"${STATE}/logs/web.log" 2>&1 &
         echo $! >"${WEB_PID}"
     )
 
@@ -134,10 +151,17 @@ up() {
 
 reset() {
     down
-    say "dropping database ${DB_NAME}"
-    psql "${ADMIN_URL}" -v ON_ERROR_STOP=1 -c "drop database if exists ${DB_NAME} with (force)"
-    create_db
-    migrate
+    if [[ -n "${STAGING_SCHEMA:-}" ]]; then
+        say "dropping schema ${STAGING_SCHEMA}"
+        psql "${BASE_DATABASE_URL}" -v ON_ERROR_STOP=1             -c "drop schema if exists \"${STAGING_SCHEMA}\" cascade"
+        create_db
+        migrate
+    else
+        say "dropping database ${DB_NAME}"
+        psql "${ADMIN_URL}" -v ON_ERROR_STOP=1 -c "drop database if exists ${DB_NAME} with (force)"
+        create_db
+        migrate
+    fi
 }
 
 case "${1:-}" in
