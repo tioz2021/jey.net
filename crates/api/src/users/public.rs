@@ -305,7 +305,7 @@ pub async fn by_slug(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<Json<Value>, AppError> {
-    let row: Option<(Uuid, Uuid, String)> = sqlx::query_as(
+    let rows: Vec<(Uuid, Uuid, String)> = sqlx::query_as(
         "select i.id, i.user_id, u.handle
          from items i join users u on u.id = i.user_id
          where i.slug = $1
@@ -314,10 +314,15 @@ pub async fn by_slug(
            and u.is_public and u.deleted_at is null and u.suspended_at is null",
     )
     .bind(&slug)
-    .fetch_optional(&state.pool)
+    .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let Some((item_id, user_id, handle)) = row else {
+    // A global legacy slug is safe only when it identifies exactly one public
+    // record. Duplicate owner-scoped slugs must use /u/{handle}/... instead.
+    if rows.len() > 1 {
+        return Err(AppError::conflict("legacy slug is ambiguous"));
+    }
+    let Some((item_id, user_id, handle)) = rows.into_iter().next() else {
         return Err(AppError::not_found("record"));
     };
     Ok(Json(json!({
