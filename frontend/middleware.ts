@@ -5,6 +5,17 @@ const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 const ITEM_PATH = /^\/u\/([^/]+)\/item\/([^/]+)$/;
 const CART_PATH = /^\/cart\/([^/]+)$/;
 
+function externalUrl(request: NextRequest, pathname: string) {
+  const host =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("host") ??
+    request.nextUrl.host;
+  const protocol =
+    request.headers.get("x-forwarded-proto") ??
+    request.nextUrl.protocol.replace(":", "");
+  return new URL(pathname, `${protocol}://${host}`);
+}
+
 function internalUrl(request: NextRequest, pathname: string) {
   const url = request.nextUrl.clone();
   url.protocol = "http:";
@@ -70,16 +81,49 @@ export async function middleware(request: NextRequest) {
     );
     if (response.ok) {
       const data = (await response.json()) as { handle: string };
-      const target = request.nextUrl.clone();
-      target.pathname = `/u/${encodeURIComponent(data.handle)}/item/${cartMatch[1]}`;
-      return NextResponse.redirect(target, 308);
+      return NextResponse.redirect(
+        externalUrl(
+          request,
+          `/u/${encodeURIComponent(data.handle)}/item/${cartMatch[1]}`,
+        ),
+        308,
+      );
     }
     return NextResponse.next();
+  }
+
+  const legacyItem = pathname.match(
+    /^\/items\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/,
+  );
+  if (legacyItem?.[1]) {
+    const cookie = request.headers.get("cookie") ?? "";
+    const itemResponse = await fetch(
+      `${BACKEND_URL}/api/v1/items/${legacyItem[1]}`,
+      { cache: "no-store", headers: { cookie } },
+    );
+    const meResponse = await fetch(`${BACKEND_URL}/api/v1/me`, {
+      cache: "no-store",
+      headers: { cookie },
+    });
+    if (itemResponse.ok && meResponse.ok) {
+      const { item } = (await itemResponse.json()) as {
+        item?: { slug?: string };
+      };
+      const { user } = (await meResponse.json()) as {
+        user?: { handle?: string };
+      };
+      if (item?.slug && user?.handle) {
+        return NextResponse.redirect(
+          externalUrl(request, `/u/${user.handle}/item/${item.slug}`),
+          307,
+        );
+      }
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/u/:path*", "/cart/:path*"],
+  matcher: ["/u/:path*", "/cart/:path*", "/items/:path*"],
 };
