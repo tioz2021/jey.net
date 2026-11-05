@@ -130,3 +130,7 @@
 .panel {
   border-radius: var(--radius-lg);
 }
+
+.trigger {
+  transition: background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}

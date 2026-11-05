@@ -286,6 +286,16 @@ main {
   }
 }
 
+/* Plain links and icon buttons still get a gentle state change. */
+a,
+button {
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
 /* Every real button presses, including the ones that are not our <Button>. */
 button:not(:disabled):active {
   transform: translateY(1px);

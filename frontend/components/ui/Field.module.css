@@ -138,25 +138,25 @@
   pointer-events: none;
   transform: translateY(-8px) scale(0.96);
   transform-origin: top;
-  transition: opacity var(--duration-slow) var(--ease-out), transform var(--duration-slow) var(--ease-out);
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
 }
 
 .selectMenuOpen {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0) scale(1);
-  animation: select-menu-in var(--duration-slow) var(--ease-out) both;
+  animation: select-menu-in var(--duration-base) var(--ease-out) both;
 }
 
 .selectMenuOpen .selectOption {
-  animation: select-option-in var(--duration-base) var(--ease-out) both;
+  animation: select-option-in var(--duration-fast) var(--ease-out) both;
 }
 
-.selectMenuOpen .selectOption:nth-child(2) { animation-delay: 20ms; }
-.selectMenuOpen .selectOption:nth-child(3) { animation-delay: 40ms; }
-.selectMenuOpen .selectOption:nth-child(4) { animation-delay: 60ms; }
-.selectMenuOpen .selectOption:nth-child(5) { animation-delay: 80ms; }
-.selectMenuOpen .selectOption:nth-child(n + 6) { animation-delay: 100ms; }
+.selectMenuOpen .selectOption:nth-child(2) { animation-delay: 10ms; }
+.selectMenuOpen .selectOption:nth-child(3) { animation-delay: 20ms; }
+.selectMenuOpen .selectOption:nth-child(4) { animation-delay: 30ms; }
+.selectMenuOpen .selectOption:nth-child(5) { animation-delay: 40ms; }
+.selectMenuOpen .selectOption:nth-child(n + 6) { animation-delay: 50ms; }
 
 @keyframes select-menu-in {
   from {

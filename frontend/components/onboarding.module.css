@@ -107,3 +107,11 @@
     grid-template-columns: 1fr;
   }
 }
+
+.cta {
+  transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.cta:hover {
+  background: var(--color-accent-hover);
+}

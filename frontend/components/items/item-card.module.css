@@ -179,7 +179,7 @@
 
 .cardWrap {
   position: relative;
-  animation: card-in 320ms var(--ease-out) both;
+  animation: card-in 240ms var(--ease-out) both;
 }
 
 @keyframes card-in {
@@ -203,12 +203,12 @@
 
 @media (hover: hover) {
   .cardWrap:hover .card {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
   }
 
   .cardWrap:has(.button:hover) .card {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 }
 

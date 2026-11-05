@@ -24,3 +24,11 @@
   font-size: var(--text-sm);
   color: var(--color-danger);
 }
+
+.trigger {
+  transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+
+.trigger:hover {
+  transform: translateY(-1px);
+}

@@ -18,3 +18,7 @@
 .button {
   transition: transform 90ms ease;
 }
+
+.button {
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
