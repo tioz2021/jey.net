@@ -34,15 +34,17 @@ export function Select({
       <label className={styles.label} htmlFor={selectId}>
         {label}
       </label>
-      <select
-        {...rest}
-        id={selectId}
-        className={`${styles.control} ${error ? styles.invalid : ""} ${className ?? ""}`}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy || undefined}
-      >
-        {children}
-      </select>
+      <span className={styles.selectWrap}>
+        <select
+          {...rest}
+          id={selectId}
+          className={`${styles.control} ${styles.select} ${error ? styles.invalid : ""} ${className ?? ""}`}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy || undefined}
+        >
+          {children}
+        </select>
+      </span>
       {hint ? (
         <p className={styles.hint} id={hintId}>
           {hint}

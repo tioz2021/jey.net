@@ -48,3 +48,27 @@
   font-size: var(--text-sm);
   color: var(--color-danger);
 }
+
+.selectWrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.selectWrap::after {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 7px;
+  height: 7px;
+  content: "";
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.select {
+  appearance: none;
+  padding-right: 34px;
+}
