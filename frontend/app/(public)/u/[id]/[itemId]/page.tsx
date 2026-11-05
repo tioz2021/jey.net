@@ -9,6 +9,7 @@ import { ItemReview } from "@/components/items/item-review";
 import { MovieCast } from "@/components/items/movie-cast";
 import { Comments } from "@/components/comments";
 import { Reactions } from "@/components/reactions";
+import { ReportButton } from "@/components/report-button";
 import { SimilarItems } from "@/components/items/similar-items";
 import {
   IconBook,
@@ -134,6 +135,10 @@ export default async function PublicItemPage({
           <Reactions itemId={item.id} />
         </div>
       </header>
+
+      <div className={styles.reportRow}>
+        <ReportButton ownerId={id} targetId={item.id} targetType="item" />
+      </div>
 
       <div className={styles.layout}>
         <aside className={styles.rail}>

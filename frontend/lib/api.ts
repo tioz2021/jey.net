@@ -16,6 +16,7 @@ import type {
   FeedItem,
   NotificationItem,
   NotificationPreferences,
+  Report,
   FriendRecommendation,
   PublicUserCard,
   SimilarItem,
@@ -371,6 +372,21 @@ export const follows = {
   blocked: () => request<{ people: BlockedProfile[] }>("/blocks"),
 };
 
+export const reports = {
+  create: (input: {
+    target_type: "item" | "comment" | "profile";
+    target_id: string;
+    reason: string;
+    details?: string;
+  }) => request<{ reported: boolean }>("/reports", { method: "POST", body: input }),
+  list: () => request<{ reports: Report[] }>("/reports"),
+  resolve: (id: string, status: "resolved" | "dismissed") =>
+    request<{ ok: boolean }>(`/reports/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: { status },
+    }),
+};
+
 export const push = {
   key: () =>
     request<{ key: string }>("/push/key", { redirectOnUnauthorized: false }),
@@ -540,6 +556,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { anime, auth, books, comments, feed, push, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { anime, auth, books, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

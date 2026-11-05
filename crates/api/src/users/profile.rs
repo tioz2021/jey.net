@@ -72,7 +72,7 @@ pub async fn update_me(
              public_show_progress = coalesce($5, public_show_progress)
          where id = $6 and deleted_at is null
          returning id, email::text as email, display_name, locale,
-                   email_verified_at, is_public, public_statuses, public_show_progress,
+                   email_verified_at, is_public, public_statuses, public_show_progress, is_admin,
                    avatar_key, banner_key, created_at, password_hash, google_sub",
     )
     .bind(display_name)

@@ -24,6 +24,7 @@ export interface User {
   locale: string;
   email_verified: boolean;
   is_public: boolean;
+  is_admin?: boolean;
   public_statuses: string[];
   public_show_progress: boolean;
   avatar_key: string | null;
@@ -356,6 +357,18 @@ export interface BlockedProfile {
   display_name: string;
   avatar_key: string | null;
   blocked_at: string;
+}
+
+export interface Report {
+  id: string;
+  target_type: "item" | "comment" | "profile";
+  target_id: string;
+  reason: string;
+  details: string | null;
+  status: string;
+  created_at: string;
+  reporter_name: string;
+  target_label: string;
 }
 
 export interface NotificationPreferences {

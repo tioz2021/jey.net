@@ -181,3 +181,9 @@
     margin-top: var(--space-2);
   }
 }
+
+.reportRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: calc(var(--space-2) * -1) 0 var(--space-2);
+}
