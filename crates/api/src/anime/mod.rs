@@ -247,3 +247,64 @@ pub async fn image(
     );
     Ok(result)
 }
+
+/// Shikimori descriptions contain BBCode-like references such as
+/// `[character=42]Name[/character]`; keep the visible name, drop the markup.
+pub(crate) fn clean_description(value: &str) -> String {
+    let mut result = String::new();
+    let chars: Vec<char> = value.chars().collect();
+    let mut index = 0;
+    while index < chars.len() {
+        if chars[index] == '[' {
+            if let Some(offset) = chars[index + 1..].iter().position(|ch| *ch == ']') {
+                let end = index + 1 + offset;
+                let tag: String = chars[index + 1..end].iter().collect();
+                if is_markup_tag(&tag) {
+                    index = end + 1;
+                    continue;
+                }
+            }
+        }
+        result.push(chars[index]);
+        index += 1;
+    }
+    result.trim().to_owned()
+}
+
+fn is_markup_tag(tag: &str) -> bool {
+    let tag = tag.trim().to_lowercase();
+    if tag.starts_with('/') {
+        return true;
+    }
+    matches!(
+        tag.split('=').next().unwrap_or_default(),
+        "character"
+            | "anime"
+            | "manga"
+            | "person"
+            | "url"
+            | "spoiler"
+            | "b"
+            | "i"
+            | "u"
+            | "s"
+            | "quote"
+            | "code"
+            | "center"
+            | "color"
+            | "size"
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn strips_character_markup() {
+        assert_eq!(
+            clean_description("В компании [character=1]Нанати[/character] и [b]друзей[/b]."),
+            "В компании Нанати и друзей."
+        );
+    }
+}

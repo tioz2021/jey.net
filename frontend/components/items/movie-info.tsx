@@ -5,6 +5,18 @@ import type { ItemKind, MovieDetails } from "@/lib/types";
 
 import styles from "./movie-info.module.css";
 
+/** Shikimori stores BBCode-like character references in descriptions. */
+function cleanOverview(value: string | null): string | null {
+  if (!value) return value;
+  return value
+    .replace(
+      /\[\/?(?:character|anime|manga|person|url|spoiler|b|i|u|s|quote|code|center|color|size)(?:=[^\]]*)?\]/gi,
+      "",
+    )
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Metadata snapshot: overview, runtime and cast names, with TMDB credit. */
 export async function MovieInfo({
   details,
@@ -45,6 +57,16 @@ export async function MovieInfo({
   const isBook = kind === "book";
   const isGame = kind === "game";
   const isAnime = kind === "anime";
+  const overview = isAnime ? cleanOverview(localized.overview) : localized.overview;
+  const animeChips = isAnime
+    ? [
+        details.anime_format?.toUpperCase(),
+        details.number_of_episodes
+          ? t("anime.episodeShort", { count: details.number_of_episodes })
+          : null,
+        ...(details.genres ?? []).slice(0, 4),
+      ].filter((value): value is string => Boolean(value))
+    : [];
   const bookAuthors = details.authors?.length
     ? details.authors
     : details.director
@@ -65,6 +87,12 @@ export async function MovieInfo({
     }
     if (details.vote_average_tenths) {
       facts.push([t("anime.rating"), (details.vote_average_tenths / 10).toFixed(1)]);
+    }
+    if (details.genres?.length) {
+      facts.push([t("anime.genres"), details.genres.join(", ")]);
+    }
+    if (details.status) {
+      facts.push([t("anime.status"), details.status]);
     }
   } else if (isGame) {
     if (details.developers?.length) {
@@ -98,6 +126,12 @@ export async function MovieInfo({
     }
     if (details.isbn) {
       facts.push([t("book.isbn"), details.isbn]);
+    }
+    if (details.genres?.length) {
+      facts.push([t("book.genres"), details.genres.join(", ")]);
+    }
+    if (details.release_date) {
+      facts.push([t("movie.release"), details.release_date]);
     }
   } else if (details.original_title) {
     facts.push([t("movie.originalTitle"), details.original_title]);
@@ -171,8 +205,15 @@ export async function MovieInfo({
         {localized.tagline ? (
           <p className={styles.tagline}>«{localized.tagline}»</p>
         ) : null}
-        {localized.overview ? (
-          <p className={styles.overview}>{localized.overview}</p>
+        {animeChips.length > 0 ? (
+          <ul className={styles.chips}>
+            {animeChips.map((chip) => (
+              <li key={chip}>{chip}</li>
+            ))}
+          </ul>
+        ) : null}
+        {overview ? (
+          <p className={styles.overview}>{overview}</p>
         ) : (
           <p className={styles.muted}>
             {isBook

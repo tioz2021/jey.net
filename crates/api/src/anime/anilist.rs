@@ -182,7 +182,7 @@ pub async fn details(id: u64) -> Result<MovieDetails, AppError> {
         overview: media
             .get("description")
             .and_then(Value::as_str)
-            .map(str::to_owned),
+            .map(super::clean_description),
         tagline: None,
         runtime: media
             .get("duration")
