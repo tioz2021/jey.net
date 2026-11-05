@@ -16,12 +16,12 @@ import styles from "./public-header.module.css";
  * keeps the application header instead, so "Моя страница" does not look like
  * the site suddenly logged them out.
  */
-export function PublicHeader() {
+export function PublicHeader({ authenticated = false }: { authenticated?: boolean }) {
   const { user } = useUser();
   const { t } = useI18n();
   const pathname = usePathname();
 
-  if (user && (pathname.startsWith("/u/") || pathname.startsWith("/cart/"))) {
+  if ((authenticated || user) && (pathname.startsWith("/u/") || pathname.startsWith("/cart/"))) {
     return <SiteHeader />;
   }
 
