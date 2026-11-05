@@ -6,6 +6,7 @@ import { Button, Dialog, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
+import { useToast } from "@/components/toasts";
 
 import styles from "./report-button.module.css";
 
@@ -20,11 +21,11 @@ export function ReportButton({
 }) {
   const { t } = useI18n();
   const { user } = useUser();
+  const { notify } = useToast();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("spam");
   const [details, setDetails] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!user || (ownerId && ownerId === user.id)) return null;
@@ -39,12 +40,14 @@ export function ReportButton({
         reason,
         details: details.trim() || undefined,
       });
-      setSent(true);
-      window.setTimeout(() => {
-        setOpen(false);
-        setSent(false);
-        setDetails("");
-      }, 1400);
+      setOpen(false);
+      setDetails("");
+      notify({
+        tone: "success",
+        title: t("report.sent"),
+        text: t("report.sentText"),
+        requestId: null,
+      });
     } catch {
       setError(t("report.error"));
     } finally {
@@ -64,7 +67,7 @@ export function ReportButton({
               {t("common.cancel")}
             </Button>
             <Button loading={busy} onClick={() => void submit()} size="sm">
-              {sent ? t("report.sent") : t("report.submit")}
+              {t("report.submit")}
             </Button>
           </>
         }

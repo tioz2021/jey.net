@@ -409,6 +409,7 @@ export const uk = {
   "report.reason": "Причина",
   "report.details": "Деталі (необов’язково)",
   "report.submit": "Надіслати скаргу",
+  "report.sentText": "Скаргу надіслано. Дякуємо, модератор її перегляне.",
   "report.sent": "Скаргу надіслано",
   "report.error": "Не вдалося надіслати скаргу",
   "reports.reporter": "Поскаржився(-лася): {name}",

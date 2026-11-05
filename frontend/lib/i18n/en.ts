@@ -409,6 +409,7 @@ export const en = {
   "report.reason": "Reason",
   "report.details": "Details (optional)",
   "report.submit": "Submit report",
+  "report.sentText": "Report submitted. Thanks, a moderator will review it.",
   "report.sent": "Report submitted",
   "report.error": "Could not submit the report",
   "reports.reporter": "Reported by: {name}",

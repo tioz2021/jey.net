@@ -408,6 +408,7 @@ export const ru = {
   "report.reason": "Причина",
   "report.details": "Детали (необязательно)",
   "report.submit": "Отправить жалобу",
+  "report.sentText": "Жалоба отправлена. Спасибо, модератор посмотрит её.",
   "report.sent": "Жалоба отправлена",
   "report.error": "Не удалось отправить жалобу",
   "reports.reporter": "Пожаловался(ась): {name}",
