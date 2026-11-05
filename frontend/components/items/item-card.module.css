@@ -170,3 +170,17 @@
   border-color: var(--color-accent);
   background: var(--color-accent-soft);
 }
+
+.cardWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.reactionSlot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+}

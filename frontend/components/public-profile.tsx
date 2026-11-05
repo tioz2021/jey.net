@@ -333,6 +333,7 @@ function ItemGrid({ items, userId }: { items: PublicItem[]; userId: string }) {
           <ItemCard
             href={`/u/${userId}/${item.id}`}
             item={{ ...item, deleted_at: null }}
+            reactions
           />
         </li>
       ))}

@@ -17,6 +17,7 @@ import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemStatus } from "@/lib/types";
 
+import { CardReaction } from "./card-reaction";
 import { RestoreButton } from "./restore-button";
 import styles from "./item-card.module.css";
 
@@ -83,11 +84,13 @@ export function ItemCard({
   query,
   href,
   selected = false,
+  reactions = false,
 }: {
   item: ItemCardData;
   query?: string;
   href?: string;
   selected?: boolean;
+  reactions?: boolean;
 }) {
   const target = href ?? `/items/${item.id}`;
   const { t, locale } = useI18n();
@@ -173,12 +176,15 @@ export function ItemCard({
   }
 
   return (
-    <Link
-      aria-label={title}
-      className={styles.cardLink}
-      href={target}
-    >
-      {card}
-    </Link>
+    <div className={styles.cardWrap}>
+      <Link aria-label={title} className={styles.cardLink} href={target}>
+        {card}
+      </Link>
+      {reactions ? (
+        <div className={styles.reactionSlot}>
+          <CardReaction itemId={item.id} />
+        </div>
+      ) : null}
+    </div>
   );
 }

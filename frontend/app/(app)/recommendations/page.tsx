@@ -89,6 +89,7 @@ export default function RecommendationsPage() {
                     <ItemCard
                       href={`/u/${item.author_id}/${item.id}`}
                       item={item}
+                      reactions
                     />
                   </li>
                 ))}
@@ -126,6 +127,7 @@ export default function RecommendationsPage() {
                 <ItemCard
                   href={`/u/${item.author_id}/${item.id}`}
                   item={item}
+                  reactions
                 />
               </li>
             ))}

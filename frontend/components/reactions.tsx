@@ -54,9 +54,6 @@ export function Reactions({ itemId }: { itemId: string }) {
     }
   }
 
-  const names = likers.slice(0, 3).map((liker) => liker.name).join(", ");
-  const extra = count > 3 ? ` +${count - 3}` : "";
-
   return (
     <div className={styles.bar}>
       <button
@@ -71,12 +68,7 @@ export function Reactions({ itemId }: { itemId: string }) {
         {reacted ? t("reactions.liked") : t("reactions.like")}
         {count > 0 ? <span className={styles.count}>{count}</span> : null}
       </button>
-      {names ? (
-        <span className={styles.names}>
-          {names}
-          {extra}
-        </span>
-      ) : null}
+
     </div>
   );
 }
