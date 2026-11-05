@@ -109,11 +109,17 @@ pub async fn list(
     let pattern = format!("%{q}%");
     let limit = query.limit.unwrap_or(24).clamp(1, 60);
     let offset = query.offset.unwrap_or(0).clamp(0, 100_000);
-    let order = match query.sort.as_deref().unwrap_or("name") {
+    let sort_order = match query.sort.as_deref().unwrap_or("name") {
         "active" => "last_active desc nulls last, u.display_name asc",
         "new" => "u.created_at desc, u.id desc",
         "items" => "item_count desc, u.display_name asc",
         _ => "u.display_name asc, u.id asc",
+    };
+    // A typo-tolerant match should be ranked above the chosen sort order.
+    let relevance = if q.is_empty() {
+        ""
+    } else {
+        "similarity(u.display_name, $1) desc, "
     };
     let sql = format!(
         "select u.id, u.display_name, u.avatar_key,
@@ -127,8 +133,12 @@ pub async fn list(
                    and not i.public_hidden and i.deleted_at is null) as last_active
          from users u
          where u.is_public and u.deleted_at is null
-           and ($1 = '' or u.display_name ilike $2)
-         order by {order}
+           and (
+               $1 = ''
+               or u.display_name ilike $2
+               or similarity(u.display_name, $1) >= 0.2
+           )
+         order by {relevance}{sort_order}
          limit $3 offset $4"
     );
     // `order` is chosen from a fixed whitelist above; no user input reaches SQL.
