@@ -167,9 +167,11 @@ export default function ReportsPage() {
                 </div>
                 {tab === "open" ? (
                   <div className={styles.actions}>
-                    <Button onClick={() => setPending({ report, action: "archive" })} size="sm">
-                      {t("reports.archive")}
-                    </Button>
+                    {report.target_available ? (
+                      <Button onClick={() => setPending({ report, action: "archive" })} size="sm">
+                        {t("reports.archive")}
+                      </Button>
+                    ) : null}
                     <Button onClick={() => setPending({ report, action: "resolved" })} size="sm" variant="secondary">
                       {t("reports.resolve")}
                     </Button>
@@ -179,17 +181,19 @@ export default function ReportsPage() {
                   </div>
                 ) : (
                   <div className={styles.actions}>
-                    <Button
-                      onClick={() =>
-                        void (report.status === "archived" ? restore(report) : reopen(report))
-                      }
-                      size="sm"
-                      variant="secondary"
-                    >
-                      {report.status === "archived"
-                        ? t("reports.restore")
-                        : t("reports.reopen")}
-                    </Button>
+                    {report.target_available || report.status !== "archived" ? (
+                      <Button
+                        onClick={() =>
+                          void (report.status === "archived" ? restore(report) : reopen(report))
+                        }
+                        size="sm"
+                        variant="secondary"
+                      >
+                        {report.status === "archived"
+                          ? t("reports.restore")
+                          : t("reports.reopen")}
+                      </Button>
+                    ) : null}
                   </div>
                 )}
               </li>
