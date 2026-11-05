@@ -228,9 +228,11 @@ export function ItemList({
 
   return (
     <div className={styles.layout}>
-      <div className={styles.mobileSearch}>
-        <SearchBox />
-      </div>
+      {filterSlot ? null : (
+        <div className={styles.mobileSearch}>
+          <SearchBox />
+        </div>
+      )}
       {filterSlot
         ? createPortal(
             <ItemsFilters

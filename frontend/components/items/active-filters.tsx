@@ -29,6 +29,7 @@ function monthLabel(value: string): string {
 function buildChips(
   params: URLSearchParams,
   t: ReturnType<typeof useI18n>["t"],
+  compact: boolean,
 ): Chip[] {
   const chips: Chip[] = [];
 
@@ -65,7 +66,7 @@ function buildChips(
   }
 
   const sort = params.get("sort");
-  if (sort && sort !== "created_desc") {
+  if (!compact && sort && sort !== "created_desc") {
     chips.push({
       key: "sort",
       label: SORT_KEYS[sort as Sort]
@@ -81,7 +82,7 @@ function buildChips(
 export function ActiveFilters({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
-  const chips = buildChips(params, t);
+  const chips = buildChips(params, t, compact);
 
   if (chips.length === 0) {
     return null;

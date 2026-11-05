@@ -213,11 +213,12 @@
 }
 
 .compact .body {
-  display: none;
+  display: flex;
 }
 
-.compact.open .body {
-  display: flex;
+.compact:not(.open) .row,
+.compact:not(.open) .foot {
+  display: none;
 }
 
 .compact .chips {
@@ -225,6 +226,10 @@
 }
 
 .compact.open .chips {
+  display: block;
+}
+
+.compact .desktopSearch {
   display: block;
 }
 
