@@ -411,6 +411,7 @@ export const uk = {
   "report.target.comment": "Комментар",
   "report.target.profile": "Профіль",
   "report.action": "Поскаржитися",
+  "report.intro": "Розкажіть, що порушує правила. Скаргу побачить лише модератор.",
   "report.title": "Поскаржитися на контент",
   "report.reason": "Причина",
   "report.details": "Деталі (необов’язково)",

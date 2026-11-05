@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button, Card, Dialog, Textarea } from "@/components/ui";
 import { CommentLike } from "@/components/items/comment-like";
@@ -27,6 +27,7 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
   const [deleting, setDeleting] = useState<Comment | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   function load() {
     setLoading(true);
@@ -93,7 +94,7 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
   }
 
   const commentForm = user ? (
-    <form className={styles.form} onSubmit={submit}>
+    <form className={styles.form} onSubmit={submit} ref={formRef}>
       {replyTo ? (
         <p className={styles.replyTo}>
           {t("comments.replyingTo", { name: replyTo.author_name })}{" "}
@@ -145,7 +146,22 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
               initialLiked={Boolean(user && comment.liker_ids?.includes(user.id))}
             />
             {!reply ? (
-              <button onClick={() => setReplyTo(comment)} type="button">
+              <button
+                onClick={() => {
+                  setReplyTo(comment);
+                  window.requestAnimationFrame(() => {
+                    const reduced = window.matchMedia(
+                      "(prefers-reduced-motion: reduce)",
+                    ).matches;
+                    formRef.current?.scrollIntoView({
+                      behavior: reduced ? "auto" : "smooth",
+                      block: "center",
+                    });
+                    formRef.current?.querySelector("textarea")?.focus();
+                  });
+                }}
+                type="button"
+              >
                 {t("comments.reply")}
               </button>
             ) : null}

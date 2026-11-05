@@ -410,6 +410,7 @@ export const ru = {
   "report.target.comment": "Комментарий",
   "report.target.profile": "Профиль",
   "report.action": "Пожаловаться",
+  "report.intro": "Расскажите, что нарушает правила. Жалобу увидит только модератор.",
   "report.title": "Пожаловаться на контент",
   "report.reason": "Причина",
   "report.details": "Детали (необязательно)",

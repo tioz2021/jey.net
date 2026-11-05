@@ -172,3 +172,14 @@
   background: var(--color-accent-soft);
   border-color: var(--color-accent);
 }
+
+.followingPerson,
+.person {
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.followingPerson:hover,
+.person:hover {
+  background: var(--color-surface);
+}

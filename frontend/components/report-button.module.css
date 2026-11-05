@@ -32,3 +32,24 @@
 .trigger:hover {
   transform: translateY(-1px);
 }
+
+.intro {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.target {
+  margin: 0;
+  padding: 7px 9px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-md);
+}
+
+.cancel,
+.submit {
+  text-decoration: none;
+}

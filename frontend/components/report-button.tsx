@@ -63,10 +63,20 @@ export function ReportButton({
       <Dialog
         footer={
           <>
-            <Button onClick={() => setOpen(false)} size="sm" variant="secondary">
+            <Button
+              className={styles.cancel}
+              onClick={() => setOpen(false)}
+              size="sm"
+              variant="secondary"
+            >
               {t("common.cancel")}
             </Button>
-            <Button loading={busy} onClick={() => void submit()} size="sm">
+            <Button
+              className={styles.submit}
+              loading={busy}
+              onClick={() => void submit()}
+              size="sm"
+            >
               {t("report.submit")}
             </Button>
           </>
@@ -76,6 +86,10 @@ export function ReportButton({
         title={t("report.title")}
       >
         <div className={styles.form}>
+          <p className={styles.intro}>{t("report.intro")}</p>
+          <p className={styles.target}>
+            {t(`report.target.${targetType}`)}
+          </p>
           <Select
             label={t("report.reason")}
             value={reason}

@@ -411,6 +411,7 @@ export const en = {
   "report.target.comment": "Comment",
   "report.target.profile": "Profile",
   "report.action": "Report",
+  "report.intro": "Tell us what breaks the rules. Only a moderator will see this report.",
   "report.title": "Report content",
   "report.reason": "Reason",
   "report.details": "Details (optional)",

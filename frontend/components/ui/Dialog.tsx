@@ -5,7 +5,7 @@ import type { KeyboardEvent, ReactNode } from "react";
 
 import { useI18n } from "@/lib/locale-context";
 
-import { Button } from "./Button";
+import { IconX } from "@/components/icons";
 import styles from "./Dialog.module.css";
 
 export interface DialogProps {
@@ -137,9 +137,14 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
           <h2 className={styles.title} id={titleId}>
             {title}
           </h2>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label={t("common.close")}>
-            ✕
-          </Button>
+          <button
+            aria-label={t("common.close")}
+            className={styles.close}
+            onClick={onClose}
+            type="button"
+          >
+            <IconX size={15} />
+          </button>
         </header>
         <div className={styles.body}>{children}</div>
         {footer ? <footer className={styles.footer}>{footer}</footer> : null}

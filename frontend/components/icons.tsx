@@ -49,6 +49,14 @@ export function IconPeople(props: IconProps) {
   );
 }
 
+export function IconX(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M6 6l12 12M18 6 6 18" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconSubscriptions(props: IconProps) {
   return (
     <svg {...base(props)}>
