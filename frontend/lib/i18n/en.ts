@@ -102,6 +102,7 @@ export const en = {
   "nav.images": "Images",
   "nav.other": "Other",
   "common.save": "Save",
+  "common.backToTop": "Back to top",
   "common.cancel": "Cancel",
   "common.delete": "Delete",
   "common.edit": "Edit",

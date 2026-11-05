@@ -101,6 +101,7 @@ export const ru = {
   "nav.images": "Картинки",
   "nav.other": "Другое",
   "common.save": "Сохранить",
+  "common.backToTop": "Наверх",
   "common.cancel": "Отмена",
   "common.delete": "Удалить",
   "common.edit": "Редактировать",

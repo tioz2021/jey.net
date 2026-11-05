@@ -102,6 +102,7 @@ export const uk = {
   "nav.images": "Картинки",
   "nav.other": "Інше",
   "common.save": "Зберегти",
+  "common.backToTop": "Догори",
   "common.cancel": "Скасувати",
   "common.delete": "Видалити",
   "common.edit": "Редагувати",

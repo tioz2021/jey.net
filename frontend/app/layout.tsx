@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 
+import { BackToTop } from "@/components/back-to-top";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaRegister } from "@/components/pwa-register";
 import { ToastProvider } from "@/components/toasts";
@@ -93,6 +94,7 @@ export default async function RootLayout({
                 {children}
               </div>
               <PwaInstallPrompt />
+              <BackToTop />
             </ToastProvider>
           </UserProvider>
         </LocaleProvider>
