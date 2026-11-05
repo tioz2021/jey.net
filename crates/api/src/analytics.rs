@@ -78,6 +78,7 @@ pub async fn event(
     .await
     .is_err()
     {
+        record_drop(&state.pool).await;
         return Ok(StatusCode::NO_CONTENT);
     }
 
@@ -124,6 +125,15 @@ fn visitor_hash(headers: &HeaderMap, salt: &str) -> Option<String> {
     Some(hex::encode(hasher.finalize()))
 }
 
+async fn record_drop(pool: &sqlx::PgPool) {
+    let _ = sqlx::query(
+        "insert into analytics_drops (day, count) values (current_date, 1)
+         on conflict (day) do update set count = analytics_drops.count + 1",
+    )
+    .execute(pool)
+    .await;
+}
+
 /// Writes an event; analytics must never break the feature that produced it.
 pub async fn record(pool: &sqlx::PgPool, name: &str, path: Option<&str>, locale: Option<&str>) {
     let _ = sqlx::query("insert into analytics_events (name, path, locale) values ($1, $2, $3)")
@@ -142,6 +152,9 @@ async fn prune_old_events(pool: &sqlx::PgPool) {
         )
         .execute(pool)
         .await;
+        let _ = sqlx::query("delete from analytics_drops where day < current_date - 90")
+            .execute(pool)
+            .await;
     }
 }
 
@@ -360,9 +373,34 @@ pub async fn summary(
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    let rate_limit: Value = sqlx::query_scalar(
+        "select jsonb_build_object(
+             'active_blocks', (
+                 select count(*) from rate_limits
+                 where key like 'analytics:%' and blocked_until > now()
+             ),
+             'tracked', (
+                 select count(*) from rate_limits where key like 'analytics:%'
+             ),
+             'max_attempts', (
+                 select coalesce(max(attempts), 0) from rate_limits where key like 'analytics:%'
+             ),
+             'drops_today', (
+                 select coalesce(sum(count), 0) from analytics_drops where day = current_date
+             ),
+             'drops_7d', (
+                 select coalesce(sum(count), 0) from analytics_drops
+                 where day > current_date - 7
+             )
+         )",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     Ok(Json(json!({
         "days": days,
         "counts": counts,
+        "rate_limit": rate_limit,
         "daily": daily,
         "paths": paths,
         "retention": retention,

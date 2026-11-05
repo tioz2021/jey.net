@@ -92,6 +92,17 @@ export default async function AnalyticsPage() {
         </div>
       </section>
 
+      <Card title={t("analytics.rateLimit")}>
+        <p className={styles.muted}>{t("analytics.rateLimitHint")}</p>
+        <div className={styles.rateLimit}>
+          <span><strong>{data.rate_limit.active_blocks}</strong>{t("analytics.activeBlocks")}</span>
+          <span><strong>{data.rate_limit.tracked}</strong>{t("analytics.trackedIps")}</span>
+          <span><strong>{data.rate_limit.max_attempts}</strong>{t("analytics.maxAttempts")}</span>
+          <span><strong>{data.rate_limit.drops_today}</strong>{t("analytics.dropsToday")}</span>
+          <span><strong>{data.rate_limit.drops_7d}</strong>{t("analytics.drops7d")}</span>
+        </div>
+      </Card>
+
       <Card title={t("analytics.daily")}>
         {data.daily.length === 0 ? (
           <p className={styles.muted}>{t("analytics.empty")}</p>

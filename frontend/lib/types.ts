@@ -417,6 +417,13 @@ export interface AnalyticsSummary {
   counts: Record<string, number>;
   daily: Array<{ date: string; views: number; events: number }>;
   paths: Array<{ path: string; count: number }>;
+  rate_limit: {
+    active_blocks: number;
+    tracked: number;
+    max_attempts: number;
+    drops_today: number;
+    drops_7d: number;
+  };
   retention: {
     unique_7d: number;
     unique_30d: number;
