@@ -404,6 +404,36 @@ export interface AnalyticsSummary {
   paths: Array<{ path: string; count: number }>;
 }
 
+export interface AudienceUser {
+  id: string;
+  display_name: string;
+  email: string;
+  last_path: string | null;
+  last_seen_at: string;
+}
+
+export interface AudienceRegistration {
+  id: string;
+  display_name: string;
+  email: string;
+  is_public: boolean;
+  is_admin: boolean;
+  created_at: string;
+  last_seen_at: string | null;
+  items: number;
+}
+
+export interface AnalyticsAudience {
+  stats: {
+    total_users: number;
+    public_users: number;
+    online: number;
+    new_7d: number;
+  };
+  online: AudienceUser[];
+  registrations: AudienceRegistration[];
+}
+
 export interface FollowState {
   following: boolean;
   blocked?: boolean;

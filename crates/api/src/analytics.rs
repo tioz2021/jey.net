@@ -107,6 +107,34 @@ fn normalize_path(path: &str) -> String {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct PresenceInput {
+    pub path: String,
+}
+
+/// `POST /api/v1/me/presence` — lightweight online heartbeat.
+pub async fn presence(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Json(payload): Json<PresenceInput>,
+) -> Result<StatusCode, AppError> {
+    let path = normalize_path(&payload.path);
+    if path.len() > 120 {
+        return Err(AppError::validation_field("path", "path is too long"));
+    }
+    sqlx::query(
+        "update sessions
+         set last_seen_at = now(), last_path = $2
+         where id = $1 and expires_at > now()",
+    )
+    .bind(current.session_id)
+    .bind(&path)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, Deserialize)]
 pub struct SummaryQuery {
     #[serde(default = "default_days")]
     pub days: i32,
@@ -188,6 +216,94 @@ pub async fn summary(
         "counts": counts,
         "daily": daily,
         "paths": paths,
+    })))
+}
+
+/// `GET /api/v1/analytics/audience` — admin-only online and registration view.
+pub async fn audience(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let admin: bool =
+        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
+            .bind(current.user.id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?
+            .unwrap_or(false);
+    if !admin {
+        return Err(AppError::forbidden("admin only"));
+    }
+    let online: Value = sqlx::query_scalar(
+        "select coalesce(jsonb_agg(row order by row->>'last_seen_at' desc), '[]'::jsonb)
+         from (
+             select distinct on (u.id) jsonb_build_object(
+                 'id', u.id,
+                 'display_name', u.display_name,
+                 'email', u.email,
+                 'last_path', s.last_path,
+                 'last_seen_at', s.last_seen_at
+             ) as row
+             from sessions s
+             join users u on u.id = s.user_id
+             where s.expires_at > now()
+               and s.last_seen_at > now() - interval '5 minutes'
+               and u.deleted_at is null
+             order by u.id, s.last_seen_at desc
+         ) rows",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let registrations: Value = sqlx::query_scalar(
+        "select coalesce(jsonb_agg(row order by row->>'created_at' desc), '[]'::jsonb)
+         from (
+             select jsonb_build_object(
+                 'id', u.id,
+                 'display_name', u.display_name,
+                 'email', u.email,
+                 'is_public', u.is_public,
+                 'is_admin', coalesce(u.is_admin, false),
+                 'created_at', u.created_at,
+                 'last_seen_at', max(s.last_seen_at),
+                 'items', count(distinct i.id)
+             ) as row
+             from users u
+             left join sessions s on s.user_id = u.id
+             left join items i on i.user_id = u.id and i.deleted_at is null
+             where u.deleted_at is null
+             group by u.id
+             order by u.created_at desc
+             limit 30
+         ) rows",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let stats: Value = sqlx::query_scalar(
+        "select jsonb_build_object(
+             'total_users', (select count(*) from users where deleted_at is null),
+             'public_users', (select count(*) from users where deleted_at is null and is_public),
+             'online', (
+                 select count(distinct s.user_id) from sessions s
+                 join users u on u.id = s.user_id
+                 where s.expires_at > now()
+                   and s.last_seen_at > now() - interval '5 minutes'
+                   and u.deleted_at is null
+             ),
+             'new_7d', (
+                 select count(*) from users
+                 where deleted_at is null and created_at > now() - interval '7 days'
+             )
+         )",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({
+        "stats": stats,
+        "online": online,
+        "registrations": registrations,
     })))
 }
 

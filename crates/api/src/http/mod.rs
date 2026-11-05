@@ -243,6 +243,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/stats", get(stats))
         .route("/analytics/summary", get(crate::analytics::summary))
+        .route("/analytics/audience", get(crate::analytics::audience))
+        .route("/me/presence", post(crate::analytics::presence))
         .route("/export", get(export))
         .route(
             "/import",

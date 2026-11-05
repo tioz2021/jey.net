@@ -4,7 +4,7 @@ import { Card, PageHeader } from "@/components/ui";
 import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
 import { backendFetch } from "@/lib/server-api";
-import type { AnalyticsSummary } from "@/lib/types";
+import type { AnalyticsAudience, AnalyticsSummary } from "@/lib/types";
 
 import styles from "./analytics.module.css";
 
@@ -17,9 +17,12 @@ export default async function AnalyticsPage() {
   const locale = await getServerLocale();
   const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
     translate(locale, key, values);
-  const response = await backendFetch("/analytics/summary?days=30");
+  const [response, audienceResponse] = await Promise.all([
+    backendFetch("/analytics/summary?days=30"),
+    backendFetch("/analytics/audience"),
+  ]);
 
-  if (!response.ok) {
+  if (!response.ok || !audienceResponse.ok) {
     return (
       <main>
         <PageHeader title={t("analytics.title")} />
@@ -31,6 +34,7 @@ export default async function AnalyticsPage() {
   }
 
   const data = (await response.json()) as AnalyticsSummary;
+  const audience = (await audienceResponse.json()) as AnalyticsAudience;
   const counts = data.counts ?? {};
   const views = counts.page_view ?? 0;
   const registrations = counts.registration ?? 0;
@@ -46,6 +50,13 @@ export default async function AnalyticsPage() {
     }).format(new Date(value));
   const percent = (part: number, whole: number) =>
     whole > 0 ? `${Math.round((part / whole) * 100)}%` : "—";
+  const dateTime = (value: string | null) =>
+    value
+      ? new Intl.DateTimeFormat(
+          locale === "uk" ? "uk-UA" : locale === "en" ? "en-US" : "ru-RU",
+          { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+        ).format(new Date(value))
+      : "—";
 
   return (
     <main>
@@ -99,6 +110,58 @@ export default async function AnalyticsPage() {
           <li><span>{t("analytics.itemsCreated")}</span><strong>{itemsCreated}</strong><em>{percent(itemsCreated, registrations)}</em></li>
           <li><span>{t("analytics.publicItemViews")}</span><strong>{publicItemViews}</strong><em>{percent(publicItemViews, views)}</em></li>
         </ol>
+      </Card>
+
+      <Card title={t("analytics.audience")}>
+        <div className={styles.audienceStats}>
+          <span><strong>{audience.stats.online}</strong> {t("analytics.online")}</span>
+          <span><strong>{audience.stats.total_users}</strong> {t("analytics.totalUsers")}</span>
+          <span><strong>{audience.stats.new_7d}</strong> {t("analytics.newUsers")}</span>
+        </div>
+        <h3 className={styles.subhead}>{t("analytics.online")}</h3>
+        {audience.online.length === 0 ? (
+          <p className={styles.muted}>{t("analytics.onlineEmpty")}</p>
+        ) : (
+          <ul className={styles.people}>
+            {audience.online.map((person) => (
+              <li key={person.id}>
+                <span className={styles.dot} aria-hidden="true" />
+                <strong>{person.display_name}</strong>
+                <code>{person.last_path ?? "/"}</code>
+                <small>{dateTime(person.last_seen_at)}</small>
+              </li>
+            ))}
+          </ul>
+        )}
+        <h3 className={styles.subhead}>{t("analytics.recentUsers")}</h3>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>{t("analytics.name")}</th>
+                <th>{t("analytics.email")}</th>
+                <th>{t("analytics.registered")}</th>
+                <th>{t("analytics.items")}</th>
+                <th>{t("analytics.lastSeen")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {audience.registrations.map((person) => (
+                <tr key={person.id}>
+                  <td>
+                    {person.display_name}
+                    {person.is_admin ? <span className={styles.role}>admin</span> : null}
+                    {!person.is_public ? <span className={styles.role}>{t("analytics.private")}</span> : null}
+                  </td>
+                  <td>{person.email}</td>
+                  <td>{dateTime(person.created_at)}</td>
+                  <td>{person.items}</td>
+                  <td>{dateTime(person.last_seen_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <div className={styles.two}>
