@@ -202,3 +202,39 @@
 .compact .body :global(input) {
   padding: 7px 8px;
 }
+
+
+.compact .head {
+  display: none;
+}
+
+.compact .toggle {
+  display: flex;
+}
+
+.compact .body {
+  display: none;
+}
+
+.compact.open .body {
+  display: flex;
+}
+
+.compact .chips {
+  display: none;
+}
+
+.compact.open .chips {
+  display: block;
+}
+
+.compact .toggle {
+  padding: 8px var(--space-2);
+  font-size: var(--text-sm);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.compact .foot {
+  border-top: 0;
+  padding-top: var(--space-1);
+}
