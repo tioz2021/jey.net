@@ -119,6 +119,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         // Opt-in public profiles; private accounts answer 404 like missing ones.
         .route("/public/users", get(crate::users::public::list))
         .route("/public/users/{id}", get(crate::users::public::profile))
+        .route("/public/cart/{slug}", get(crate::users::public::by_slug))
         .route(
             "/public/users/{id}/items/{item_id}",
             get(crate::users::public::item),
