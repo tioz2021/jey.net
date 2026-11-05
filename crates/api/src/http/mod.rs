@@ -148,6 +148,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/notifications", get(crate::users::notifications::list))
         .route(
+            "/notifications/settings",
+            get(crate::users::notifications::get_settings)
+                .patch(crate::users::notifications::update_settings),
+        )
+        .route(
             "/notifications/read",
             post(crate::users::notifications::mark_all_read),
         )

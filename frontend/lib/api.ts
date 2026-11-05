@@ -15,6 +15,7 @@ import type {
   FollowingProfile,
   FeedItem,
   NotificationItem,
+  NotificationPreferences,
   FriendRecommendation,
   PublicUserCard,
   SimilarItem,
@@ -373,6 +374,13 @@ export const follows = {
 export const notifications = {
   list: () =>
     request<{ items: NotificationItem[]; unread: number }>("/notifications"),
+  settings: () =>
+    request<{ preferences: NotificationPreferences }>("/notifications/settings"),
+  updateSettings: (patch: Partial<NotificationPreferences>) =>
+    request<{ preferences: NotificationPreferences }>("/notifications/settings", {
+      method: "PATCH",
+      body: patch,
+    }),
   markAllRead: (before?: string) =>
     request<{ unread: number }>("/notifications/read", {
       method: "POST",

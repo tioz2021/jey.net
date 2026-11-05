@@ -11,6 +11,66 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
+#[derive(Debug, serde::Serialize)]
+pub struct NotificationPreferences {
+    pub follow: bool,
+    pub item: bool,
+    pub comment: bool,
+    pub reaction: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PreferencesPatch {
+    pub follow: Option<bool>,
+    pub item: Option<bool>,
+    pub comment: Option<bool>,
+    pub reaction: Option<bool>,
+}
+
+/// `GET /api/v1/notifications/settings`
+pub async fn get_settings(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let prefs: Option<Value> =
+        sqlx::query_scalar("select notification_prefs from users where id = $1")
+            .bind(current.user.id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    let prefs = prefs.unwrap_or_else(|| {
+        json!({
+            "follow": true, "item": true, "comment": true, "reaction": true
+        })
+    });
+    Ok(Json(json!({ "preferences": prefs })))
+}
+
+/// `PATCH /api/v1/notifications/settings`
+pub async fn update_settings(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Json(patch): Json<PreferencesPatch>,
+) -> Result<Json<Value>, AppError> {
+    let prefs: Value = sqlx::query_scalar(
+        "update users
+         set notification_prefs = notification_prefs || jsonb_strip_nulls($2)
+         where id = $1
+         returning notification_prefs",
+    )
+    .bind(current.user.id)
+    .bind(json!({
+        "follow": patch.follow,
+        "item": patch.item,
+        "comment": patch.comment,
+        "reaction": patch.reaction,
+    }))
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "preferences": prefs })))
+}
+
 /// Creates one notification per follower for a newly public record.
 ///
 /// Failures are intentionally non-fatal for the item creation request.
@@ -32,6 +92,7 @@ pub async fn notify_new_item(
          join users actor on actor.id = $1
          where f.followee_id = $1
            and f.notifications
+           and coalesce((follower.notification_prefs->>'item')::boolean, true)
            and follower.deleted_at is null
            and $3 = ANY(actor.public_statuses)
            and not exists (

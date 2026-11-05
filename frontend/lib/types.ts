@@ -358,6 +358,13 @@ export interface BlockedProfile {
   blocked_at: string;
 }
 
+export interface NotificationPreferences {
+  follow: boolean;
+  item: boolean;
+  comment: boolean;
+  reaction: boolean;
+}
+
 export interface NotificationItem {
   id: string;
   kind: "follow" | string;
