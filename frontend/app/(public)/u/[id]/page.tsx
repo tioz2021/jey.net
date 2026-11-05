@@ -31,6 +31,7 @@ export async function generateMetadata({
 
   return {
     title: `${profile.display_name} — jey.net`,
+    robots: data.preview ? { index: false, follow: false } : undefined,
     description,
     alternates: {
       canonical: `/u/${id}`,
@@ -68,5 +69,11 @@ export default async function PublicProfilePage({
     notFound();
   }
 
-  return <PublicProfileView items={data.items} profile={data.profile} />;
+  return (
+    <PublicProfileView
+      items={data.items}
+      preview={data.preview}
+      profile={data.profile}
+    />
+  );
 }

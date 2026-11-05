@@ -31,9 +31,11 @@ const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "n
 export function PublicProfileView({
   profile,
   items,
+  preview = false,
 }: {
   profile: PublicProfile;
   items: PublicItem[];
+  preview?: boolean;
 }) {
   const { t, date } = useI18n();
   const { user } = useUser();
@@ -160,6 +162,12 @@ export function PublicProfileView({
 
   return (
     <div className={styles.stack}>
+      {preview ? (
+        <div className={styles.preview}>
+          <span>{t("public.preview")}</span>
+          <Link href="/settings#privacy">{t("public.previewSettings")}</Link>
+        </div>
+      ) : null}
       <section className={styles.profile}>
         <div
           aria-hidden="true"

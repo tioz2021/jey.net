@@ -525,6 +525,8 @@ export const en = {
   'public.allFollowing': 'All subscriptions ({count})',
   'public.muteFollowing': 'Mute updates from “{name}”',
   'public.unmuteFollowing': 'Unmute updates from “{name}”',
+  'public.preview': 'Preview: this is how others see your profile',
+  'public.previewSettings': 'Privacy settings',
   'public.follow': 'Subscribe',
   'public.following': 'Subscribed',
   'public.followers': 'Followers: {count}',

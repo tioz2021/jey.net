@@ -145,15 +145,9 @@ export function UserMenu({ user }: { user: User }) {
           ref={menuRef}
           role="menu"
         >
-          {user.is_public ? (
-            <Link
-              className={styles.item}
-              href={`/u/${user.id}`}
-              role="menuitem"
-            >
-              {t("account.myPage")}
-            </Link>
-          ) : null}
+          <Link className={styles.item} href={`/u/${user.id}`} role="menuitem">
+            {t("account.myPage")}
+          </Link>
           <Link className={styles.item} href="/settings" role="menuitem">
             {t("account.settings")}
           </Link>

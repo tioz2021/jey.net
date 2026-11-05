@@ -524,6 +524,8 @@ export const ru = {
   'public.allFollowing': 'Все подписки ({count})',
   'public.muteFollowing': 'Отключить новости «{name}»',
   'public.unmuteFollowing': 'Включить новости «{name}»',
+  'public.preview': 'Предпросмотр: так видят ваш профиль другие',
+  'public.previewSettings': 'Настроить приватность',
   'public.follow': 'Подписаться',
   'public.following': 'Вы подписаны',
   'public.followers': 'Подписчиков: {count}',

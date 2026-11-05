@@ -15,6 +15,7 @@ use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
@@ -140,6 +141,49 @@ pub async fn profile(
     .map_err(AppError::internal)?;
 
     Ok(Json(json!({
+        "profile": {
+            "id": user.id,
+            "display_name": user.display_name,
+            "avatar_key": user.avatar_key,
+            "banner_key": user.banner_key,
+            "locale": user.locale,
+            "created_at": user.created_at,
+            "followers": followers,
+            "following": following,
+        },
+        "items": items,
+    })))
+}
+
+/// `GET /api/v1/me/profile` — owner preview, even when the profile is private.
+pub async fn own_profile(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let user = sqlx::query_as::<_, PublicUserRow>(
+        "select id, display_name, avatar_key, banner_key, locale,
+                public_statuses, public_show_progress, created_at
+         from users
+         where id = $1 and deleted_at is null",
+    )
+    .bind(current.user.id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("profile"))?;
+    let items = load_public_items(&state.pool, user.id, &user.public_statuses).await?;
+    let (followers, following): (i64, i64) = sqlx::query_as(
+        "select
+            (select count(*) from follows where followee_id = $1),
+            (select count(*) from follows where follower_id = $1)",
+    )
+    .bind(user.id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(Json(json!({
+        "preview": true,
         "profile": {
             "id": user.id,
             "display_name": user.display_name,

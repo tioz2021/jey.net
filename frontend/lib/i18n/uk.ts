@@ -525,6 +525,8 @@ export const uk = {
   'public.allFollowing': 'Усі підписки ({count})',
   'public.muteFollowing': 'Вимкнути новини «{name}»',
   'public.unmuteFollowing': 'Увімкнути новини «{name}»',
+  'public.preview': 'Попередній перегляд: так бачать ваш профіль інші',
+  'public.previewSettings': 'Налаштувати приватність',
   'public.follow': 'Підписатися',
   'public.following': 'Ви підписані',
   'public.followers': 'Підписників: {count}',

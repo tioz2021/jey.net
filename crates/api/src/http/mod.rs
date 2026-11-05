@@ -121,6 +121,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
 
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
+        .route("/me/profile", get(crate::users::public::own_profile))
         .route("/me/password", post(change_password))
         .route("/feed", get(crate::users::follows::feed))
         .route("/blocks", get(crate::users::follows::blocked))

@@ -381,6 +381,7 @@ export interface FeedItem extends PublicItem {
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];
+  preview?: boolean;
 }
 
 export interface UserResponse {
