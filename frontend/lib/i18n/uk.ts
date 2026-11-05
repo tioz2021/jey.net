@@ -45,6 +45,8 @@ export const uk = {
   "feed.emptyTitle": "Поки тихо",
   "feed.emptyText": "Підпишіться на публічні профілі — їхні нові записи з’являться тут.",
   "notifications.markAll": "Позначити все прочитаними",
+  "notifications.addedItem": "додав(ла) новий запис:",
+  "notifications.itemFallback": "запис",
   "notifications.title": "Сповіщення",
   "notifications.emptyTitle": "Поки сповіщень немає",
   "notifications.emptyText": "Коли хтось підпишється на вас, це з’явиться тут.",

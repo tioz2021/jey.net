@@ -364,6 +364,9 @@ export interface NotificationItem {
   actor_id: string;
   actor_name: string;
   actor_avatar: string | null;
+  item_id: string | null;
+  item_title: string | null;
+  item_kind: string | null;
   created_at: string;
   read: boolean;
 }

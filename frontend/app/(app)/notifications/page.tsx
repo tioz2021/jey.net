@@ -88,7 +88,16 @@ export default function NotificationsPage() {
                 <div>
                   <p className={styles.text}>
                     <Link href={`/u/${item.actor_id}`}>{item.actor_name}</Link>{" "}
-                    {t("notifications.followedYou")}
+                    {item.kind === "item" && item.item_id ? (
+                      <>
+                        {t("notifications.addedItem")}{" "}
+                        <Link href={`/u/${item.actor_id}/${item.item_id}`}>
+                          {item.item_title ?? t("notifications.itemFallback")}
+                        </Link>
+                      </>
+                    ) : (
+                      t("notifications.followedYou")
+                    )}
                   </p>
                   <time className={styles.time}>{date(item.created_at)}</time>
                 </div>

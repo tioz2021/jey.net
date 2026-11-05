@@ -41,6 +41,15 @@ pub async fn create_item(
     )
     .await?;
 
+    crate::users::notifications::notify_new_item(
+        &state.pool,
+        current.user.id,
+        item.id,
+        item.status.as_str(),
+        item.public_hidden,
+    )
+    .await;
+
     Ok((
         StatusCode::CREATED,
         Json(json!({ "item": ItemView::from(item) })),

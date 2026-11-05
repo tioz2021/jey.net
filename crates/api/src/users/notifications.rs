@@ -11,6 +11,43 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
+/// Creates one notification per follower for a newly public record.
+///
+/// Failures are intentionally non-fatal for the item creation request.
+pub async fn notify_new_item(
+    pool: &sqlx::PgPool,
+    actor_id: Uuid,
+    item_id: Uuid,
+    status: &str,
+    public_hidden: bool,
+) {
+    if public_hidden {
+        return;
+    }
+    let _ = sqlx::query(
+        "insert into notifications (id, user_id, actor_id, kind, item_id)
+         select gen_random_uuid(), f.follower_id, $1, 'item', $2
+         from follows f
+         join users follower on follower.id = f.follower_id
+         join users actor on actor.id = $1
+         where f.followee_id = $1
+           and f.notifications
+           and follower.deleted_at is null
+           and $3 = ANY(actor.public_statuses)
+           and not exists (
+               select 1 from blocks b
+               where (b.blocker_id = $1 and b.blocked_id = f.follower_id)
+                  or (b.blocker_id = f.follower_id and b.blocked_id = $1)
+           )
+         on conflict (user_id, item_id) where item_id is not null do nothing",
+    )
+    .bind(actor_id)
+    .bind(item_id)
+    .bind(status)
+    .execute(pool)
+    .await;
+}
+
 /// `GET /api/v1/notifications`
 pub async fn list(
     State(state): State<AppState>,
@@ -23,13 +60,22 @@ pub async fn list(
             'actor_id', u.id,
             'actor_name', u.display_name,
             'actor_avatar', u.avatar_key,
+            'item_id', n.item_id,
+            'item_title', i.title,
+            'item_kind', i.kind,
             'created_at', n.created_at,
             'read', n.read_at is not null
          )
          from notifications n
          join users u on u.id = n.actor_id
+         left join items i on i.id = n.item_id
          where n.user_id = $1
            and u.deleted_at is null
+           and (
+               n.kind = 'follow'
+               or (i.id is not null and not i.public_hidden and i.deleted_at is null
+                   and i.status = ANY(u.public_statuses))
+           )
            and not exists (
                select 1 from blocks b
                where (b.blocker_id = $1 and b.blocked_id = n.actor_id)
