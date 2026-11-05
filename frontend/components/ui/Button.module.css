@@ -75,3 +75,7 @@
     transform: rotate(360deg);
   }
 }
+
+.button:hover:not(:disabled):not(:active) {
+  transform: translateY(-1px);
+}

@@ -54,3 +54,28 @@
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--color-border);
 }
+
+.dialog.closing {
+  animation: dialog-out 200ms var(--ease-out) forwards;
+}
+
+.dialog.closing::backdrop {
+  animation: backdrop-out 200ms var(--ease-out) forwards;
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
+@keyframes backdrop-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

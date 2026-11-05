@@ -72,7 +72,10 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .selectTrigger:hover:not(:disabled),
@@ -109,7 +112,7 @@
   border-right: 2px solid var(--color-text-muted);
   border-bottom: 2px solid var(--color-text-muted);
   transform: translateY(-2px) rotate(45deg);
-  transition: transform 160ms ease;
+  transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .selectChevronOpen {
@@ -135,7 +138,7 @@
   pointer-events: none;
   transform: translateY(-4px) scale(0.985);
   transform-origin: top;
-  transition: opacity 140ms ease, transform 140ms ease;
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
 }
 
 .selectMenuOpen {
@@ -146,6 +149,8 @@
 
 .selectOption {
   display: flex;
+  transform: translateY(0);
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
