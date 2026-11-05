@@ -323,6 +323,8 @@ export const uk = {
   'actionDate.save': 'Зберегти дату',
   'actionDate.rewatched': 'Переглянув сьогодні',
   'actionDate.error': 'Не вдалося зберегти дату',
+  'recordEditor.title': 'Щоденник',
+  'recordEditor.save': 'Зберегти',
   'progress.title': 'Прогрес',
   'progress.episodes': 'Переглянуто серій',
   'progress.pages': 'Прочитано сторінок',

@@ -85,7 +85,10 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         )?),
         None => None,
     };
+    // An explicit empty string clears the field. Without this, COALESCE in
+    // the repository keeps the old text forever.
     let review = match patch.review.as_deref() {
+        Some("") => Some(String::new()),
         Some(value) => Some(clean_optional_text(
             "review",
             value,
@@ -95,6 +98,7 @@ pub fn validate_patch(patch: &ItemPatch) -> Result<ItemPatch, DomainError> {
         None => None,
     };
     let body = match patch.body.as_deref() {
+        Some("") => Some(String::new()),
         Some(value) => Some(clean_optional_text("body", value, MAX_REVIEW_LENGTH, true)?),
         None => None,
     };

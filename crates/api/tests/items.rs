@@ -542,6 +542,48 @@ async fn list_sorts_by_rating_and_filters_by_kind() {
 }
 
 #[tokio::test]
+async fn clearing_review_and_body_removes_them() {
+    let client = TestClient::new().await;
+    let email = unique_email();
+    let registered = client
+        .post(
+            "/api/v1/auth/register",
+            json!({ "email": email, "password": "correct horse battery", "display_name": "Clear Test" }),
+        )
+        .await;
+    let cookie = registered.session_cookie().expect("session cookie");
+
+    let created = client
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({
+                "kind": "book",
+                "title": "Clear me",
+                "status": "done",
+                "review": "public text",
+                "body": "private text"
+            }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    let id = created.body["item"]["id"].as_str().expect("item id");
+
+    let cleared = client
+        .patch(
+            &format!("/api/v1/items/{id}"),
+            json!({ "review": "", "body": "" }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(cleared.status, 200, "body: {}", cleared.body);
+    assert!(cleared.body["item"]["review"].is_null());
+    assert!(cleared.body["item"]["body"].is_null());
+
+    client.cleanup(&email).await;
+}
+
+#[tokio::test]
 async fn update_item_changes_only_the_given_fields() {
     let (client, email, cookie) = logged_in_client().await;
 

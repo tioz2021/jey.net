@@ -322,6 +322,8 @@ export const ru = {
   'actionDate.save': 'Сохранить дату',
   'actionDate.rewatched': 'Пересмотрел сегодня',
   'actionDate.error': 'Не удалось сохранить дату',
+  'recordEditor.title': 'Дневник',
+  'recordEditor.save': 'Сохранить',
   'progress.title': 'Прогресс',
   'progress.episodes': 'Просмотрено серий',
   'progress.pages': 'Прочитано страниц',

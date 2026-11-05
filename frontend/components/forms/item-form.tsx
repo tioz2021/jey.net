@@ -194,8 +194,8 @@ function validate(
       year,
       status: values.status,
       rating,
-      review: values.review.trim() || null,
-      body: values.body.trim() || null,
+      review: values.review.trim(),
+      body: values.body.trim(),
       source_url: sourceUrl || null,
       external_source: values.external_id
         ? values.external_source || "tmdb"

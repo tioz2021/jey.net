@@ -323,6 +323,8 @@ export const en = {
   'actionDate.save': 'Save date',
   'actionDate.rewatched': 'Rewatched today',
   'actionDate.error': 'Could not save the date',
+  'recordEditor.title': 'Journal',
+  'recordEditor.save': 'Save',
   'progress.title': 'Progress',
   'progress.episodes': 'Episodes watched',
   'progress.pages': 'Pages read',
