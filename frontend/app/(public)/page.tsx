@@ -72,8 +72,8 @@ export default async function LandingPage() {
           <Link className={styles.primary} href="/api/v1/auth/google/start">
             {t("landing.google")}
           </Link>
-          <Link className={styles.secondary} href="/#features">
-            {t("landing.features")}
+          <Link className={styles.secondary} href="/u/tios23">
+            {t("landing.example")}
           </Link>
         </div>
 
