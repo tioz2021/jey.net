@@ -138,6 +138,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/comments/{id}",
             axum::routing::delete(crate::comments::remove),
         )
+        .route(
+            "/public/items/{id}/reactions",
+            post(crate::reactions::toggle),
+        )
         .route("/notifications", get(crate::users::notifications::list))
         .route(
             "/notifications/read",
