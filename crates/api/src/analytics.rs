@@ -4,7 +4,9 @@
 //! store titles, notes, emails, raw IP addresses or user ids.
 
 use axum::Json;
-use axum::extract::{Query, State};
+use std::net::SocketAddr;
+
+use axum::extract::{ConnectInfo, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use chrono::Utc;
 use serde::Deserialize;
@@ -35,6 +37,7 @@ pub struct EventInput {
 /// `POST /api/v1/analytics/event` — public, intentionally tiny.
 pub async fn event(
     State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
     Json(payload): Json<EventInput>,
 ) -> Result<StatusCode, AppError> {
@@ -64,6 +67,20 @@ pub async fn event(
         .as_deref()
         .filter(|value| value.len() <= 8)
         .map(str::to_owned);
+    let ip = crate::http::ratelimit::client_ip(&headers, peer);
+    // Analytics is best-effort: when a client is too noisy, drop the event
+    // silently instead of showing an error or breaking the page.
+    if crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::ANALYTICS,
+        &format!("analytics:{ip}"),
+    )
+    .await
+    .is_err()
+    {
+        return Ok(StatusCode::NO_CONTENT);
+    }
+
     let visitor = visitor_hash(&headers, &state.config.analytics_salt);
     record_visitor(
         &state.pool,
@@ -117,6 +134,17 @@ pub async fn record(pool: &sqlx::PgPool, name: &str, path: Option<&str>, locale:
         .await;
 }
 
+async fn prune_old_events(pool: &sqlx::PgPool) {
+    static CALLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    if CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 512 == 0 {
+        let _ = sqlx::query(
+            "delete from analytics_events where created_at < now() - interval '90 days'",
+        )
+        .execute(pool)
+        .await;
+    }
+}
+
 async fn record_visitor(
     pool: &sqlx::PgPool,
     name: &str,
@@ -134,6 +162,7 @@ async fn record_visitor(
     .bind(visitor)
     .execute(pool)
     .await;
+    prune_old_events(pool).await;
 }
 
 pub(crate) fn normalize_path(path: &str) -> String {

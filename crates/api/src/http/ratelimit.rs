@@ -43,6 +43,13 @@ pub const VERIFY_RESEND: Rule = Rule {
     block: Duration::from_secs(10 * 60),
 };
 
+/// Analytics events per IP: 120 in a minute, then ten minutes of silence.
+pub const ANALYTICS: Rule = Rule {
+    limit: 120,
+    window: Duration::from_secs(60),
+    block: Duration::from_secs(10 * 60),
+};
+
 /// Registrations per IP: 3 in an hour.
 pub const REGISTER: Rule = Rule {
     limit: 3,
