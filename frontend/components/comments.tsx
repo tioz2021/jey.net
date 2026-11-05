@@ -92,8 +92,10 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
               </button>
             ) : null}
           </div>
-          {comment.replies.length > 0 ? (
-            <ul className={styles.replies}>{comment.replies.map((child) => renderComment(child, true))}</ul>
+          {(comment.replies ?? []).length > 0 ? (
+            <ul className={styles.replies}>
+              {(comment.replies ?? []).map((child) => renderComment(child, true))}
+            </ul>
           ) : null}
         </div>
       </li>
