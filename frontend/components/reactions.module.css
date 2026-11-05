@@ -58,6 +58,7 @@
   color: var(--color-accent);
   background: var(--color-accent-soft);
   border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  border-radius: var(--radius-lg);
 }
 
 .active {

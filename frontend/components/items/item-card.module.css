@@ -10,22 +10,24 @@
   transition: background-color var(--transition-fast);
 }
 
-.cardLink {
-  display: block;
-  color: inherit;
+.cardLinkOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: transparent;
   text-decoration: none;
 }
 
-.cardLink:hover .card {
+.cardWrap:hover .card {
   background: var(--color-surface);
   border-color: var(--color-accent);
 }
 
-.cardLink:hover .title {
+.cardWrap:hover .title {
   text-decoration: underline;
 }
 
-.cardLink:focus-visible {
+.cardLinkOverlay:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -173,14 +175,11 @@
 
 .cardWrap {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 .reactionSlot {
   position: absolute;
-  bottom: 6px;
-  left: 6px;
-  z-index: 1;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2;
 }

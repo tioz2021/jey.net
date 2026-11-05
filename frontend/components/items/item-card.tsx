@@ -177,9 +177,8 @@ export function ItemCard({
 
   return (
     <div className={styles.cardWrap}>
-      <Link aria-label={title} className={styles.cardLink} href={target}>
-        {card}
-      </Link>
+      {card}
+      <Link aria-label={title} className={styles.cardLinkOverlay} href={target} />
       {reactions ? (
         <div className={styles.reactionSlot}>
           <CardReaction itemId={item.id} />
