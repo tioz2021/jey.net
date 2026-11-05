@@ -43,6 +43,7 @@ pub async fn public_status(State(state): State<AppState>) -> Result<Json<Value>,
     let settings = settings(&state.pool).await?;
     Ok(Json(json!({
         "announcement": if settings.announcement_active { settings.announcement } else { None },
+        "announcement_active": settings.announcement_active,
         "maintenance": settings.maintenance,
         "registration_enabled": settings.registration_enabled,
     })))
