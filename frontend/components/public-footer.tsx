@@ -9,7 +9,7 @@ import { useI18n } from "@/lib/locale-context";
 import styles from "./public-footer.module.css";
 
 function noteFor(pathname: string): TranslationKey | null {
-  if (pathname.startsWith("/u/")) {
+  if (pathname.startsWith("/u/") || pathname.startsWith("/cart/")) {
     return "footer.profileNote";
   }
 

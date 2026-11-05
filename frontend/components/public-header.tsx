@@ -21,7 +21,7 @@ export function PublicHeader() {
   const { t } = useI18n();
   const pathname = usePathname();
 
-  if (user && pathname.startsWith("/u/")) {
+  if (user && (pathname.startsWith("/u/") || pathname.startsWith("/cart/"))) {
     return <SiteHeader />;
   }
 
