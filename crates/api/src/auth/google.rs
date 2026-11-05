@@ -149,6 +149,9 @@ pub async fn callback(
                 (UserView::from(row), false)
             }
             None => {
+                if !crate::site::registration_enabled(&state.pool).await? {
+                    return Ok(clear_and_fail(&state, "registration_closed"));
+                }
                 let display_name = display_name_from(&claims, &email);
                 let created =
                     user::create_google(&state.pool, &email, &display_name, &claims.sub).await?;

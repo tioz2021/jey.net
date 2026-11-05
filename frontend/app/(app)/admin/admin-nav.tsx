@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/admin/audit", key: "admin.audit" },
   { href: "/admin/system", key: "admin.system" },
   { href: "/admin/errors", key: "admin.errors" },
+  { href: "/admin/site", key: "admin.site" },
 ] as const;
 
 export function AdminNav() {

@@ -465,6 +465,17 @@ export interface AdminUsersResponse {
   test_total: number;
 }
 
+export interface SiteStatus {
+  announcement: string | null;
+  announcement_active: boolean;
+  maintenance: boolean;
+  registration_enabled: boolean;
+}
+
+export interface SiteSettings extends SiteStatus {
+  updated_at: string;
+}
+
 export interface SystemStatus {
   version: string;
   services: { api: string; web: string; caddy: string; postgres: string };

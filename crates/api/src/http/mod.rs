@@ -151,7 +151,8 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/verify-email", post(verify_email))
         .route("/auth/password-reset/request", post(request_reset))
         .route("/auth/password-reset/confirm", post(confirm_reset))
-        .route("/analytics/event", post(crate::analytics::event));
+        .route("/analytics/event", post(crate::analytics::event))
+        .route("/site/status", get(crate::site::public_status));
 
     let protected = Router::new()
         .route("/me", get(me).patch(update_me).delete(delete_me))
@@ -275,6 +276,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/admin/users", get(crate::users::admin::list))
         .route("/admin/audit", get(crate::audit::list))
         .route("/admin/system", get(crate::system::status))
+        .route(
+            "/admin/site",
+            get(crate::site::get_admin).patch(crate::site::update),
+        )
         .route("/admin/errors", get(crate::system::errors))
         .route(
             "/admin/users/{id}/sessions/revoke",

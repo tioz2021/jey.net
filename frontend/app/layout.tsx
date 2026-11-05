@@ -6,6 +6,7 @@ import { Analytics } from "@/components/analytics";
 import { BackToTop } from "@/components/back-to-top";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaRegister } from "@/components/pwa-register";
+import { SiteNotice } from "@/components/site-notice";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { translate } from "@/lib/i18n";
@@ -91,6 +92,7 @@ export default async function RootLayout({
         <LocaleProvider initialLocale={locale}>
           <UserProvider>
             <ToastProvider>
+              <SiteNotice />
               <div id="content" tabIndex={-1}>
                 {children}
               </div>

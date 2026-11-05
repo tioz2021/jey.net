@@ -21,6 +21,7 @@ pub mod items;
 pub mod mail;
 pub mod media;
 pub mod movies;
+pub mod site;
 pub mod stats;
 pub mod system;
 pub mod telemetry;

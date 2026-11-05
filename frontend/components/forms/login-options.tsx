@@ -16,6 +16,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   token: "auth.googleErrorToken",
   claims: "auth.googleErrorClaims",
   linked: "auth.googleErrorLinked",
+  registration_closed: "auth.googleErrorRegistrationClosed",
 };
 
 export function LoginOptions() {

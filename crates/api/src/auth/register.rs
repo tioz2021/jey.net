@@ -40,6 +40,10 @@ pub async fn register(
     // A broken body must still use the API error format, not axum's plain text.
     let Json(payload) = payload.map_err(|rejection| AppError::validation(rejection.body_text()))?;
 
+    if !crate::site::registration_enabled(&state.pool).await? {
+        return Err(AppError::forbidden("registration is disabled"));
+    }
+
     let ip = ratelimit::client_ip(&headers, peer);
     ratelimit::enforce(&state.pool, ratelimit::REGISTER, &format!("register:{ip}")).await?;
 

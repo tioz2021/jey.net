@@ -41,6 +41,8 @@ import type {
   UserResponse,
   AdminUsersResponse,
   AdminActionsResponse,
+  SiteSettings,
+  SiteStatus,
   SystemStatus,
   SystemErrorsResponse,
 } from "./types";
@@ -603,6 +605,12 @@ export const admin = {
     ),
   system: () => request<SystemStatus>("/admin/system"),
   errors: (days = 7) => request<SystemErrorsResponse>(`/admin/errors?days=${days}`),
+  site: {
+    status: () => request<SiteStatus>("/site/status", { redirectOnUnauthorized: false }),
+    get: () => request<{ settings: SiteSettings }>("/admin/site"),
+    update: (patch: Partial<SiteStatus> & { announcement?: string | null }) =>
+      request<{ settings: SiteSettings }>("/admin/site", { method: "PATCH", body: patch }),
+  },
 };
 
 export const transfer = {
