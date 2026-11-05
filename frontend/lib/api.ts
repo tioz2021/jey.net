@@ -368,8 +368,11 @@ export const follows = {
 export const notifications = {
   list: () =>
     request<{ items: NotificationItem[]; unread: number }>("/notifications"),
-  markAllRead: () =>
-    request<{ unread: number }>("/notifications/read", { method: "POST" }),
+  markAllRead: (before?: string) =>
+    request<{ unread: number }>("/notifications/read", {
+      method: "POST",
+      body: before ? { before } : {},
+    }),
 };
 
 export const feed = {

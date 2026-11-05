@@ -26,12 +26,11 @@ export function NotificationBell() {
         })
         .catch(() => {});
     };
-    const clear = () => setUnread(0);
     load();
-    window.addEventListener("jey:notifications-read", clear);
+    window.addEventListener("jey:notifications-read", load);
     return () => {
       cancelled = true;
-      window.removeEventListener("jey:notifications-read", clear);
+      window.removeEventListener("jey:notifications-read", load);
     };
   }, [user]);
 

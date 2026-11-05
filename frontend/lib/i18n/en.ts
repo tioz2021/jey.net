@@ -44,6 +44,7 @@ export const en = {
   "feed.title": "Feed",
   "feed.emptyTitle": "Quiet for now",
   "feed.emptyText": "Subscribe to public profiles — their new records will appear here.",
+  "notifications.markAll": "Mark all as read",
   "notifications.title": "Notifications",
   "notifications.emptyTitle": "No notifications yet",
   "notifications.emptyText": "When someone follows you, it will appear here.",

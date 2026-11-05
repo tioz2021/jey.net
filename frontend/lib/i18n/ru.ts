@@ -43,6 +43,7 @@ export const ru = {
   "feed.title": "Лента",
   "feed.emptyTitle": "Пока тихо",
   "feed.emptyText": "Подпишитесь на публичные профили — их новые записи появятся здесь.",
+  "notifications.markAll": "Отметить всё прочитанным",
   "notifications.title": "Уведомления",
   "notifications.emptyTitle": "Пока уведомлений нет",
   "notifications.emptyText": "Когда кто-то подпишется на вас, это появится здесь.",

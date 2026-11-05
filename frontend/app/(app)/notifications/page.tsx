@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
-import { Card, PageHeader } from "@/components/ui";
+import { Button, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { NotificationItem } from "@/lib/types";
@@ -14,6 +14,9 @@ import styles from "./notifications.module.css";
 export default function NotificationsPage() {
   const { t, date } = useI18n();
   const [items, setItems] = useState<NotificationItem[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const [marking, setMarking] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,10 +24,11 @@ export default function NotificationsPage() {
     api.notifications
       .list()
       .then((response) => {
-        if (!cancelled) setItems(response.items);
-        return api.notifications.markAllRead().then(() => {
-          window.dispatchEvent(new Event("jey:notifications-read"));
-        });
+        if (!cancelled) {
+          setItems(response.items);
+          setUnread(response.unread);
+          setOpenedAt(new Date().toISOString());
+        }
       })
       .catch(() => {})
       .finally(() => !cancelled && setLoading(false));
@@ -33,9 +37,30 @@ export default function NotificationsPage() {
     };
   }, []);
 
+  async function markAllRead() {
+    setMarking(true);
+    try {
+      const response = await api.notifications.markAllRead(openedAt ?? undefined);
+      setItems((current) => current.map((item) => ({ ...item, read: true })));
+      setUnread(response.unread);
+      window.dispatchEvent(new Event("jey:notifications-read"));
+    } finally {
+      setMarking(false);
+    }
+  }
+
   return (
     <main>
-      <PageHeader title={t("notifications.title")} />
+      <PageHeader
+        action={
+          unread > 0 ? (
+            <Button loading={marking} onClick={() => void markAllRead()} size="sm">
+              {t("notifications.markAll")}
+            </Button>
+          ) : null
+        }
+        title={t("notifications.title")}
+      />
       <Card>
         {!loading && items.length === 0 ? (
           <EmptyState

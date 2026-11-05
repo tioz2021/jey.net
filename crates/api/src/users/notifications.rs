@@ -2,6 +2,8 @@
 
 use axum::Json;
 use axum::extract::{Path, State};
+use chrono::{DateTime, Utc};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -50,17 +52,36 @@ pub async fn list(
     Ok(Json(json!({ "items": items, "unread": unread })))
 }
 
-/// `POST /api/v1/notifications/read`
+#[derive(Debug, Deserialize)]
+pub struct MarkReadBody {
+    before: Option<DateTime<Utc>>,
+}
+
+/// `POST /api/v1/notifications/read` — marks only what was on screen.
 pub async fn mark_all_read(
     State(state): State<AppState>,
     current: CurrentUser,
+    payload: Option<Json<MarkReadBody>>,
 ) -> Result<Json<Value>, AppError> {
-    sqlx::query("update notifications set read_at = now() where user_id = $1 and read_at is null")
-        .bind(current.user.id)
-        .execute(&state.pool)
-        .await
-        .map_err(AppError::internal)?;
-    Ok(Json(json!({ "unread": 0 })))
+    let before = payload.and_then(|Json(body)| body.before);
+    sqlx::query(
+        "update notifications set read_at = now()
+         where user_id = $1 and read_at is null
+           and ($2::timestamptz is null or created_at <= $2)",
+    )
+    .bind(current.user.id)
+    .bind(before)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let unread: i64 = sqlx::query_scalar(
+        "select count(*) from notifications where user_id = $1 and read_at is null",
+    )
+    .bind(current.user.id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "unread": unread })))
 }
 
 /// `POST /api/v1/notifications/{id}/read`
