@@ -448,6 +448,7 @@ pub async fn taste(
          )
          select jsonb_build_object(
              'id', i.id,
+             'slug', i.slug,
              'author_id', u.id,
              'author_name', u.display_name,
              'kind', i.kind,

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
+import { CartRedirect } from "@/components/cart-redirect";
 import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
@@ -116,7 +117,7 @@ export default async function PublicItemPage({
 
   const requestHeaders = await headers();
   if (!requestHeaders.get("x-jey-cart")) {
-    redirect(`/cart/${item.slug}`);
+    return <CartRedirect slug={item.slug} />;
   }
 
   const displayTitle = localizedTitle(item, locale);

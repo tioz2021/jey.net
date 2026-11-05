@@ -59,7 +59,7 @@ export function RecommendationHighlights() {
       <ul className={styles.list}>
         {visible.map((item) => (
           <li key={`${item.author_id}-${item.id}`}>
-            <Link className={styles.item} href={`/u/${item.author_id}/${item.id}`}>
+            <Link className={styles.item} href={`/cart/${item.slug}`}>
               {item.cover_key ? (
                 // eslint-disable-next-line @next/next/no-img-element -- local cover
                 <img alt="" src={`/media/${item.cover_key}`} />

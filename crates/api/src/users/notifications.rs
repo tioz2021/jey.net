@@ -283,6 +283,7 @@ pub async fn list(
             'actor_name', u.display_name,
             'actor_avatar', u.avatar_key,
             'item_id', n.item_id,
+            'item_slug', i.slug,
             'item_author_id', i.user_id,
             'item_title', i.title,
             'item_kind', i.kind,

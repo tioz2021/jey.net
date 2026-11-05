@@ -78,7 +78,7 @@ export default function FeedPage() {
                   <Link href={`/u/${item.author_id}`}>{item.author_name}</Link>
                 </p>
                 <ItemCard
-                  href={`/u/${item.author_id}/${item.id}`}
+                  href={`/cart/${item.slug}`}
                   item={item}
                   reactions
                 />
