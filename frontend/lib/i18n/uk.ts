@@ -7,7 +7,7 @@ export const uk = {
   "nav.subscriptions": "Мої підписки",
   "nav.people": "Люди",
   "people.followingTab": "Мої підписки",
-  "people.findPeople": "Знайти людей",
+  "people.findPeople": "Усі люди",
   "people.followingTitle": "Мої підписки",
   "people.searchFollowing": "Пошук за підписками",
   "people.title": "Люди",

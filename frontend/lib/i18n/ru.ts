@@ -6,7 +6,7 @@ export const ru = {
   "nav.subscriptions": "Мои подписки",
   "nav.people": "Люди",
   "people.followingTab": "Мои подписки",
-  "people.findPeople": "Найти людей",
+  "people.findPeople": "Все люди",
   "people.followingTitle": "Мои подписки",
   "people.searchFollowing": "Поиск по подпискам",
   "people.title": "Люди",

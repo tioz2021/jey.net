@@ -7,7 +7,7 @@ export const en = {
   "nav.subscriptions": "My subscriptions",
   "nav.people": "People",
   "people.followingTab": "My subscriptions",
-  "people.findPeople": "Find people",
+  "people.findPeople": "All people",
   "people.followingTitle": "My subscriptions",
   "people.searchFollowing": "Search subscriptions",
   "people.title": "People",
