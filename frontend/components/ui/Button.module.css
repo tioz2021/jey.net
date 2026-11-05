@@ -77,5 +77,6 @@
 }
 
 .button:hover:not(:disabled):not(:active) {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-sm);
 }
