@@ -201,6 +201,7 @@ export default async function PublicItemPage({
           {item.review ? (
             <ItemReview text={item.review} title={t("public.itemNote")} />
           ) : null}
+          <Comments itemId={item.id} userId={id} />
           {item.kind === "tv" &&
           item.details?.seasons &&
           item.details.seasons.length > 0 &&
@@ -214,7 +215,6 @@ export default async function PublicItemPage({
             />
           ) : null}
           <SimilarItems itemId={item.id} publicView />
-          <Comments itemId={item.id} userId={id} />
           {item.details ? (
             <MovieCast details={item.details} locale={locale} />
           ) : null}
