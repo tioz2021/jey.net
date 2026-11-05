@@ -381,7 +381,11 @@ export const reports = {
   }) => request<{ reported: boolean }>("/reports", { method: "POST", body: input }),
   list: () =>
     request<{ reports: Report[]; history: Report[] }>("/reports"),
-  resolve: (id: string, status: "resolved" | "dismissed", hideTarget = false) =>
+  resolve: (
+    id: string,
+    status: "resolved" | "dismissed" | "open",
+    hideTarget = false,
+  ) =>
     request<{ ok: boolean }>(`/reports/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: { status, hide_target: hideTarget },

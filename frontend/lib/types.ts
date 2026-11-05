@@ -370,6 +370,7 @@ export interface Report {
   reporter_name: string;
   target_label: string;
   target_url: string | null;
+  target_available: boolean;
   resolved_at: string | null;
 }
 

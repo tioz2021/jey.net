@@ -413,6 +413,8 @@ export const en = {
   "report.error": "Could not submit the report",
   "reports.reporter": "Reported by: {name}",
   "reports.hide": "Hide",
+  "reports.reopen": "Return to moderation",
+  "reports.targetGone": "deleted",
   "reports.resolve": "Resolve",
   "reports.dismiss": "Dismiss",
   'settings.title': 'Settings',

@@ -69,13 +69,25 @@ export default function ReportsPage() {
     }
   }
 
+  async function reopen(report: Report) {
+    try {
+      await api.reports.resolve(report.id, "open");
+      load();
+    } catch {
+      setError(t("reports.error"));
+    }
+  }
+
   function targetLink(report: Report) {
     return report.target_url ? (
       <Link className={styles.targetLink} href={report.target_url}>
         {report.target_label}
       </Link>
     ) : (
-      report.target_label
+      <span>
+        {report.target_label}{" "}
+        <Badge tone="neutral">{t("reports.targetGone")}</Badge>
+      </span>
     );
   }
 
@@ -133,7 +145,13 @@ export default function ReportsPage() {
                       {t("reports.dismiss")}
                     </Button>
                   </div>
-                ) : null}
+                ) : (
+                  <div className={styles.actions}>
+                    <Button onClick={() => void reopen(report)} size="sm" variant="secondary">
+                      {t("reports.reopen")}
+                    </Button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

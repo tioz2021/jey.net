@@ -412,6 +412,8 @@ export const ru = {
   "report.error": "Не удалось отправить жалобу",
   "reports.reporter": "Пожаловался(ась): {name}",
   "reports.hide": "Скрыть",
+  "reports.reopen": "Вернуть в модерацию",
+  "reports.targetGone": "удалено",
   "reports.resolve": "Решено",
   "reports.dismiss": "Отклонить",
   'settings.title': 'Настройки',

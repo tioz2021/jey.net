@@ -144,10 +144,28 @@ pub async fn list(
             'resolved_at', r.resolved_at,
             'reporter_name', reporter.display_name,
             'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, '—'),
+            'target_available', case
+                when r.target_type = 'item'
+                    then i.id is not null and i.deleted_at is null and not i.public_hidden
+                when r.target_type = 'comment'
+                    then c.id is not null and c.deleted_at is null
+                         and ci.id is not null and ci.deleted_at is null and not ci.public_hidden
+                when r.target_type = 'profile'
+                    then target_user.id is not null and target_user.is_public
+                         and target_user.deleted_at is null
+                else false
+            end,
             'target_url', case
-                when r.target_type = 'item' then '/u/' || i.user_id || '/' || i.id
-                when r.target_type = 'comment' then '/u/' || ci.user_id || '/' || c.item_id
-                when r.target_type = 'profile' then '/u/' || target_user.id
+                when r.target_type = 'item' and i.id is not null
+                     and i.deleted_at is null and not i.public_hidden
+                    then '/u/' || i.user_id || '/' || i.id
+                when r.target_type = 'comment' and c.id is not null
+                     and c.deleted_at is null and ci.id is not null
+                     and ci.deleted_at is null and not ci.public_hidden
+                    then '/u/' || ci.user_id || '/' || c.item_id
+                when r.target_type = 'profile' and target_user.id is not null
+                     and target_user.is_public and target_user.deleted_at is null
+                    then '/u/' || target_user.id
                 else null
             end
          )
@@ -185,10 +203,10 @@ pub async fn resolve(
     if !is_admin(&state, current.user.id).await? {
         return Err(AppError::forbidden("admin only"));
     }
-    if !matches!(payload.status.as_str(), "resolved" | "dismissed") {
+    if !matches!(payload.status.as_str(), "resolved" | "dismissed" | "open") {
         return Err(AppError::validation_field(
             "status",
-            "status must be resolved or dismissed",
+            "status must be resolved, dismissed or open",
         ));
     }
     let target: Option<(String, Uuid)> = sqlx::query_as(
@@ -201,6 +219,18 @@ pub async fn resolve(
     let Some((target_type, target_id)) = target else {
         return Err(AppError::not_found("report"));
     };
+    if payload.status == "open" {
+        sqlx::query(
+            "update reports set status = 'open', resolved_at = null, resolved_by = null
+             where id = $1",
+        )
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        return Ok(Json(json!({ "ok": true })));
+    }
+
     if payload.hide_target {
         match target_type.as_str() {
             "item" => {
