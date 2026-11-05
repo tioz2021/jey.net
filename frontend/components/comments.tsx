@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button, Card, Dialog, Textarea } from "@/components/ui";
 import { CommentLike } from "@/components/items/comment-like";
+import { ReportButton } from "@/components/report-button";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -153,6 +154,11 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
                 {t("comments.delete")}
               </button>
             ) : null}
+            <ReportButton
+              ownerId={comment.author_id}
+              targetId={comment.id}
+              targetType="comment"
+            />
           </div>
           {(comment.replies ?? []).length > 0 ? (
             <ul className={styles.replies}>
