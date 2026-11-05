@@ -89,15 +89,18 @@ async fn track_errors(
     request: axum::extract::Request,
     next: middleware::Next,
 ) -> Response {
-    let path = request.uri().path().to_owned();
+    let path = crate::analytics::normalize_path(request.uri().path());
+    let request_id = crate::telemetry::current_request_id();
     let response = next.run(request).await;
     if response.status().is_server_error() {
         let status = response.status().as_u16() as i16;
-        let _ = sqlx::query("insert into system_errors (path, status) values ($1, $2)")
-            .bind(&path)
-            .bind(status)
-            .execute(&state.pool)
-            .await;
+        let _ =
+            sqlx::query("insert into system_errors (path, status, request_id) values ($1, $2, $3)")
+                .bind(&path)
+                .bind(status)
+                .bind(&request_id)
+                .execute(&state.pool)
+                .await;
     }
     response
 }
@@ -266,6 +269,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/admin/users", get(crate::users::admin::list))
         .route("/admin/audit", get(crate::audit::list))
         .route("/admin/system", get(crate::system::status))
+        .route("/admin/errors", get(crate::system::errors))
         .route(
             "/admin/users/{id}/sessions/revoke",
             post(crate::users::admin::revoke_sessions),

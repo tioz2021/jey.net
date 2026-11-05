@@ -463,6 +463,21 @@ export interface SystemStatus {
   last_deploy_at: string | null;
 }
 
+export interface SystemErrorGroup {
+  path: string;
+  status: number;
+  count: number;
+  first_seen: string;
+  last_seen: string;
+  last_request_id: string | null;
+}
+
+export interface SystemErrorsResponse {
+  errors: SystemErrorGroup[];
+  total: number;
+  days: number;
+}
+
 export interface AdminAction {
   id: number;
   admin_id: string | null;

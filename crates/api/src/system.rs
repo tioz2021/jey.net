@@ -4,7 +4,8 @@ use std::process::Stdio;
 use std::time::Duration;
 
 use axum::Json;
-use axum::extract::State;
+use axum::extract::{Query, State};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::process::Command;
 
@@ -134,4 +135,62 @@ pub async fn status(
         "backup": backup,
         "last_deploy_at": deploy_at,
     })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ErrorsQuery {
+    #[serde(default = "default_days")]
+    pub days: i64,
+}
+
+fn default_days() -> i64 {
+    7
+}
+
+/// `GET /api/v1/admin/errors` — grouped 5xx journal.
+pub async fn errors(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Query(query): Query<ErrorsQuery>,
+) -> Result<Json<Value>, AppError> {
+    let admin: bool =
+        sqlx::query_scalar("select coalesce(is_admin, false) from users where id = $1")
+            .bind(current.user.id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?
+            .unwrap_or(false);
+    if !admin {
+        return Err(AppError::forbidden("admin only"));
+    }
+    let days = query.days.clamp(1, 90);
+    let rows: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+             'path', path,
+             'status', status,
+             'count', count(*),
+             'first_seen', min(created_at),
+             'last_seen', max(created_at),
+             'last_request_id', (array_agg(request_id order by created_at desc))[1]
+         )
+         from system_errors
+         where created_at > now() - make_interval(days => $1)
+         group by path, status
+         order by max(created_at) desc
+         limit 100",
+    )
+    .bind(days)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let total: i64 = sqlx::query_scalar(
+        "select count(*) from system_errors where created_at > now() - make_interval(days => $1)",
+    )
+    .bind(days)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(
+        json!({ "errors": rows, "total": total, "days": days }),
+    ))
 }

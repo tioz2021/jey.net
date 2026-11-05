@@ -82,7 +82,7 @@ pub async fn record(pool: &sqlx::PgPool, name: &str, path: Option<&str>, locale:
         .await;
 }
 
-fn normalize_path(path: &str) -> String {
+pub(crate) fn normalize_path(path: &str) -> String {
     let path = path.split(['?', '#']).next().unwrap_or("/");
     let segments: Vec<&str> = path
         .split('/')
