@@ -72,7 +72,7 @@ export default function NotificationsPage() {
             {items.map((item) => {
               const itemHref =
                 item.item_slug && item.item_author_handle
-                  ? `/u/${item.item_author_handle}/item/${item.item_slug}`
+                  ? `/u/${item.item_author_handle}/cart/${item.item_slug}`
                   : `/u/${item.actor_id}`;
               const isComment = item.kind === "comment";
               const isReply = item.kind === "reply";

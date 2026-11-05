@@ -40,13 +40,42 @@ export async function middleware(request: NextRequest) {
   const cartMatch = pathname.match(CART_PATH);
 
   if (ownerCartMatch?.[1] && ownerCartMatch[2]) {
-    return NextResponse.redirect(
-      externalUrl(
-        request,
-        `/u/${encodeURIComponent(ownerCartMatch[1])}/item/${ownerCartMatch[2]}`,
-      ),
-      308,
+    const slug = ownerCartMatch[2];
+    const cookie = request.headers.get("cookie") ?? "";
+    const privateResponse = await fetch(
+      `${BACKEND_URL}/api/v1/items/by-slug/${encodeURIComponent(slug)}`,
+      { cache: "no-store", headers: { cookie } },
     );
+    if (privateResponse.ok) {
+      const body = (await privateResponse.json()) as { item?: { id?: string } };
+      if (body.item?.id) {
+        const headers = new Headers(request.headers);
+        headers.set("x-jey-item", "1");
+        return NextResponse.rewrite(
+          internalUrl(request, `/items/${body.item.id}`),
+          { request: { headers } },
+        );
+      }
+    }
+
+    const publicResponse = await fetch(
+      `${BACKEND_URL}/api/v1/public/cart/${encodeURIComponent(slug)}`,
+      { cache: "no-store" },
+    );
+    if (publicResponse.ok) {
+      const data = (await publicResponse.json()) as {
+        user_id: string;
+        item_id: string;
+      };
+      const headers = new Headers(request.headers);
+      headers.set("x-jey-cart", "1");
+      headers.set("x-jey-canonical", pathname);
+      return NextResponse.rewrite(
+        internalUrl(request, `/u/${data.user_id}/${data.item_id}`),
+        { request: { headers } },
+      );
+    }
+    return NextResponse.next();
   }
 
   if (editMatch?.[2]) {
