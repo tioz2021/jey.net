@@ -42,3 +42,23 @@
 .chip:hover .cross {
   color: var(--color-text);
 }
+
+
+.compact {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.compact .chip {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: 24px;
+  padding: 3px 6px;
+  text-align: left;
+}
+
+.compact .label {
+  flex: 1;
+  min-width: 0;
+}

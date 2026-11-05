@@ -184,3 +184,18 @@
     display: none;
   }
 }
+
+
+.compact .body :global(label) {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.compact .body :global(input),
+.compact .body :global(button) {
+  font-size: var(--text-sm);
+}
+
+.compact .body :global(input) {
+  padding: 7px 8px;
+}

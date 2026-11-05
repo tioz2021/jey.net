@@ -177,7 +177,7 @@ export function ItemsFilters({
       </div>
 
       <div className={styles.chips}>
-        <ActiveFilters />
+        <ActiveFilters compact={compact} />
       </div>
     </section>
   );

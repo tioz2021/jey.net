@@ -78,7 +78,7 @@ function buildChips(
 }
 
 /** Shows every active condition with a button to drop just that one. */
-export function ActiveFilters() {
+export function ActiveFilters({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
   const chips = buildChips(params, t);
@@ -92,7 +92,10 @@ export function ActiveFilters() {
   }
 
   return (
-    <ul className={styles.chips} aria-label={t("filters.title")}>
+    <ul
+      className={`${styles.chips} ${compact ? styles.compact : ""}`}
+      aria-label={t("filters.title")}
+    >
       {chips.map((chip) => (
         <li key={chip.key}>
           <button
