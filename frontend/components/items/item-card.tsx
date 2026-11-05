@@ -10,7 +10,7 @@ import {
   IconTv,
 } from "@/components/icons";
 import { Badge } from "@/components/ui";
-import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import { RatingStars } from "@/components/items/rating-stars";
 import { useI18n } from "@/lib/locale-context";
@@ -136,7 +136,7 @@ export function ItemCard({
             <Highlight text={title} query={query} />
           </h2>
           <Badge tone={STATUS_TONES[item.status]}>
-            {t(STATUS_KEYS[item.status])}
+            {t(statusKey(item.kind, item.status))}
           </Badge>
         </div>
 

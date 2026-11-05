@@ -22,7 +22,7 @@ import {
   IconTv,
 } from "@/components/icons";
 import { Badge } from "@/components/ui";
-import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { STATUS_TONES } from "@/lib/labels";
 import { formatDate, translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
@@ -172,7 +172,7 @@ export default async function PublicItemPage({
                 <dt>{t("item.status")}</dt>
                 <dd>
                   <Badge tone={STATUS_TONES[item.status]}>
-                    {t(STATUS_KEYS[item.status])}
+                    {t(statusKey(item.kind, item.status))}
                   </Badge>
                 </dd>
               </div>

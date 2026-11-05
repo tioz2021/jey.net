@@ -7,7 +7,7 @@ import type { FormEvent } from "react";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
-import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import type { TranslationKey } from "@/lib/i18n";
 import { useI18n } from "@/lib/locale-context";
 import type {
@@ -520,7 +520,7 @@ export function ItemForm({
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
-                {t(STATUS_KEYS[status])}
+                {t(statusKey(values.kind, status))}
               </option>
             ))}
           </Select>

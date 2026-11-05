@@ -3,7 +3,13 @@
 import { useState } from "react";
 
 import { Button, Select } from "@/components/ui";
-import { KIND_KEYS, SORT_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import {
+  KIND_KEYS,
+  SORT_KEYS,
+  STATUS_KEYS,
+  STATUSES_BY_KIND,
+  statusKey,
+} from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import type { ItemKind, ItemStatus, Sort } from "@/lib/types";
 
@@ -36,6 +42,11 @@ export function ItemsFilters({
       }
     });
   }
+
+  const selectedKind = searchParams.get("kind") as ItemKind | null;
+  const statuses = selectedKind
+    ? STATUSES_BY_KIND[selectedKind]
+    : STATUSES;
 
   const activeCount = [
     "q",
@@ -112,9 +123,9 @@ export function ItemsFilters({
           onChange={(event) => setParam("status", event.target.value)}
         >
           <option value="">{t("filters.statusAny")}</option>
-          {STATUSES.map((value) => (
+          {statuses.map((value) => (
             <option key={value} value={value}>
-              {t(STATUS_KEYS[value])}
+              {t(statusKey(selectedKind, value))}
             </option>
           ))}
         </Select>

@@ -1,6 +1,6 @@
 "use client";
 
-import { KIND_KEYS, SORT_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
+import { KIND_KEYS, SORT_KEYS, statusKey } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import type { ItemKind, ItemStatus, Sort } from "@/lib/types";
 
@@ -49,11 +49,10 @@ function buildChips(
 
   const status = params.get("status");
   if (status) {
+    const kind = params.get("kind") as ItemKind | null;
     chips.push({
       key: "status",
-      label: STATUS_KEYS[status as ItemStatus]
-        ? t(STATUS_KEYS[status as ItemStatus])
-        : status,
+      label: t(statusKey(kind, status as ItemStatus)),
     });
   }
 
