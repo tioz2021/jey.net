@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8080";
 const ITEM_PATH = /^\/u\/([^/]+)\/item\/([^/]+)$/;
+const ITEM_EDIT_PATH = /^\/u\/([^/]+)\/item\/([^/]+)\/edit$/;
+const OWNER_CART_PATH = /^\/u\/([^/]+)\/cart\/([^/]+)$/;
 const CART_PATH = /^\/cart\/([^/]+)$/;
 
 function externalUrl(request: NextRequest, pathname: string) {
@@ -33,7 +35,42 @@ function internalUrl(request: NextRequest, pathname: string) {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const itemMatch = pathname.match(ITEM_PATH);
+  const editMatch = pathname.match(ITEM_EDIT_PATH);
+  const ownerCartMatch = pathname.match(OWNER_CART_PATH);
   const cartMatch = pathname.match(CART_PATH);
+
+  if (ownerCartMatch?.[1] && ownerCartMatch[2]) {
+    return NextResponse.redirect(
+      externalUrl(
+        request,
+        `/u/${encodeURIComponent(ownerCartMatch[1])}/item/${ownerCartMatch[2]}`,
+      ),
+      308,
+    );
+  }
+
+  if (editMatch?.[2]) {
+    const slug = editMatch[2];
+    const privateResponse = await fetch(
+      `${BACKEND_URL}/api/v1/items/by-slug/${encodeURIComponent(slug)}`,
+      {
+        cache: "no-store",
+        headers: { cookie: request.headers.get("cookie") ?? "" },
+      },
+    );
+    if (privateResponse.ok) {
+      const body = (await privateResponse.json()) as { item?: { id?: string } };
+      if (body.item?.id) {
+        const headers = new Headers(request.headers);
+        headers.set("x-jey-item", "1");
+        return NextResponse.rewrite(
+          internalUrl(request, `/items/${body.item.id}/edit`),
+          { request: { headers } },
+        );
+      }
+    }
+    return NextResponse.next();
+  }
 
   if (itemMatch?.[2]) {
     const slug = itemMatch[2];
@@ -91,6 +128,31 @@ export async function middleware(request: NextRequest) {
       );
     }
     return NextResponse.next();
+  }
+
+  const legacyEdit = pathname.match(
+    /^\/items\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/edit$/,
+  );
+  if (legacyEdit?.[1] && request.headers.get("x-jey-item") !== "1") {
+    const cookie = request.headers.get("cookie") ?? "";
+    const itemResponse = await fetch(
+      `${BACKEND_URL}/api/v1/items/${legacyEdit[1]}`,
+      { cache: "no-store", headers: { cookie } },
+    );
+    const meResponse = await fetch(`${BACKEND_URL}/api/v1/me`, {
+      cache: "no-store",
+      headers: { cookie },
+    });
+    if (itemResponse.ok && meResponse.ok) {
+      const { item } = (await itemResponse.json()) as { item?: { slug?: string } };
+      const { user } = (await meResponse.json()) as { user?: { handle?: string } };
+      if (item?.slug && user?.handle) {
+        return NextResponse.redirect(
+          externalUrl(request, `/u/${user.handle}/item/${item.slug}/edit`),
+          307,
+        );
+      }
+    }
   }
 
   const legacyItem = pathname.match(
