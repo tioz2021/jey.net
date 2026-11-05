@@ -6,8 +6,10 @@
 use axum::Json;
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode};
+use chrono::Utc;
 use serde::Deserialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
@@ -62,14 +64,47 @@ pub async fn event(
         .as_deref()
         .filter(|value| value.len() <= 8)
         .map(str::to_owned);
-    record(
+    let visitor = visitor_hash(&headers, &state.config.analytics_salt);
+    record_visitor(
         &state.pool,
         &payload.name,
         path.as_deref(),
         locale.as_deref(),
+        visitor.as_deref(),
     )
     .await;
     Ok(StatusCode::NO_CONTENT)
+}
+
+fn visitor_hash(headers: &HeaderMap, salt: &str) -> Option<String> {
+    let ip = headers
+        .get("x-forwarded-for")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .or_else(|| {
+            headers
+                .get("x-real-ip")
+                .and_then(|value| value.to_str().ok())
+        });
+    let user_agent = headers
+        .get(axum::http::header::USER_AGENT)
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or_default();
+    if ip.is_none() && user_agent.is_empty() {
+        return None;
+    }
+    let day = Utc::now().format("%Y-%m-%d");
+    let mut hasher = Sha256::new();
+    hasher.update(salt.as_bytes());
+    hasher.update(b"|");
+    hasher.update(ip.unwrap_or_default().as_bytes());
+    hasher.update(b"|");
+    hasher.update(user_agent.as_bytes());
+    hasher.update(b"|");
+    hasher.update(day.to_string().as_bytes());
+    Some(hex::encode(hasher.finalize()))
 }
 
 /// Writes an event; analytics must never break the feature that produced it.
@@ -80,6 +115,25 @@ pub async fn record(pool: &sqlx::PgPool, name: &str, path: Option<&str>, locale:
         .bind(locale)
         .execute(pool)
         .await;
+}
+
+async fn record_visitor(
+    pool: &sqlx::PgPool,
+    name: &str,
+    path: Option<&str>,
+    locale: Option<&str>,
+    visitor: Option<&str>,
+) {
+    let _ = sqlx::query(
+        "insert into analytics_events (name, path, locale, visitor_hash)
+         values ($1, $2, $3, $4)",
+    )
+    .bind(name)
+    .bind(path)
+    .bind(locale)
+    .bind(visitor)
+    .execute(pool)
+    .await;
 }
 
 pub(crate) fn normalize_path(path: &str) -> String {
@@ -211,11 +265,88 @@ pub async fn summary(
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    let retention: Value = sqlx::query_scalar(
+        "select jsonb_build_object(
+             'unique_7d', (
+                 select count(distinct visitor_hash) from analytics_events
+                 where visitor_hash is not null and created_at > now() - interval '7 days'
+             ),
+             'unique_30d', (
+                 select count(distinct visitor_hash) from analytics_events
+                 where visitor_hash is not null and created_at > now() - interval '30 days'
+             ),
+             'new_7d', (
+                 select count(*) from (
+                     select visitor_hash, min(created_at) as first_seen
+                     from analytics_events
+                     where visitor_hash is not null
+                     group by visitor_hash
+                 ) first
+                 where first_seen > now() - interval '7 days'
+                   and exists (
+                       select 1 from analytics_events e
+                       where e.visitor_hash = first.visitor_hash
+                         and e.created_at > now() - interval '7 days'
+                   )
+             ),
+             'returning_7d', (
+                 select count(*) from (
+                     select visitor_hash, min(created_at) as first_seen
+                     from analytics_events
+                     where visitor_hash is not null
+                     group by visitor_hash
+                 ) first
+                 where first_seen <= now() - interval '7 days'
+                   and exists (
+                       select 1 from analytics_events e
+                       where e.visitor_hash = first.visitor_hash
+                         and e.created_at > now() - interval '7 days'
+                   )
+             )
+         )",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let cohorts: Value = sqlx::query_scalar(
+        "select coalesce(jsonb_agg(jsonb_build_object(
+             'cohort', cohort,
+             'registered', registered,
+             'added_item', added_item,
+             'returned', returned
+         ) order by cohort desc), '[]'::jsonb)
+         from (
+             select date_trunc('week', u.created_at)::date as cohort,
+                    count(*) as registered,
+                    count(*) filter (
+                        where exists (
+                            select 1 from items i
+                            where i.user_id = u.id and i.created_at >= u.created_at
+                        )
+                    ) as added_item,
+                    count(*) filter (
+                        where exists (
+                            select 1 from sessions s
+                            where s.user_id = u.id
+                              and s.last_seen_at > u.created_at + interval '1 day'
+                        )
+                    ) as returned
+             from users u
+             where u.deleted_at is null
+               and u.created_at > now() - interval '30 days'
+             group by 1
+         ) rows",
+    )
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     Ok(Json(json!({
         "days": days,
         "counts": counts,
         "daily": daily,
         "paths": paths,
+        "retention": retention,
+        "cohorts": cohorts,
     })))
 }
 

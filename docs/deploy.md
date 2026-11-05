@@ -232,6 +232,7 @@ MAIL_FROM=jey@j3ynet.site
 GOOGLE_CLIENT_ID=<google-client-id>
 GOOGLE_CLIENT_SECRET=<google-client-secret>
 GOOGLE_REDIRECT_URL=https://j3ynet.site/api/v1/auth/google/callback
+ANALYTICS_SALT=<random-hex-secret>
 ```
 
 `RUN_MIGRATIONS=false`: миграции применяются отдельным шагом при деплое, а не

@@ -259,3 +259,25 @@
   background: var(--color-accent-soft);
   border-radius: var(--radius-sm);
 }
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}

@@ -70,6 +70,7 @@ fn test_config() -> Config {
         vapid_public_key: None,
         vapid_private_key: None,
         purge_retention_days: 30,
+        analytics_salt: "test-salt".to_owned(),
     }
 }
 

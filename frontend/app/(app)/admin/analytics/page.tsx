@@ -73,6 +73,25 @@ export default async function AnalyticsPage() {
         </div>
       </section>
 
+      <section className={styles.cards} aria-label={t("analytics.retention")}>
+        <div className={styles.stat}>
+          <span>{t("analytics.unique7")}</span>
+          <strong>{data.retention.unique_7d}</strong>
+        </div>
+        <div className={styles.stat}>
+          <span>{t("analytics.unique30")}</span>
+          <strong>{data.retention.unique_30d}</strong>
+        </div>
+        <div className={styles.stat}>
+          <span>{t("analytics.new7")}</span>
+          <strong>{data.retention.new_7d}</strong>
+        </div>
+        <div className={styles.stat}>
+          <span>{t("analytics.returning7")}</span>
+          <strong>{data.retention.returning_7d}</strong>
+        </div>
+      </section>
+
       <Card title={t("analytics.daily")}>
         {data.daily.length === 0 ? (
           <p className={styles.muted}>{t("analytics.empty")}</p>
@@ -99,6 +118,31 @@ export default async function AnalyticsPage() {
           <li><span>{t("analytics.itemsCreated")}</span><strong>{itemsCreated}</strong><em>{percent(itemsCreated, registrations)}</em></li>
           <li><span>{t("analytics.publicItemViews")}</span><strong>{publicItemViews}</strong><em>{percent(publicItemViews, views)}</em></li>
         </ol>
+      </Card>
+
+      <Card title={t("analytics.cohorts")}>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>{t("analytics.cohort")}</th>
+                <th>{t("analytics.registered")}</th>
+                <th>{t("analytics.addedItem")}</th>
+                <th>{t("analytics.returned")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.cohorts.map((row) => (
+                <tr key={row.cohort}>
+                  <td>{date(row.cohort)}</td>
+                  <td>{row.registered}</td>
+                  <td>{row.added_item}</td>
+                  <td>{row.returned}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       <div className={styles.two}>

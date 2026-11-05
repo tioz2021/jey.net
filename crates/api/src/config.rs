@@ -110,6 +110,8 @@ pub struct Config {
     pub vapid_private_key: Option<String>,
     /// Days a deleted account is kept for recovery before the purge task.
     pub purge_retention_days: i32,
+    /// Salt for the daily cookie-less visitor hash.
+    pub analytics_salt: String,
 }
 
 impl Config {
@@ -214,6 +216,8 @@ impl Config {
             None => 30,
         };
 
+        let analytics_salt =
+            var("ANALYTICS_SALT").unwrap_or_else(|| "jey.net-analytics-v1".to_owned());
         let google_client_id = var("GOOGLE_CLIENT_ID");
         let google_client_secret = var("GOOGLE_CLIENT_SECRET");
         let google_redirect_url = var("GOOGLE_REDIRECT_URL");
@@ -247,6 +251,7 @@ impl Config {
             vapid_public_key,
             vapid_private_key,
             purge_retention_days,
+            analytics_salt,
         })
     }
 }

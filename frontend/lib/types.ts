@@ -406,6 +406,18 @@ export interface AnalyticsSummary {
   counts: Record<string, number>;
   daily: Array<{ date: string; views: number; events: number }>;
   paths: Array<{ path: string; count: number }>;
+  retention: {
+    unique_7d: number;
+    unique_30d: number;
+    new_7d: number;
+    returning_7d: number;
+  };
+  cohorts: Array<{
+    cohort: string;
+    registered: number;
+    added_item: number;
+    returned: number;
+  }>;
 }
 
 export interface AudienceUser {
