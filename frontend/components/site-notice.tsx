@@ -8,9 +8,9 @@ import type { SiteStatus } from "@/lib/types";
 import styles from "./site-notice.module.css";
 
 /** Global announcement and maintenance banner. */
-export function SiteNotice() {
+export function SiteNotice({ initialStatus = null }: { initialStatus?: SiteStatus | null }) {
   const { t } = useI18n();
-  const [status, setStatus] = useState<SiteStatus | null>(null);
+  const [status, setStatus] = useState<SiteStatus | null>(initialStatus);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {

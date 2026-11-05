@@ -11,6 +11,7 @@ import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
+import type { SiteStatus } from "@/lib/types";
 import { UserProvider } from "@/lib/user-context";
 
 import "./globals.css";
@@ -78,6 +79,16 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const locale = await getServerLocale();
+  let siteStatus: SiteStatus | null = null;
+  try {
+    const statusResponse = await fetch(
+      `${process.env.BACKEND_URL ?? "http://127.0.0.1:8080"}/api/v1/site/status`,
+      { cache: "no-store" },
+    );
+    if (statusResponse.ok) siteStatus = (await statusResponse.json()) as SiteStatus;
+  } catch {
+    // The banner is optional; never break the layout for it.
+  }
 
   return (
     <html lang={locale}>
@@ -92,7 +103,7 @@ export default async function RootLayout({
         <LocaleProvider initialLocale={locale}>
           <UserProvider>
             <ToastProvider>
-              <SiteNotice />
+              <SiteNotice initialStatus={siteStatus} />
               <div id="content" tabIndex={-1}>
                 {children}
               </div>
