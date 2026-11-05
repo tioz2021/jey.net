@@ -148,11 +148,11 @@ pub async fn summary(
     .map_err(AppError::internal)?;
     let daily: Value = sqlx::query_scalar(
         "select coalesce(jsonb_agg(jsonb_build_object(
-             'date', day::date,
+             'date', d.day::date,
              'views', coalesce(v.views, 0),
              'events', coalesce(v.events, 0)
-         ) order by day), '[]'::jsonb)
-         from generate_series(current_date - ($1::int - 1), current_date, interval '1 day') day
+         ) order by d.day), '[]'::jsonb)
+         from generate_series(current_date - ($1::int - 1), current_date, interval '1 day') as d(day)
          left join (
              select date_trunc('day', created_at)::date as day,
                     count(*) filter (where name = 'page_view') as views,
@@ -160,7 +160,7 @@ pub async fn summary(
              from analytics_events
              where created_at >= current_date - ($1::int - 1)
              group by 1
-         ) v on v.day = day::date",
+         ) v on v.day = d.day::date",
     )
     .bind(days)
     .fetch_one(&state.pool)
