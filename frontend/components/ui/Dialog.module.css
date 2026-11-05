@@ -10,6 +10,7 @@
   position: fixed;
   inset: 0;
   width: min(32rem, calc(100vw - 2 * var(--space-4)));
+  height: fit-content;
   max-height: calc(100dvh - 2 * var(--space-4));
   margin: auto;
   padding: 0;

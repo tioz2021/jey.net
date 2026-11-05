@@ -96,3 +96,22 @@
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
+
+.scrollBlock {
+  min-width: 0;
+}
+
+.topScroll {
+  height: 12px;
+  margin-bottom: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.topScrollInner {
+  height: 1px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}

@@ -7,6 +7,7 @@ import { backendFetch } from "@/lib/server-api";
 import type { AdminActionsResponse } from "@/lib/types";
 
 import styles from "./audit.module.css";
+import { ScrollTable } from "./scroll-table";
 
 const ACTIONS = [
   "user.sessions_revoked",
@@ -111,7 +112,7 @@ export default async function AdminAuditPage({
         {data.actions.length === 0 ? (
           <p className={styles.muted}>{t("admin.auditEmpty")}</p>
         ) : (
-          <div className={styles.tableWrap}>
+          <ScrollTable>
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -139,7 +140,7 @@ export default async function AdminAuditPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollTable>
         )}
       </Card>
     </main>
