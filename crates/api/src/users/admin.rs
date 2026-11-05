@@ -400,7 +400,13 @@ pub async fn set_role(
     if id == current.user.id && payload.role != "admin" {
         return Err(AppError::validation_field("role", "cannot demote yourself"));
     }
-    if payload.role != "admin" {
+    let currently_admin: bool =
+        sqlx::query_scalar("select role = 'admin' from users where id = $1 and deleted_at is null")
+            .bind(id)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    if currently_admin && payload.role != "admin" {
         let admins: i64 = sqlx::query_scalar(
             "select count(*) from users where role = 'admin' and deleted_at is null",
         )

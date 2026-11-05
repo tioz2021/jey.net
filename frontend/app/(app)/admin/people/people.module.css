@@ -186,3 +186,13 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
+
+.roleSelect {
+  padding: 3px 5px;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
