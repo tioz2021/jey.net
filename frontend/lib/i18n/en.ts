@@ -54,6 +54,7 @@ export const en = {
   "reactions.like": "Like",
   "reactions.liked": "Liked",
   "reactions.login": "Sign in to like",
+  "comments.like": "Like",
   "comments.title": "Comments ({count})",
   "comments.loading": "Loading…",
   "comments.empty": "No comments yet.",

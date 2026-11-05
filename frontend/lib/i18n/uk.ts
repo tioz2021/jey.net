@@ -54,6 +54,7 @@ export const uk = {
   "reactions.like": "Подобається",
   "reactions.liked": "Ви відзначили",
   "reactions.login": "Увійдіть, щоб поставити відмітку",
+  "comments.like": "Подобається",
   "comments.title": "Коментарі ({count})",
   "comments.loading": "Завантаження…",
   "comments.empty": "Поки коментарів немає.",

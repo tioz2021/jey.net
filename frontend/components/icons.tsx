@@ -60,6 +60,21 @@ export function IconHeart(props: IconProps) {
   );
 }
 
+export function IconHeartFilled(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.5l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.7 1-1a5.5 5.5 0 0 0 0-7.7Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
 export function IconSparkles(props: IconProps) {
   return (
     <svg {...base(props)}>

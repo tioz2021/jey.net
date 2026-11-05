@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { IconHeart } from "@/components/icons";
+import { IconHeart, IconHeartFilled } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -54,7 +54,7 @@ export function CardReaction({ itemId }: { itemId: string }) {
       onClick={() => void toggle()}
       type="button"
     >
-      <IconHeart size={13} />
+      {reacted ? <IconHeartFilled size={13} /> : <IconHeart size={13} />}
       <span>{count}</span>
     </button>
   );

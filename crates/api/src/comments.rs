@@ -81,7 +81,9 @@ pub async fn list(
             'created_at', c.created_at,
             'author_id', u.id,
             'author_name', u.display_name,
-            'author_avatar', u.avatar_key
+            'author_avatar', u.avatar_key,
+            'like_count', (select count(*) from comment_reactions cr where cr.comment_id = c.id),
+            'liker_ids', (select coalesce(jsonb_agg(cr.user_id), '[]'::jsonb) from comment_reactions cr where cr.comment_id = c.id)
          )
          from comments c
          join users u on u.id = c.user_id
@@ -124,7 +126,9 @@ pub async fn list(
                 'created_at', c.created_at,
                 'author_id', u.id,
                 'author_name', u.display_name,
-                'author_avatar', u.avatar_key
+                'author_avatar', u.avatar_key,
+                'like_count', (select count(*) from comment_reactions cr where cr.comment_id = c.id),
+                'liker_ids', (select coalesce(jsonb_agg(cr.user_id), '[]'::jsonb) from comment_reactions cr where cr.comment_id = c.id)
              )
              from comments c
              join users u on u.id = c.user_id
@@ -217,6 +221,63 @@ pub async fn create(
     .await
     .map_err(AppError::internal)?;
     Ok(Json(json!({ "id": id })))
+}
+
+/// `POST /api/v1/comments/{id}/reaction` — toggle a like on a comment.
+pub async fn toggle_reaction(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let item_id: Option<Uuid> = sqlx::query_scalar(
+        "select c.item_id from comments c join items i on i.id = c.item_id
+         join users u on u.id = i.user_id
+         where c.id = $1 and c.deleted_at is null
+           and i.deleted_at is null and not i.public_hidden
+           and u.is_public and u.deleted_at is null
+           and i.status = ANY(u.public_statuses)",
+    )
+    .bind(id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some(item_id) = item_id else {
+        return Err(AppError::not_found("comment"));
+    };
+    let author = public_item_author(&state.pool, current.user.id, item_id).await;
+    if author.is_err() {
+        return Err(AppError::not_found("comment"));
+    }
+    if blocked_between(&state.pool, current.user.id, author.unwrap()).await? {
+        return Err(AppError::forbidden("blocked"));
+    }
+    let removed =
+        sqlx::query("delete from comment_reactions where user_id = $1 and comment_id = $2")
+            .bind(current.user.id)
+            .bind(id)
+            .execute(&state.pool)
+            .await
+            .map_err(AppError::internal)?
+            .rows_affected()
+            > 0;
+    if !removed {
+        sqlx::query(
+            "insert into comment_reactions (user_id, comment_id) values ($1, $2)
+             on conflict do nothing",
+        )
+        .bind(current.user.id)
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    }
+    let count: i64 =
+        sqlx::query_scalar("select count(*) from comment_reactions where comment_id = $1")
+            .bind(id)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    Ok(Json(json!({ "reacted": !removed, "count": count })))
 }
 
 /// `DELETE /api/v1/comments/{id}` — the author can remove their comment.

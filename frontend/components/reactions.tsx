@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { IconHeart } from "@/components/icons";
+import { IconHeart, IconHeartFilled } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -64,7 +64,7 @@ export function Reactions({ itemId }: { itemId: string }) {
         onClick={() => void toggle()}
         type="button"
       >
-        <IconHeart size={15} />
+        {reacted ? <IconHeartFilled size={15} /> : <IconHeart size={15} />}
         {reacted ? t("reactions.liked") : t("reactions.like")}
         {count > 0 ? <span className={styles.count}>{count}</span> : null}
       </button>

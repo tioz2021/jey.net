@@ -139,6 +139,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             axum::routing::delete(crate::comments::remove),
         )
         .route(
+            "/comments/{id}/reaction",
+            post(crate::comments::toggle_reaction),
+        )
+        .route(
             "/public/items/{id}/reactions",
             post(crate::reactions::toggle),
         )

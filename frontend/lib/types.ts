@@ -397,6 +397,8 @@ export interface Comment {
   author_id: string;
   author_name: string;
   author_avatar: string | null;
+  like_count: number;
+  liker_ids: string[];
   replies: Comment[];
 }
 

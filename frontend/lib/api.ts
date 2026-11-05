@@ -412,6 +412,11 @@ export const comments = {
     request<{ deleted: boolean }>(`/comments/${encodeURIComponent(id)}`, {
       method: "DELETE",
     }),
+  react: (id: string) =>
+    request<{ reacted: boolean; count: number }>(
+      `/comments/${encodeURIComponent(id)}/reaction`,
+      { method: "POST" },
+    ),
 };
 
 export const publicUsers = {

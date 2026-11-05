@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button, Card, Dialog, Textarea } from "@/components/ui";
+import { CommentLike } from "@/components/items/comment-like";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -137,6 +138,11 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
           </p>
           <p className={styles.body}>{comment.body}</p>
           <div className={styles.actions}>
+            <CommentLike
+              commentId={comment.id}
+              initialCount={comment.like_count}
+              initialLiked={Boolean(user && comment.liker_ids?.includes(user.id))}
+            />
             {!reply ? (
               <button onClick={() => setReplyTo(comment)} type="button">
                 {t("comments.reply")}

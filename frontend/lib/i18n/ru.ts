@@ -53,6 +53,7 @@ export const ru = {
   "reactions.like": "Нравится",
   "reactions.liked": "Вы отметили",
   "reactions.login": "Войдите, чтобы поставить отметку",
+  "comments.like": "Нравится",
   "comments.title": "Комментарии ({count})",
   "comments.loading": "Загрузка…",
   "comments.empty": "Пока комментариев нет.",
