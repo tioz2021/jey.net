@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
+import { HandleRedirect } from "@/components/handle-redirect";
 import { PublicProfileView } from "@/components/public-profile";
 import { translate } from "@/lib/i18n";
 import { getServerLocale } from "@/lib/i18n/server";
@@ -71,7 +72,7 @@ export default async function PublicProfilePage({
   }
 
   if (data.profile.handle && data.profile.handle !== id) {
-    redirect(`/u/${data.profile.handle}`);
+    return <HandleRedirect handle={data.profile.handle} />;
   }
 
   return (
