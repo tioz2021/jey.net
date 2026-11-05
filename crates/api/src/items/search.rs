@@ -79,9 +79,181 @@ pub async fn search(
     .await
     .map_err(AppError::internal)?;
 
+    // Exact substring search first. A natural-language query ("фильм про дом
+    // с призраками") has no literal match, so try a small semantic expansion.
+    let rows = if rows.is_empty() {
+        let terms = semantic_terms(query);
+        if terms.is_empty() {
+            rows
+        } else {
+            semantic_search(pool, user_id, filters, &terms, limit).await?
+        }
+    } else {
+        rows
+    };
+
     rows.into_iter()
         .map(Item::try_from)
         .collect::<Result<Vec<_>, AppError>>()
+}
+
+/// Searches metadata and genres using short roots and theme synonyms.
+///
+/// This is deliberately a lightweight semantic layer: no model download and
+/// no external service, so it also works offline and in CI.
+async fn semantic_search(
+    pool: &PgPool,
+    user_id: Uuid,
+    filters: &Filters,
+    terms: &[String],
+    limit: i64,
+) -> Result<Vec<ItemRow>, AppError> {
+    let rows = sqlx::query_as::<_, ItemRow>(
+        "select
+             i.id, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+             i.review, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+             i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq, i.device_id,
+             i.created_at, i.updated_at, i.deleted_at
+         from items i
+         cross join lateral (
+             select count(*) as hits
+             from unnest($9::text[]) as term
+             where i.title ilike '%' || term || '%'
+                or coalesce(i.subtitle, '') ilike '%' || term || '%'
+                or coalesce(i.review, '') ilike '%' || term || '%'
+                or coalesce(i.details::text, '') ilike '%' || term || '%'
+         ) matched
+         where i.user_id = $1
+           and i.deleted_at is null
+           and ($2::text is null or i.kind = $2)
+           and ($3::text is null or i.status = $3)
+           and ($5::int is null or i.year >= $5)
+           and ($6::int is null or i.year <= $6)
+           and ($7::int is null or i.rating >= $7)
+           and ($8::int is null or i.rating <= $8)
+           and ($10::text is null or to_char(date_trunc('month', i.created_at), 'YYYY-MM') = $10)
+           and matched.hits > 0
+         order by matched.hits desc, i.created_at desc, i.id desc
+         limit $11",
+    )
+    .bind(user_id)
+    .bind(filters.kind.map(jey_core::items::ItemKind::as_str))
+    .bind(filters.status.map(jey_core::items::ItemStatus::as_str))
+    .bind(filters.tag.as_deref())
+    .bind(filters.year_from)
+    .bind(filters.year_to)
+    .bind(filters.rating_min.map(i32::from))
+    .bind(filters.rating_max.map(i32::from))
+    .bind(terms)
+    .bind(filters.month.as_deref())
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(rows)
+}
+
+/// Expands theme words and strips natural-language filler.
+pub fn semantic_terms(query: &str) -> Vec<String> {
+    const STOP: &[&str] = &[
+        "фильм",
+        "сериал",
+        "книга",
+        "книгу",
+        "игра",
+        "игру",
+        "аниме",
+        "про",
+        "историю",
+        "история",
+        "хочу",
+        "посмотреть",
+        "посмотреть",
+        "найти",
+        "мне",
+        "что",
+        "где",
+        "для",
+        "это",
+        "the",
+        "movie",
+        "film",
+        "about",
+        "with",
+        "and",
+        "for",
+        "about",
+        "series",
+        "book",
+        "game",
+        "anime",
+    ];
+    const THEMES: &[(&[&str], &[&str])] = &[
+        (
+            &[
+                "призрак",
+                "привид",
+                "ужас",
+                "мистик",
+                "ghost",
+                "haunt",
+                "supernatural",
+            ],
+            &["ужас", "мистик", "призр", "ghost"],
+        ),
+        (
+            &["дом", "особняк", "house", "haunted"],
+            &["дом", "особняк", "house"],
+        ),
+        (
+            &["космос", "космич", "space", "sci-fi", "sci"],
+            &["космос", "фантаст", "space", "sci"],
+        ),
+        (
+            &["любов", "роман", "love", "romance"],
+            &["любов", "романт", "мелодрам"],
+        ),
+        (&["войн", "war"], &["войн", "воен"]),
+        (
+            &["дракон", "dragon", "фэнтез", "fantasy"],
+            &["фэнтез", "дракон", "fantasy"],
+        ),
+        (&["зомби", "zombie"], &["зомби", "zombie"]),
+        (
+            &["детектив", "detective", "crime"],
+            &["детектив", "криминал", "crime"],
+        ),
+    ];
+
+    let mut terms: Vec<String> = Vec::new();
+    for token in query
+        .to_lowercase()
+        .split(|ch: char| !ch.is_alphanumeric())
+        .filter(|token| token.chars().count() >= 3)
+    {
+        if STOP.contains(&token) {
+            continue;
+        }
+        let root: String = token.chars().take(5).collect();
+        if !terms.contains(&root) {
+            terms.push(root.clone());
+        }
+        for (needles, expansions) in THEMES {
+            if needles
+                .iter()
+                .any(|needle| token.contains(needle) || root.contains(needle))
+            {
+                for expansion in *expansions {
+                    let expansion = (*expansion).to_owned();
+                    if !terms.contains(&expansion) {
+                        terms.push(expansion);
+                    }
+                }
+            }
+        }
+    }
+    terms.truncate(8);
+    terms
 }
 
 /// Escapes the wildcards so they are matched literally.
@@ -95,6 +267,15 @@ pub fn escape_like(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn semantic_query_expands_ghost_theme() {
+        let terms = semantic_terms("фильм про дом с призраками");
+        assert!(terms.contains(&"ужас".to_string()));
+        assert!(terms.contains(&"мистик".to_string()));
+        assert!(terms.contains(&"дом".to_string()));
+        assert!(!terms.contains(&"фильм".to_string()));
+    }
 
     #[test]
     fn wildcards_are_escaped() {
