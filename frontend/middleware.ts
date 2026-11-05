@@ -151,7 +151,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(
         externalUrl(
           request,
-          `/u/${encodeURIComponent(data.handle)}/item/${cartMatch[1]}`,
+          `/u/${encodeURIComponent(data.handle)}/cart/${cartMatch[1]}`,
         ),
         308,
       );
