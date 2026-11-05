@@ -130,8 +130,10 @@ export default async function PublicItemPage({
         {displaySubtitle ? (
           <p className={styles.subtitle}>{displaySubtitle}</p>
         ) : null}
+        <div className={styles.reactionCorner}>
+          <Reactions itemId={item.id} />
+        </div>
       </header>
-      <Reactions itemId={item.id} />
 
       <div className={styles.layout}>
         <aside className={styles.rail}>

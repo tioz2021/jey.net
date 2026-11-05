@@ -72,3 +72,13 @@
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
+
+.bar {
+  margin: 0;
+}
+
+.like {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: var(--text-xs);
+}
