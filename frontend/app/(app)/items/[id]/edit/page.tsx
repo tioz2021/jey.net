@@ -11,9 +11,18 @@ import type { ItemResponse } from "@/lib/types";
 
 import styles from "./page.module.css";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
   const locale = await getServerLocale();
-
+  const response = await backendFetch(`/items/${encodeURIComponent(id)}`);
+  if (response.ok) {
+    const { item } = (await response.json()) as ItemResponse;
+    return { title: `${item.title} — ${translate(locale, "page.itemEdit")} — jey.net` };
+  }
   return { title: `${translate(locale, "page.itemEdit")} — jey.net` };
 }
 

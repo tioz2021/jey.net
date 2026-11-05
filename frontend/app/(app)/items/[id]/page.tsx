@@ -43,9 +43,18 @@ const KIND_ICONS = {
   other: IconOther,
 } as const;
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
   const locale = await getServerLocale();
-
+  const response = await backendFetch(`/items/${encodeURIComponent(id)}`);
+  if (response.ok) {
+    const { item } = (await response.json()) as ItemResponse;
+    return { title: `${item.title} — jey.net` };
+  }
   return { title: `${translate(locale, "page.item")} — jey.net` };
 }
 

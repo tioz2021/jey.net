@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Card, PageHeader } from "@/components/ui";
@@ -7,6 +8,11 @@ import { backendFetch } from "@/lib/server-api";
 import type { AnalyticsAudience, AnalyticsSummary, Report } from "@/lib/types";
 
 import styles from "./page.module.css";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  return { title: `${translate(locale, "admin.title")} — jey.net` };
+}
 
 interface ReportsResponse {
   reports: Report[];

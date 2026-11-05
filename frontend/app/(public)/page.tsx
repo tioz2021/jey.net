@@ -9,7 +9,7 @@ import styles from "./page.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getServerLocale();
-  const title = translate(locale, "landing.metaTitle");
+  const title = `${translate(locale, "public.home")} — jey.net`;
   const description = translate(locale, "landing.metaDescription");
 
   return {
