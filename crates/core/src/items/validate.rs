@@ -233,6 +233,30 @@ fn clean_details(
             .collect()
     };
 
+    if let Some(progress) = details.progress.as_ref() {
+        if progress.current < 0 {
+            return Err(DomainError::validation_field(
+                "details.progress.current",
+                "progress cannot be negative",
+            ));
+        }
+        if progress
+            .total
+            .is_some_and(|total| total <= 0 || progress.current > total)
+        {
+            return Err(DomainError::validation_field(
+                "details.progress.total",
+                "progress total must be positive and not below current",
+            ));
+        }
+        if !matches!(progress.unit.as_str(), "episode" | "page" | "hour") {
+            return Err(DomainError::validation_field(
+                "details.progress.unit",
+                "progress unit must be episode, page or hour",
+            ));
+        }
+    }
+
     let clean_cast = |people: &[crate::items::CastMember]| -> Result<Vec<crate::items::CastMember>, DomainError> {
         people
             .iter()
@@ -440,6 +464,7 @@ fn clean_details(
             }
             watched
         },
+        progress: details.progress.clone(),
         number_of_seasons: details
             .number_of_seasons
             .filter(|value| (0..=100).contains(value)),

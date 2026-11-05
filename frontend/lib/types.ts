@@ -54,6 +54,12 @@ export interface MovieTranslation {
   companies: string[];
 }
 
+export interface ItemProgress {
+  current: number;
+  total: number | null;
+  unit: "episode" | "page" | "hour";
+}
+
 export interface MovieDetails {
   original_title: string;
   overview: string | null;
@@ -89,6 +95,7 @@ export interface MovieDetails {
   number_of_episodes?: number | null;
   seasons?: SeasonSummary[];
   watched_episodes?: WatchedEpisode[];
+  progress?: ItemProgress | null;
 }
 
 export interface WatchedEpisode {

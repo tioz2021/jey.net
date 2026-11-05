@@ -7,6 +7,7 @@ import { MovieInfo } from "@/components/items/movie-info";
 import { SimilarItems } from "@/components/items/similar-items";
 import { MovieCast } from "@/components/items/movie-cast";
 import { ItemReview } from "@/components/items/item-review";
+import { ProgressEditor } from "@/components/items/progress-editor";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -257,6 +258,8 @@ export default async function ItemPage({
               }
             />
           ) : null}
+
+          <ProgressEditor item={item} />
 
           {item.review ? <ItemReview text={item.review} /> : null}
 

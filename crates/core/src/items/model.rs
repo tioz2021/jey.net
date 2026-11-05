@@ -238,6 +238,19 @@ pub struct MovieDetails {
     pub seasons: Vec<SeasonSummary>,
     #[serde(default)]
     pub watched_episodes: Vec<WatchedEpisode>,
+    #[serde(default)]
+    pub progress: Option<Progress>,
+}
+
+/// Manual progress for kinds that are consumed over time.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Progress {
+    #[serde(default)]
+    pub current: i32,
+    #[serde(default)]
+    pub total: Option<i32>,
+    #[serde(default)]
+    pub unit: String,
 }
 
 /// Old snapshots stored cast as plain strings; accept both shapes.

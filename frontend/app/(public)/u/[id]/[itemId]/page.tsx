@@ -8,6 +8,7 @@ import { MovieInfo } from "@/components/items/movie-info";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { ItemReview } from "@/components/items/item-review";
+import { ProgressSummary } from "@/components/items/progress-summary";
 import { MovieCast } from "@/components/items/movie-cast";
 import { Comments } from "@/components/comments";
 import { Reactions } from "@/components/reactions";
@@ -205,6 +206,8 @@ export default async function PublicItemPage({
         </aside>
 
         <div className={styles.main}>
+          <ProgressSummary item={item} />
+
           {item.details ? (
             <MovieInfo
               details={item.details}

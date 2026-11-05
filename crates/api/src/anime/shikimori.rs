@@ -200,5 +200,6 @@ pub async fn details(id: u64) -> Result<MovieDetails, AppError> {
             .map(|value| value as i32),
         seasons: Vec::new(),
         watched_episodes: Vec::new(),
+        progress: None,
     })
 }

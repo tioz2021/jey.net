@@ -16,7 +16,7 @@ import { RatingStars } from "@/components/items/rating-stars";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 import { STATUS_TONES } from "@/lib/labels";
-import type { ItemKind, ItemStatus } from "@/lib/types";
+import type { ItemKind, ItemProgress, ItemStatus } from "@/lib/types";
 
 import { CardReaction } from "./card-reaction";
 import { RestoreButton } from "./restore-button";
@@ -67,6 +67,8 @@ export interface ItemCardData {
     genres?: string[] | null;
     number_of_episodes?: number | null;
     watched_episodes?: Array<{ season_number: number; episode_number: number }> | null;
+    page_count?: number | null;
+    progress?: ItemProgress | null;
     translations?: Record<
       string,
       {
@@ -105,6 +107,18 @@ export function ItemCard({
   const subtitle = localizedSubtitle(item, locale);
 
   const watchedEpisodes = item.details?.watched_episodes?.length ?? 0;
+  const progress = item.details?.progress;
+  const progressTotal =
+    progress?.total ??
+    (item.kind === "anime"
+      ? item.details?.number_of_episodes
+      : item.kind === "book"
+        ? (item.details as { page_count?: number | null } | null | undefined)?.page_count
+        : null);
+  const progressPercent =
+    progress && progressTotal && progressTotal > 0
+      ? Math.min(100, Math.round((progress.current / progressTotal) * 100))
+      : null;
   const PlaceholderIcon = KIND_ICONS[item.kind];
   const meta = [
     t(KIND_KEYS[item.kind]),
@@ -145,6 +159,34 @@ export function ItemCard({
         ) : null}
 
         <p className={styles.meta}>{meta.join(" · ")}</p>
+
+        {item.kind === "anime" || item.kind === "book" || item.kind === "game" ? (
+          progress && (progress.current > 0 || progressTotal) ? (
+            <div className={styles.progress}>
+              <span>
+                {item.kind === "anime"
+                  ? t("progress.episodesShort", {
+                      current: progress.current,
+                      total: progressTotal ?? "—",
+                    })
+                  : item.kind === "book"
+                    ? t("progress.pagesShort", {
+                        current: progress.current,
+                        total: progressTotal ?? "—",
+                      })
+                    : t("progress.hoursShort", { current: progress.current })}
+              </span>
+              {progressPercent !== null ? (
+                <div className={styles.progressTrack}>
+                  <div
+                    className={styles.progressBar}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null
+        ) : null}
 
         {item.kind === "tv" && watchedEpisodes > 0 ? (
           <p className={styles.episodeProgress}>

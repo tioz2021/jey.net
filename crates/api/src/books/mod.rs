@@ -345,5 +345,6 @@ pub fn snapshot(book: &openlibrary::BookDetails) -> jey_core::items::MovieDetail
         number_of_episodes: None,
         seasons: Vec::new(),
         watched_episodes: Vec::new(),
+        progress: None,
     }
 }
