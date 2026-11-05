@@ -388,8 +388,11 @@ export interface NotificationItem {
   actor_name: string;
   actor_avatar: string | null;
   item_id: string | null;
+  item_author_id: string | null;
   item_title: string | null;
   item_kind: string | null;
+  comment_id: string | null;
+  comment_body: string | null;
   created_at: string;
   read: boolean;
 }

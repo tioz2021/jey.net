@@ -47,3 +47,11 @@
 .unread {
   background: var(--color-accent-soft);
 }
+
+.snippet {
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}

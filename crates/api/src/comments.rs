@@ -9,6 +9,7 @@ use uuid::Uuid;
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::users::notifications::{SocialNotification, notify_social};
 
 #[derive(Debug, Deserialize)]
 pub struct NewComment {
@@ -176,7 +177,7 @@ pub async fn create(
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
     Json(payload): Json<NewComment>,
 ) -> Result<Json<Value>, AppError> {
-    public_item_author(&state.pool, user_id, item_id).await?;
+    let owner = public_item_author(&state.pool, user_id, item_id).await?;
     if blocked_between(&state.pool, current.user.id, user_id).await? {
         return Err(AppError::forbidden("blocked"));
     }
@@ -188,8 +189,8 @@ pub async fn create(
         ));
     }
     if let Some(parent_id) = payload.parent_id {
-        let parent: Option<(Option<Uuid>, bool)> = sqlx::query_as(
-            "select parent_id, deleted_at is null from comments
+        let parent: Option<(Option<Uuid>, bool, Uuid)> = sqlx::query_as(
+            "select parent_id, deleted_at is null, user_id from comments
              where id = $1 and item_id = $2",
         )
         .bind(parent_id)
@@ -197,7 +198,7 @@ pub async fn create(
         .fetch_optional(&state.pool)
         .await
         .map_err(AppError::internal)?;
-        let Some((grandparent, visible)) = parent else {
+        let Some((grandparent, visible, _)) = parent else {
             return Err(AppError::not_found("comment"));
         };
         if !visible || grandparent.is_some() {
@@ -220,6 +221,34 @@ pub async fn create(
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
+
+    let target = if let Some(parent_id) = payload.parent_id {
+        sqlx::query_scalar::<_, Uuid>("select user_id from comments where id = $1")
+            .bind(parent_id)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(AppError::internal)?
+    } else {
+        owner
+    };
+    let (kind, action) = if payload.parent_id.is_some() {
+        ("reply", "ответил(а) на ваш комментарий")
+    } else {
+        ("comment", "прокомментировал(а) вашу запись")
+    };
+    notify_social(
+        &state,
+        target,
+        current.user.id,
+        SocialNotification {
+            kind,
+            item_id,
+            comment_id: Some(id),
+            push_body: &format!("{} {action}", current.user.display_name),
+            url: &format!("/u/{user_id}/{item_id}"),
+        },
+    )
+    .await;
     Ok(Json(json!({ "id": id })))
 }
 
@@ -229,8 +258,9 @@ pub async fn toggle_reaction(
     current: CurrentUser,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
-    let item_id: Option<Uuid> = sqlx::query_scalar(
-        "select c.item_id from comments c join items i on i.id = c.item_id
+    let context: Option<(Uuid, Uuid, Uuid)> = sqlx::query_as(
+        "select c.item_id, c.user_id, i.user_id
+         from comments c join items i on i.id = c.item_id
          join users u on u.id = i.user_id
          where c.id = $1 and c.deleted_at is null
            and i.deleted_at is null and not i.public_hidden
@@ -241,14 +271,10 @@ pub async fn toggle_reaction(
     .fetch_optional(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let Some(item_id) = item_id else {
+    let Some((item_id, comment_author, item_owner)) = context else {
         return Err(AppError::not_found("comment"));
     };
-    let author = public_item_author(&state.pool, current.user.id, item_id).await;
-    if author.is_err() {
-        return Err(AppError::not_found("comment"));
-    }
-    if blocked_between(&state.pool, current.user.id, author.unwrap()).await? {
+    if blocked_between(&state.pool, current.user.id, item_owner).await? {
         return Err(AppError::forbidden("blocked"));
     }
     let removed =
@@ -270,6 +296,24 @@ pub async fn toggle_reaction(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+    }
+    if !removed {
+        notify_social(
+            &state,
+            comment_author,
+            current.user.id,
+            SocialNotification {
+                kind: "reaction",
+                item_id,
+                comment_id: Some(id),
+                push_body: &format!(
+                    "{} отреагировал(а) на ваш комментарий",
+                    current.user.display_name
+                ),
+                url: &format!("/u/{item_owner}/{item_id}"),
+            },
+        )
+        .await;
     }
     let count: i64 =
         sqlx::query_scalar("select count(*) from comment_reactions where comment_id = $1")

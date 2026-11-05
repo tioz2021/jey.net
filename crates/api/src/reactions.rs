@@ -8,10 +8,11 @@ use uuid::Uuid;
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::users::notifications::{SocialNotification, notify_social};
 
-async fn ensure_public_item(pool: &sqlx::PgPool, item_id: Uuid) -> Result<(), AppError> {
-    let visible: Option<Uuid> = sqlx::query_scalar(
-        "select i.id from items i join users u on u.id = i.user_id
+async fn ensure_public_item(pool: &sqlx::PgPool, item_id: Uuid) -> Result<Uuid, AppError> {
+    let owner: Option<Uuid> = sqlx::query_scalar(
+        "select i.user_id from items i join users u on u.id = i.user_id
          where i.id = $1 and i.deleted_at is null and not i.public_hidden
            and u.is_public and u.deleted_at is null
            and i.status = ANY(u.public_statuses)",
@@ -20,9 +21,7 @@ async fn ensure_public_item(pool: &sqlx::PgPool, item_id: Uuid) -> Result<(), Ap
     .fetch_optional(pool)
     .await
     .map_err(AppError::internal)?;
-    visible
-        .ok_or_else(|| AppError::not_found("record"))
-        .map(|_| ())
+    owner.ok_or_else(|| AppError::not_found("record"))
 }
 
 /// `GET /api/v1/public/items/{id}/reactions`
@@ -56,7 +55,7 @@ pub async fn toggle(
     current: CurrentUser,
     Path(item_id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
-    ensure_public_item(&state.pool, item_id).await?;
+    let owner = ensure_public_item(&state.pool, item_id).await?;
     let removed = sqlx::query("delete from reactions where user_id = $1 and item_id = $2")
         .bind(current.user.id)
         .bind(item_id)
@@ -74,6 +73,24 @@ pub async fn toggle(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+    }
+    if !removed {
+        notify_social(
+            &state,
+            owner,
+            current.user.id,
+            SocialNotification {
+                kind: "reaction",
+                item_id,
+                comment_id: None,
+                push_body: &format!(
+                    "{} отреагировал(а) на вашу запись",
+                    current.user.display_name
+                ),
+                url: &format!("/u/{owner}/{item_id}"),
+            },
+        )
+        .await;
     }
     let count: i64 = sqlx::query_scalar("select count(*) from reactions where item_id = $1")
         .bind(item_id)

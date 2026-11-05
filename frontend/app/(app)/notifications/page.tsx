@@ -69,7 +69,15 @@ export default function NotificationsPage() {
           />
         ) : (
           <ul className={styles.list}>
-            {items.map((item) => (
+            {items.map((item) => {
+              const itemHref =
+                item.item_id && item.item_author_id
+                  ? `/u/${item.item_author_id}/${item.item_id}`
+                  : `/u/${item.actor_id}`;
+              const isComment = item.kind === "comment";
+              const isReply = item.kind === "reply";
+              const isReaction = item.kind === "reaction";
+              return (
               <li className={`${styles.item} ${item.read ? "" : styles.unread}`} key={item.id}>
                 <Link href={`/u/${item.actor_id}`}>
                   {item.actor_avatar ? (
@@ -91,7 +99,30 @@ export default function NotificationsPage() {
                     {item.kind === "item" && item.item_id ? (
                       <>
                         {t("notifications.addedItem")}{" "}
-                        <Link href={`/u/${item.actor_id}/${item.item_id}`}>
+                        <Link href={itemHref}>
+                          {item.item_title ?? t("notifications.itemFallback")}
+                        </Link>
+                      </>
+                    ) : isComment ? (
+                      <>
+                        {t("notifications.commented")}{" "}
+                        <Link href={itemHref}>
+                          {item.item_title ?? t("notifications.itemFallback")}
+                        </Link>
+                      </>
+                    ) : isReply ? (
+                      <>
+                        {t("notifications.replied")}{" "}
+                        <Link href={itemHref}>
+                          {item.item_title ?? t("notifications.itemFallback")}
+                        </Link>
+                      </>
+                    ) : isReaction ? (
+                      <>
+                        {item.comment_id
+                          ? t("notifications.reactedComment")
+                          : t("notifications.reactedItem")}{" "}
+                        <Link href={itemHref}>
                           {item.item_title ?? t("notifications.itemFallback")}
                         </Link>
                       </>
@@ -99,10 +130,14 @@ export default function NotificationsPage() {
                       t("notifications.followedYou")
                     )}
                   </p>
+                  {item.comment_body && (isComment || isReply || isReaction) ? (
+                    <p className={styles.snippet}>«{item.comment_body}»</p>
+                  ) : null}
                   <time className={styles.time}>{date(item.created_at)}</time>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </Card>
