@@ -29,3 +29,10 @@
   background: var(--color-accent-soft);
   border-color: var(--color-accent);
 }
+
+.button.active:hover:not(:disabled),
+.button.active:focus-visible {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}

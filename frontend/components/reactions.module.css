@@ -64,3 +64,11 @@
   color: #fff;
   background: var(--color-accent);
 }
+
+/* Keep the label readable when an active like is hovered/focused. */
+.like.active:hover:not(:disabled),
+.like.active:focus-visible {
+  color: #fff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
