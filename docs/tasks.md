@@ -760,7 +760,9 @@
 - `PUBLIC_URL=https://j3ynet.site`; `ALLOWED_ORIGINS` временно содержит и
   старый sslip-alias.
 - Проверены `/`, `/login`, `/api/v1/health` и публичный профиль.
-- OAuth redirect нужно будет обновить при закрытии B02.
+- OAuth redirect в `/etc/jey/api.env` переключён на
+  `https://j3ynet.site/api/v1/auth/google/callback`; осталось добавить этот
+  URI в Google Cloud Console при закрытии B02.
 
 ## B02 · Опубликовать Google OAuth-приложение `[!]`
 

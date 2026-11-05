@@ -229,6 +229,9 @@ ALLOWED_ORIGINS=https://j3ynet.site,https://129-121-149-16.sslip.io
 MEDIA_DIR=/var/lib/jey/media
 MAIL_DIR=/var/lib/jey/mail
 MAIL_FROM=jey@j3ynet.site
+GOOGLE_CLIENT_ID=<google-client-id>
+GOOGLE_CLIENT_SECRET=<google-client-secret>
+GOOGLE_REDIRECT_URL=https://j3ynet.site/api/v1/auth/google/callback
 ```
 
 `RUN_MIGRATIONS=false`: миграции применяются отдельным шагом при деплое, а не
@@ -289,7 +292,7 @@ SSH, а не сразу.
 | `header` | HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, скрытие `Server` |
 | `request_body max_size 40MB` | верхняя граница; реальные лимиты — в API |
 | `reverse_proxy /api/*`, `/media/*`, `/health*` | в API на `127.0.0.1:8080` |
-| `handle {}` | заглушка до деплоя фронтенда (T75) |
+| `handle {}` | проксирование всех остальных запросов в Next.js |
 
 ### Установка
 
