@@ -23,7 +23,7 @@
 Канал задаётся в `/etc/jey/health.env` (права `600`):
 
 ```ini
-BASE_URL=https://129-121-149-16.sslip.io
+BASE_URL=https://j3ynet.site
 
 # Telegram: создать бота у @BotFather, узнать chat_id, вставить токен
 ALERT_WEBHOOK=https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<CHAT_ID>

@@ -3,7 +3,7 @@
 Машиночитаемая спецификация — [`openapi.yaml`](openapi.yaml) (OpenAPI 3.1).
 Подробный текстовый контракт — [`protocol.md`](protocol.md).
 
-- **Прод:** `https://129-121-149-16.sslip.io/api/v1`
+- **Прод:** `https://j3ynet.site/api/v1`
 - **Локально:** `http://localhost:8080/api/v1`
 
 Вне префикса `/api/v1` живут служебные маршруты и медиа:
@@ -19,8 +19,8 @@
 ## Быстрый старт
 
 ```bash
-BASE=https://129-121-149-16.sslip.io/api/v1
-ORIGIN=https://129-121-149-16.sslip.io
+BASE=https://j3ynet.site/api/v1
+ORIGIN=https://j3ynet.site
 
 # 1. Регистрация: cookie сохраняется в jar
 curl -sS -c jar.txt -X POST "$BASE/auth/register" \

@@ -1,9 +1,9 @@
 # jey.net — reverse proxy and TLS termination.
 #
-# The hostname is an sslip.io alias until a real domain is bought: it resolves
-# to the server IP and lets Let's Encrypt issue a normal certificate.
+# j3ynet.site is canonical; the sslip.io alias stays available during the
+# transition. Caddy obtains and renews certificates automatically.
 
-129-121-149-16.sslip.io {
+(jey_app) {
 	encode zstd gzip
 
 	header {
@@ -47,4 +47,16 @@
 	handle {
 		reverse_proxy 127.0.0.1:3000
 	}
+}
+
+j3ynet.site {
+	import jey_app
+}
+
+www.j3ynet.site {
+	redir https://j3ynet.site{uri} permanent
+}
+
+129-121-149-16.sslip.io {
+	import jey_app
 }

@@ -14,7 +14,7 @@ Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOSTNAME=127.0.0.1
 Environment=BACKEND_URL=http://127.0.0.1:8080
-Environment=PUBLIC_URL=https://129-121-149-16.sslip.io
+Environment=PUBLIC_URL=https://j3ynet.site
 ExecStart=/usr/bin/node server.js
 Restart=always
 RestartSec=2

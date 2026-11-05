@@ -34,7 +34,7 @@ if [[ -r "${ENV_FILE}" ]]; then
 fi
 
 LOG_TAG="jey-health"
-BASE_URL="${BASE_URL:-https://129-121-149-16.sslip.io}"
+BASE_URL="${BASE_URL:-https://j3ynet.site}"
 DISK_WARN="${DISK_WARN:-80}"
 MEM_WARN_MB="${MEM_WARN_MB:-100}"
 STATE_FILE="${STATE_FILE:-/var/lib/jey/health.state}"

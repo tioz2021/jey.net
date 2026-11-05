@@ -224,11 +224,11 @@ BIND_ADDR=127.0.0.1:8080
 LOG_FORMAT=json
 RUN_MIGRATIONS=false
 SESSION_TTL_DAYS=30
-PUBLIC_URL=https://129-121-149-16.sslip.io
-ALLOWED_ORIGINS=https://129-121-149-16.sslip.io
+PUBLIC_URL=https://j3ynet.site
+ALLOWED_ORIGINS=https://j3ynet.site,https://129-121-149-16.sslip.io
 MEDIA_DIR=/var/lib/jey/media
 MAIL_DIR=/var/lib/jey/mail
-MAIL_FROM=jey@129-121-149-16.sslip.io
+MAIL_FROM=jey@j3ynet.site
 ```
 
 `RUN_MIGRATIONS=false`: миграции применяются отдельным шагом при деплое, а не
@@ -276,10 +276,10 @@ SSH, а не сразу.
 
 Файл `deploy/Caddyfile` копируется в `/etc/caddy/Caddyfile`.
 
-Пока своего домена нет, используется `129-121-149-16.sslip.io`: это имя
-автоматически резолвится в IP сервера, поэтому Let's Encrypt выдаёт обычный
-сертификат. Когда появится настоящий домен — меняем hostname в Caddyfile и
-`PUBLIC_URL`/`ALLOWED_ORIGINS` в `/etc/jey/api.env`, перезапускаем оба сервиса.
+Канонический домен — `j3ynet.site`; `www.j3ynet.site` редиректит на него.
+Старый `129-121-149-16.sslip.io` оставлен в Caddyfile как временный alias,
+чтобы не потерять доступ во время перехода. Let's Encrypt выпускает
+сертификаты автоматически.
 
 Что делает конфигурация:
 

@@ -9,7 +9,7 @@
 | Что | Где |
 |---|---|
 | Сервер | `129.121.149.16`, пользователь `jey` (sudo ограничен), `root` — по ключу |
-| Домен (временный) | `129-121-149-16.sslip.io` (sslip.io, DNS настраивать не нужно) |
+| Домен | `j3ynet.site`; `www` редиректит на него |
 | Панель провайдера | VNC-консоль — единственный способ войти, если SSH отвалился |
 | Репозиторий | GitHub `tioz2021/jey.net`, деплой — `scripts/deploy.sh` |
 | Алерты | webhook из `/etc/jey/health.env` (Telegram) + `journalctl -t jey-health` |
@@ -174,7 +174,7 @@ journalctl -u jey-healthcheck.service --since "1 hour ago" --no-pager
 Внешние уведомления включаются в `/etc/jey/health.env` (600 root):
 
 ```bash
-BASE_URL=https://129-121-149-16.sslip.io
+BASE_URL=https://j3ynet.site
 ALERT_WEBHOOK=https://api.telegram.org/bot<TOKEN>/sendMessage?chat_id=<CHAT_ID>
 CERT_WARN_DAYS=14
 BACKUP_MAX_HOURS=30
