@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { IconBell } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
+import { playNotificationSound, unlockNotificationSound } from "@/lib/notification-sound";
 
 import styles from "./notification-bell.module.css";
 
@@ -45,28 +46,10 @@ function updateFavicon(count: number) {
   link.href = canvas.toDataURL("image/png");
 }
 
-function playTone(context: AudioContext) {
-  if (context.state !== "running") return;
-  const now = context.currentTime;
-  [0, 0.16].forEach((offset, index) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = index === 0 ? 880 : 660;
-    gain.gain.setValueAtTime(0.0001, now + offset);
-    gain.gain.exponentialRampToValueAtTime(0.12, now + offset + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.13);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(now + offset);
-    oscillator.stop(now + offset + 0.15);
-  });
-}
-
 export function NotificationBell() {
   const { user } = useUser();
   const { t } = useI18n();
   const [unread, setUnread] = useState(0);
-  const audioRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -121,8 +104,8 @@ export function NotificationBell() {
       try {
         const response = await api.notifications.list();
         if (cancelled) return;
-        if (previousUnread !== null && response.unread > previousUnread && audioRef.current) {
-          playTone(audioRef.current);
+        if (previousUnread !== null && response.unread > previousUnread) {
+          void playNotificationSound();
         }
         previousUnread = response.unread;
         setUnread(response.unread);
@@ -144,22 +127,12 @@ export function NotificationBell() {
       }
     };
     const onRead = () => void load();
-    const unlockAudio = () => {
-      if (!audioRef.current) {
-        const Audio =
-          window.AudioContext ??
-          (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-        if (Audio) audioRef.current = new Audio();
-      }
-      void audioRef.current?.resume();
-    };
-
     void load();
     window.addEventListener("jey:notifications-read", onRead);
     window.addEventListener("focus", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("pointerdown", unlockAudio, { once: true });
-    window.addEventListener("keydown", unlockAudio, { once: true });
+    window.addEventListener("pointerdown", unlockNotificationSound, { once: true });
+    window.addEventListener("keydown", unlockNotificationSound, { once: true });
     return () => {
       cancelled = true;
       clearTimer();
@@ -169,8 +142,8 @@ export function NotificationBell() {
       window.removeEventListener("jey:notifications-read", onRead);
       window.removeEventListener("focus", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pointerdown", unlockAudio);
-      window.removeEventListener("keydown", unlockAudio);
+      window.removeEventListener("pointerdown", unlockNotificationSound);
+      window.removeEventListener("keydown", unlockNotificationSound);
     };
   }, [user]);
 

@@ -356,6 +356,7 @@ export const en = {
   'settings.blockedEmpty': 'Nobody here.',
   'settings.unblock': 'Unblock',
   "settings.notificationsTitle": "Notifications",
+  "settings.testSound": "Test sound",
   "settings.notificationsHint": "What appears in the notification center.",
   "settings.notification.follow": "New follower",
   "settings.notification.item": "New record from someone you follow",

@@ -356,6 +356,7 @@ export const uk = {
   'settings.blockedEmpty': 'Нікого немає.',
   'settings.unblock': 'Розблокувати',
   "settings.notificationsTitle": "Сповіщення",
+  "settings.testSound": "Перевірити звук",
   "settings.notificationsHint": "Що показувати в центрі сповіщень.",
   "settings.notification.follow": "Новий підписник",
   "settings.notification.item": "Новий запис підписки",

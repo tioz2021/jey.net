@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { NotificationPreferences } from "@/lib/types";
+import { playNotificationSound } from "@/lib/notification-sound";
 
 import styles from "./notification-settings.module.css";
 
@@ -57,6 +58,13 @@ export function NotificationSettings() {
   return (
     <Card title={t("settings.notificationsTitle")}>
       <p className={styles.hint}>{t("settings.notificationsHint")}</p>
+      <Button
+        onClick={() => void playNotificationSound()}
+        size="sm"
+        variant="secondary"
+      >
+        {t("settings.testSound")}
+      </Button>
       <ul className={styles.list}>
         {ROWS.map(({ key, label }) => (
           <li className={styles.row} key={key}>
