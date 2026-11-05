@@ -84,7 +84,7 @@ pub async fn follow(
         sqlx::query(
             "insert into notifications (id, user_id, actor_id, kind)
              values (gen_random_uuid(), $1, $2, 'follow')
-             on conflict (user_id, actor_id, kind)
+             on conflict (user_id, actor_id, kind) where kind = 'follow'
              do update set created_at = now(), read_at = null",
         )
         .bind(target)

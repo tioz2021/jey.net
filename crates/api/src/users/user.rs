@@ -121,7 +121,7 @@ fn slugify(value: &str) -> String {
             out.push(ch);
         }
     }
-    let out: String = out.chars().take(32).collect();
+    let out: String = out.chars().take(32).collect::<String>().to_lowercase();
     if out.is_empty() {
         "user".to_owned()
     } else {

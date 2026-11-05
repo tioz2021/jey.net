@@ -102,7 +102,7 @@ pub async fn notify_new_item(
                where (b.blocker_id = $1 and b.blocked_id = f.follower_id)
                   or (b.blocker_id = f.follower_id and b.blocked_id = $1)
            )
-         on conflict (user_id, item_id) where item_id is not null do nothing",
+         on conflict (user_id, item_id) where kind = 'item' do nothing",
     )
     .bind(actor_id)
     .bind(item_id)
