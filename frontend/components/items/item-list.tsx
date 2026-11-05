@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button, Select } from "@/components/ui";
 import { EmptyState } from "@/components/empty-state";
@@ -77,11 +78,16 @@ export function ItemList({
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [filterSlot, setFilterSlot] = useState<HTMLElement | null>(null);
   const [bulkStatus, setBulkStatus] = useState<ItemStatus | "">("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectAllBusy, setSelectAllBusy] = useState(false);
   const [bulkChanged, setBulkChanged] = useState(false);
+
+  useEffect(() => {
+    setFilterSlot(document.getElementById("items-filter-slot"));
+  }, []);
 
   useEffect(() => {
     if (skipQuery.current !== null) {
@@ -225,14 +231,20 @@ export function ItemList({
       <div className={styles.mobileSearch}>
         <SearchBox />
       </div>
-      <ItemsFilters
-        onSelect={() => {
-          setSelectionMode(true);
-          setSelected(new Set());
-          setBulkChanged(false);
-        }}
-        selectionMode={selectionMode}
-      />
+      {filterSlot
+        ? createPortal(
+            <ItemsFilters
+              compact
+              onSelect={() => {
+                setSelectionMode(true);
+                setSelected(new Set());
+                setBulkChanged(false);
+              }}
+              selectionMode={selectionMode}
+            />,
+            filterSlot,
+          )
+        : null}
 
       {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>

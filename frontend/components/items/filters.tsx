@@ -25,9 +25,11 @@ const SORTS = Object.keys(SORT_KEYS) as Sort[];
 export function ItemsFilters({
   onSelect,
   selectionMode = false,
+  compact = false,
 }: {
   onSelect?: () => void;
   selectionMode?: boolean;
+  compact?: boolean;
 }) {
   const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
@@ -62,7 +64,7 @@ export function ItemsFilters({
   return (
     <section
       aria-label={t("filters.title")}
-      className={`${styles.panel} ${open ? styles.open : ""}`}
+      className={`${styles.panel} ${open ? styles.open : ""} ${compact ? styles.compact : ""}`}
     >
       <h2 className={styles.head} id="filters-title">
         {t("filters.title")}
@@ -102,19 +104,21 @@ export function ItemsFilters({
         <SearchBox className={styles.desktopSearch} />
 
         <div className={styles.row}>
-        <Select
-          className={styles.select}
-          label={t("filters.kind")}
-          value={searchParams.get("kind") ?? ""}
-          onChange={(event) => setParam("kind", event.target.value)}
-        >
-          <option value="">{t("filters.kindAny")}</option>
-          {KINDS.map((value) => (
-            <option key={value} value={value}>
-              {t(KIND_KEYS[value])}
-            </option>
-          ))}
-        </Select>
+        {compact ? null : (
+          <Select
+            className={styles.select}
+            label={t("filters.kind")}
+            value={searchParams.get("kind") ?? ""}
+            onChange={(event) => setParam("kind", event.target.value)}
+          >
+            <option value="">{t("filters.kindAny")}</option>
+            {KINDS.map((value) => (
+              <option key={value} value={value}>
+                {t(KIND_KEYS[value])}
+              </option>
+            ))}
+          </Select>
+        )}
 
         <Select
           className={styles.select}

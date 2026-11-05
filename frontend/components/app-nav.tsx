@@ -152,6 +152,7 @@ export function AppNav() {
         </Link>
       </div>
     </aside>
+    <div id="items-filter-slot" />
     <FollowingSidebar />
     </div>
   );
