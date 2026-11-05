@@ -310,16 +310,24 @@ pub async fn similar(
     Ok(Json(payload))
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct PublicSimilarQuery {
+    pub locale: Option<String>,
+}
+
 /// `GET /api/v1/public/items/{id}/similar` — the same block for guests.
 pub async fn public_similar(
     State(state): State<AppState>,
     axum::extract::Path(id): axum::extract::Path<uuid::Uuid>,
+    axum::extract::Query(query): axum::extract::Query<PublicSimilarQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let cache_key = format!("public-similar:{}", id);
+    let locale = query.locale.as_deref().unwrap_or("ru");
+    let (tmdb_language, book_language) = languages(locale);
+    let cache_key = format!("public-similar:{locale}:{id}");
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
     }
-    let payload = load_similar(&state, id, None, "ru-RU", "ru").await?;
+    let payload = load_similar(&state, id, None, tmdb_language, book_language).await?;
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }

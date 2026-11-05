@@ -257,6 +257,9 @@ export const items = {
   list: (filters: ItemFilters = {}) =>
     request<ItemList>(`/items${toQuery({ ...filters })}`),
 
+  ids: (filters: ItemFilters = {}) =>
+    request<{ ids: string[] }>(`/items/ids${toQuery({ ...filters })}`),
+
   get: (id: string) => request<ItemResponse>(`/items/${id}`),
 
   create: (input: NewItem) =>
@@ -407,9 +410,9 @@ export const publicUsers = {
 };
 
 export const publicItems = {
-  similar: (id: string) =>
+  similar: (id: string, locale: string) =>
     request<{ items: SimilarItem[] }>(
-      `/public/items/${encodeURIComponent(id)}/similar`,
+      `/public/items/${encodeURIComponent(id)}/similar?locale=${encodeURIComponent(locale)}`,
       { redirectOnUnauthorized: false },
     ),
   episodes: (userId: string, itemId: string, season: number) =>

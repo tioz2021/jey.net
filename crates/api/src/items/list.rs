@@ -122,6 +122,65 @@ pub async fn list_items(
     Ok(Json(json!({ "items": views, "next_cursor": next_cursor })))
 }
 
+/// `GET /api/v1/items/ids` — every matching id for a bulk selection.
+pub async fn list_ids(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    query: Result<Query<ListQuery>, QueryRejection>,
+) -> Result<Json<Value>, AppError> {
+    let Query(query) = query.map_err(|rejection| AppError::validation(rejection.body_text()))?;
+    let filters = Filters::parse(&query)?;
+    let only_deleted = query.only_deleted.unwrap_or(false);
+    let include_deleted = query.include_deleted.unwrap_or(false) || only_deleted;
+    let search_query = query
+        .q
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned);
+
+    let ids: Vec<Uuid> = if let Some(search_query) = search_query
+        && !only_deleted
+    {
+        if search_query.chars().count() > search::MAX_QUERY_LENGTH {
+            return Err(AppError::validation_field(
+                "q",
+                format!("q must be at most {} characters", search::MAX_QUERY_LENGTH),
+            ));
+        }
+        search::search(
+            &state.pool,
+            current.user.id,
+            &filters,
+            &search_query,
+            10_000,
+        )
+        .await?
+        .into_iter()
+        .map(|item| item.id)
+        .collect()
+    } else {
+        repo::list_page(
+            &state.pool,
+            repo::ListPage {
+                user_id: current.user.id,
+                filters,
+                sort: Sort::CreatedDesc,
+                limit: 10_000,
+                cursor: None,
+                include_deleted,
+                only_deleted,
+            },
+        )
+        .await?
+        .into_iter()
+        .map(|item| item.id)
+        .collect()
+    };
+
+    Ok(Json(json!({ "ids": ids })))
+}
+
 /// `GET /api/v1/items/{id}/neighbors`
 ///
 /// Ids of the previous and next record in the same filtered order the list

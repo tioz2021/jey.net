@@ -470,9 +470,10 @@ export function ItemForm({
         if (field && field !== "kind" && field !== "status") {
           setErrors({ [field]: error.message });
         } else {
-          notifyError(error);
+          setErrors({ form: error.message });
         }
       } else {
+        setErrors({ form: t("error.fallbackText") });
         notifyError(error);
       }
       setSubmitting(false);
@@ -480,12 +481,15 @@ export function ItemForm({
   }
 
   const compactMedia = !itemId && COMPACT_KINDS.has(values.kind);
-  const submitError =
-    errors.form ?? Object.values(errors).find(Boolean);
   const showExtra = !compactMedia || advanced;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      {errors.form ? (
+        <p className={styles.formError} role="alert">
+          {errors.form}
+        </p>
+      ) : null}
       {lockKind && !showExtra ? null : (
       <div
         className={`${styles.row} ${
@@ -666,18 +670,6 @@ export function ItemForm({
         onChange={(event) => update("review", event.target.value)}
         error={errors.review}
       />
-
-      {errors.form ? (
-        <p className={styles.formError} role="alert">
-          {errors.form}
-        </p>
-      ) : null}
-
-      {submitError && !errors.title && !errors.subtitle ? (
-        <p className={styles.formError} role="alert">
-          {submitError}
-        </p>
-      ) : null}
 
       <div className={styles.actions}>
         <Button type="submit" loading={submitting}>

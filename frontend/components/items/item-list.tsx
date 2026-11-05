@@ -156,17 +156,7 @@ export function ItemList({
   async function selectAll() {
     setSelectAllBusy(true);
     try {
-      const ids: string[] = [];
-      let cursor: string | null = null;
-      do {
-        const page = await api.items.list({
-          ...filters,
-          limit: 100,
-          cursor,
-        });
-        ids.push(...page.items.map((item) => item.id));
-        cursor = page.next_cursor;
-      } while (cursor && ids.length < 5000);
+      const { ids } = await api.items.ids(filters);
       setSelected(new Set(ids));
     } finally {
       setSelectAllBusy(false);

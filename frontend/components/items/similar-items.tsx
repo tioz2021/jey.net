@@ -21,14 +21,16 @@ export function SimilarItems({
   itemId: string;
   publicView?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [items, setItems] = useState<SimilarItem[]>([]);
   const [expanded, setExpanded] = useState(false);
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
-    (publicView ? api.publicItems.similar(itemId) : api.items.similar(itemId))
+    (publicView
+      ? api.publicItems.similar(itemId, locale)
+      : api.items.similar(itemId))
       .then((response) => {
         if (!cancelled) setItems(response.items);
       })
@@ -36,7 +38,7 @@ export function SimilarItems({
     return () => {
       cancelled = true;
     };
-  }, [itemId, publicView]);
+  }, [itemId, locale, publicView]);
 
   const visible = items.filter(
     (item) => !hidden.has(similarRecommendationKey(item.source, item.external_id)),
