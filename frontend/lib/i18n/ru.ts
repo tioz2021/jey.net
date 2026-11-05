@@ -355,6 +355,7 @@ export const ru = {
   'settings.blockedEmpty': 'Никого нет.',
   'settings.unblock': 'Разблокировать',
   "settings.notificationsTitle": "Уведомления",
+  "settings.soundTestHint": "Сигнал отправлен. Если не слышно — проверьте громкость вкладки и системный звук.",
   "settings.testSound": "Проверить звук",
   "settings.notificationsHint": "Что показывать в центре уведомлений.",
   "settings.notification.follow": "Новый подписчик",

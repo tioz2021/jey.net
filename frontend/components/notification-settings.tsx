@@ -24,6 +24,7 @@ export function NotificationSettings() {
   const { t } = useI18n();
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [tested, setTested] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,12 +60,17 @@ export function NotificationSettings() {
     <Card title={t("settings.notificationsTitle")}>
       <p className={styles.hint}>{t("settings.notificationsHint")}</p>
       <Button
-        onClick={() => void playNotificationSound()}
+        onClick={() => {
+          void playNotificationSound().then(() => setTested(true));
+        }}
         size="sm"
         variant="secondary"
       >
         {t("settings.testSound")}
       </Button>
+      {tested ? (
+        <p className={styles.hint}>{t("settings.soundTestHint")}</p>
+      ) : null}
       <ul className={styles.list}>
         {ROWS.map(({ key, label }) => (
           <li className={styles.row} key={key}>
