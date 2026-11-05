@@ -21,6 +21,7 @@ import type {
   TasteRecommendation,
   TasteGenre,
   Comment,
+  ReactionLiker,
   Item,
   ItemFilters,
   ItemList,
@@ -432,6 +433,16 @@ export const publicUsers = {
 };
 
 export const publicItems = {
+  reactions: (id: string) =>
+    request<{ count: number; likers: ReactionLiker[] }>(
+      `/public/items/${encodeURIComponent(id)}/reactions`,
+      { redirectOnUnauthorized: false },
+    ),
+  react: (id: string) =>
+    request<{ reacted: boolean; count: number }>(
+      `/public/items/${encodeURIComponent(id)}/reactions`,
+      { method: "POST" },
+    ),
   similar: (id: string, locale: string) =>
     request<{ items: SimilarItem[] }>(
       `/public/items/${encodeURIComponent(id)}/similar?locale=${encodeURIComponent(locale)}`,

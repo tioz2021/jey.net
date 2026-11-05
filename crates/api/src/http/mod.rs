@@ -114,6 +114,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/items/{id}/similar",
             get(crate::recommendations::public_similar),
         )
+        .route("/public/items/{id}/reactions", get(crate::reactions::list))
         .route(
             "/public/users/{id}/items/{item_id}/comments",
             get(crate::comments::list),

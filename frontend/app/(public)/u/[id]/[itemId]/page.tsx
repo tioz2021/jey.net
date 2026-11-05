@@ -8,6 +8,7 @@ import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { ItemReview } from "@/components/items/item-review";
 import { MovieCast } from "@/components/items/movie-cast";
 import { Comments } from "@/components/comments";
+import { Reactions } from "@/components/reactions";
 import { SimilarItems } from "@/components/items/similar-items";
 import {
   IconBook,
@@ -130,6 +131,7 @@ export default async function PublicItemPage({
           <p className={styles.subtitle}>{displaySubtitle}</p>
         ) : null}
       </header>
+      <Reactions itemId={item.id} />
 
       <div className={styles.layout}>
         <aside className={styles.rail}>

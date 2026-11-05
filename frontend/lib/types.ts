@@ -383,6 +383,12 @@ export interface FeedItem extends PublicItem {
   author_name: string;
 }
 
+export interface ReactionLiker {
+  id: string;
+  name: string;
+  avatar: string | null;
+}
+
 export interface Comment {
   id: string;
   parent_id: string | null;
