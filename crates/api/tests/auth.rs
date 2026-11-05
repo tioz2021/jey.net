@@ -315,7 +315,8 @@ async fn profile_can_be_read_and_updated() {
     assert_eq!(before.status, 200);
     assert_eq!(before.body["user"]["display_name"], "Test User");
     assert_eq!(before.body["user"]["locale"], "ru");
-    assert_eq!(before.body["user"]["is_public"], false);
+    // Public profiles are opt-out: a new account starts with an open page.
+    assert_eq!(before.body["user"]["is_public"], true);
 
     let updated = client
         .patch(

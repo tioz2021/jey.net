@@ -100,6 +100,11 @@ async fn another_account_cannot_read_private_media() {
     let (client, email, cookie, user_id) = logged_in().await;
     let upload_id = upload(&client, &cookie).await;
     let key = format!("u/{user_id}/{upload_id}/large.webp");
+    // Profiles are public by default; make this one private on purpose.
+    let hidden = client
+        .patch("/api/v1/me", json!({ "is_public": false }), &cookie)
+        .await;
+    assert_eq!(hidden.status, 200, "body: {}", hidden.body);
 
     let (stranger, stranger_email, stranger_cookie, stranger_id) = logged_in().await;
 

@@ -16,6 +16,11 @@ async fn account() -> (TestClient, String, String) {
             json!({ "email": email, "password": PASSWORD, "display_name": "Collector" }),
         )
         .await;
+    assert_eq!(
+        registered.status, 201,
+        "email={email} body: {}",
+        registered.body
+    );
     let cookie = registered.session_cookie().expect("registration cookie");
 
     (client, email, cookie)

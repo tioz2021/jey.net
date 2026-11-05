@@ -499,13 +499,15 @@ impl TestClient {
 pub async fn create_test_user(pool: &PgPool) -> uuid::Uuid {
     let id = uuid::Uuid::new_v4();
     let email = format!("repo-{}@example.com", id);
+    let handle = format!("repo-{}", &id.simple().to_string()[..8]);
 
     sqlx::query(
-        "insert into users (id, email, password_hash, display_name)
-         values ($1, $2, 'not-a-real-hash', 'Repo Tester')",
+        "insert into users (id, email, password_hash, display_name, handle)
+         values ($1, $2, 'not-a-real-hash', 'Repo Tester', $3)",
     )
     .bind(id)
     .bind(email)
+    .bind(handle)
     .execute(pool)
     .await
     .expect("test user is created");

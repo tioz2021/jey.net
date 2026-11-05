@@ -23,6 +23,12 @@ async fn account() -> (TestClient, String, String, Value) {
     assert_eq!(response.status, 201, "body: {}", response.body);
     let cookie = response.session_cookie().expect("session cookie");
 
+    // New accounts are public by default; these tests start from a private one.
+    let hidden = client
+        .patch("/api/v1/me", json!({ "is_public": false }), &cookie)
+        .await;
+    assert_eq!(hidden.status, 200, "body: {}", hidden.body);
+
     (client, email, cookie, response.body["user"].clone())
 }
 
@@ -194,11 +200,13 @@ async fn public_record_is_readable_without_private_fields() {
 }
 
 #[tokio::test]
-async fn malformed_id_is_a_validation_error() {
+async fn unknown_handle_is_not_found() {
     let client = TestClient::new().await;
 
+    // Handles are accepted in this route, so an arbitrary string is a missing
+    // profile rather than a malformed UUID.
     let response = client.get("/api/v1/public/users/not-a-uuid", None).await;
-    assert_eq!(response.status, 400, "body: {}", response.body);
+    assert_eq!(response.status, 404, "body: {}", response.body);
 }
 
 #[tokio::test]

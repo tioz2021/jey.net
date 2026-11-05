@@ -11,6 +11,24 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
+# Integration tests use their own schema so local demo data cannot affect the
+# result. TEST_DATABASE_URL may be supplied by the caller; otherwise create a
+# disposable schema inside the local database from .env.
+if [[ -z "${TEST_DATABASE_URL:-}" && -r "${ROOT_DIR}/.env" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "${ROOT_DIR}/.env"
+    set +a
+    if [[ -n "${DATABASE_URL:-}" ]]; then
+        base_db="${DATABASE_URL%%\?*}"
+        psql "${base_db}" -v ON_ERROR_STOP=1 \
+            -c "drop schema if exists jey_test cascade" \
+            -c "create schema jey_test" >/dev/null
+        TEST_DATABASE_URL="${base_db}?options=-c%20search_path%3Djey_test%2Cpublic"
+        export TEST_DATABASE_URL
+    fi
+fi
+
 started_at=$(date +%s)
 
 step() {
@@ -29,7 +47,10 @@ step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 
 step "cargo test"
-cargo test --locked --workspace || fail "tests"
+# Integration tests share one PostgreSQL database. Running them in parallel
+# makes rate-limit and registration tests race each other, so keep this
+# preflight deterministic even though it takes a little longer.
+cargo test --locked --workspace -- --test-threads=1 || fail "tests"
 
 step "cargo build --release"
 cargo build --locked --release --workspace || fail "release build"
