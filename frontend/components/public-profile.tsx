@@ -331,7 +331,7 @@ function ItemGrid({ items, handle }: { items: PublicItem[]; handle: string }) {
       {items.map((item) => (
         <li key={item.id}>
           <ItemCard
-            href={`/u/${handle}/cart/${item.slug}`}
+            href={`/u/${handle}/item/${item.slug}`}
             item={{ ...item, deleted_at: null }}
             reactions
           />
