@@ -59,9 +59,9 @@ export function Reactions({ itemId }: { itemId: string }) {
       <button
         aria-pressed={reacted}
         className={`${styles.like} ${reacted ? styles.active : ""}`}
+        aria-label={user ? t("reactions.like") : t("reactions.login")}
         disabled={!user || busy}
         onClick={() => void toggle()}
-        title={user ? undefined : t("reactions.login")}
         type="button"
       >
         <IconHeart size={15} />

@@ -50,8 +50,8 @@ export function CardReaction({ itemId }: { itemId: string }) {
       aria-pressed={reacted}
       className={`${styles.button} ${reacted ? styles.active : ""}`}
       disabled={!user || busy}
+      aria-label={user ? t("reactions.like") : t("reactions.login")}
       onClick={() => void toggle()}
-      title={user ? t("reactions.like") : t("reactions.login")}
       type="button"
     >
       <IconHeart size={13} />
