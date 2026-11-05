@@ -93,7 +93,7 @@ export function FollowingSidebar() {
         </ul>
       )}
      {people.length > 0 ? (
-        <Link className={styles.all} href="/subscriptions">
+        <Link className={styles.all} href="/people">
           {t("public.allFollowing", { count: people.length })}
         </Link>
       ) : null}
