@@ -344,7 +344,9 @@ pub async fn friends(
     let items: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', i.id,
+            'slug', i.slug,
             'author_id', (array_agg(u.id order by f.created_at desc))[1],
+            'author_handle', (array_agg(u.handle order by f.created_at desc))[1],
             'kind', i.kind,
             'title', i.title,
             'subtitle', i.subtitle,
