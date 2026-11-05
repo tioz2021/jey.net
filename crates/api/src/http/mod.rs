@@ -153,6 +153,14 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::push::subscribe).delete(crate::push::unsubscribe),
         )
         .route(
+            "/reports",
+            get(crate::reports::list).post(crate::reports::create),
+        )
+        .route(
+            "/reports/{id}",
+            axum::routing::patch(crate::reports::resolve),
+        )
+        .route(
             "/notifications/settings",
             get(crate::users::notifications::get_settings)
                 .patch(crate::users::notifications::update_settings),
