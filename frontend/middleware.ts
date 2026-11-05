@@ -66,6 +66,7 @@ export async function middleware(request: NextRequest) {
       };
       const headers = new Headers(request.headers);
       headers.set("x-jey-cart", "1");
+      headers.set("x-jey-canonical", pathname);
       return NextResponse.rewrite(
         internalUrl(request, `/u/${data.user_id}/${data.item_id}`),
         { request: { headers } },

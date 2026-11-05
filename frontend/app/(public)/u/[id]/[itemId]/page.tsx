@@ -61,6 +61,9 @@ export async function generateMetadata({
     };
   }
 
+  const requestHeaders = await headers();
+  const canonicalPath =
+    requestHeaders.get("x-jey-canonical") ?? `/cart/${item.slug}`;
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);
   const description = [
@@ -75,14 +78,14 @@ export async function generateMetadata({
     title: `${displayTitle} — jey.net`,
     description,
     alternates: {
-      canonical: `/cart/${item.slug}`,
-      languages: languageAlternates(`/cart/${item.slug}`),
+      canonical: canonicalPath,
+      languages: languageAlternates(canonicalPath),
     },
     openGraph: {
       type: "article",
       title: displayTitle,
       description,
-      url: `/cart/${item.slug}`,
+      url: canonicalPath,
       images: item.cover_key
         ? [`/media/${item.cover_key}`]
         : ["/og.png"],
