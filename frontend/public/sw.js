@@ -1,5 +1,5 @@
 /* jey.net offline shell. API responses are never cached: they are private. */
-const CACHE = "jey-shell-v3";
+const CACHE = "jey-shell-v4";
 const OFFLINE = "/offline";
 const PRECACHE = [OFFLINE, "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
@@ -84,7 +84,18 @@ self.addEventListener("push", (event) => {
     badge: "/icons/icon-192.png",
     data: { url: data.url || "/notifications" },
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(title, options),
+      self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((windows) => {
+          for (const client of windows) {
+            client.postMessage({ type: "jey:notification" });
+          }
+        }),
+    ]),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

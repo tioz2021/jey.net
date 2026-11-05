@@ -11,7 +11,7 @@ import { playNotificationSound, unlockNotificationSound } from "@/lib/notificati
 
 import styles from "./notification-bell.module.css";
 
-const POLL_VISIBLE_MS = 30_000;
+const POLL_VISIBLE_MS = 10_000;
 const POLL_HIDDEN_MS = 60_000;
 
 function updateFavicon(count: number) {
@@ -127,12 +127,16 @@ export function NotificationBell() {
       }
     };
     const onRead = () => void load();
+    const onWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === "jey:notification") void load();
+    };
     void load();
     window.addEventListener("jey:notifications-read", onRead);
     window.addEventListener("focus", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pointerdown", unlockNotificationSound, { once: true });
     window.addEventListener("keydown", unlockNotificationSound, { once: true });
+    navigator.serviceWorker?.addEventListener("message", onWorkerMessage);
     return () => {
       cancelled = true;
       clearTimer();
@@ -144,6 +148,7 @@ export function NotificationBell() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pointerdown", unlockNotificationSound);
       window.removeEventListener("keydown", unlockNotificationSound);
+      navigator.serviceWorker?.removeEventListener("message", onWorkerMessage);
     };
   }, [user]);
 
