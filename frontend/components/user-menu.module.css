@@ -33,6 +33,7 @@
 }
 
 .menu {
+  animation: menu-in var(--duration-base) var(--ease-out);
   position: absolute;
   top: calc(100% + 6px);
   right: 0;

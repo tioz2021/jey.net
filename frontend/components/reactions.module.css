@@ -83,3 +83,7 @@
   padding: 0 10px;
   font-size: var(--text-xs);
 }
+
+.like.active svg {
+  animation: heart-pop var(--duration-slow) var(--ease-spring);
+}

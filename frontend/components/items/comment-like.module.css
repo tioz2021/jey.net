@@ -25,3 +25,7 @@
 .active {
   color: var(--color-accent);
 }
+
+.active svg {
+  animation: heart-pop var(--duration-slow) var(--ease-spring);
+}

@@ -68,6 +68,7 @@
 }
 
 .panel {
+  animation: menu-in var(--duration-base) var(--ease-out);
   position: absolute;
   top: 100%;
   right: 0;
