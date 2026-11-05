@@ -90,11 +90,12 @@ async fn track_errors(
     next: middleware::Next,
 ) -> Response {
     let raw_path = request.uri().path();
-    let path = crate::analytics::normalize_path(if raw_path.starts_with("/api/v1") {
-        raw_path
+    let full_path = if raw_path.starts_with("/api/v1") {
+        raw_path.to_owned()
     } else {
-        &format!("/api/v1{raw_path}")
-    });
+        format!("/api/v1{raw_path}")
+    };
+    let path = crate::analytics::normalize_path(&full_path);
     let request_id = crate::telemetry::current_request_id();
     let response = next.run(request).await;
     if response.status().is_server_error() {
