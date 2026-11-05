@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button, Card, Textarea } from "@/components/ui";
+import { Button, Card, Dialog, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -22,6 +22,8 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<Comment | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function load() {
@@ -74,14 +76,46 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
     }
   }
 
-  async function remove(id: string) {
+  async function remove() {
+    if (!deleting) return;
+    setDeleteBusy(true);
     try {
-      await api.comments.remove(id);
+      await api.comments.remove(deleting.id);
+      setDeleting(null);
       load();
     } catch {
       setError(t("comments.deleteError"));
+    } finally {
+      setDeleteBusy(false);
     }
   }
+
+  const commentForm = user ? (
+    <form className={styles.form} onSubmit={submit}>
+      {replyTo ? (
+        <p className={styles.replyTo}>
+          {t("comments.replyingTo", { name: replyTo.author_name })}{" "}
+          <button onClick={() => setReplyTo(null)} type="button">
+            {t("comments.cancelReply")}
+          </button>
+        </p>
+      ) : null}
+      <Textarea
+        label={t("comments.placeholder")}
+        maxLength={2000}
+        onChange={(event) => setBody(event.target.value)}
+        rows={3}
+        value={body}
+      />
+      <Button disabled={!body.trim()} loading={busy} size="sm" type="submit">
+        {t("comments.submit")}
+      </Button>
+    </form>
+  ) : (
+    <p className={styles.muted}>
+      <Link href="/login">{t("comments.login")}</Link>
+    </p>
+  );
 
   function renderComment(comment: Comment, reply = false) {
     return (
@@ -109,7 +143,7 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
               </button>
             ) : null}
             {user?.id === comment.author_id ? (
-              <button onClick={() => void remove(comment.id)} type="button">
+              <button onClick={() => setDeleting(comment)} type="button">
                 {t("comments.delete")}
               </button>
             ) : null}
@@ -126,6 +160,7 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
 
   return (
     <Card title={t("comments.title", { count: total })}>
+      {commentForm}
       {loading ? <p className={styles.muted}>{t("comments.loading")}</p> : null}
       {!loading && comments.length === 0 ? (
         <p className={styles.muted}>{t("comments.empty")}</p>
@@ -145,32 +180,23 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
         </Button>
       ) : null}
       {error ? <p className={styles.error}>{error}</p> : null}
-      {user ? (
-        <form className={styles.form} onSubmit={submit}>
-          {replyTo ? (
-            <p className={styles.replyTo}>
-              {t("comments.replyingTo", { name: replyTo.author_name })}{" "}
-              <button onClick={() => setReplyTo(null)} type="button">
-                {t("comments.cancelReply")}
-              </button>
-            </p>
-          ) : null}
-          <Textarea
-            label={t("comments.placeholder")}
-            maxLength={2000}
-            onChange={(event) => setBody(event.target.value)}
-            rows={3}
-            value={body}
-          />
-          <Button disabled={!body.trim()} loading={busy} size="sm" type="submit">
-            {t("comments.submit")}
-          </Button>
-        </form>
-      ) : (
-        <p className={styles.muted}>
-          <Link href="/login">{t("comments.login")}</Link>
-        </p>
-      )}
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setDeleting(null)} size="sm" variant="secondary">
+              {t("common.cancel")}
+            </Button>
+            <Button loading={deleteBusy} onClick={() => void remove()} size="sm">
+              {t("comments.confirmDelete")}
+            </Button>
+          </>
+        }
+        onClose={() => setDeleting(null)}
+        open={deleting !== null}
+        title={t("comments.confirmDeleteTitle")}
+      >
+        <p>{t("comments.confirmDeleteText")}</p>
+      </Dialog>
     </Card>
   );
 }
