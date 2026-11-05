@@ -1,6 +1,6 @@
 # Доска задач
 
-Обновлено: 5 ноября 2026 года, 09:00.
+Обновлено: 5 ноября 2026 года, 09:15.
 
 Это оперативная доска. План по этапам — в [ROADMAP.md](../ROADMAP.md),
 подробные описания задач — в [backlog.md](backlog.md). Здесь только статусы,
@@ -20,7 +20,7 @@
 |---|---|---|---|---|
 | T91 | Бэклог и ретроспектива | `[~]` | 03.11.2026 | Документы готовы, ждут согласования приоритетов P0/P1 |
 | B36 | Домен `j3ynet.site` и TLS | `[x]` | 05.11.2026 | A-записи, TLS, canonical URL, www-редирект; sslip оставлен alias |
-| B02 | Опубликовать Google OAuth | `[!]` | 04.11.2026 | Заблокирована: зависит от B36 и домена |
+| B02 | Опубликовать Google OAuth | `[x]` | 05.11.2026 | Отдельное OAuth-приложение, redirect на j3ynet.site, вход проверен в приватном окне |
 | B37 | Аналитика посещений и событий | `[!]` | 04.11.2026 | Отложена до домена, чтобы не настраивать URL и отчёты дважды |
 
 
@@ -760,18 +760,19 @@
 - `PUBLIC_URL=https://j3ynet.site`; `ALLOWED_ORIGINS` временно содержит и
   старый sslip-alias.
 - Проверены `/`, `/login`, `/api/v1/health` и публичный профиль.
-- OAuth redirect в `/etc/jey/api.env` переключён на
-  `https://j3ynet.site/api/v1/auth/google/callback`; осталось добавить этот
-  URI в Google Cloud Console при закрытии B02.
+- OAuth redirect переключён на
+  `https://j3ynet.site/api/v1/auth/google/callback`; URI добавлен в Google
+  Cloud Console.
 
-## B02 · Опубликовать Google OAuth-приложение `[!]`
+## B02 · Опубликовать Google OAuth-приложение `[x]`
 
-Приоритет P0. B36 закрыта, домен готов; осталось заполнить OAuth consent
-screen, обновить redirect URI и снять режим Testing.
+Закрыто 5 ноября 2026.
 
-- Заполнить OAuth consent screen, политику и условия.
-- Пройти verification и снять режим Testing.
-- Проверить вход с аккаунта, который не добавлен в тестовые.
+- Branding заполнен: `jey.net`, домашняя страница, privacy и terms.
+- OAuth-клиент переведён из Testing в Production.
+- Redirect URI: `https://j3ynet.site/api/v1/auth/google/callback`.
+- Вход проверен в приватном окне на новом домене.
+- Старый sslip-alias пока оставлен в Caddy и `ALLOWED_ORIGINS`.
 
 ## B37 · Аналитика посещений и событий `[!]`
 
