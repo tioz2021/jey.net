@@ -174,7 +174,7 @@ pub async fn errors(
              'last_request_id', (array_agg(request_id order by created_at desc))[1]
          )
          from system_errors
-         where created_at > now() - make_interval(days => $1)
+         where created_at > now() - make_interval(days => $1::int)
          group by path, status
          order by max(created_at) desc
          limit 100",
@@ -184,7 +184,7 @@ pub async fn errors(
     .await
     .map_err(AppError::internal)?;
     let total: i64 = sqlx::query_scalar(
-        "select count(*) from system_errors where created_at > now() - make_interval(days => $1)",
+        "select count(*) from system_errors where created_at > now() - make_interval(days => $1::int)",
     )
     .bind(days)
     .fetch_one(&state.pool)
