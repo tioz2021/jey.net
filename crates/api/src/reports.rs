@@ -132,7 +132,7 @@ pub async fn list(
     if !is_admin(&state, current.user.id).await? {
         return Err(AppError::forbidden("admin only"));
     }
-    let reports: Vec<Value> = sqlx::query_scalar(
+    let rows: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', r.id,
             'target_type', r.target_type,
@@ -141,22 +141,38 @@ pub async fn list(
             'details', r.details,
             'status', r.status,
             'created_at', r.created_at,
+            'resolved_at', r.resolved_at,
             'reporter_name', reporter.display_name,
-            'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, '—')
+            'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, '—'),
+            'target_url', case
+                when r.target_type = 'item' then '/u/' || i.user_id || '/' || i.id
+                when r.target_type = 'comment' then '/u/' || ci.user_id || '/' || c.item_id
+                when r.target_type = 'profile' then '/u/' || target_user.id
+                else null
+            end
          )
          from reports r
          join users reporter on reporter.id = r.reporter_id
          left join items i on r.target_type = 'item' and i.id = r.target_id
          left join comments c on r.target_type = 'comment' and c.id = r.target_id
+         left join items ci on ci.id = c.item_id
          left join users target_user on r.target_type = 'profile' and target_user.id = r.target_id
-         where r.status = 'open'
-         order by r.created_at asc
-         limit 200",
+         order by (r.status = 'open') desc, r.created_at desc
+         limit 400",
     )
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "reports": reports })))
+    let reports: Vec<Value> = rows
+        .iter()
+        .filter(|row| row["status"] == "open")
+        .cloned()
+        .collect();
+    let history: Vec<Value> = rows
+        .into_iter()
+        .filter(|row| row["status"] != "open")
+        .collect();
+    Ok(Json(json!({ "reports": reports, "history": history })))
 }
 
 /// `PATCH /api/v1/reports/{id}`

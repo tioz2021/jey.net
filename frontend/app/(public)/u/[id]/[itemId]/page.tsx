@@ -131,14 +131,13 @@ export default async function PublicItemPage({
         {displaySubtitle ? (
           <p className={styles.subtitle}>{displaySubtitle}</p>
         ) : null}
+        <div className={styles.reportCorner}>
+          <ReportButton ownerId={id} targetId={item.id} targetType="item" />
+        </div>
         <div className={styles.reactionCorner}>
           <Reactions itemId={item.id} />
         </div>
       </header>
-
-      <div className={styles.reportRow}>
-        <ReportButton ownerId={id} targetId={item.id} targetType="item" />
-      </div>
 
       <div className={styles.layout}>
         <aside className={styles.rail}>

@@ -369,6 +369,8 @@ export interface Report {
   created_at: string;
   reporter_name: string;
   target_label: string;
+  target_url: string | null;
+  resolved_at: string | null;
 }
 
 export interface NotificationPreferences {

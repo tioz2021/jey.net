@@ -53,6 +53,12 @@
   bottom: var(--space-3);
 }
 
+.reportCorner {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+}
+
 .layout {
   display: grid;
   grid-template-columns: 15rem minmax(0, 1fr);
@@ -180,10 +186,10 @@
     position: static;
     margin-top: var(--space-2);
   }
+
+  .reportCorner {
+    position: static;
+    margin-top: var(--space-2);
+  }
 }
 
-.reportRow {
-  display: flex;
-  justify-content: flex-end;
-  margin: calc(var(--space-2) * -1) 0 var(--space-2);
-}
