@@ -28,7 +28,9 @@ export async function middleware(request: NextRequest) {
   url.protocol = "http:";
   url.hostname = "127.0.0.1";
   url.port = process.env.PORT ?? "3000";
-  url.pathname = `/u/${encodeURIComponent(data.handle)}/${data.item_id}`;
+  // The existing public item endpoint keys the owner by UUID; the URL in
+  // the address bar stays /cart/<slug>.
+  url.pathname = `/u/${data.user_id}/${data.item_id}`;
   const headers = new Headers(request.headers);
   headers.set("x-jey-cart", "1");
   return NextResponse.rewrite(url, { request: { headers } });
