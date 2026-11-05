@@ -246,7 +246,7 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
                 <p>{t("settings.publicSummaryNotes")}</p>
                 <a
                   className={styles.summaryLink}
-                  href={`/u/${initialUser.id}`}
+                  href={`/u/${initialUser.handle}`}
                   rel="noreferrer"
                   target="_blank"
                 >

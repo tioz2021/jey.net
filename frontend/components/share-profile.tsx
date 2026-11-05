@@ -29,12 +29,12 @@ export function ShareProfile() {
     return null;
   }
 
-  const userId = user.id;
-  const link = origin ? `${origin}/u/${userId}` : `/u/${userId}`;
+  const userRef = user.handle || user.id;
+  const link = origin ? `${origin}/u/${userRef}` : `/u/${userRef}`;
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/u/${userId}`);
+      await navigator.clipboard.writeText(`${window.location.origin}/u/${userRef}`);
       notify({
         tone: "success",
         title: t("settings.copied"),

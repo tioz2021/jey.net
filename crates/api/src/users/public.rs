@@ -25,6 +25,7 @@ const MAX_PUBLIC_ITEMS: i64 = 200;
 #[derive(Debug, sqlx::FromRow)]
 struct PublicUserRow {
     id: Uuid,
+    handle: String,
     display_name: String,
     avatar_key: Option<String>,
     banner_key: Option<String>,
@@ -76,6 +77,7 @@ pub struct PublicItemDetail {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct PublicUserEntry {
     pub id: Uuid,
+    pub handle: String,
     pub display_name: String,
     pub avatar_key: Option<String>,
     pub item_count: i64,
@@ -122,7 +124,7 @@ pub async fn list(
         "similarity(u.display_name, $1) desc, "
     };
     let sql = format!(
-        "select u.id, u.display_name, u.avatar_key,
+        "select u.id, u.handle, u.display_name, u.avatar_key,
                 (select count(*) from items i
                  where i.user_id = u.id and i.status = ANY(u.public_statuses)
                    and not i.public_hidden and i.deleted_at is null) as item_count,
@@ -158,8 +160,9 @@ pub async fn list(
 /// `GET /api/v1/public/users/{id}`
 pub async fn profile(
     State(state): State<AppState>,
-    Path(id): Path<Uuid>,
+    Path(reference): Path<String>,
 ) -> Result<Json<Value>, AppError> {
+    let id = resolve_user_id(&state.pool, &reference).await?;
     let user = load_public_user(&state.pool, id).await?;
     let items = load_public_items(&state.pool, id, &user.public_statuses).await?;
     let (followers, following): (i64, i64) = sqlx::query_as(
@@ -175,6 +178,7 @@ pub async fn profile(
     Ok(Json(json!({
         "profile": {
             "id": user.id,
+            "handle": user.handle,
             "display_name": user.display_name,
             "avatar_key": user.avatar_key,
             "banner_key": user.banner_key,
@@ -193,7 +197,7 @@ pub async fn own_profile(
     current: CurrentUser,
 ) -> Result<Json<Value>, AppError> {
     let user = sqlx::query_as::<_, PublicUserRow>(
-        "select id, display_name, avatar_key, banner_key, locale,
+        "select id, handle, display_name, avatar_key, banner_key, locale,
                 public_statuses, public_show_progress, created_at
          from users
          where id = $1 and deleted_at is null",
@@ -218,6 +222,7 @@ pub async fn own_profile(
         "preview": true,
         "profile": {
             "id": user.id,
+            "handle": user.handle,
             "display_name": user.display_name,
             "avatar_key": user.avatar_key,
             "banner_key": user.banner_key,
@@ -230,9 +235,24 @@ pub async fn own_profile(
     })))
 }
 
+pub async fn resolve_user_id(pool: &PgPool, reference: &str) -> Result<Uuid, AppError> {
+    if let Ok(id) = Uuid::parse_str(reference) {
+        return Ok(id);
+    }
+    sqlx::query_scalar(
+        "select id from users
+         where handle = $1 and is_public and deleted_at is null and suspended_at is null",
+    )
+    .bind(reference)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("profile"))
+}
+
 async fn load_public_user(pool: &PgPool, id: Uuid) -> Result<PublicUserRow, AppError> {
     sqlx::query_as::<_, PublicUserRow>(
-        "select id, display_name, avatar_key, banner_key, locale,
+        "select id, handle, display_name, avatar_key, banner_key, locale,
                 public_statuses, public_show_progress, created_at
          from users
          where id = $1 and is_public and deleted_at is null and suspended_at is null",

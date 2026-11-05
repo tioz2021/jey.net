@@ -165,7 +165,7 @@ export default function PeoplePage() {
             <ul className={styles.followingList}>
               {visibleFollowing.map((person) => (
                 <li className={styles.followingPerson} key={person.id}>
-                  <Link className={styles.profile} href={`/u/${person.id}`}>
+                  <Link className={styles.profile} href={`/u/${person.handle ?? person.id}`}>
                     {person.avatar_key ? (
                       // eslint-disable-next-line @next/next/no-img-element -- local avatar
                       <img alt="" src={`/media/${person.avatar_key}`} />
@@ -227,7 +227,7 @@ export default function PeoplePage() {
                     .filter((person) => person.id !== user?.id)
                     .map((person) => (
                       <li className={styles.person} key={person.id}>
-                        <Link className={styles.profile} href={`/u/${person.id}`}>
+                        <Link className={styles.profile} href={`/u/${person.handle ?? person.id}`}>
                           {person.avatar_key ? (
                             // eslint-disable-next-line @next/next/no-img-element -- local avatar
                             <img alt="" src={`/media/${person.avatar_key}`} />

@@ -19,6 +19,7 @@ export type Sort =
 
 export interface User {
   id: string;
+  handle: string;
   email: string;
   display_name: string;
   locale: string;
@@ -275,6 +276,7 @@ export interface ImportReport {
 
 export interface PublicProfile {
   id: string;
+  handle: string;
   display_name: string;
   avatar_key: string | null;
   banner_key: string | null;
@@ -337,6 +339,7 @@ export interface FriendRecommendation extends PublicItem {
 
 export interface PublicUserCard {
   id: string;
+  handle: string;
   display_name: string;
   avatar_key: string | null;
   item_count: number;
@@ -347,6 +350,7 @@ export interface PublicUserCard {
 
 export interface FollowingProfile {
   id: string;
+  handle?: string;
   display_name: string;
   avatar_key: string | null;
   notifications: boolean;

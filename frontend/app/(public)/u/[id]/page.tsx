@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { PublicProfileView } from "@/components/public-profile";
 import { translate } from "@/lib/i18n";
@@ -24,6 +24,7 @@ export async function generateMetadata({
   }
 
   const { profile, items } = data;
+  const publicPath = `/u/${profile.handle}`;
   const description =
     items.length > 0
       ? `${translate(locale, "public.finished", { count: items.length })} · jey.net`
@@ -34,14 +35,14 @@ export async function generateMetadata({
     robots: data.preview ? { index: false, follow: false } : undefined,
     description,
     alternates: {
-      canonical: `/u/${id}`,
-      languages: languageAlternates(`/u/${id}`),
+      canonical: publicPath,
+      languages: languageAlternates(publicPath),
     },
     openGraph: {
       type: "profile",
       title: profile.display_name,
       description,
-      url: `/u/${id}`,
+      url: publicPath,
       images: profile.avatar_key
         ? [`/media/${profile.avatar_key}`]
         : ["/og.png"],
@@ -67,6 +68,10 @@ export default async function PublicProfilePage({
 
   if (!data) {
     notFound();
+  }
+
+  if (data.profile.handle && data.profile.handle !== id) {
+    redirect(`/u/${data.profile.handle}`);
   }
 
   return (

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 interface PublicUserEntry {
   id: string;
+  handle: string;
   display_name: string;
 }
 
@@ -53,10 +54,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       for (const user of users) {
         entries.push({
-          url: `${base}/u/${user.id}`,
+          url: `${base}/u/${user.handle}`,
           changeFrequency: "weekly",
           priority: 0.6,
-          alternates: languages(`/u/${user.id}`),
+          alternates: languages(`/u/${user.handle}`),
         });
       }
     }
