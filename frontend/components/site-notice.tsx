@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 import { useI18n } from "@/lib/locale-context";
 import type { SiteStatus } from "@/lib/types";
@@ -12,6 +12,12 @@ export function SiteNotice({ initialStatus = null }: { initialStatus?: SiteStatu
   const { t } = useI18n();
   const [status, setStatus] = useState<SiteStatus | null>(initialStatus);
   const [hidden, setHidden] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!status || !status.announcement_active) return;
+    const key = String(status.announcement_version);
+    setHidden(window.localStorage.getItem("jey-announcement-dismissed") === key);
+  }, [status]);
 
   useEffect(() => {
     function load() {
@@ -29,17 +35,28 @@ export function SiteNotice({ initialStatus = null }: { initialStatus?: SiteStatu
     return null;
   }
 
+  function dismiss() {
+    if (status) {
+      window.localStorage.setItem("jey-announcement-dismissed", String(status.announcement_version));
+    }
+    setHidden(true);
+  }
+
   return (
     <div className={`${styles.banner} ${status.maintenance ? styles.maintenance : ""}`} role="status">
       <div className={styles.inner}>
-        <strong>{status.maintenance ? t("site.maintenanceTitle") : t("site.announcementTitle")}</strong>
-        <span>
+        <strong className={styles.title}>
+          {status.maintenance
+            ? t("site.maintenanceTitle")
+            : status.announcement_title || t("site.announcementTitle")}
+        </strong>
+        <p className={styles.text}>
           {status.maintenance
             ? t("site.maintenanceText")
             : status.announcement}
-        </span>
+        </p>
         {!status.maintenance ? (
-          <button aria-label={t("common.close")} onClick={() => setHidden(true)} type="button">✕</button>
+          <button aria-label={t("common.close")} className={styles.close} onClick={dismiss} type="button">✕</button>
         ) : null}
       </div>
     </div>

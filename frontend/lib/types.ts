@@ -467,7 +467,9 @@ export interface AdminUsersResponse {
 
 export interface SiteStatus {
   announcement: string | null;
+  announcement_title: string | null;
   announcement_active: boolean;
+  announcement_version: number;
   maintenance: boolean;
   registration_enabled: boolean;
 }

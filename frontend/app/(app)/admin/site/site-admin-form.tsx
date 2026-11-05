@@ -14,6 +14,7 @@ export function SiteAdminForm() {
   const { t } = useI18n();
   const { notify } = useToast();
   const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -22,6 +23,7 @@ export function SiteAdminForm() {
       .get()
       .then(({ settings: value }) => {
         setSettings(value);
+        setAnnouncementTitle(value.announcement_title ?? "");
         setAnnouncement(value.announcement ?? "");
       })
       .catch(() => notify({ tone: "error", title: t("admin.siteError"), text: "", requestId: null }));
@@ -32,6 +34,7 @@ export function SiteAdminForm() {
     setBusy(true);
     try {
       const { settings: saved } = await api.admin.site.update({
+        announcement_title: announcementTitle,
         announcement,
         announcement_active: settings.announcement_active,
         maintenance: settings.maintenance,
@@ -54,7 +57,16 @@ export function SiteAdminForm() {
     <main>
       <PageHeader subtitle={t("admin.siteSubtitle")} title={t("admin.site")} />
       <Card title={t("admin.siteAnnouncement")}>
-        <label className={styles.label} htmlFor="site-announcement">{t("admin.siteAnnouncement")}</label>
+        <label className={styles.label} htmlFor="site-announcement-title">{t("admin.siteAnnouncementTitle")}</label>
+        <input
+          className={styles.titleInput}
+          id="site-announcement-title"
+          maxLength={120}
+          onChange={(event) => setAnnouncementTitle(event.target.value)}
+          placeholder={t("admin.siteAnnouncementTitlePlaceholder")}
+          value={announcementTitle}
+        />
+        <label className={styles.label} htmlFor="site-announcement">{t("admin.siteAnnouncementText")}</label>
         <textarea
           className={styles.textarea}
           id="site-announcement"
