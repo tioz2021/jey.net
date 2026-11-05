@@ -55,7 +55,16 @@ fn is_close(query: &str, title: &str) -> bool {
         return false;
     }
     let max_distance = if query.chars().count() <= 5 { 1 } else { 2 };
-    title.contains(query) || query.contains(&title) || levenshtein(query, &title) <= max_distance
+    title.contains(query) || query.contains(&title) || title_distance(query, &title) <= max_distance
+}
+
+/// Compares against the title's prefix too, so a typo in the main title still
+/// matches a longer title with a subtitle ("Гарри Поттер и …").
+fn title_distance(query: &str, title: &str) -> usize {
+    let full = levenshtein(query, title);
+    let prefix_len = query.chars().count();
+    let prefix: String = title.chars().take(prefix_len).collect();
+    full.min(levenshtein(query, &prefix))
 }
 
 fn same_script(left: &str, right: &str) -> bool {
@@ -86,7 +95,7 @@ pub fn rank<T>(items: Vec<T>, query: &str, title: impl Fn(&T) -> &str) -> Vec<T>
             if title.is_empty() || !seen.insert(title.clone()) {
                 return None;
             }
-            let distance = levenshtein(&query, &title);
+            let distance = title_distance(&query, &title);
             (title.contains(&query) || query.contains(&title) || distance <= max_distance)
                 .then_some((distance, item))
         })
@@ -140,6 +149,14 @@ mod tests {
         let items = vec!["Ас из асов", "Астрал", "Астрал 6"];
         let ranked = rank(items, "асрал", |title| title);
         assert_eq!(ranked.first(), Some(&"Астрал"));
+    }
+
+    #[test]
+    fn prefix_match_handles_subtitles() {
+        assert!(is_close(
+            "гарри поттерр",
+            "Гарри Поттер и философский камень"
+        ));
     }
 
     #[test]
