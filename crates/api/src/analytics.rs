@@ -68,15 +68,17 @@ pub async fn event(
         .filter(|value| value.len() <= 8)
         .map(str::to_owned);
     let ip = crate::http::ratelimit::client_ip(&headers, peer);
+    // The rate-limit key is a hash: analytics must not persist raw IPs.
+    let mut key_hasher = Sha256::new();
+    key_hasher.update(state.config.analytics_salt.as_bytes());
+    key_hasher.update(b"|analytics-rate|");
+    key_hasher.update(ip.as_bytes());
+    let rate_key = format!("analytics:{}", hex::encode(key_hasher.finalize()));
     // Analytics is best-effort: when a client is too noisy, drop the event
     // silently instead of showing an error or breaking the page.
-    if crate::http::ratelimit::enforce(
-        &state.pool,
-        crate::http::ratelimit::ANALYTICS,
-        &format!("analytics:{ip}"),
-    )
-    .await
-    .is_err()
+    if crate::http::ratelimit::enforce(&state.pool, crate::http::ratelimit::ANALYTICS, &rate_key)
+        .await
+        .is_err()
     {
         record_drop(&state.pool).await;
         return Ok(StatusCode::NO_CONTENT);
