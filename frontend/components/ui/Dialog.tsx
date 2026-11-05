@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { useI18n } from "@/lib/locale-context";
@@ -24,8 +25,11 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
   const ref = useRef<HTMLDialogElement>(null);
   const closeTimer = useRef<number | null>(null);
   const [closing, setClosing] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { t } = useI18n();
   const titleId = useId();
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -57,7 +61,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
         closeTimer.current = null;
       }
     };
-  }, [open]);
+  }, [open, mounted]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -68,7 +72,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
     };
     dialog.addEventListener("cancel", handleCancel);
     return () => dialog.removeEventListener("cancel", handleCancel);
-  }, [onClose]);
+  }, [onClose, mounted]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -80,7 +84,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
     dialog.addEventListener("close", handleClose);
 
     return () => dialog.removeEventListener("close", handleClose);
-  }, [onClose]);
+  }, [onClose, mounted]);
 
   function trapFocus(event: KeyboardEvent<HTMLDialogElement>) {
     if (event.key !== "Tab") {
@@ -119,7 +123,9 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <dialog
       ref={ref}
       className={`${styles.dialog} ${closing ? styles.closing : ""}`}
@@ -149,6 +155,7 @@ export function Dialog({ open, title, children, onClose, footer }: DialogProps) 
         <div className={styles.body}>{children}</div>
         {footer ? <footer className={styles.footer}>{footer}</footer> : null}
       </div>
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }
