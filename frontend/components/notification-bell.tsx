@@ -18,19 +18,53 @@ export function NotificationBell() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    const load = () => {
-      api.notifications
-        .list()
-        .then((response) => {
-          if (!cancelled) setUnread(response.unread);
-        })
-        .catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const POLL_MS = 30_000;
+
+    const clearTimer = () => {
+      if (timer) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
     };
-    load();
-    window.addEventListener("jey:notifications-read", load);
+
+    const schedule = () => {
+      clearTimer();
+      if (cancelled || document.visibilityState !== "visible") return;
+      timer = window.setTimeout(() => void load(), POLL_MS);
+    };
+
+    const load = async () => {
+      try {
+        const response = await api.notifications.list();
+        if (!cancelled) setUnread(response.unread);
+      } catch {
+        // Keep the last known count; the next poll will retry.
+      } finally {
+        schedule();
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        clearTimer();
+        void load();
+      } else {
+        clearTimer();
+      }
+    };
+    const onRead = () => void load();
+
+    void load();
+    window.addEventListener("jey:notifications-read", onRead);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onVisibility);
     return () => {
       cancelled = true;
-      window.removeEventListener("jey:notifications-read", load);
+      clearTimer();
+      window.removeEventListener("jey:notifications-read", onRead);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onVisibility);
     };
   }, [user]);
 
