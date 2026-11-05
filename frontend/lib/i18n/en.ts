@@ -162,6 +162,7 @@ export const en = {
   'bulk.selectModeLong': 'Select records',
   'bulk.selectMode': 'Select',
   'bulk.selectAll': 'Select all',
+  'bulk.close': 'Close',
   'bulk.done': 'Done',
   'bulk.hint': 'Tick records or select all matching the current filters.',
   'bulk.title': 'Bulk actions',

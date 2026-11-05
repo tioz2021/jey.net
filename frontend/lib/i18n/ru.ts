@@ -161,6 +161,7 @@ export const ru = {
   'bulk.selectModeLong': 'Выбрать записи',
   'bulk.selectMode': 'Выбрать',
   'bulk.selectAll': 'Выбрать все',
+  'bulk.close': 'Закрыть',
   'bulk.done': 'Готово',
   'bulk.hint': 'Отметьте записи или выберите все по текущим фильтрам.',
   'bulk.title': 'Массовые действия',

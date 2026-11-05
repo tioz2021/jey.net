@@ -22,6 +22,7 @@ export interface SelectProps
   label: string;
   hint?: string;
   error?: string;
+  hideLabel?: boolean;
   children: ReactNode;
   value?: string | number;
   defaultValue?: string | number;
@@ -51,6 +52,7 @@ export function Select({
   label,
   hint,
   error,
+  hideLabel = false,
   id,
   children,
   className,
@@ -141,7 +143,7 @@ export function Select({
 
   return (
     <div className={`${styles.field} ${className ?? ""}`}>
-      <span className={styles.label} id={labelId}>
+      <span className={hideLabel ? "visually-hidden" : styles.label} id={labelId}>
         {label}
       </span>
       <div className={styles.selectRoot} ref={ref}>

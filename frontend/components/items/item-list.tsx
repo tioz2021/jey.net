@@ -75,6 +75,7 @@ export function ItemList({
   const [bulkBusy, setBulkBusy] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectAllBusy, setSelectAllBusy] = useState(false);
+  const [bulkChanged, setBulkChanged] = useState(false);
 
   useEffect(() => {
     if (skipQuery.current !== null) {
@@ -130,6 +131,7 @@ export function ItemList({
   useEffect(() => {
     setSelected(new Set());
     setSelectionMode(false);
+    setBulkChanged(false);
   }, [query]);
 
   useEffect(() => {
@@ -180,6 +182,7 @@ export function ItemList({
       }
       setSelected(new Set());
       setBulkStatus("");
+      setBulkChanged(true);
       setReloadToken((value) => value + 1);
     } catch (cause) {
       setError(describeError(cause, i18n).text);
@@ -217,7 +220,11 @@ export function ItemList({
         <SearchBox />
       </div>
       <ItemsFilters
-        onSelect={() => setSelectionMode(true)}
+        onSelect={() => {
+          setSelectionMode(true);
+          setSelected(new Set());
+          setBulkChanged(false);
+        }}
         selectionMode={selectionMode}
       />
 
@@ -251,10 +258,11 @@ export function ItemList({
               onClick={() => {
                 setSelectionMode(false);
                 setSelected(new Set());
+                setBulkChanged(false);
               }}
               type="button"
             >
-              {t("bulk.done")}
+              {bulkChanged ? t("bulk.done") : t("bulk.close")}
             </button>
           </div>
           <p className={styles.bulkHint}>{t("bulk.hint")}</p>
@@ -263,6 +271,7 @@ export function ItemList({
               <>
                 <Select
                   className={styles.bulkStatus}
+                  hideLabel
                   label={t("bulk.status")}
                   value={bulkStatus}
                   onChange={(event) =>

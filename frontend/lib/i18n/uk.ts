@@ -162,6 +162,7 @@ export const uk = {
   'bulk.selectModeLong': 'Вибрати записи',
   'bulk.selectMode': 'Вибрати',
   'bulk.selectAll': 'Вибрати все',
+  'bulk.close': 'Закрити',
   'bulk.done': 'Готово',
   'bulk.hint': 'Позначте записи або виберіть усі за поточними фільтрами.',
   'bulk.title': 'Масові дії',
