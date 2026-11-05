@@ -165,7 +165,7 @@ pub async fn remove(
     Path(id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
     let changed = sqlx::query(
-        "update comments set deleted_at = now(), body = ''
+        "update comments set deleted_at = now()
          where id = $1 and user_id = $2 and deleted_at is null",
     )
     .bind(id)
