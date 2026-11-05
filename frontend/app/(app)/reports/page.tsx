@@ -37,6 +37,7 @@ export default function ReportsPage() {
   const [busy, setBusy] = useState(false);
 
   function load() {
+    setError(null);
     setLoading(true);
     api.reports
       .list()

@@ -209,6 +209,22 @@ pub async fn resolve(
             "status must be resolved, dismissed or open",
         ));
     }
+    if payload.status == "open" {
+        let changed = sqlx::query(
+            "update reports set status = 'open', resolved_at = null, resolved_by = null
+             where id = $1 and status <> 'open'",
+        )
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?
+        .rows_affected();
+        if changed == 0 {
+            return Err(AppError::not_found("report"));
+        }
+        return Ok(Json(json!({ "ok": true })));
+    }
+
     let target: Option<(String, Uuid)> = sqlx::query_as(
         "select target_type, target_id from reports where id = $1 and status = 'open'",
     )
@@ -219,17 +235,6 @@ pub async fn resolve(
     let Some((target_type, target_id)) = target else {
         return Err(AppError::not_found("report"));
     };
-    if payload.status == "open" {
-        sqlx::query(
-            "update reports set status = 'open', resolved_at = null, resolved_by = null
-             where id = $1",
-        )
-        .bind(id)
-        .execute(&state.pool)
-        .await
-        .map_err(AppError::internal)?;
-        return Ok(Json(json!({ "ok": true })));
-    }
 
     if payload.hide_target {
         match target_type.as_str() {
