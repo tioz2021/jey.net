@@ -97,3 +97,9 @@
     padding: 0 var(--space-3);
   }
 }
+
+/* Keep every compact header control in the same rounded language. */
+.tools {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}

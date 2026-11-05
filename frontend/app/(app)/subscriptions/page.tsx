@@ -33,7 +33,7 @@ export default function SubscriptionsPage() {
 
   return (
     <main>
-      <PageHeader title={t("public.allFollowing", { count: people.length })} />
+      <PageHeader title={t("public.myFollowing", { count: people.length })} />
       <Card title={t("public.followingTitle")}>
         {!loading && people.length === 0 ? (
           <EmptyState

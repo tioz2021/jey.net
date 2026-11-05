@@ -12,6 +12,7 @@ import {
   IconList,
   IconPeople,
   IconSparkles,
+  IconSubscriptions,
 } from "@/components/icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { QuickAdd } from "@/components/quick-add";
@@ -32,6 +33,7 @@ const SECTIONS: Array<{
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
   { href: "/people", labelKey: "nav.people", Icon: IconPeople },
+  { href: "/subscriptions", labelKey: "nav.subscriptions", Icon: IconSubscriptions },
 ];
 
 export function SiteHeader() {

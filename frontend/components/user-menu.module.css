@@ -83,3 +83,12 @@
     display: none;
   }
 }
+
+.trigger {
+  border-radius: var(--radius-full);
+}
+
+.menu {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}

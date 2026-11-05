@@ -121,3 +121,11 @@
     display: inline-flex;
   }
 }
+
+.trigger {
+  border-radius: var(--radius-md);
+}
+
+.panel {
+  border-radius: var(--radius-lg);
+}

@@ -173,7 +173,7 @@ export default async function PublicItemPage({
                   {item.rating ? (
                     <RatingStars
                       label={t("item.ratingOf", { rating: item.rating })}
-                      size={14}
+                      size={12}
                       value={item.rating}
                     />
                   ) : (

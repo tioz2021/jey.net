@@ -73,3 +73,12 @@
   font-weight: 600;
   color: var(--color-text-muted);
 }
+
+.trigger {
+  border-radius: var(--radius-lg);
+}
+
+.menu {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}

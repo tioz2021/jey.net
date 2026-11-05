@@ -29,3 +29,8 @@
   background: #dc2626;
   border-radius: 8px;
 }
+
+.link {
+  height: 34px;
+  border-radius: var(--radius-lg);
+}

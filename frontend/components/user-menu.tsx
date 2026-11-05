@@ -123,6 +123,7 @@ export function UserMenu({ user }: { user: User }) {
         <Avatar
           url={user.avatar_key ? `/media/${user.avatar_key}` : null}
           name={user.display_name}
+          size={34}
         />
         <span className={styles.name}>{user.display_name}</span>
         <svg
