@@ -87,6 +87,10 @@
   min-width: 0;
 }
 
+.bodyWithContinue {
+  padding-bottom: 1.5rem;
+}
+
 .header {
   display: flex;
   align-items: flex-start;

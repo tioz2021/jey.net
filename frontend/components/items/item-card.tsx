@@ -69,7 +69,10 @@ export interface ItemCardData {
     number_of_episodes?: number | null;
     watched_episodes?: Array<{ season_number: number; episode_number: number }> | null;
     seasons?: import("@/lib/types").SeasonSummary[] | null;
+    runtime?: number | null;
     page_count?: number | null;
+    anime_format?: string | null;
+    platforms?: string[] | null;
     progress?: ItemProgress | null;
     translations?: Record<
       string,
@@ -112,6 +115,16 @@ export function ItemCard({
 
   const watchedEpisodes = item.details?.watched_episodes?.length ?? 0;
   const progress = item.details?.progress;
+  const kindFact =
+    item.kind === "movie" && item.details?.runtime
+      ? t("movie.minutes", { count: item.details.runtime })
+      : item.kind === "book" && item.details?.page_count
+        ? t("card.pages", { count: item.details.page_count })
+        : item.kind === "anime" && item.details?.anime_format
+          ? item.details.anime_format.toUpperCase()
+          : item.kind === "anime" && item.details?.number_of_episodes
+            ? t("card.episodes", { count: item.details.number_of_episodes })
+            : (item.kind === "game" ? item.details?.platforms?.slice(0, 2).join(" · ") : null);
   const progressTotal =
     progress?.total ??
     (item.kind === "anime"
@@ -127,6 +140,7 @@ export function ItemCard({
   const meta = [
     t(KIND_KEYS[item.kind]),
     item.year ? String(item.year) : null,
+    kindFact || null,
   ].filter(Boolean);
 
   const card = (
@@ -148,7 +162,13 @@ export function ItemCard({
         )}
       </div>
 
-      <div className={styles.body}>
+      <div
+        className={`${styles.body} ${
+          showContinue && (item.kind === "tv" || item.kind === "anime")
+            ? styles.bodyWithContinue
+            : ""
+        }`}
+      >
         <div className={styles.header}>
           <h2 className={styles.title}>
             <Highlight text={title} query={query} />
