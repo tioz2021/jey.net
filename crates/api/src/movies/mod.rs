@@ -61,12 +61,13 @@ pub async fn search(
 
     let language = language_for(&current.user.locale);
     let mut results = state.tmdb.search(q, language).await?;
-    if results.is_empty()
-        && let Some(prefix) = crate::fuzzy::prefix_for(q)
-    {
-        results = crate::fuzzy::rank(state.tmdb.search(&prefix, language).await?, q, |item| {
-            &item.title
-        });
+    if crate::fuzzy::needs_fallback(q, &results, |item| &item.title) {
+        let mut candidates = std::mem::take(&mut results);
+        for prefix in crate::fuzzy::prefixes_for(q) {
+            candidates.extend(state.tmdb.search(&prefix, language).await?);
+        }
+        results = crate::fuzzy::rank(candidates, q, |item| &item.title);
+        results.truncate(8);
     }
 
     Ok(Json(json!({ "results": results })).into_response())
@@ -97,12 +98,13 @@ pub async fn tv_search(
 
     let language = language_for(&current.user.locale);
     let mut results = state.tmdb.search_tv(q, language).await?;
-    if results.is_empty()
-        && let Some(prefix) = crate::fuzzy::prefix_for(q)
-    {
-        results = crate::fuzzy::rank(state.tmdb.search_tv(&prefix, language).await?, q, |item| {
-            &item.title
-        });
+    if crate::fuzzy::needs_fallback(q, &results, |item| &item.title) {
+        let mut candidates = std::mem::take(&mut results);
+        for prefix in crate::fuzzy::prefixes_for(q) {
+            candidates.extend(state.tmdb.search_tv(&prefix, language).await?);
+        }
+        results = crate::fuzzy::rank(candidates, q, |item| &item.title);
+        results.truncate(8);
     }
 
     Ok(Json(json!({ "results": results })).into_response())

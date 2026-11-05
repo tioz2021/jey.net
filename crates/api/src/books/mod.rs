@@ -181,17 +181,18 @@ pub async fn search(
         .books
         .search(q, locale, state.config.google_books_key.as_deref())
         .await?;
-    if results.is_empty()
-        && let Some(prefix) = crate::fuzzy::prefix_for(q)
-    {
-        results = crate::fuzzy::rank(
-            state
-                .books
-                .search(&prefix, locale, state.config.google_books_key.as_deref())
-                .await?,
-            q,
-            |item| &item.title,
-        );
+    if crate::fuzzy::needs_fallback(q, &results, |item| &item.title) {
+        let mut candidates = std::mem::take(&mut results);
+        for prefix in crate::fuzzy::prefixes_for(q) {
+            candidates.extend(
+                state
+                    .books
+                    .search(&prefix, locale, state.config.google_books_key.as_deref())
+                    .await?,
+            );
+        }
+        results = crate::fuzzy::rank(candidates, q, |item| &item.title);
+        results.truncate(8);
     }
     Ok(Json(json!({ "results": results })).into_response())
 }
