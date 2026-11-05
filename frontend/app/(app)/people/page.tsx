@@ -151,9 +151,6 @@ export default function PeoplePage() {
               placeholder={t("people.searchFollowing")}
               value={followingQuery}
             />
-            <Button onClick={() => setTab("search")} size="sm" variant="secondary">
-              {t("people.findPeople")}
-            </Button>
           </div>
           {!followingLoading && visibleFollowing.length === 0 ? (
             <EmptyState
