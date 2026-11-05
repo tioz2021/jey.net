@@ -203,12 +203,25 @@ pub async fn resolve(
     if !is_admin(&state, current.user.id).await? {
         return Err(AppError::forbidden("admin only"));
     }
-    if !matches!(payload.status.as_str(), "resolved" | "dismissed" | "open") {
+    if !matches!(
+        payload.status.as_str(),
+        "resolved" | "dismissed" | "open" | "archived" | "restore"
+    ) {
         return Err(AppError::validation_field(
             "status",
-            "status must be resolved, dismissed or open",
+            "status must be resolved, dismissed, open, archived or restore",
         ));
     }
+    let target: Option<(String, Uuid)> =
+        sqlx::query_as("select target_type, target_id from reports where id = $1")
+            .bind(id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    let Some((target_type, target_id)) = target else {
+        return Err(AppError::not_found("report"));
+    };
+
     if payload.status == "open" {
         let changed = sqlx::query(
             "update reports set status = 'open', resolved_at = null, resolved_by = null
@@ -225,18 +238,43 @@ pub async fn resolve(
         return Ok(Json(json!({ "ok": true })));
     }
 
-    let target: Option<(String, Uuid)> = sqlx::query_as(
-        "select target_type, target_id from reports where id = $1 and status = 'open'",
-    )
-    .bind(id)
-    .fetch_optional(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
-    let Some((target_type, target_id)) = target else {
-        return Err(AppError::not_found("report"));
-    };
+    if payload.status == "restore" {
+        match target_type.as_str() {
+            "item" => {
+                sqlx::query("update items set public_hidden = false where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            "comment" => {
+                sqlx::query("update comments set deleted_at = null where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            "profile" => {
+                sqlx::query("update users set is_public = true where id = $1")
+                    .bind(target_id)
+                    .execute(&state.pool)
+                    .await
+                    .map_err(AppError::internal)?;
+            }
+            _ => {}
+        }
+        sqlx::query(
+            "update reports set status = 'open', resolved_at = null, resolved_by = null
+             where id = $1",
+        )
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        return Ok(Json(json!({ "ok": true })));
+    }
 
-    if payload.hide_target {
+    if payload.hide_target || payload.status == "archived" {
         match target_type.as_str() {
             "item" => {
                 sqlx::query("update items set public_hidden = true where id = $1")

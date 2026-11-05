@@ -24,7 +24,7 @@ const TARGET_KEYS: Record<string, TranslationKey> = {
   profile: "report.target.profile",
 };
 
-type Action = "hide" | "resolved" | "dismissed";
+type Action = "archive" | "resolved" | "dismissed";
 
 export default function ReportsPage() {
   const { t, date } = useI18n();
@@ -58,15 +58,28 @@ export default function ReportsPage() {
     if (!pending) return;
     setBusy(true);
     try {
-      const hide = pending.action === "hide";
-      const status = pending.action === "dismissed" ? "dismissed" : "resolved";
-      await api.reports.resolve(pending.report.id, status, hide);
+      const status =
+        pending.action === "archive"
+          ? "archived"
+          : pending.action === "dismissed"
+            ? "dismissed"
+            : "resolved";
+      await api.reports.resolve(pending.report.id, status);
       setPending(null);
       load();
     } catch {
       setError(t("reports.error"));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function restore(report: Report) {
+    try {
+      await api.reports.resolve(report.id, "restore");
+      load();
+    } catch {
+      setError(t("reports.error"));
     }
   }
 
@@ -87,7 +100,11 @@ export default function ReportsPage() {
     ) : (
       <span>
         {report.target_label}{" "}
-        <Badge tone="neutral">{t("reports.targetGone")}</Badge>
+        <Badge tone="neutral">
+          {report.status === "archived"
+            ? t("reports.targetArchived")
+            : t("reports.targetGone")}
+        </Badge>
       </span>
     );
   }
@@ -121,8 +138,22 @@ export default function ReportsPage() {
                     <strong>{t(REASON_KEYS[report.reason] ?? "report.reason.other")}</strong>
                     <span>{date(report.created_at)}</span>
                     {report.status !== "open" ? (
-                      <Badge tone={report.status === "resolved" ? "success" : "neutral"}>
-                        {t(report.status === "resolved" ? "reports.resolved" : "reports.dismissed")}
+                      <Badge
+                        tone={
+                          report.status === "resolved"
+                            ? "success"
+                            : report.status === "archived"
+                              ? "warning"
+                              : "neutral"
+                        }
+                      >
+                        {t(
+                          report.status === "resolved"
+                            ? "reports.resolved"
+                            : report.status === "archived"
+                              ? "reports.archived"
+                              : "reports.dismissed",
+                        )}
                       </Badge>
                     ) : null}
                   </p>
@@ -136,8 +167,8 @@ export default function ReportsPage() {
                 </div>
                 {tab === "open" ? (
                   <div className={styles.actions}>
-                    <Button onClick={() => setPending({ report, action: "hide" })} size="sm">
-                      {t("reports.hide")}
+                    <Button onClick={() => setPending({ report, action: "archive" })} size="sm">
+                      {t("reports.archive")}
                     </Button>
                     <Button onClick={() => setPending({ report, action: "resolved" })} size="sm" variant="secondary">
                       {t("reports.resolve")}
@@ -148,8 +179,16 @@ export default function ReportsPage() {
                   </div>
                 ) : (
                   <div className={styles.actions}>
-                    <Button onClick={() => void reopen(report)} size="sm" variant="secondary">
-                      {t("reports.reopen")}
+                    <Button
+                      onClick={() =>
+                        void (report.status === "archived" ? restore(report) : reopen(report))
+                      }
+                      size="sm"
+                      variant="secondary"
+                    >
+                      {report.status === "archived"
+                        ? t("reports.restore")
+                        : t("reports.reopen")}
                     </Button>
                   </div>
                 )}
@@ -174,8 +213,8 @@ export default function ReportsPage() {
         title={t("reports.confirmTitle")}
       >
         <p>
-          {pending?.action === "hide"
-            ? t("reports.confirmHideText")
+          {pending?.action === "archive"
+            ? t("reports.confirmArchiveText")
             : pending?.action === "dismissed"
               ? t("reports.confirmDismissText")
               : t("reports.confirmResolveText")}

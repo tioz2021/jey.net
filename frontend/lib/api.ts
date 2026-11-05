@@ -383,7 +383,7 @@ export const reports = {
     request<{ reports: Report[]; history: Report[] }>("/reports"),
   resolve: (
     id: string,
-    status: "resolved" | "dismissed" | "open",
+    status: "resolved" | "dismissed" | "open" | "archived" | "restore",
     hideTarget = false,
   ) =>
     request<{ ok: boolean }>(`/reports/${encodeURIComponent(id)}`, {
