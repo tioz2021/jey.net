@@ -54,7 +54,9 @@ export function App() {
         tauriSource.list(search || undefined) as Promise<LocalItem[]>,
         invoke<{ path: string; outbox: number; schema_version: number }>("local_db_status"),
       ]);
-      setItems(nextItems);
+      // Media cache arrives in T109; until then a remote /media URL would be a
+      // broken image inside the Tauri WebView.
+      setItems(nextItems.map((item) => ({ ...item, cover_key: null })));
       setAction(`${db.path} · schema ${db.schema_version} · outbox ${db.outbox}`);
     } catch (cause) {
       setError(String(cause));
