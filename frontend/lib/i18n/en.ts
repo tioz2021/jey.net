@@ -315,6 +315,8 @@ export const en = {
   'item.privateNote': 'Private note',
   'card.lastAction': 'Action: {date}',
   'card.rewatched': 'Rewatches: {count}',
+  'actionDate.rewatches': 'Rewatches',
+  'actionDate.invalidRewatches': 'Rewatch count must be non-negative',
   'actionDate.title': 'When it happened',
   'actionDate.movie': 'Watch date',
   'actionDate.watch': 'Last episode date',

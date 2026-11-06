@@ -314,6 +314,8 @@ export const ru = {
   'item.privateNote': 'Личная заметка',
   'card.lastAction': 'Действие: {date}',
   'card.rewatched': 'Пересмотров: {count}',
+  'actionDate.rewatches': 'Пересмотры',
+  'actionDate.invalidRewatches': 'Количество пересмотров должно быть неотрицательным',
   'actionDate.title': 'Когда это было',
   'actionDate.movie': 'Дата просмотра',
   'actionDate.watch': 'Дата последней серии',

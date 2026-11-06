@@ -315,6 +315,8 @@ export const uk = {
   'item.privateNote': 'Особиста нотатка',
   'card.lastAction': 'Дія: {date}',
   'card.rewatched': 'Переглядів: {count}',
+  'actionDate.rewatches': 'Перегляди',
+  'actionDate.invalidRewatches': 'Кількість переглядів має бути невід’ємною',
   'actionDate.title': 'Коли це було',
   'actionDate.movie': 'Дата перегляду',
   'actionDate.watch': 'Дата останньої серії',

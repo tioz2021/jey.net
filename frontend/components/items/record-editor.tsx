@@ -29,6 +29,9 @@ export function RecordEditor({ item }: { item: Item }) {
   const [current, setCurrent] = useState(
     String(item.details?.progress?.current ?? 0),
   );
+  const [rewatches, setRewatches] = useState(
+    String(item.details?.rewatch_count ?? 0),
+  );
   const [total, setTotal] = useState(
     String(item.details?.progress?.total ?? fallbackTotal ?? ""),
   );
@@ -49,6 +52,9 @@ export function RecordEditor({ item }: { item: Item }) {
   async function save(rewatch = false) {
     const currentValue = Number(current);
     const totalValue = total.trim() === "" ? null : Number(total);
+    const rewatchValue = rewatch
+      ? (item.details?.rewatch_count ?? 0) + 1
+      : Number(rewatches);
     if (
       hasProgress &&
       (!Number.isInteger(currentValue) ||
@@ -57,6 +63,13 @@ export function RecordEditor({ item }: { item: Item }) {
           (!Number.isInteger(totalValue) || totalValue <= 0 || currentValue > totalValue)))
     ) {
       setError(t("progress.invalid"));
+      return;
+    }
+    if (
+      item.kind === "movie" &&
+      (!Number.isInteger(rewatchValue) || rewatchValue < 0)
+    ) {
+      setError(t("actionDate.invalidRewatches"));
       return;
     }
 
@@ -70,9 +83,7 @@ export function RecordEditor({ item }: { item: Item }) {
           : date
             ? `${date}T00:00:00.000Z`
             : null,
-        ...(rewatch
-          ? { rewatch_count: (item.details?.rewatch_count ?? 0) + 1 }
-          : {}),
+        ...(item.kind === "movie" ? { rewatch_count: rewatchValue } : {}),
         ...(hasProgress
           ? {
               progress: {
@@ -86,6 +97,7 @@ export function RecordEditor({ item }: { item: Item }) {
       await api.items.update(item.id, { details });
       if (rewatch) {
         setDate(new Date().toISOString().slice(0, 10));
+        setRewatches(String(rewatchValue));
       }
       router.refresh();
     } catch {
@@ -104,6 +116,16 @@ export function RecordEditor({ item }: { item: Item }) {
           type="date"
           value={date}
         />
+        {item.kind === "movie" ? (
+          <Input
+            inputMode="numeric"
+            label={t("actionDate.rewatches")}
+            min={0}
+            onChange={(event) => setRewatches(event.target.value)}
+            type="number"
+            value={rewatches}
+          />
+        ) : null}
         {hasProgress ? (
           <>
             <Input
