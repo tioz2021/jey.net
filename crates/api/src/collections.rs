@@ -143,9 +143,10 @@ pub async fn detail(
 ) -> Result<Json<Value>, AppError> {
     owned(&state.pool, current.user.id, id).await?;
     let collection: Value = sqlx::query_scalar(
-        "select jsonb_build_object('id', id, 'title', title, 'slug', slug,
-            'visibility', visibility, 'created_at', created_at)
-         from collections where id = $1",
+        "select jsonb_build_object('id', c.id, 'title', c.title, 'slug', c.slug,
+            'visibility', c.visibility, 'created_at', c.created_at,
+            'handle', u.handle)
+         from collections c join users u on u.id = c.user_id where c.id = $1",
     )
     .bind(id)
     .fetch_one(&state.pool)
@@ -239,4 +240,53 @@ pub async fn remove_item(
         .await
         .map_err(AppError::internal)?;
     Ok(axum::http::StatusCode::NO_CONTENT)
+}
+
+/// `GET /api/v1/public/users/{handle}/collections/{slug}`
+///
+/// Public collections expose only records that are public on their own:
+/// the collection cannot make a private record visible.
+pub async fn public_detail(
+    State(state): State<AppState>,
+    axum::extract::Path((handle, slug)): axum::extract::Path<(String, String)>,
+) -> Result<Json<Value>, AppError> {
+    let row: Option<(Uuid, String, String, String, String)> = sqlx::query_as(
+        "select c.id, c.title, c.slug, c.visibility, u.display_name
+         from collections c join users u on u.id = c.user_id
+         where u.handle = $1 and c.slug = $2 and c.visibility = 'public'
+           and u.is_public and u.deleted_at is null and u.suspended_at is null",
+    )
+    .bind(&handle)
+    .bind(&slug)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((id, title, slug, _visibility, owner_name)) = row else {
+        return Err(AppError::not_found("collection"));
+    };
+
+    let items: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', i.id, 'slug', i.slug, 'kind', i.kind, 'title', i.title,
+            'subtitle', i.subtitle, 'year', i.year, 'status', i.status,
+            'rating', i.rating, 'review', i.review, 'cover_key', i.cover_key
+         )
+         from collection_items ci
+         join items i on i.id = ci.item_id
+         join users u on u.id = i.user_id
+         where ci.collection_id = $1
+           and i.deleted_at is null and not i.public_hidden
+           and i.status = ANY(u.public_statuses)
+           and u.is_public and u.deleted_at is null
+         order by ci.position asc, ci.created_at asc",
+    )
+    .bind(id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(Json(json!({
+        "collection": { "id": id, "title": title, "slug": slug, "owner_name": owner_name },
+        "items": items,
+    })))
 }

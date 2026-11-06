@@ -19,6 +19,7 @@ import type {
   Report,
   FriendRecommendation,
   PublicUserCard,
+  PublicCollection,
   SimilarItem,
   TasteRecommendation,
   TasteGenre,
@@ -406,6 +407,14 @@ export const follows = {
   blocked: () => request<{ people: BlockedProfile[] }>("/blocks"),
 };
 
+export const publicCollections = {
+  get: (handle: string, slug: string) =>
+    request<PublicCollection>(
+      `/public/users/${encodeURIComponent(handle)}/collections/${encodeURIComponent(slug)}`,
+      { redirectOnUnauthorized: false },
+    ),
+};
+
 export const reports = {
   create: (input: {
     target_type: "item" | "comment" | "profile";
@@ -646,6 +655,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { admin, anime, auth, books, collections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

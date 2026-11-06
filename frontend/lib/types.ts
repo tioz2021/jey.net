@@ -240,11 +240,33 @@ export interface Collection {
   visibility: "private" | "public";
   created_at: string;
   item_count: number;
+  handle?: string;
 }
 
 export interface CollectionDetail {
   collection: Omit<Collection, "item_count">;
   items: Item[];
+}
+
+export interface PublicCollection {
+  collection: {
+    id: string;
+    title: string;
+    slug: string;
+    owner_name: string;
+  };
+  items: Array<{
+    id: string;
+    slug: string;
+    kind: ItemKind;
+    title: string;
+    subtitle: string | null;
+    year: number | null;
+    status: ItemStatus;
+    rating: number | null;
+    review: string | null;
+    cover_key: string | null;
+  }>;
 }
 
 export interface ItemFilters {

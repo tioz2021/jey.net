@@ -52,7 +52,16 @@ export default async function CollectionPage({
       <Link className={styles.back} href="/collections">
         ← {translate(locale, "collections.title")}
       </Link>
-      <PageHeader title={data.collection.title} />
+      <PageHeader
+        action={
+          data.collection.visibility === "public" && data.collection.handle ? (
+            <Link href={`/u/${data.collection.handle}/collection/${data.collection.slug}`}>
+              {translate(locale, "collections.openPublic")}
+            </Link>
+          ) : null
+        }
+        title={data.collection.title}
+      />
       {data.items.length === 0 ? (
         <p className={styles.empty}>{translate(locale, "collections.empty")}</p>
       ) : (

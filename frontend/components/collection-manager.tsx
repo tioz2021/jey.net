@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
@@ -14,6 +14,7 @@ export function CollectionManager() {
   const { t } = useI18n();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [title, setTitle] = useState("");
+  const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +32,7 @@ export function CollectionManager() {
     setBusy(true);
     setError(null);
     try {
-      await api.collections.create({ title: title.trim() });
+      await api.collections.create({ title: title.trim(), visibility });
       setTitle("");
       load();
       window.dispatchEvent(new Event("jey:collections-changed"));
@@ -67,6 +68,14 @@ export function CollectionManager() {
           placeholder={t("collections.newPlaceholder")}
           value={title}
         />
+        <Select
+          label={t("collections.visibility")}
+          onChange={(event) => setVisibility(event.target.value as "private" | "public")}
+          value={visibility}
+        >
+          <option value="private">{t("collections.private")}</option>
+          <option value="public">{t("collections.public")}</option>
+        </Select>
         <Button disabled={busy || !title.trim()} onClick={() => void create()}>
           {t("collections.create")}
         </Button>
@@ -80,8 +89,32 @@ export function CollectionManager() {
             <li className={styles.item} key={collection.id}>
               <Link className={styles.link} href={`/collections/${collection.id}`}>
                 <span>{collection.title}</span>
-                <span className={styles.count}>{collection.item_count}</span>
+                <span className={styles.meta}>
+                  {collection.visibility === "public"
+                    ? t("collections.public")
+                    : t("collections.private")}
+                  {" · "}
+                  {collection.item_count}
+                </span>
               </Link>
+              <Button
+                onClick={() => {
+                  const next = collection.visibility === "public" ? "private" : "public";
+                  void api.collections
+                    .update(collection.id, { title: collection.title, visibility: next })
+                    .then(() => {
+                      load();
+                      window.dispatchEvent(new Event("jey:collections-changed"));
+                    })
+                    .catch(() => setError(t("collections.removeError")));
+                }}
+                size="sm"
+                variant="ghost"
+              >
+                {collection.visibility === "public"
+                  ? t("collections.makePrivate")
+                  : t("collections.makePublic")}
+              </Button>
               <Button onClick={() => void remove(collection.id)} size="sm" variant="ghost">
                 {t("collections.remove")}
               </Button>
