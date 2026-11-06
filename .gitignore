@@ -47,3 +47,6 @@ var/
 /build/
 /coverage/
 .shots/
+
+/apps/desktop/node_modules/
+/apps/desktop/dist/

@@ -49,14 +49,13 @@ timeout 5 ./target/release/jey-desktop
 
 ## UI
 
-Текущий `crates/desktop/ui/index.html` — временный smoke-UI T92–T95.
-Финальная архитектура и план перехода на Vite + общие компоненты:
-[desktop-ui.md](desktop-ui.md).
+Desktop UI теперь собирается из `apps/desktop` на Vite и использует общие
+компоненты `frontend/`. Старый smoke-UI удалён.
 
 ## Текущее состояние
 
 - окно Tauri;
-- статическая заглушка `ui/index.html`;
+- Vite + React UI в `apps/desktop`;
 - команда `app_version`;
 - общий `jey-desktop` crate без GUI-зависимостей;
 - GUI включается только feature `tauri`;

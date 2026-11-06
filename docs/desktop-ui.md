@@ -1,6 +1,6 @@
 # Desktop UI: архитектура
 
-Статус: проектное решение, 6 ноября 2026.
+Статус: реализовано в T119, 7 ноября 2026.
 
 ## Главное
 
@@ -18,11 +18,9 @@ crates/desktop/           SQLite, sync, Tauri commands
 
 ## Текущее состояние
 
-`crates/desktop/ui/index.html` — **временный smoke-UI** для T92–T95.
-Он проверяет Tauri, команды, SQLite и офлайн-очередь. Это не финальный
-интерфейс, и наращивать в нём функции нельзя.
-
-Перед T102 его нужно заменить.
+`apps/desktop` — Vite + React SPA. Он использует общий `ItemCard`,
+`Button`, `Input`, `Select`, дизайн-токены и i18n из `frontend/`.
+Старый `crates/desktop/ui/index.html` удалён в T119.
 
 ## Почему не текущий Next.js напрямую
 
@@ -62,7 +60,8 @@ apps/desktop/
     components/           только desktop-специфичное
 ```
 
-Tauri `frontendDist` указывает на `apps/desktop/dist`.
+Tauri `frontendDist` указывает на `apps/desktop/dist`. Проверка типов:
+`cd apps/desktop && npx tsc --noEmit`.
 
 ## Что переиспользуется
 
@@ -148,7 +147,7 @@ Desktop UI обязан запускаться и показывать лока�
 5. T103 — автосинхронизация веба.
 6. T109/T110 — медиа.
 
-`index.html` удаляется после T119.
+`index.html` уже удалён; Tauri загружает `apps/desktop/dist`.
 
 ## Критерий готовности T119
 

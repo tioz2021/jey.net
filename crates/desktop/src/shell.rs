@@ -46,16 +46,11 @@ fn current_user(state: &DesktopState) -> Result<uuid::Uuid, String> {
 }
 
 fn item_json(item: &Item, pending: bool) -> Value {
-    json!({
-        "id": item.id,
-        "title": item.title,
-        "kind": item.kind.as_str(),
-        "status": item.status.as_str(),
-        "year": item.year,
-        "rating": item.rating,
-        "updated_at": item.updated_at.as_millis(),
-        "pending": pending,
-    })
+    let mut value = serde_json::to_value(item).unwrap_or(Value::Null);
+    if let Some(object) = value.as_object_mut() {
+        object.insert("pending".to_owned(), Value::Bool(pending));
+    }
+    value
 }
 
 #[tauri::command]

@@ -27,5 +27,11 @@ export TMPDIR="${TMPDIR:-${ROOT}/.staging/tmp}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${ROOT}/.staging/cache}"
 mkdir -p "${TMPDIR}" "${XDG_CACHE_HOME}"
 
+echo "Building the desktop UI..."
+(
+  cd "${ROOT}/apps/desktop"
+  npm run build
+)
+
 cd "${ROOT}/crates/desktop"
 exec "${TAURI}" build --features tauri "$@"

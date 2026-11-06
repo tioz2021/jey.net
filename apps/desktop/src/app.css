@@ -1,0 +1,73 @@
+body {
+  margin: 0;
+  background: var(--color-surface);
+}
+
+.desktop-shell {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.desktop-head {
+  margin-bottom: 1rem;
+}
+
+.desktop-head h1 {
+  margin: 0 0 0.25rem;
+}
+
+.desktop-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.desktop-muted {
+  margin: 0.35rem 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.desktop-tools {
+  margin-bottom: 1rem;
+}
+
+.desktop-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.desktop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.desktop-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+.desktop-list-item {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.desktop-pending {
+  color: #b45309;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.desktop-error {
+  color: var(--color-danger, #b91c1c);
+  white-space: pre-wrap;
+}
