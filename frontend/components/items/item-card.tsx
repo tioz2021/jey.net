@@ -1,3 +1,5 @@
+"use client";
+
 /* eslint-disable @next/next/no-img-element -- covers are ready-made WebP renditions */
 import Link from "next/link";
 
