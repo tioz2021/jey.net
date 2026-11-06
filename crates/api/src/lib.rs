@@ -27,6 +27,7 @@ pub mod site;
 pub mod stats;
 pub mod sync_pull;
 pub mod sync_push;
+pub mod sync_status;
 pub mod system;
 pub mod telemetry;
 pub mod users;

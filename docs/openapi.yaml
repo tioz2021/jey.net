@@ -711,7 +711,9 @@ paths:
       operationId: getSyncStatus
       tags: [Sync]
       summary: Check whether anything changed
-      description: Contract v1. Does not read records. Not implemented in the current build.
+      description: |
+        Contract v1. `changes_after` counts actual rows after `since`, so gaps
+        from hard purges do not overstate the next pull. Implemented in T100.
       parameters:
         - $ref: "#/components/parameters/DeviceId"
         - $ref: "#/components/parameters/SyncVersion"
