@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>jey.net</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { max-width: 44rem; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.55; }
+      h1 { font-size: 1.6rem; }
+      .card { padding: 1rem; border: 1px solid #8a8f98; border-radius: 4px; }
+      code { font-family: ui-monospace, monospace; }
+      #version { font-weight: 600; }
+      @media (prefers-color-scheme: dark) {
+        body { background: #111318; color: #f0f2f5; }
+        .card { border-color: #3b414b; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>jey.net desktop</h1>
+    <div class="card">
+      <p>Каркас Tauri готов. Библиотека и синхронизация появятся в следующих задачах M8.3.</p>
+      <p>Версия: <span id="version">…</span></p>
+    </div>
+    <script>
+      const version = document.getElementById("version");
+      if (window.__TAURI__) {
+        window.__TAURI__.core.invoke("app_version").then((value) => {
+          version.textContent = value;
+        }).catch(() => { version.textContent = "unknown"; });
+      } else {
+        version.textContent = "web preview";
+      }
+    </script>
+  </body>
+</html>

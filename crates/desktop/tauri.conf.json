@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "jey.net",
+  "version": "0.2.0",
+  "identifier": "net.jey.desktop",
+  "build": {
+    "frontendDist": "ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "jey.net",
+        "width": 1120,
+        "height": 760,
+        "minWidth": 360,
+        "minHeight": 520,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.png"],
+    "shortDescription": "Personal media catalogue",
+    "longDescription": "Local-first personal catalogue for films, series, anime, books and games."
+  }
+}
