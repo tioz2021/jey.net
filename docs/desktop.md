@@ -14,6 +14,33 @@
 
 Библиотека, SQLite и sync появятся в T93–T95 и T127.
 
+## Запуск
+
+Сборка не запускает окно. После `cargo tauri build` запусти бинарник:
+
+```bash
+bash scripts/desktop-run.sh
+```
+
+или напрямую:
+
+```bash
+./target/release/jey-desktop
+```
+
+AppImage:
+
+```bash
+./target/release/bundle/appimage/jey.net_0.2.0_amd64.AppImage
+```
+
+Для разработки с пересборкой:
+
+```bash
+cd crates/desktop
+cargo tauri dev --features tauri
+```
+
 ## Сборка
 
 Проверка кода без GUI (работает на машине без WebKitGTK/GTK dev):
