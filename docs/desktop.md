@@ -68,7 +68,9 @@ Desktop UI теперь собирается из `apps/desktop` на Vite и и
 - `local_db_status` показывает путь, версию схемы и размеры очередей;
 - `local_list_items`, `local_create_item`, `local_update_item`,
   `local_delete_item` — офлайн-библиотека;
-- `local_sign_in` — первый онлайн-вход, создаёт локальный grant;
+- `local_sign_in` — первый онлайн-вход по email/паролю;
+- `local_google_sign_in` — Google через системный браузер, loopback и PKCE;
+- обе команды сохраняют сессионный токен в `session.json` (0600);
 - изменения попадают в `outbox` и помечаются «ожидает синхронизации»;
 - `local_export_json` — JSON всей библиотеки в `exports/`;
 - `local_backup` — консистентная копия `jey.db` и `media/` в `backups/`;
@@ -87,6 +89,19 @@ Sync появится в T102/T127.
 - `SqliteItems` — локальную SQLite;
 - `jey-repo-contract` — один и тот же сценарий для обоих;
 - проверяются create/get/list/update/delete, очистка рецензии и ревизии.
+
+## Google-вход
+
+Кнопка **«Войти через Google»**:
+
+1. открывает системный браузер;
+2. сервер ведёт в Google;
+3. Google возвращает на сервер;
+4. сервер редиректит на `127.0.0.1:<port>/callback`;
+5. desktop меняет одноразовый код + PKCE на сессию.
+
+WebView для Google не используется. Схема и ограничения — в
+[desktop-ui.md](desktop-ui.md).
 
 ## Запуск
 

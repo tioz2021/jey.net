@@ -153,6 +153,18 @@ Origin: http://localhost:3000
 Ограничения полей: `email` — валидный адрес, до 254 символов; `password` —
 от 10 до 128 символов; `display_name` — 1..60 после trim.
 
+### 5.2a Google OAuth
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/auth/google/start` | веб-вход, redirect на Google |
+| GET | `/auth/google/callback` | callback веб-входа, ставит cookie |
+| GET | `/auth/google/desktop/start?redirect_uri=…&code_challenge=…&state=…` | desktop-вход, только loopback `http://127.0.0.1:<port>/callback` |
+| POST | `/auth/google/desktop/exchange` | `{code, code_verifier}` → `{token, user}` |
+
+Desktop-код одноразовый, живёт 2 минуты, привязан к PKCE-челленджу и
+пользователю. Сессия выдаётся только после проверки verifier.
+
 ### 5.3 Записи
 
 | Метод | Путь | Описание |
