@@ -83,6 +83,9 @@ fn make_old(path: &Path) {
 
 #[tokio::test]
 async fn removes_orphans_and_keeps_referenced_and_fresh_files() {
+    // The test owns this directory; stale files from an earlier run must not
+    // change the expected deletion count.
+    let _ = std::fs::remove_dir_all(MEDIA_DIR);
     let (client, email, cookie, user_id) = logged_in().await;
     let pool = pool().await;
     let storage = LocalStorage::new(MEDIA_DIR);
