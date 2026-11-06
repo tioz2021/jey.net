@@ -190,22 +190,22 @@
 
 
 .compact .body :global(label) {
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
 .compact .body :global(input),
 .compact .body :global(button) {
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 
 .compact .body :global(input) {
-  padding: 6px 7px;
+  padding: 8px 10px;
 }
 
 .compact .body :global(button) {
-  min-height: 30px;
-  padding: 6px 8px;
+  min-height: 36px;
+  padding: 7px 10px;
 }
 
 
