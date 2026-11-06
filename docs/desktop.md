@@ -46,8 +46,17 @@ timeout 5 ./target/release/jey-desktop
 - миграции, WAL, `sync_state`, `outbox`, `conflicts`;
 - `local_db_status` показывает путь, версию схемы и размеры очередей.
 
-T93 готова: SQLite-схема и миграции есть. Репозитории, офлайн-редактирование
-и sync появятся в T94–T95 и T127.
+T93 и T94 готовы: SQLite-схема, миграции и общий контракт репозитория.
+Офлайн-редактирование и sync появятся в T95 и T127.
+
+## Репозиторий
+
+`jey-core::repositories::ItemRepository` — общий CRUD-контракт.
+
+- `PgItems` использует существующий PostgreSQL-репозиторий;
+- `SqliteItems` — локальную SQLite;
+- `jey-repo-contract` — один и тот же сценарий для обоих;
+- проверяются create/get/list/update/delete, очистка рецензии и ревизии.
 
 ## Запуск
 

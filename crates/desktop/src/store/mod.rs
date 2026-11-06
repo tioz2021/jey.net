@@ -11,6 +11,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use rusqlite::{Connection, OptionalExtension, params};
 
+mod repository;
+pub use repository::SqliteItems;
+
 const MIGRATIONS: &[(i64, &str)] = &[(1, include_str!("../../migrations/0001_init.sql"))];
 
 #[derive(Debug)]

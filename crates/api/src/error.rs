@@ -184,6 +184,13 @@ impl std::fmt::Display for AppError {
 
 impl std::error::Error for AppError {}
 
+impl AppError {
+    /// Unwraps the domain error for storage adapters and contract tests.
+    pub fn into_domain(self) -> DomainError {
+        self.source
+    }
+}
+
 impl From<DomainError> for AppError {
     fn from(error: DomainError) -> Self {
         Self::new(error)

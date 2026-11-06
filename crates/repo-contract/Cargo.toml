@@ -1,0 +1,12 @@
+[package]
+name = "jey-repo-contract"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Shared behaviour contract for jey item repositories"
+
+[dependencies]
+jey-core = { path = "../core" }
+uuid.workspace = true

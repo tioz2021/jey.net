@@ -5,6 +5,7 @@
 
 pub mod error;
 pub mod items;
+pub mod repositories;
 pub mod sync;
 
 pub use error::DomainError;
