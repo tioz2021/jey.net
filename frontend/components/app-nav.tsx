@@ -19,6 +19,7 @@ import type { Stats } from "@/lib/types";
 import { useI18n } from "@/lib/locale-context";
 import type { TranslationKey } from "@/lib/i18n";
 
+import { CollectionsSidebar } from "./collections-sidebar";
 import { FollowingSidebar } from "./following-sidebar";
 import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
@@ -153,6 +154,7 @@ export function AppNav() {
       </div>
     </aside>
     <div id="items-filter-slot" />
+    <CollectionsSidebar />
     <FollowingSidebar />
     </div>
   );

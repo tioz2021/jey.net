@@ -23,6 +23,8 @@ import type {
   TasteRecommendation,
   TasteGenre,
   Comment,
+  Collection,
+  CollectionDetail,
   ReactionLiker,
   Item,
   ItemFilters,
@@ -349,6 +351,32 @@ export const movies = {
     request<{ movie: MovieDetailsResponse }>(`/movies/${id}`),
 };
 
+export const collections = {
+  list: () => request<{ collections: Collection[] }>("/collections"),
+  create: (input: { title: string; visibility?: "private" | "public" }) =>
+    request<{ id: string; title: string; slug: string }>("/collections", {
+      method: "POST",
+      body: input,
+    }),
+  detail: (id: string) =>
+    request<CollectionDetail>(`/collections/${encodeURIComponent(id)}`),
+  update: (id: string, input: { title: string; visibility?: "private" | "public" }) =>
+    request<{ ok: boolean }>(`/collections/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: input,
+    }),
+  remove: (id: string) =>
+    request<void>(`/collections/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  addItem: (id: string, itemId: string) =>
+    request<void>(`/collections/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`, {
+      method: "PUT",
+    }),
+  removeItem: (id: string, itemId: string) =>
+    request<void>(`/collections/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`, {
+      method: "DELETE",
+    }),
+};
+
 export const follows = {
   following: () =>
     request<{ people: FollowingProfile[] }>("/follows/following"),
@@ -618,6 +646,6 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { admin, anime, auth, books, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

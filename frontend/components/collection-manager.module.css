@@ -1,0 +1,53 @@
+.wrap {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.create > :first-child {
+  flex: 1 1 16rem;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.count {
+  color: var(--color-text-muted);
+}
+
+.empty,
+.error {
+  margin: 0;
+  color: var(--color-text-muted);
+}

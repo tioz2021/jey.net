@@ -82,7 +82,7 @@ export function RecordEditor({ item }: { item: Item }) {
           ? new Date().toISOString()
           : date
             ? `${date}T00:00:00.000Z`
-            : null,
+            : new Date().toISOString(),
         ...(item.kind === "movie" ? { rewatch_count: rewatchValue } : {}),
         ...(hasProgress
           ? {

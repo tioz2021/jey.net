@@ -10,6 +10,8 @@ import { SimilarItems } from "@/components/items/similar-items";
 import { ItemReview } from "@/components/items/item-review";
 import { AnimeContinue } from "@/components/items/anime-continue";
 import { RecordEditor } from "@/components/items/record-editor";
+import { AnimeEpisodes } from "@/components/items/anime-episodes";
+import { AddToCollection } from "@/components/add-to-collection";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
@@ -263,6 +265,8 @@ export default async function ItemPage({
           ) : null}
 
           <RecordEditor item={item} />
+          <AddToCollection itemId={item.id} />
+          <AnimeEpisodes item={item} />
           <AnimeContinue item={item} />
 
           {item.kind === "tv" &&

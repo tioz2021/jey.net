@@ -52,6 +52,20 @@ export function nextAnimeEpisode(
   details: EpisodeDetails | null | undefined,
 ): NextEpisode | null {
   const total = details?.progress?.total ?? details?.number_of_episodes ?? null;
+  const watched = new Set(
+    (details?.watched_episodes ?? [])
+      .filter((episode) => episode.season_number === 1)
+      .map((episode) => episode.episode_number),
+  );
+  if (watched.size > 0 && total !== null) {
+    for (let episode = 1; episode <= total; episode += 1) {
+      if (!watched.has(episode)) {
+        return { season: 1, episode, started: true };
+      }
+    }
+    return null;
+  }
+
   const current = details?.progress?.current ?? 0;
   if (total !== null && current >= total) {
     return null;

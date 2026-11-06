@@ -233,6 +233,20 @@ export interface NewItem {
 /** Partial update: absent fields are left untouched by the server. */
 export type ItemPatch = Partial<NewItem>;
 
+export interface Collection {
+  id: string;
+  title: string;
+  slug: string;
+  visibility: "private" | "public";
+  created_at: string;
+  item_count: number;
+}
+
+export interface CollectionDetail {
+  collection: Omit<Collection, "item_count">;
+  items: Item[];
+}
+
 export interface ItemFilters {
   kind?: ItemKind;
   status?: ItemStatus;

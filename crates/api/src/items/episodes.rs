@@ -2,6 +2,7 @@
 
 use axum::Json;
 use axum::extract::{Path, Query, State};
+use chrono::Utc;
 use jey_core::items::{ItemKind, MovieDetails, WatchedEpisode};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -171,6 +172,7 @@ pub async fn toggle_season(
         details
             .watched_episodes
             .sort_by_key(|episode| (episode.season_number, episode.episode_number));
+        details.last_action_at = Some(Utc::now().to_rfc3339());
     }
 
     let patch = jey_core::items::validate::validate_patch(&jey_core::items::ItemPatch {
@@ -224,6 +226,7 @@ pub async fn toggle(
         details
             .watched_episodes
             .sort_by_key(|episode| (episode.season_number, episode.episode_number));
+        details.last_action_at = Some(Utc::now().to_rfc3339());
     }
 
     let patch = jey_core::items::validate::validate_patch(&jey_core::items::ItemPatch {

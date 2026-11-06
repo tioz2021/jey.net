@@ -187,6 +187,21 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::push::subscribe).delete(crate::push::unsubscribe),
         )
         .route(
+            "/collections",
+            get(crate::collections::list).post(crate::collections::create),
+        )
+        .route(
+            "/collections/{id}",
+            get(crate::collections::detail)
+                .patch(crate::collections::update)
+                .delete(crate::collections::remove),
+        )
+        .route(
+            "/collections/{id}/items/{item_id}",
+            axum::routing::put(crate::collections::add_item)
+                .delete(crate::collections::remove_item),
+        )
+        .route(
             "/reports",
             get(crate::reports::list).post(crate::reports::create),
         )
