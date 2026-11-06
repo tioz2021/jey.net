@@ -13,8 +13,10 @@ use rusqlite::{Connection, OptionalExtension, params};
 
 mod export;
 mod repository;
+mod sync;
 pub use export::{BackupReport, ExportReport, backup, export_json};
 pub use repository::SqliteItems;
+pub use sync::RemoteChange;
 
 const MIGRATIONS: &[(i64, &str)] = &[(1, include_str!("../../migrations/0001_init.sql"))];
 

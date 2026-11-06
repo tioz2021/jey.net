@@ -29,6 +29,8 @@ export function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [action, setAction] = useState("");
+  const [syncStatus, setSyncStatus] = useState<{ changes_after: number; last_seq: number } | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const invoke = <T,>(command: string, args?: Record<string, unknown>): Promise<T> => {
     const api = (window as unknown as { __TAURI__?: { core?: { invoke?: <R>(name: string, args?: Record<string, unknown>) => Promise<R> } } }).__TAURI__;
@@ -73,6 +75,18 @@ export function App() {
 
   useEffect(() => {
     if (!access?.has_access) return;
+    void refreshSyncStatus();
+    const timer = window.setInterval(() => void refreshSyncStatus(), 30_000);
+    window.addEventListener("focus", refreshSyncStatus);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshSyncStatus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access?.has_access]);
+
+  useEffect(() => {
+    if (!access?.has_access) return;
     const timer = window.setTimeout(() => void load(query), 180);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,6 +119,30 @@ export function App() {
       setError(String(cause));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function sync() {
+    setSyncing(true);
+    setError("");
+    try {
+      const report = await invoke<{ pushed: number; pulled: number; conflicts: number; last_seq: number }>("local_sync");
+      setAction(`Sync: отправлено ${report.pushed}, получено ${report.pulled}, конфликтов ${report.conflicts}`);
+      setSyncStatus({ changes_after: 0, last_seq: report.last_seq });
+      await load();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function refreshSyncStatus() {
+    try {
+      const status = await invoke<{ changes_after: number; last_seq: number }>("local_sync_status");
+      setSyncStatus(status);
+    } catch {
+      setSyncStatus(null);
     }
   }
 
@@ -160,6 +198,13 @@ export function App() {
           <p className="desktop-muted">Локальная библиотека · сервер {access.server_url}</p>
         </div>
         <div className="desktop-actions">
+          <Button loading={syncing} size="sm" onClick={() => void sync()}>
+            {syncing ? "Синхронизация…" : "Синхронизировать"}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={async () => {
+            await invoke("local_sign_out");
+            setAccess(null);
+          }}>Выйти</Button>
           <Button variant="secondary" size="sm" onClick={async () => {
             const report = await invoke<{ path: string }>("local_export_json");
             setAction(`Экспорт: ${report.path}`);
@@ -195,6 +240,14 @@ export function App() {
         </form>
       </Card>
 
+      {syncStatus && syncStatus.changes_after > 0 ? (
+        <div className="desktop-banner">
+          Есть изменения в вебе: {syncStatus.changes_after}.{" "}
+          <button className="desktop-banner-action" onClick={() => void sync()} type="button">
+            Синхронизировать
+          </button>
+        </div>
+      ) : null}
       {error ? <p className="desktop-error">{error}</p> : null}
       {action ? <p className="desktop-muted">{action}</p> : null}
 

@@ -1,5 +1,7 @@
 //! Tauri window, local library commands and first online login.
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use base64::Engine;
@@ -15,11 +17,13 @@ use jey_core::repositories::ItemRepository;
 use crate::access::AccessStore;
 use crate::session_store::SessionStore;
 use crate::store::{DesktopStore, SqliteItems, backup, export_json};
+use crate::sync::SyncService;
 
 struct DesktopState {
     access: AccessStore,
     store: DesktopStore,
     session: SessionStore,
+    sync_busy: Arc<AtomicBool>,
 }
 
 #[tauri::command]
@@ -146,6 +150,28 @@ fn local_backup(state: State<'_, DesktopState>) -> Result<crate::store::BackupRe
 }
 
 #[tauri::command]
+async fn local_sync_status(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let service = SyncService::from_local(state.store.clone(), &state.access, &state.session)?;
+    let status = service.status().await?;
+    serde_json::to_value(status).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+async fn local_sync(state: State<'_, DesktopState>) -> Result<Value, String> {
+    if state.sync_busy.swap(true, Ordering::SeqCst) {
+        return Err("Синхронизация уже идёт".to_owned());
+    }
+    let result = async {
+        let service = SyncService::from_local(state.store.clone(), &state.access, &state.session)?;
+        service.synchronize().await
+    }
+    .await;
+    state.sync_busy.store(false, Ordering::SeqCst);
+    let report = result?;
+    serde_json::to_value(report).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 async fn local_delete_item(state: State<'_, DesktopState>, id: uuid::Uuid) -> Result<bool, String> {
     let user = current_user(&state)?;
     let repository = SqliteItems::new(state.store.clone());
@@ -215,6 +241,13 @@ async fn local_sign_in(state: State<'_, DesktopState>, input: LoginInput) -> Res
         .grant(user_id, &server)
         .map_err(|error| error.to_string())?;
     Ok(json!({ "has_access": true, "user_id": user_id, "server_url": server }))
+}
+
+#[tauri::command]
+fn local_sign_out(state: State<'_, DesktopState>) -> Result<(), String> {
+    state.access.revoke().map_err(|error| error.to_string())?;
+    state.session.clear().map_err(|error| error.to_string())?;
+    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
@@ -374,6 +407,7 @@ pub fn run() {
                 access: AccessStore::new(data_dir.clone()),
                 store,
                 session: SessionStore::new(data_dir),
+                sync_busy: Arc::new(AtomicBool::new(false)),
             });
 
             if let Some(window) = app.get_webview_window("main") {
@@ -392,7 +426,10 @@ pub fn run() {
             local_export_json,
             local_backup,
             local_sign_in,
-            local_google_sign_in
+            local_google_sign_in,
+            local_sign_out,
+            local_sync,
+            local_sync_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running jey.net desktop");
