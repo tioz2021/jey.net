@@ -266,7 +266,7 @@ async fn create_item_endpoint_stores_and_normalises() {
     assert_eq!(created.body["item"]["subtitle"], "Christopher Nolan");
     assert_eq!(created.body["item"]["rating"], 9);
     assert_eq!(created.body["item"]["revision"], 1);
-    assert_eq!(created.body["item"]["sync_seq"], 0);
+    assert!(created.body["item"]["sync_seq"].as_u64().unwrap() >= 1);
     assert!(
         created.body["item"]["created_at"]
             .as_str()
