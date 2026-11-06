@@ -29,8 +29,7 @@ cargo test -p jey-desktop
 sudo dnf install webkit2gtk4.1-devel gtk3-devel dbus-devel \
   libappindicator-gtk3-devel librsvg2-devel pkgconf-pkg-config
 cargo install tauri-cli --version '^2' --locked
-cd crates/desktop
-cargo tauri build --features tauri
+bash scripts/desktop-build.sh
 ```
 
 Ubuntu/Debian:
