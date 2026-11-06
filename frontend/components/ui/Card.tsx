@@ -7,12 +7,23 @@ export interface CardProps {
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  accent?: boolean;
 }
 
 /** A bordered block with an optional header bar — the base layout unit. */
-export function Card({ title, action, children, className }: CardProps) {
+export function Card({
+  title,
+  action,
+  children,
+  className,
+  accent = false,
+}: CardProps) {
   return (
-    <section className={[styles.card, className].filter(Boolean).join(" ")}>
+    <section
+      className={[styles.card, accent ? styles.accented : "", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {title || action ? (
         <div className={styles.head}>
           {title ? <h2 className={styles.title}>{title}</h2> : <span />}
