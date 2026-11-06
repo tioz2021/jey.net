@@ -4,8 +4,12 @@
 
 .wrap {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-2);
+}
+
+.wrap :global(button) {
+  min-height: 38px;
 }
 
 .wrap > :first-child {
