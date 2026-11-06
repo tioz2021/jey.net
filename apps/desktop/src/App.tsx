@@ -59,6 +59,14 @@ export function App() {
   }
 
   useEffect(() => {
+    void boot().catch((cause) => {
+      setError(String(cause));
+      setAccess({ has_access: false });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (access?.has_access) void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [access?.has_access]);
