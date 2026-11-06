@@ -8,9 +8,9 @@ import { MovieCast } from "@/components/items/movie-cast";
 import { SimilarItems } from "@/components/items/similar-items";
 
 import { ItemReview } from "@/components/items/item-review";
-import { AnimeContinue } from "@/components/items/anime-continue";
 import { RecordEditor } from "@/components/items/record-editor";
 import { AnimeEpisodes } from "@/components/items/anime-episodes";
+import { DetailGroup } from "@/components/items/detail-group";
 import { AddToCollection } from "@/components/add-to-collection";
 import { RatingStars } from "@/components/items/rating-stars";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
@@ -258,35 +258,45 @@ export default async function ItemPage({
 
           <KindDetails item={item} locale={locale} />
 
-          {item.review ? <ItemReview text={item.review} /> : null}
-
-          {item.body ? (
-            <ItemReview text={item.body} title={t("item.privateNote")} />
+          {item.review || item.body || item.details ? (
+            <DetailGroup title={t("detail.myRecord")}>
+            {item.review ? <ItemReview text={item.review} /> : null}
+            {item.body ? (
+              <ItemReview text={item.body} title={t("item.privateNote")} />
+            ) : null}
+            <RecordEditor item={item} />
+            </DetailGroup>
           ) : null}
 
-          <RecordEditor item={item} />
+          {item.kind === "anime" ||
+          (item.kind === "tv" &&
+            item.details?.seasons &&
+            item.details.seasons.length > 0) ? (
+            <DetailGroup title={t("detail.progress")}>
+              <AnimeEpisodes item={item} />
+              {item.kind === "tv" &&
+              item.details?.seasons &&
+              item.details.seasons.length > 0 ? (
+                <SeriesEpisodes
+                  itemId={item.id}
+                  seasons={item.details.seasons}
+                  totalEpisodes={item.details.number_of_episodes}
+                  watched={item.details.watched_episodes ?? []}
+                  initialSeason={continueSeason}
+                  highlightEpisode={continueEpisode}
+                />
+              ) : null}
+            </DetailGroup>
+          ) : null}
+
           <AddToCollection itemId={item.id} />
-          <AnimeEpisodes item={item} />
-          <AnimeContinue item={item} />
 
-          {item.kind === "tv" &&
-          item.details?.seasons &&
-          item.details.seasons.length > 0 ? (
-            <SeriesEpisodes
-              itemId={item.id}
-              seasons={item.details.seasons}
-              totalEpisodes={item.details.number_of_episodes}
-              watched={item.details.watched_episodes ?? []}
-              initialSeason={continueSeason}
-              highlightEpisode={continueEpisode}
-            />
-          ) : null}
-
-          {item.details && (item.kind === "movie" || item.kind === "tv") ? (
-            <MovieCast details={item.details} locale={locale} />
-          ) : null}
-
-          <SimilarItems itemId={item.id} />
+          <DetailGroup title={t("detail.info")}>
+            {item.details && (item.kind === "movie" || item.kind === "tv") ? (
+              <MovieCast details={item.details} locale={locale} />
+            ) : null}
+            <SimilarItems itemId={item.id} />
+          </DetailGroup>
         </div>
       </div>
     </main>
