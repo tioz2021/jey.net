@@ -9,10 +9,14 @@ use axum::extract::{Query, State};
 use axum::http::header::{LOCATION, SET_COOKIE};
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use rand::RngCore;
 use reqwest::Url;
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 use crate::auth::normalise_email;
 use crate::auth::session;
@@ -25,6 +29,19 @@ const STATE_TTL_SECS: u64 = 600;
 const AUTH_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const TOKEN_INFO_URL: &str = "https://oauth2.googleapis.com/tokeninfo";
+
+#[derive(Debug, Deserialize)]
+pub struct DesktopStartQuery {
+    redirect_uri: String,
+    code_challenge: String,
+    state: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DesktopExchange {
+    code: String,
+    code_verifier: String,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct CallbackQuery {
@@ -63,6 +80,103 @@ pub async fn start(State(state): State<AppState>) -> Result<Response, AppError> 
     append_cookie(&mut response, &cookie)?;
 
     Ok(response)
+}
+
+/// `GET /api/v1/auth/google/desktop/start`
+///
+/// Called by the system browser from the desktop app. Only loopback redirects
+/// are accepted; the code challenge is stored until the callback.
+pub async fn desktop_start(
+    State(state): State<AppState>,
+    Query(query): Query<DesktopStartQuery>,
+) -> Result<Response, AppError> {
+    let Some((client_id, _, redirect_url)) = state.config.google_oauth() else {
+        return Err(AppError::unavailable("google sign-in is not configured"));
+    };
+    let redirect_uri = validate_redirect(&query.redirect_uri)?;
+    validate_code_challenge(&query.code_challenge)?;
+
+    let state_token = match query.state {
+        Some(value)
+            if value.len() == 64
+                && value.chars().all(|character| character.is_ascii_hexdigit()) =>
+        {
+            value.to_ascii_lowercase()
+        }
+        _ => random_state(),
+    };
+    sqlx::query(
+        "insert into oauth_desktop (state, redirect_uri, code_challenge, expires_at)
+         values ($1, $2, $3, now() + interval '10 minutes')",
+    )
+    .bind(&state_token)
+    .bind(&redirect_uri)
+    .bind(&query.code_challenge)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    // Opportunistic cleanup; no background job is needed for this small table.
+    let _ = sqlx::query("delete from oauth_desktop where expires_at < now() - interval '1 hour'")
+        .execute(&state.pool)
+        .await;
+
+    let url = auth_url(client_id, redirect_url, &state_token)?;
+    let mut response = redirect(url);
+    append_cookie(
+        &mut response,
+        &state_cookie(&state_token, state.config.is_production()),
+    )?;
+    Ok(response)
+}
+
+/// `POST /api/v1/auth/google/desktop/exchange`
+pub async fn desktop_exchange(
+    State(state): State<AppState>,
+    axum::Json(request): axum::Json<DesktopExchange>,
+) -> Result<axum::Json<Value>, AppError> {
+    let code_hash = Sha256::digest(request.code.as_bytes()).to_vec();
+    let row: Option<(Uuid, String)> = sqlx::query_as(
+        "select user_id, code_challenge from oauth_desktop
+         where code_hash = $1 and used_at is null and expires_at > now() and user_id is not null",
+    )
+    .bind(&code_hash)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((user_id, challenge)) = row else {
+        return Err(AppError::validation("desktop code is invalid or expired"));
+    };
+    let verifier_hash = URL_SAFE_NO_PAD.encode(Sha256::digest(request.code_verifier.as_bytes()));
+    if verifier_hash != challenge {
+        return Err(AppError::validation("PKCE verification failed"));
+    }
+
+    let user = user::find_by_id(&state.pool, user_id)
+        .await?
+        .ok_or_else(|| AppError::validation("account not found"))?;
+    let created = session::create_session(
+        &state.pool,
+        user.id,
+        None,
+        state.config.session_ttl_days,
+        Some("jey-desktop"),
+    )
+    .await
+    .map_err(AppError::internal)?;
+    sqlx::query(
+        "update oauth_desktop set used_at = now()
+         where code_hash = $1 and used_at is null",
+    )
+    .bind(&code_hash)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    Ok(axum::Json(json!({
+        "token": created.token,
+        "user": UserView::from(user),
+    })))
 }
 
 /// `GET /api/v1/auth/google/callback`
@@ -164,6 +278,41 @@ pub async fn callback(
         crate::analytics::record(&state.pool, "registration", None, None).await;
     }
 
+    let desktop_redirect: Option<String> = sqlx::query_scalar(
+        "select redirect_uri from oauth_desktop
+         where state = $1 and user_id is null and expires_at > now()",
+    )
+    .bind(query.state.as_deref().unwrap_or_default())
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    if let Some(redirect_uri) = desktop_redirect {
+        let code = random_state();
+        let code_hash = Sha256::digest(code.as_bytes()).to_vec();
+        sqlx::query(
+            "update oauth_desktop
+             set user_id = $2, code_hash = $3, expires_at = now() + interval '2 minutes'
+             where state = $1 and user_id is null",
+        )
+        .bind(query.state.as_deref().unwrap_or_default())
+        .bind(user.id)
+        .bind(&code_hash)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+
+        let mut response = redirect(format!(
+            "{redirect_uri}?code={code}&state={}",
+            query.state.as_deref().unwrap_or_default()
+        ));
+        append_cookie(
+            &mut response,
+            &cleared_state_cookie(state.config.is_production()),
+        )?;
+        return Ok(response);
+    }
+
     let user_agent = headers
         .get(axum::http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok());
@@ -199,6 +348,35 @@ pub async fn callback(
     )?;
 
     Ok(response)
+}
+
+fn validate_redirect(raw: &str) -> Result<String, AppError> {
+    let url = Url::parse(raw).map_err(|_| AppError::validation("invalid redirect_uri"))?;
+    let host = url.host_str().unwrap_or_default();
+    let loopback = host == "127.0.0.1" || host == "localhost" || host == "[::1]";
+    if url.scheme() != "http"
+        || !loopback
+        || url.path() != "/callback"
+        || url.query().is_some()
+        || url.fragment().is_some()
+        || url.username() != ""
+    {
+        return Err(AppError::validation(
+            "redirect_uri must be http://127.0.0.1:<port>/callback",
+        ));
+    }
+    Ok(url.to_string())
+}
+
+fn validate_code_challenge(raw: &str) -> Result<(), AppError> {
+    if !(43..=128).contains(&raw.len())
+        || !raw
+            .chars()
+            .all(|value| value.is_ascii_alphanumeric() || value == '-' || value == '_')
+    {
+        return Err(AppError::validation("invalid code_challenge"));
+    }
+    Ok(())
 }
 
 fn auth_url(client_id: &str, redirect_url: &str, state: &str) -> Result<String, AppError> {
@@ -344,5 +522,22 @@ mod tests {
         assert!(cookie.contains("Path=/api/v1/auth/google"));
         assert!(cookie.contains("SameSite=Lax"));
         assert!(cookie.contains("Secure"));
+    }
+
+    #[test]
+    fn desktop_redirect_is_loopback_only() {
+        assert!(validate_redirect("http://127.0.0.1:43123/callback").is_ok());
+        assert!(validate_redirect("http://localhost:43123/callback").is_ok());
+        assert!(validate_redirect("https://127.0.0.1:43123/callback").is_err());
+        assert!(validate_redirect("http://evil.example/callback").is_err());
+        assert!(validate_redirect("http://127.0.0.1:43123/other").is_err());
+        assert!(validate_redirect("http://127.0.0.1:43123/callback?x=1").is_err());
+    }
+
+    #[test]
+    fn desktop_challenge_has_pkce_shape() {
+        assert!(validate_code_challenge("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").is_ok());
+        assert!(validate_code_challenge("short").is_err());
+        assert!(validate_code_challenge("bad challenge with spaces").is_err());
     }
 }

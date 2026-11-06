@@ -95,6 +95,19 @@ export function App() {
     }
   }
 
+  async function signInGoogle() {
+    setBusy(true);
+    setError("");
+    try {
+      await invoke("local_google_sign_in", { input: { server_url: server } });
+      await boot();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function create(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim()) return;
@@ -129,6 +142,9 @@ export function App() {
             <Input label="Email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
             <Input label="Пароль" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
             <Button loading={busy} type="submit">Войти</Button>
+            <Button disabled={busy} onClick={() => void signInGoogle()} type="button" variant="secondary">
+              Войти через Google
+            </Button>
           </form>
           {error ? <p className="desktop-error">{error}</p> : null}
         </Card>

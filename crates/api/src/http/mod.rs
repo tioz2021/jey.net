@@ -136,6 +136,14 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/auth/google/start", get(crate::auth::google::start))
+        .route(
+            "/auth/google/desktop/start",
+            get(crate::auth::google::desktop_start),
+        )
+        .route(
+            "/auth/google/desktop/exchange",
+            post(crate::auth::google::desktop_exchange),
+        )
         .route("/auth/google/callback", get(crate::auth::google::callback))
         // Public: TMDB posters and actor portraits are not private data, and
         // guest profiles must render them too.
