@@ -1097,7 +1097,7 @@ components:
       properties:
         device_id: { type: string, format: uuid }
         name: { type: string, minLength: 1, maxLength: 60 }
-        platform: { type: string, enum: [linux, windows, macos] }
+        platform: { type: string, enum: [linux, windows, macos, web] }
     Device:
       type: object
       required: [device_id, name, platform, created_at]

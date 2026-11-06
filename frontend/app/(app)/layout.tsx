@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { AppNav } from "@/components/app-nav";
 import { SiteHeader } from "@/components/site-header";
+import { SyncRefresher } from "@/components/sync-refresher";
 
 import styles from "./layout.module.css";
 
@@ -37,6 +38,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteHeader />
+      <SyncRefresher />
       <div className={styles.shell}>
         <AppNav />
         <div className={styles.content}>{children}</div>

@@ -15,7 +15,7 @@ use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
 
-const PLATFORMS: &[&str] = &["linux", "macos", "windows"];
+const PLATFORMS: &[&str] = &["linux", "macos", "windows", "web"];
 
 #[derive(Debug, Deserialize)]
 pub struct RegisterDevice {
@@ -51,7 +51,7 @@ pub async fn register(
     if !PLATFORMS.contains(&input.platform.as_str()) {
         return Err(AppError::validation_field(
             "platform",
-            "platform must be linux, macos or windows",
+            "platform must be linux, macos, windows or web",
         ));
     }
 

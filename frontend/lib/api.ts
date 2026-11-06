@@ -654,11 +654,27 @@ export const admin = {
   },
 };
 
+export const sync = {
+  registerDevice: (deviceId: string) =>
+    request<{ device: { device_id: string } }>("/devices", {
+      method: "POST",
+      body: { device_id: deviceId, name: "Web browser", platform: "web" },
+    }),
+  status: (since: number, deviceId: string) =>
+    request<{ protocol_version: number; last_seq: number; changes_after: number; server_time: string }>(
+      `/sync/status?since=${since}`,
+      {
+        headers: { "X-Device-Id": deviceId, "X-Sync-Version": "1" },
+        redirectOnUnauthorized: false,
+      },
+    ),
+};
+
 export const transfer = {
   import: (file: { items: NewItem[] }) =>
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { admin, anime, auth, books, collections, publicCollections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };
