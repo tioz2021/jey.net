@@ -11,7 +11,12 @@ import { useUser } from "@/lib/user-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui";
 import { Badge, Card } from "@/components/ui";
-import type { ItemKind, PublicItem, PublicProfile } from "@/lib/types";
+import type {
+  ItemKind,
+  PublicCollectionSummary,
+  PublicItem,
+  PublicProfile,
+} from "@/lib/types";
 
 import styles from "./public-profile.module.css";
 
@@ -31,10 +36,12 @@ const KIND_TABS: Record<ItemKind, "nav.movies" | "nav.series" | "nav.books" | "n
 export function PublicProfileView({
   profile,
   items,
+  collections = [],
   preview = false,
 }: {
   profile: PublicProfile;
   items: PublicItem[];
+  collections?: PublicCollectionSummary[];
   preview?: boolean;
 }) {
   const { t, date } = useI18n();
@@ -255,6 +262,23 @@ export function PublicProfileView({
           </div>
         </div>
       </section>
+
+      {collections.length > 0 ? (
+        <Card title={t("collections.publicTitle")}>
+          <ul className={styles.collections}>
+            {collections.map((collection) => (
+              <li key={collection.id}>
+                <Link
+                  href={`/u/${profile.handle}/collection/${collection.slug}`}
+                >
+                  <span>{collection.title}</span>
+                  <span>{collection.item_count}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card
         action={

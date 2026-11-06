@@ -631,9 +631,17 @@ export interface Comment {
   replies: Comment[];
 }
 
+export interface PublicCollectionSummary {
+  id: string;
+  title: string;
+  slug: string;
+  item_count: number;
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];
+  collections?: PublicCollectionSummary[];
   preview?: boolean;
 }
 

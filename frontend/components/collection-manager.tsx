@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button, Input, Select } from "@/components/ui";
+import { Button, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
@@ -15,6 +15,7 @@ export function CollectionManager() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<"private" | "public">("private");
+  const [pendingDelete, setPendingDelete] = useState<Collection | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,13 +116,42 @@ export function CollectionManager() {
                   ? t("collections.makePrivate")
                   : t("collections.makePublic")}
               </Button>
-              <Button onClick={() => void remove(collection.id)} size="sm" variant="ghost">
+              <Button
+                onClick={() => setPendingDelete(collection)}
+                size="sm"
+                variant="ghost"
+              >
                 {t("collections.remove")}
               </Button>
             </li>
           ))}
         </ul>
       )}
+
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setPendingDelete(null)} variant="secondary">
+              {t("common.cancel")}
+            </Button>
+            <Button
+              loading={busy}
+              onClick={() => {
+                if (!pendingDelete) return;
+                void remove(pendingDelete.id).then(() => setPendingDelete(null));
+              }}
+              variant="danger"
+            >
+              {t("collections.deleteConfirm")}
+            </Button>
+          </>
+        }
+        onClose={() => setPendingDelete(null)}
+        open={pendingDelete !== null}
+        title={t("collections.deleteTitle")}
+      >
+        <p>{t("collections.deleteText")}</p>
+      </Dialog>
     </div>
   );
 }

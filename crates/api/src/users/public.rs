@@ -167,6 +167,19 @@ pub async fn profile(
     let id = resolve_user_id(&state.pool, &reference).await?;
     let user = load_public_user(&state.pool, id).await?;
     let items = load_public_items(&state.pool, id, &user.public_statuses).await?;
+    let collections: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', c.id, 'title', c.title, 'slug', c.slug,
+            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id)
+         )
+         from collections c
+         where c.user_id = $1 and c.visibility = 'public'
+         order by c.created_at desc",
+    )
+    .bind(id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     let (followers, following): (i64, i64) = sqlx::query_as(
         "select
             (select count(*) from follows where followee_id = $1),
@@ -190,6 +203,7 @@ pub async fn profile(
             "following": following,
         },
         "items": items,
+        "collections": collections,
     })))
 }
 
@@ -210,6 +224,19 @@ pub async fn own_profile(
     .map_err(AppError::internal)?
     .ok_or_else(|| AppError::not_found("profile"))?;
     let items = load_public_items(&state.pool, user.id, &user.public_statuses).await?;
+    let collections: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', c.id, 'title', c.title, 'slug', c.slug,
+            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id)
+         )
+         from collections c
+         where c.user_id = $1 and c.visibility = 'public'
+         order by c.created_at desc",
+    )
+    .bind(user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     let (followers, following): (i64, i64) = sqlx::query_as(
         "select
             (select count(*) from follows where followee_id = $1),
@@ -234,6 +261,7 @@ pub async fn own_profile(
             "following": following,
         },
         "items": items,
+        "collections": collections,
     })))
 }
 

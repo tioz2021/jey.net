@@ -260,3 +260,33 @@
   background: var(--color-accent-soft);
   border-left: 2px solid var(--color-accent);
 }
+
+
+.collections {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collections a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.collections a:hover {
+  border-color: var(--color-accent);
+}
+
+.collections a span:last-child {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
