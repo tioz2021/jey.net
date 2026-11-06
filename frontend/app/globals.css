@@ -328,26 +328,14 @@ button:not(:disabled):active {
 }
 
 
-/* Thin, quiet scrollbars across the portal. */
+/* Scrollbars are visually hidden; wheel, touch and keyboard scrolling stay. */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  display: none;
+  width: 0;
+  height: 0;
 }
