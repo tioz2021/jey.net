@@ -143,3 +143,10 @@ body { margin: 0; background: var(--color-surface); }
   .desktop-sections { order: 3; flex-basis: 100%; }
   .desktop-topbar .desktop-actions { order: 2; }
 }
+
+
+.desktop-detail {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1rem;
+}

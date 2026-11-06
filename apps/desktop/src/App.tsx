@@ -204,13 +204,19 @@ export function App() {
     setError("");
     try {
       const rating = draftRating.trim() === "" ? null : Number(draftRating);
-      await tauriSource.update(selected.id, {
+      const updated = await tauriSource.update(selected.id, {
         title: draftTitle.trim(),
         status: draftStatus,
         rating: rating && rating >= 1 && rating <= 10 ? rating : null,
         review: draftReview,
       });
-      setSelected(null);
+      if (updated) {
+        setSelected({ ...updated, pending: true });
+        setDraftTitle(updated.title);
+        setDraftStatus(updated.status);
+        setDraftRating(updated.rating == null ? "" : String(updated.rating));
+        setDraftReview(updated.review ?? "");
+      }
       await load();
     } catch (cause) {
       setError(String(cause));
@@ -260,6 +266,45 @@ export function App() {
           </form>
           {error ? <p className="desktop-error">{error}</p> : null}
         </Card>
+      </main>
+    );
+  }
+
+  if (selected) {
+    return (
+      <main className="desktop-app">
+        <header className="desktop-topbar">
+          <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+          <div className="desktop-actions">
+            <Button variant="secondary" size="sm" onClick={() => setSelected(null)}>← Назад к записям</Button>
+          </div>
+        </header>
+        <div className="desktop-detail">
+          <PageHeader title={selected.title} subtitle={`${selected.kind} · ${selected.status}`} />
+          <Card title="Запись">
+            <form className="desktop-form desktop-form-column" onSubmit={saveSelected}>
+              <Input label="Название" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required maxLength={300} />
+              <Select label="Статус" value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as ItemStatus)}>
+                <option value="planned">Запланировано</option>
+                <option value="in_progress">В процессе</option>
+                <option value="done">Готово</option>
+                <option value="dropped">Брошено</option>
+              </Select>
+              <Input label="Оценка (1–10)" type="number" min={1} max={10} value={draftRating} onChange={(event) => setDraftRating(event.target.value)} />
+              <Textarea label="Рецензия" value={draftReview} onChange={(event) => setDraftReview(event.target.value)} rows={8} />
+              <div className="desktop-actions">
+                <Button loading={busy} type="submit">Сохранить</Button>
+                <Button onClick={() => setSelected(null)} type="button" variant="secondary">Отмена</Button>
+                <Button onClick={async () => {
+                  if (!window.confirm(`Удалить «${selected.title}»?`)) return;
+                  await tauriSource.delete(selected.id);
+                  setSelected(null);
+                  await load();
+                }} type="button" variant="secondary">Удалить</Button>
+              </div>
+            </form>
+          </Card>
+        </div>
       </main>
     );
   }
@@ -371,33 +416,6 @@ export function App() {
                 <div className="desktop-actions">
                   <Button loading={busy} type="submit">Добавить</Button>
                   <Button onClick={() => setCreating(false)} type="button" variant="secondary">Отмена</Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        </div>
-      ) : null}
-
-      {selected ? (
-        <div className="desktop-modal-backdrop" onMouseDown={() => setSelected(null)}>
-          <div className="desktop-modal" onMouseDown={(event) => event.stopPropagation()}>
-            <Card title={selected.title}>
-              <form className="desktop-form desktop-form-column" onSubmit={saveSelected}>
-                <Input label="Название" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required maxLength={300} />
-                <Select label="Статус" value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as ItemStatus)}>
-                  <option value="planned">Запланировано</option><option value="in_progress">В процессе</option><option value="done">Готово</option><option value="dropped">Брошено</option>
-                </Select>
-                <Input label="Оценка (1–10)" type="number" min={1} max={10} value={draftRating} onChange={(event) => setDraftRating(event.target.value)} />
-                <Textarea label="Рецензия" value={draftReview} onChange={(event) => setDraftReview(event.target.value)} rows={5} />
-                <div className="desktop-actions">
-                  <Button loading={busy} type="submit">Сохранить</Button>
-                  <Button onClick={() => setSelected(null)} type="button" variant="secondary">Отмена</Button>
-                  <Button onClick={async () => {
-                    if (!window.confirm(`Удалить «${selected.title}»?`)) return;
-                    await tauriSource.delete(selected.id);
-                    setSelected(null);
-                    await load();
-                  }} type="button" variant="secondary">Удалить</Button>
                 </div>
               </form>
             </Card>
