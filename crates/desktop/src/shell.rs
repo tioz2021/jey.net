@@ -8,7 +8,7 @@ use jey_core::items::{Item, ItemPatch, NewItem};
 use jey_core::repositories::ItemRepository;
 
 use crate::access::AccessStore;
-use crate::store::{DesktopStore, SqliteItems};
+use crate::store::{DesktopStore, SqliteItems, backup, export_json};
 
 struct DesktopState {
     access: AccessStore,
@@ -132,6 +132,18 @@ async fn local_update_item(
 }
 
 #[tauri::command]
+fn local_export_json(state: State<'_, DesktopState>) -> Result<crate::store::ExportReport, String> {
+    let user = current_user(&state)?;
+    export_json(&state.store, user).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_backup(state: State<'_, DesktopState>) -> Result<crate::store::BackupReport, String> {
+    let user = current_user(&state)?;
+    backup(&state.store, user).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 async fn local_delete_item(state: State<'_, DesktopState>, id: uuid::Uuid) -> Result<bool, String> {
     let user = current_user(&state)?;
     let repository = SqliteItems::new(state.store.clone());
@@ -215,6 +227,8 @@ pub fn run() {
             local_create_item,
             local_update_item,
             local_delete_item,
+            local_export_json,
+            local_backup,
             local_sign_in
         ])
         .run(tauri::generate_context!())

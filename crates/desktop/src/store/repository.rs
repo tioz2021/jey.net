@@ -10,7 +10,7 @@ use jey_core::sync::{DeviceId, Revision, SyncSeq, Timestamp};
 
 use super::{DesktopStore, StoreError, now_millis};
 
-const COLUMNS: &str = "id, slug, user_id, kind, title, subtitle, year, status, rating,
+pub(super) const COLUMNS: &str = "id, slug, user_id, kind, title, subtitle, year, status, rating,
     review, body, source_url, cover_key, public_hidden, external_source, external_id,
     details, details_fetched_at, revision, sync_seq, device_id, created_at, updated_at,
     deleted_at";
@@ -34,7 +34,7 @@ fn internal(error: impl std::error::Error + Send + Sync + 'static) -> DomainErro
     DomainError::internal(error)
 }
 
-fn item_from_row(row: &Row<'_>) -> rusqlite::Result<Item> {
+pub(super) fn item_from_row(row: &Row<'_>) -> rusqlite::Result<Item> {
     let kind_raw: String = row.get(3)?;
     let status_raw: String = row.get(7)?;
     let details_raw: Option<String> = row.get(16)?;
@@ -179,6 +179,53 @@ impl SqliteItems {
             .map_err(|error| internal(StoreError::Sql(error)))?;
         let rows = statement
             .query_map([user_id.to_string()], |row| row.get::<_, String>(0))
+            .map_err(|error| internal(StoreError::Sql(error)))?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(|error| internal(StoreError::Sql(error)))
+    }
+
+    /// Every local item, including tombstones. Used for a full export.
+    pub fn all_items(&self, user_id: Uuid) -> Result<Vec<Item>, DomainError> {
+        let connection = self.store.connection().map_err(internal)?;
+        let sql = format!(
+            "select {COLUMNS} from items where user_id = ?1 order by created_at asc, id asc"
+        );
+        let mut statement = connection
+            .prepare(&sql)
+            .map_err(|error| internal(StoreError::Sql(error)))?;
+        let rows = statement
+            .query_map([user_id.to_string()], item_from_row)
+            .map_err(|error| internal(StoreError::Sql(error)))?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(|error| internal(StoreError::Sql(error)))
+    }
+
+    pub fn export_collections(&self, user_id: Uuid) -> Result<Vec<serde_json::Value>, DomainError> {
+        let connection = self.store.connection().map_err(internal)?;
+        let mut statement = connection
+            .prepare(
+                "select c.id, c.title, c.slug, c.visibility, c.created_at, c.updated_at,
+                        coalesce((select group_concat(ci.item_id, ',')
+                                  from collection_items ci
+                                  where ci.collection_id = c.id), '') as item_ids
+                 from collections c
+                 where c.user_id = ?1
+                 order by c.created_at asc, c.id asc",
+            )
+            .map_err(|error| internal(StoreError::Sql(error)))?;
+        let rows = statement
+            .query_map([user_id.to_string()], |row| {
+                let ids: String = row.get(6)?;
+                Ok(serde_json::json!({
+                    "id": row.get::<_, String>(0)?,
+                    "title": row.get::<_, String>(1)?,
+                    "slug": row.get::<_, String>(2)?,
+                    "visibility": row.get::<_, String>(3)?,
+                    "created_at": row.get::<_, i64>(4)?,
+                    "updated_at": row.get::<_, i64>(5)?,
+                    "item_ids": ids.split(',').filter(|value| !value.is_empty()).collect::<Vec<_>>(),
+                }))
+            })
             .map_err(|error| internal(StoreError::Sql(error)))?;
         rows.collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|error| internal(StoreError::Sql(error)))

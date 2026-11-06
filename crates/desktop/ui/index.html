@@ -57,8 +57,11 @@
         <div class="row">
           <label>Поиск <input id="search" placeholder="Название, автор или заметка" /></label>
           <button id="refresh" type="button">Обновить</button>
+          <button id="export" type="button">Экспорт JSON</button>
+          <button id="backup" type="button">Бэкап</button>
         </div>
         <p id="db-status" class="muted"></p>
+        <p id="action-status" class="muted"></p>
       </div>
 
       <form id="add-form" class="panel">
@@ -195,6 +198,23 @@
         window.__searchTimer = window.setTimeout(() => { void load(); }, 180);
       });
       $("refresh").addEventListener("click", () => { void load(); });
+      $("export").addEventListener("click", async () => {
+        try {
+          const report = await invoke("local_export_json");
+          $("action-status").textContent = `Экспорт: ${report.path}`;
+        } catch (error) {
+          $("action-status").textContent = String(error);
+        }
+      });
+      $("backup").addEventListener("click", async () => {
+        try {
+          const report = await invoke("local_backup");
+          $("action-status").textContent =
+            `Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`;
+        } catch (error) {
+          $("action-status").textContent = String(error);
+        }
+      });
 
       async function boot() {
         $("version").textContent = await invoke("app_version");
