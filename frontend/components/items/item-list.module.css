@@ -162,7 +162,7 @@
 
 .check::after {
   content: "✓";
-  font-size: 15px;
+  font-size: var(--text-sm);
   line-height: 1;
 }
 

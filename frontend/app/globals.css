@@ -53,6 +53,7 @@
   --radius-full: 999px;
 
   /* Caption, compact UI, reading text, section and page titles. */
+  --text-2xs: 0.6875rem;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-base: 1rem;
@@ -319,7 +320,7 @@ button:not(:disabled):active {
   height: 16px;
   padding: 0 4px;
   margin-left: 3px;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 700;
   line-height: 1;
   color: #fff;

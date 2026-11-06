@@ -96,7 +96,7 @@
 .role {
   margin-left: 5px;
   padding: 1px 5px;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   color: var(--color-accent);
   background: var(--color-accent-soft);
   border-radius: var(--radius-sm);
@@ -166,7 +166,7 @@
 .testRole {
   margin-left: 5px;
   padding: 1px 5px;
-  font-size: 10px;
+  font-size: var(--text-2xs);
   color: var(--color-warning);
   background: var(--color-warning-soft);
   border-radius: var(--radius-sm);
