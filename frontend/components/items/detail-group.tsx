@@ -11,8 +11,7 @@ export function DetailGroup({
   children: ReactNode;
 }) {
   return (
-    <section className={styles.group}>
-      <h2 className={styles.title}>{title}</h2>
+    <section aria-label={title} className={styles.group}>
       <div className={styles.body}>{children}</div>
     </section>
   );
