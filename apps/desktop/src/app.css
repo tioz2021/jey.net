@@ -96,3 +96,28 @@ body {
   cursor: pointer;
   font: inherit;
 }
+
+.desktop-crash {
+  padding: 1rem;
+  border: 1px solid var(--color-danger, #b91c1c);
+  border-radius: var(--radius-md);
+}
+
+.desktop-crash pre {
+  overflow: auto;
+  max-height: 24rem;
+  padding: 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  white-space: pre-wrap;
+}
+
+
+.desktop-runtime-error {
+  margin: 1rem;
+  padding: 0.75rem;
+  overflow: auto;
+  color: var(--color-danger, #b91c1c);
+  white-space: pre-wrap;
+  border: 1px solid var(--color-danger, #b91c1c);
+}
