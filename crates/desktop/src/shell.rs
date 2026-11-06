@@ -4,7 +4,7 @@ use tauri::Manager;
 
 #[tauri::command]
 fn app_version() -> &'static str {
-    jey_desktop::APP_VERSION
+    crate::APP_VERSION
 }
 
 pub fn run() {

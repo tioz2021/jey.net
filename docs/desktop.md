@@ -8,7 +8,9 @@
 - статическая заглушка `ui/index.html`;
 - команда `app_version`;
 - общий `jey-desktop` crate без GUI-зависимостей;
-- GUI включается только feature `tauri`.
+- GUI включается только feature `tauri`;
+- собранные `AppImage`, `.deb` и `.rpm`;
+- AppImage запускается без запущенного сервера.
 
 Библиотека, SQLite и sync появятся в T93–T95 и T127.
 

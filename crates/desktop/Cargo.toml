@@ -21,9 +21,9 @@ tauri = ["dep:tauri", "dep:tauri-build"]
 
 [dependencies]
 jey-core = { path = "../core" }
-tauri = { version = "2", optional = true }
+tauri = { version = "2", optional = true , features = [] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 
 [build-dependencies]
-tauri-build = { version = "2", optional = true }
+tauri-build = { version = "2", optional = true , features = [] }
