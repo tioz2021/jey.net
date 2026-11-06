@@ -147,6 +147,17 @@ export function ItemList({
   }, [query]);
 
   useEffect(() => {
+    const enable = () => {
+      if (items.length === 0) return;
+      setSelectionMode(true);
+      setSelected(new Set());
+      setBulkChanged(false);
+    };
+    window.addEventListener("jey:items-selection", enable);
+    return () => window.removeEventListener("jey:items-selection", enable);
+  }, [items.length]);
+
+  useEffect(() => {
     if (!selectionMode) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -239,22 +250,6 @@ export function ItemList({
             filterSlot,
           )
         : null}
-
-      {!selectionMode && items.length > 0 ? (
-        <div className={styles.listTools}>
-          <Button
-            onClick={() => {
-              setSelectionMode(true);
-              setSelected(new Set());
-              setBulkChanged(false);
-            }}
-            size="sm"
-            variant="ghost"
-          >
-            {t("bulk.selectModeLong")}
-          </Button>
-        </div>
-      ) : null}
 
       {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>

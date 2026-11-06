@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AddRecordButton } from "@/components/items/add-record-button";
+import { SelectionButton } from "@/components/items/selection-button";
 import { ItemList } from "@/components/items/item-list";
 import { RecommendationHighlights } from "@/components/recommendation-highlights";
 import { ItemsQueryProvider } from "@/components/items/query-context";
@@ -55,7 +56,10 @@ export default async function ItemsPage({
     <main>
       <PageHeader
         action={
-          <AddRecordButton className={styles.add} />
+          <>
+            <AddRecordButton className={styles.add} />
+            <SelectionButton />
+          </>
         }
         title={translate(locale, "page.items")}
       />
