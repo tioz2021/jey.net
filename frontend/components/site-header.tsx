@@ -8,6 +8,7 @@ import { MobileMenu } from "@/components/mobile-menu";
 import { FeedBadge } from "@/components/feed-badge";
 import { Logo } from "@/components/logo";
 import {
+  IconCollection,
   IconFeed,
   IconList,
   IconPeople,
@@ -29,6 +30,7 @@ const SECTIONS: Array<{
   Icon: typeof IconList;
 }> = [
   { href: "/items", labelKey: "nav.items", Icon: IconList },
+  { href: "/collections", labelKey: "nav.collections", Icon: IconCollection },
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
   { href: "/people", labelKey: "nav.people", Icon: IconPeople },

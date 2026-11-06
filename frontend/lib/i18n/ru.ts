@@ -92,6 +92,7 @@ export const ru = {
   "theme.light": "Светлая тема",
   "theme.dark": "Тёмная тема",
   "quickAdd": "Добавить запись",
+  "nav.collections": "Коллекции",
   "nav.items": "Мои записи",
   "nav.tags": "Теги",
   "nav.stats": "Статистика",

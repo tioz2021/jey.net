@@ -110,6 +110,15 @@ export function IconFeed(props: IconProps) {
   );
 }
 
+export function IconCollection(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3 7.5h6l2 2h10v9H3z" {...stroke()} />
+      <path d="M3 7.5V5h6l2 2" {...stroke()} />
+    </svg>
+  );
+}
+
 export function IconList(props: IconProps) {
   return (
     <svg {...base(props)}>

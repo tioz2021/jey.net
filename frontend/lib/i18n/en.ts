@@ -93,6 +93,7 @@ export const en = {
   "theme.light": "Light theme",
   "theme.dark": "Dark theme",
   "quickAdd": "Add a record",
+  "nav.collections": "Collections",
   "nav.items": "My records",
   "nav.tags": "Tags",
   "nav.stats": "Statistics",

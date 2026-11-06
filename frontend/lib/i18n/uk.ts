@@ -93,6 +93,7 @@ export const uk = {
   "theme.light": "Світла тема",
   "theme.dark": "Темна тема",
   "quickAdd": "Додати запис",
+  "nav.collections": "Колекції",
   "nav.items": "Мої записи",
   "nav.tags": "Теги",
   "nav.stats": "Статистика",
