@@ -235,18 +235,26 @@ export function ItemList({
       )}
       {filterSlot
         ? createPortal(
-            <ItemsFilters
-              compact
-              onSelect={() => {
-                setSelectionMode(true);
-                setSelected(new Set());
-                setBulkChanged(false);
-              }}
-              selectionMode={selectionMode}
-            />,
+            <ItemsFilters compact />,
             filterSlot,
           )
         : null}
+
+      {!selectionMode && items.length > 0 ? (
+        <div className={styles.listTools}>
+          <Button
+            onClick={() => {
+              setSelectionMode(true);
+              setSelected(new Set());
+              setBulkChanged(false);
+            }}
+            size="sm"
+            variant="ghost"
+          >
+            {t("bulk.selectModeLong")}
+          </Button>
+        </div>
+      ) : null}
 
       {selectionMode ? (
         <div className={styles.bulk} role="region" aria-label={t("bulk.title")}>

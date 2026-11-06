@@ -22,15 +22,7 @@ const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 const STATUSES = Object.keys(STATUS_KEYS) as ItemStatus[];
 const SORTS = Object.keys(SORT_KEYS) as Sort[];
 
-export function ItemsFilters({
-  onSelect,
-  selectionMode = false,
-  compact = false,
-}: {
-  onSelect?: () => void;
-  selectionMode?: boolean;
-  compact?: boolean;
-}) {
+export function ItemsFilters({ compact = false }: { compact?: boolean }) {
   const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const [open, setOpen] = useState(false);
@@ -152,32 +144,23 @@ export function ItemsFilters({
         </Select>
         </div>
 
-        <div className={styles.foot}>
-          <Button
-            disabled={!hasFilters}
-            variant={compact ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() =>
-              update((params) => {
-                for (const key of [...params.keys()]) {
-                  params.delete(key);
-                }
-              })
-            }
-          >
-            {t("filters.reset")}
-          </Button>
-          {onSelect && !selectionMode ? (
+        {hasFilters ? (
+          <div className={styles.foot}>
             <Button
-              className={styles.select}
-              onClick={onSelect}
-              size="sm"
               variant={compact ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() =>
+                update((params) => {
+                  for (const key of [...params.keys()]) {
+                    params.delete(key);
+                  }
+                })
+              }
             >
-              {t("bulk.selectModeLong")}
+              {t("filters.reset")}
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.chips}>
