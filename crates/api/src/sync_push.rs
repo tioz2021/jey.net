@@ -184,7 +184,7 @@ async fn load_external_device(
     Ok(DeviceId::from_uuid(external.unwrap_or(Uuid::nil())))
 }
 
-async fn apply_payload(
+pub(crate) async fn apply_payload(
     tx: &mut Transaction<'_, Postgres>,
     user_id: Uuid,
     change: &Change,

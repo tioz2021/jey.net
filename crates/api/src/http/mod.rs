@@ -201,6 +201,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/sync/pull", get(crate::sync_pull::pull))
         .route("/sync/status", get(crate::sync_status::status))
+        .route("/sync/conflicts", get(crate::sync_conflicts::list))
+        .route(
+            "/sync/conflicts/{id}/resolve",
+            post(crate::sync_conflicts::resolve),
+        )
         .route(
             "/collections/for-item/{item_id}",
             get(crate::collections::for_item),

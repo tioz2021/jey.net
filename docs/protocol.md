@@ -315,7 +315,7 @@ Origin: http://localhost:3000
 
 Полный протокол — в [sync.md](sync.md). Версия: `X-Sync-Version: 1`.
 `POST /sync/push` реализован в T98, `GET /sync/pull` — в T99,
-`GET /sync/status` — в T100; `conflicts` — следующая задача M8.2.
+`GET /sync/status` — в T100, конфликты — в T101.
 
 | Метод | Путь | Описание |
 |---|---|---|

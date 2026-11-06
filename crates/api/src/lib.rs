@@ -25,6 +25,7 @@ pub mod media;
 pub mod movies;
 pub mod site;
 pub mod stats;
+pub mod sync_conflicts;
 pub mod sync_pull;
 pub mod sync_push;
 pub mod sync_status;

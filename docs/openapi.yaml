@@ -733,7 +733,7 @@ paths:
       operationId: getSyncConflicts
       tags: [Sync]
       summary: List unresolved conflict copies
-      description: Contract v1. Not implemented in the current build.
+      description: Contract v1. Implemented in T101.
       parameters:
         - $ref: "#/components/parameters/DeviceId"
         - $ref: "#/components/parameters/SyncVersion"
@@ -750,7 +750,7 @@ paths:
       operationId: postSyncConflictResolve
       tags: [Sync]
       summary: Choose which version wins
-      description: Contract v1. Not implemented in the current build.
+      description: Contract v1. Implemented in T101.
       parameters:
         - $ref: "#/components/parameters/DeviceId"
         - $ref: "#/components/parameters/SyncVersion"
