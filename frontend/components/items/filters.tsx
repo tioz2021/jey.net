@@ -157,7 +157,7 @@ export function ItemsFilters({
         <div className={styles.foot}>
           <Button
             disabled={!hasFilters}
-            variant="ghost"
+            variant={compact ? "secondary" : "ghost"}
             size="sm"
             onClick={() =>
               update((params) => {
@@ -174,7 +174,7 @@ export function ItemsFilters({
               className={styles.select}
               onClick={onSelect}
               size="sm"
-              variant="ghost"
+              variant={compact ? "secondary" : "ghost"}
             >
               {t("bulk.selectModeLong")}
             </Button>
