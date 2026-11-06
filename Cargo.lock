@@ -2359,6 +2359,7 @@ version = "0.2.0"
 dependencies = [
  "jey-core",
  "jey-repo-contract",
+ "reqwest 0.12.28",
  "rusqlite",
  "serde",
  "serde_json",

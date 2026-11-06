@@ -5,46 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>jey.net</title>
     <style>
-      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-      body { max-width: 44rem; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.55; }
-      h1 { font-size: 1.6rem; }
-      .card { padding: 1rem; border: 1px solid #8a8f98; border-radius: 4px; }
-      code { font-family: ui-monospace, monospace; }
-      #version { font-weight: 600; }
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; --line: #8a8f98; --accent: #6d28d9; }
+      * { box-sizing: border-box; }
+      body { max-width: 58rem; margin: 2rem auto; padding: 0 1.25rem; line-height: 1.45; }
+      h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+      .muted { color: #6b7280; font-size: .875rem; }
+      .panel { padding: 1rem; margin: 1rem 0; border: 1px solid var(--line); border-radius: 4px; }
+      .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+      label { display: flex; flex-direction: column; gap: .2rem; font-size: .8rem; }
+      input, select, button { min-height: 34px; padding: .3rem .5rem; font: inherit; }
+      button { cursor: pointer; border: 1px solid var(--line); background: transparent; }
+      button.primary { color: white; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+      button:disabled { opacity: .5; cursor: wait; }
+      #list { display: grid; gap: .5rem; margin-top: 1rem; }
+      .item { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: 4px; }
+      .item h3 { margin: 0; font-size: 1rem; }
+      .meta { color: #6b7280; font-size: .8rem; }
+      .pending { color: #b45309; font-weight: 600; }
+      .actions { display: flex; gap: .35rem; }
+      .error { color: #b91c1c; white-space: pre-wrap; }
+      .hidden { display: none; }
       @media (prefers-color-scheme: dark) {
         body { background: #111318; color: #f0f2f5; }
-        .card { border-color: #3b414b; }
+        .muted, .meta { color: #a8b0bd; }
+        input, select, button { color: inherit; background: #171a21; border-color: #3b414b; }
+        button.primary { background: #7c3aed; border-color: #7c3aed; }
+        .item { border-color: #3b414b; }
       }
     </style>
   </head>
   <body>
     <h1>jey.net desktop</h1>
-    <div class="card">
-      <p>Каркас Tauri готов. Библиотека и синхронизация появятся в следующих задачах M8.3.</p>
-      <p>Версия: <span id="version">…</span></p>
-      <p>Локальный доступ: <span id="access">…</span></p>
-      <p>Локальная база: <span id="db">…</span></p>
-    </div>
+    <p class="muted">Версия <span id="version">…</span> · локальная библиотека</p>
+
+    <section id="login" class="panel hidden">
+      <h2>Первый вход</h2>
+      <p class="muted">Нужен интернет один раз. Дальше библиотека работает без сервера.</p>
+      <form id="login-form">
+        <div class="row">
+          <label>Сервер <input id="server" value="https://j3ynet.site" size="24" /></label>
+          <label>Email <input id="email" type="email" autocomplete="username" required /></label>
+          <label>Пароль <input id="password" type="password" autocomplete="current-password" required /></label>
+          <button class="primary" type="submit">Войти</button>
+        </div>
+      </form>
+      <p id="login-error" class="error"></p>
+    </section>
+
+    <section id="library" class="hidden">
+      <div class="panel">
+        <div class="row">
+          <label>Поиск <input id="search" placeholder="Название, автор или заметка" /></label>
+          <button id="refresh" type="button">Обновить</button>
+        </div>
+        <p id="db-status" class="muted"></p>
+      </div>
+
+      <form id="add-form" class="panel">
+        <div class="row">
+          <label>Тип
+            <select id="kind">
+              <option value="movie">Фильм</option>
+              <option value="tv">Сериал</option>
+              <option value="anime">Аниме</option>
+              <option value="book">Книга</option>
+              <option value="game">Игра</option>
+            </select>
+          </label>
+          <label>Название <input id="title" required maxlength="300" size="34" /></label>
+          <label>Статус
+            <select id="status">
+              <option value="planned">Запланировано</option>
+              <option value="in_progress">В процессе</option>
+              <option value="done">Готово</option>
+              <option value="dropped">Брошено</option>
+            </select>
+          </label>
+          <button class="primary" type="submit">Добавить</button>
+        </div>
+        <p id="add-error" class="error"></p>
+      </form>
+
+      <div id="list"></div>
+      <p id="empty" class="muted hidden">Записей пока нет.</p>
+    </section>
+
     <script>
-      const version = document.getElementById("version");
-      const access = document.getElementById("access");
-      const db = document.getElementById("db");
+      const { invoke } = window.__TAURI__?.core ?? {};
+      const $ = (id) => document.getElementById(id);
+      const login = $("login");
+      const library = $("library");
+      const list = $("list");
+      const empty = $("empty");
+      const format = (value) => value == null ? "—" : String(value);
+
+      function showLogin() {
+        login.classList.remove("hidden");
+        library.classList.add("hidden");
+      }
+
+      function showLibrary() {
+        login.classList.add("hidden");
+        library.classList.remove("hidden");
+      }
+
+      async function load() {
+        const query = $("search").value.trim();
+        const items = await invoke("local_list_items", { query: query || null });
+        const db = await invoke("local_db_status");
+        $("db-status").textContent = `База: ${db.path} · схема ${db.schema_version} · в очереди ${db.outbox}`;
+        list.replaceChildren();
+        empty.classList.toggle("hidden", items.length > 0);
+        for (const item of items) {
+          const node = document.createElement("article");
+          node.className = "item";
+          const text = document.createElement("div");
+          const title = document.createElement("h3");
+          title.textContent = item.title;
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = `${item.kind} · ${item.status}${item.year ? ` · ${item.year}` : ""}${item.pending ? ' · ' : ''}`;
+          if (item.pending) {
+            const pending = document.createElement("span");
+            pending.className = "pending";
+            pending.textContent = "ожидает синхронизации";
+            meta.appendChild(pending);
+          }
+          text.append(title, meta);
+          const actions = document.createElement("div");
+          actions.className = "actions";
+          const edit = document.createElement("button");
+          edit.textContent = "Изменить";
+          edit.onclick = async () => {
+            const value = prompt("Новое название", item.title);
+            if (!value || !value.trim()) return;
+            await invoke("local_update_item", { id: item.id, title: value.trim() });
+            await load();
+          };
+          const remove = document.createElement("button");
+          remove.textContent = "Удалить";
+          remove.onclick = async () => {
+            if (!confirm(`Удалить «${item.title}»?`)) return;
+            await invoke("local_delete_item", { id: item.id });
+            await load();
+          };
+          actions.append(edit, remove);
+          node.append(text, actions);
+          list.appendChild(node);
+        }
+      }
+
+      $("login-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        $("login-error").textContent = "";
+        try {
+          await invoke("local_sign_in", {
+            input: {
+              server_url: $("server").value.trim(),
+              email: $("email").value.trim(),
+              password: $("password").value,
+            },
+          });
+          await boot();
+        } catch (error) {
+          $("login-error").textContent = String(error);
+        }
+      });
+
+      $("add-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        $("add-error").textContent = "";
+        try {
+          await invoke("local_create_item", {
+            newItem: {
+              kind: $("kind").value,
+              title: $("title").value.trim(),
+              status: $("status").value,
+            },
+          });
+          $("title").value = "";
+          await load();
+        } catch (error) {
+          $("add-error").textContent = String(error);
+        }
+      });
+
+      $("search").addEventListener("input", () => {
+        window.clearTimeout(window.__searchTimer);
+        window.__searchTimer = window.setTimeout(() => { void load(); }, 180);
+      });
+      $("refresh").addEventListener("click", () => { void load(); });
+
+      async function boot() {
+        $("version").textContent = await invoke("app_version");
+        const access = await invoke("local_access_status");
+        if (!access.has_access) {
+          showLogin();
+          return;
+        }
+        showLibrary();
+        await load();
+      }
+
       if (window.__TAURI__) {
-        window.__TAURI__.core.invoke("app_version").then((value) => {
-          version.textContent = value;
-        }).catch(() => { version.textContent = "unknown"; });
-        window.__TAURI__.core.invoke("local_access_status").then((value) => {
-          access.textContent = value.has_access
-            ? `есть (${value.server_url})`
-            : "нет, нужен первый вход онлайн";
-        }).catch(() => { access.textContent = "ошибка чтения"; });
-        window.__TAURI__.core.invoke("local_db_status").then((value) => {
-          db.textContent = `${value.path} · schema ${value.schema_version} · ${value.items} items`;
-        }).catch(() => { db.textContent = "ошибка открытия"; });
+        boot().catch((error) => {
+          $("version").textContent = String(error);
+          showLogin();
+        });
       } else {
-        version.textContent = "web preview";
-        access.textContent = "доступно только в приложении";
-        db.textContent = "доступно только в приложении";
+        $("version").textContent = "web preview";
+        showLogin();
       }
     </script>
   </body>
