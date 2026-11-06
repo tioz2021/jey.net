@@ -1,3 +1,7 @@
+.card {
+  overflow: visible;
+}
+
 .wrap {
   display: flex;
   align-items: center;

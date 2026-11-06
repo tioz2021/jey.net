@@ -41,7 +41,7 @@ export function CollectionsSidebar() {
         <p className={styles.empty}>{t("collections.emptySidebar")}</p>
       ) : (
         <ul className={styles.list}>
-          {collections.slice(0, 8).map((collection) => (
+          {collections.slice(0, 30).map((collection) => (
             <li key={collection.id}>
               <Link className={styles.item} href={`/collections/${collection.id}`}>
                 <span>{collection.title}</span>

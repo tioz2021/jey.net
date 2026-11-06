@@ -43,7 +43,7 @@ export function AddToCollection({ itemId }: { itemId: string }) {
   }
 
   return (
-    <Card title={t("collections.addTo")}>
+    <Card className={styles.card} title={t("collections.addTo")}>
       <div className={styles.wrap}>
         <Select
           compact

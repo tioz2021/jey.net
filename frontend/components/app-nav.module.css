@@ -72,6 +72,14 @@
   border-left-color: var(--color-accent);
 }
 
+@media (width > 1000px) {
+  .column {
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+}
+
 @media (width <= 1000px) {
   .column {
     position: static;
