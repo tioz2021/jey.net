@@ -17,10 +17,6 @@
   position: relative;
 }
 
-.item > :last-child {
-  margin: var(--space-2) 0 0 var(--space-5);
-}
-
 .empty {
   color: var(--color-text-muted);
 }

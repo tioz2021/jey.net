@@ -68,8 +68,12 @@ export default async function CollectionPage({
         <ul className={styles.list}>
           {data.items.map((item) => (
             <li className={styles.item} key={item.id}>
-              <ItemCard item={item} />
-              <RemoveFromCollection collectionId={id} itemId={item.id} />
+              <ItemCard
+                footer={
+                  <RemoveFromCollection collectionId={id} itemId={item.id} />
+                }
+                item={item}
+              />
             </li>
           ))}
         </ul>

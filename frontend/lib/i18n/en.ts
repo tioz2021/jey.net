@@ -893,6 +893,8 @@ export const en = {
   'collections.deleteTitle': 'Delete collection?',
   'collections.deleteText': 'The collection and its links will be deleted. The records themselves stay.',
   'collections.deleteConfirm': 'Delete collection',
+  'collections.alreadyAdded': 'Already in collection',
+  'collections.inCollections': 'Already in:',
   'collections.title': 'Collections',
   'collections.allShort': 'All',
   'collections.all': 'All collections',

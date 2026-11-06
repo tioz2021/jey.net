@@ -893,6 +893,8 @@ export const uk = {
   'collections.deleteTitle': 'Видалити колекцію?',
   'collections.deleteText': 'Колекція та її зв’язки із записами буде видалено. Самі записи залишаться.',
   'collections.deleteConfirm': 'Видалити колекцію',
+  'collections.alreadyAdded': 'Уже в колекції',
+  'collections.inCollections': 'Уже в:',
   'collections.title': 'Колекції',
   'collections.allShort': 'Усі',
   'collections.all': 'Усі колекції',

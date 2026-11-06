@@ -892,6 +892,8 @@ export const ru = {
   'collections.deleteTitle': 'Удалить коллекцию?',
   'collections.deleteText': 'Коллекция и её связи с записями будут удалены. Сами записи останутся.',
   'collections.deleteConfirm': 'Удалить коллекцию',
+  'collections.alreadyAdded': 'Уже в коллекции',
+  'collections.inCollections': 'Уже в:',
   'collections.title': 'Коллекции',
   'collections.allShort': 'Все',
   'collections.all': 'Все коллекции',

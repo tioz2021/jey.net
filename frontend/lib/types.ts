@@ -241,6 +241,7 @@ export interface Collection {
   created_at: string;
   item_count: number;
   handle?: string;
+  contains?: boolean;
 }
 
 export interface CollectionDetail {

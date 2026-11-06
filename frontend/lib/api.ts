@@ -354,6 +354,10 @@ export const movies = {
 
 export const collections = {
   list: () => request<{ collections: Collection[] }>("/collections"),
+  forItem: (itemId: string) =>
+    request<{ collections: Collection[] }>(
+      `/collections/for-item/${encodeURIComponent(itemId)}`,
+    ),
   create: (input: { title: string; visibility?: "private" | "public" }) =>
     request<{ id: string; title: string; slug: string }>("/collections", {
       method: "POST",

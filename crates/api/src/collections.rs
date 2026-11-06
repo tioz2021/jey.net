@@ -290,3 +290,34 @@ pub async fn public_detail(
         "items": items,
     })))
 }
+
+/// `GET /api/v1/collections/for-item/{item_id}` — collections and membership.
+pub async fn for_item(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(item_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    repo::get(&state.pool, current.user.id, item_id)
+        .await?
+        .ok_or_else(|| AppError::not_found("item"))?;
+    let rows: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', c.id, 'title', c.title, 'slug', c.slug,
+            'visibility', c.visibility, 'created_at', c.created_at,
+            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id),
+            'contains', exists(
+                select 1 from collection_items ci
+                where ci.collection_id = c.id and ci.item_id = $2
+            )
+         )
+         from collections c
+         where c.user_id = $1
+         order by c.created_at desc",
+    )
+    .bind(current.user.id)
+    .bind(item_id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "collections": rows })))
+}

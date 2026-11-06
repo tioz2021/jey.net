@@ -99,6 +99,7 @@ export function ItemCard({
   selected = false,
   reactions = false,
   showContinue = false,
+  footer,
 }: {
   item: ItemCardData;
   query?: string;
@@ -106,6 +107,7 @@ export function ItemCard({
   selected?: boolean;
   reactions?: boolean;
   showContinue?: boolean;
+  footer?: React.ReactNode;
 }) {
   const { t, locale } = useI18n();
   const { user } = useUser();
@@ -273,9 +275,12 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
+        {footer || (showContinue && (item.kind === "tv" || item.kind === "anime")) ? (
           <div className={styles.cardFooter}>
-            <ContinueLink details={item.details} kind={item.kind} target={target} />
+            {footer}
+            {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
+              <ContinueLink details={item.details} kind={item.kind} target={target} />
+            ) : null}
           </div>
         ) : null}
       </div>

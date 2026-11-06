@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button, Card, Select } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -18,13 +18,20 @@ export function AddToCollection({ itemId }: { itemId: string }) {
 
   useEffect(() => {
     api.collections
-      .list()
+      .forItem(itemId)
       .then((response) => {
         setCollections(response.collections);
-        setSelected(response.collections[0]?.id ?? "");
+        const firstFree = response.collections.find((collection) => !collection.contains);
+        setSelected((firstFree ?? response.collections[0])?.id ?? "");
       })
       .catch(() => {});
-  }, []);
+  }, [itemId]);
+
+  const existing = useMemo(
+    () => collections.filter((collection) => collection.contains),
+    [collections],
+  );
+  const selectedCollection = collections.find((collection) => collection.id === selected);
 
   if (collections.length === 0) return null;
 
@@ -33,6 +40,11 @@ export function AddToCollection({ itemId }: { itemId: string }) {
     setBusy(true);
     try {
       await api.collections.addItem(selected, itemId);
+      setCollections((current) =>
+        current.map((collection) =>
+          collection.id === selected ? { ...collection, contains: true } : collection,
+        ),
+      );
       setMessage(t("collections.added"));
       window.dispatchEvent(new Event("jey:collections-changed"));
     } catch {
@@ -53,14 +65,32 @@ export function AddToCollection({ itemId }: { itemId: string }) {
         >
           {collections.map((collection) => (
             <option key={collection.id} value={collection.id}>
+              {collection.contains ? "✓ " : ""}
               {collection.title}
             </option>
           ))}
         </Select>
-        <Button disabled={busy} onClick={() => void add()} size="sm" variant="secondary">
-          + {t("collections.add")}
+        <Button
+          disabled={busy || !selected || Boolean(selectedCollection?.contains)}
+          onClick={() => void add()}
+          size="sm"
+          variant="secondary"
+        >
+          {selectedCollection?.contains
+            ? t("collections.alreadyAdded")
+            : `+ ${t("collections.add")}`}
         </Button>
       </div>
+      {existing.length > 0 ? (
+        <div className={styles.existing}>
+          <span>{t("collections.inCollections")}</span>
+          {existing.map((collection) => (
+            <span className={styles.chip} key={collection.id}>
+              {collection.title}
+            </span>
+          ))}
+        </div>
+      ) : null}
       {message ? <p className={styles.message}>{message}</p> : null}
     </Card>
   );

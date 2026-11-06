@@ -32,7 +32,7 @@ export function RemoveFromCollection({
         }
       }}
       size="sm"
-      variant="ghost"
+      variant="secondary"
     >
       {t("collections.removeItem")}
     </Button>
