@@ -14,9 +14,8 @@ import styles from "./record-editor.module.css";
 export function RecordEditor({ item }: { item: Item }) {
   const router = useRouter();
   const { t } = useI18n();
-  const unit =
-    item.kind === "anime" ? "episode" : item.kind === "book" ? "page" : "hour";
-  const hasProgress = ["anime", "book", "game"].includes(item.kind);
+  const unit = item.kind === "book" ? "page" : "hour";
+  const hasProgress = ["book", "game"].includes(item.kind);
   const fallbackTotal =
     item.kind === "anime"
       ? item.details?.number_of_episodes
@@ -130,13 +129,7 @@ export function RecordEditor({ item }: { item: Item }) {
           <>
             <Input
               inputMode="numeric"
-              label={
-                unit === "episode"
-                  ? t("progress.episodes")
-                  : unit === "page"
-                    ? t("progress.pages")
-                    : t("progress.hours")
-              }
+              label={unit === "page" ? t("progress.pages") : t("progress.hours")}
               min={0}
               onChange={(event) => setCurrent(event.target.value)}
               type="number"

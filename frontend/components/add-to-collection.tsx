@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Button, Select } from "@/components/ui";
+import { Button, Card, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
@@ -43,22 +43,26 @@ export function AddToCollection({ itemId }: { itemId: string }) {
   }
 
   return (
-    <div className={styles.wrap}>
-      <Select
-        label={t("collections.addTo")}
-        onChange={(event) => setSelected(event.target.value)}
-        value={selected}
-      >
-        {collections.map((collection) => (
-          <option key={collection.id} value={collection.id}>
-            {collection.title}
-          </option>
-        ))}
-      </Select>
-      <Button disabled={busy} onClick={() => void add()} size="sm" variant="secondary">
-        {t("collections.add")}
-      </Button>
+    <Card title={t("collections.addTo")}>
+      <div className={styles.wrap}>
+        <Select
+          compact
+          hideLabel
+          label={t("collections.addTo")}
+          onChange={(event) => setSelected(event.target.value)}
+          value={selected}
+        >
+          {collections.map((collection) => (
+            <option key={collection.id} value={collection.id}>
+              {collection.title}
+            </option>
+          ))}
+        </Select>
+        <Button disabled={busy} onClick={() => void add()} size="sm" variant="secondary">
+          + {t("collections.add")}
+        </Button>
+      </div>
       {message ? <p className={styles.message}>{message}</p> : null}
-    </div>
+    </Card>
   );
 }
