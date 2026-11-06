@@ -22,15 +22,23 @@
     <div class="card">
       <p>Каркас Tauri готов. Библиотека и синхронизация появятся в следующих задачах M8.3.</p>
       <p>Версия: <span id="version">…</span></p>
+      <p>Локальный доступ: <span id="access">…</span></p>
     </div>
     <script>
       const version = document.getElementById("version");
+      const access = document.getElementById("access");
       if (window.__TAURI__) {
         window.__TAURI__.core.invoke("app_version").then((value) => {
           version.textContent = value;
         }).catch(() => { version.textContent = "unknown"; });
+        window.__TAURI__.core.invoke("local_access_status").then((value) => {
+          access.textContent = value.has_access
+            ? `есть (${value.server_url})`
+            : "нет, нужен первый вход онлайн";
+        }).catch(() => { access.textContent = "ошибка чтения"; });
       } else {
         version.textContent = "web preview";
+        access.textContent = "доступно только в приложении";
       }
     </script>
   </body>

@@ -5,6 +5,8 @@
 
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+pub mod access;
+
 #[cfg(feature = "tauri")]
 pub mod shell;
 
