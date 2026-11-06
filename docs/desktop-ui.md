@@ -1,6 +1,6 @@
 # Desktop UI: архитектура
 
-Статус: реализовано в T119, 7 ноября 2026.
+Статус: T119 и T121 реализованы, 7 ноября 2026.
 
 ## Главное
 
@@ -18,9 +18,11 @@ crates/desktop/           SQLite, sync, Tauri commands
 
 ## Текущее состояние
 
-`apps/desktop` — Vite + React SPA. Он использует общий `ItemCard`,
-`Button`, `Input`, `Select`, дизайн-токены и i18n из `frontend/`.
-Старый `crates/desktop/ui/index.html` удалён в T119.
+`apps/desktop` — Vite + React SPA. Экран повторяет структуру веба:
+верхняя панель, типы, фильтры, `PageHeader` «Мои записи», карточки и модалки.
+Используются общий `ItemCard`, `Button`, `Input`, `Select`, `PageHeader`,
+дизайн-токены и i18n из `frontend/`. Старый
+`crates/desktop/ui/index.html` удалён в T119.
 
 ## Почему не текущий Next.js напрямую
 

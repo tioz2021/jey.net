@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
-import { Button, Card, Input, Select, Textarea } from "@/components/ui";
+import { Logo } from "@/components/logo";
+import {
+  IconAnime,
+  IconBook,
+  IconFilm,
+  IconGame,
+  IconList,
+  IconTv,
+} from "@/components/icons";
+import { Button, Card, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
@@ -16,27 +25,39 @@ type Access = {
   server_url?: string;
 };
 
+const KINDS: Array<{ kind: ItemKind | null; label: string; Icon: typeof IconList }> = [
+  { kind: null, label: "Все записи", Icon: IconList },
+  { kind: "movie", label: "Фильмы", Icon: IconFilm },
+  { kind: "tv", label: "Сериалы", Icon: IconTv },
+  { kind: "anime", label: "Аниме", Icon: IconAnime },
+  { kind: "book", label: "Книги", Icon: IconBook },
+  { kind: "game", label: "Игры", Icon: IconGame },
+];
+
 export function App() {
   const { t } = useI18n();
   const [access, setAccess] = useState<Access | null>(null);
   const [items, setItems] = useState<LocalItem[]>([]);
   const [query, setQuery] = useState("");
+  const [kindFilter, setKindFilter] = useState<ItemKind | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ItemStatus | "">("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [title, setTitle] = useState("");
-  const [kind, setKind] = useState<ItemKind>("movie");
-  const [status, setStatus] = useState<ItemStatus>("planned");
-  const [server, setServer] = useState("https://j3ynet.site");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [action, setAction] = useState("");
   const [syncStatus, setSyncStatus] = useState<{ changes_after: number; last_seq: number } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [selected, setSelected] = useState<LocalItem | null>(null);
+  const [creating, setCreating] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftStatus, setDraftStatus] = useState<ItemStatus>("planned");
   const [draftRating, setDraftRating] = useState("");
   const [draftReview, setDraftReview] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newKind, setNewKind] = useState<ItemKind>("movie");
+  const [newStatus, setNewStatus] = useState<ItemStatus>("planned");
+  const [server, setServer] = useState("https://j3ynet.site");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const invoke = <T,>(command: string, args?: Record<string, unknown>): Promise<T> => {
     const api = (window as unknown as { __TAURI__?: { core?: { invoke?: <R>(name: string, args?: Record<string, unknown>) => Promise<R> } } }).__TAURI__;
@@ -100,14 +121,28 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
+  const counts = useMemo(() => {
+    const result = new Map<string, number>();
+    for (const item of items) result.set(item.kind, (result.get(item.kind) ?? 0) + 1);
+    return result;
+  }, [items]);
+
+  const visibleItems = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          (!kindFilter || item.kind === kindFilter) &&
+          (!statusFilter || item.status === statusFilter),
+      ),
+    [items, kindFilter, statusFilter],
+  );
+
   async function signIn(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      await invoke("local_sign_in", {
-        input: { server_url: server, email, password },
-      });
+      await invoke("local_sign_in", { input: { server_url: server, email, password } });
       setPassword("");
       await boot();
     } catch (cause) {
@@ -186,13 +221,14 @@ export function App() {
 
   async function create(event: React.FormEvent) {
     event.preventDefault();
-    if (!title.trim()) return;
+    if (!newTitle.trim()) return;
     setBusy(true);
     setError("");
     try {
-      const input: NewItem = { kind, title: title.trim(), status };
+      const input: NewItem = { kind: newKind, title: newTitle.trim(), status: newStatus };
       await tauriSource.create(input);
-      setTitle("");
+      setNewTitle("");
+      setCreating(false);
       await load();
     } catch (cause) {
       setError(String(cause));
@@ -207,9 +243,9 @@ export function App() {
 
   if (!access.has_access) {
     return (
-      <main className="desktop-shell">
+      <main className="desktop-auth">
         <header className="desktop-head">
-          <h1>jey.net</h1>
+          <h1><Logo size={26} /> jey.net</h1>
           <p className="desktop-muted">Первый вход нужен один раз. Дальше библиотека работает без сервера.</p>
         </header>
         <Card title="Вход">
@@ -217,10 +253,10 @@ export function App() {
             <Input label="Сервер" value={server} onChange={(event) => setServer(event.target.value)} />
             <Input label="Email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
             <Input label="Пароль" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
-            <Button loading={busy} type="submit">Войти</Button>
-            <Button disabled={busy} onClick={() => void signInGoogle()} type="button" variant="secondary">
-              Войти через Google
-            </Button>
+            <div className="desktop-actions">
+              <Button loading={busy} type="submit">Войти</Button>
+              <Button disabled={busy} onClick={() => void signInGoogle()} type="button" variant="secondary">Войти через Google</Button>
+            </div>
           </form>
           {error ? <p className="desktop-error">{error}</p> : null}
         </Card>
@@ -229,20 +265,15 @@ export function App() {
   }
 
   return (
-    <main className="desktop-shell">
-      <header className="desktop-head desktop-head-row">
-        <div>
-          <h1>jey.net</h1>
-          <p className="desktop-muted">Локальная библиотека · сервер {access.server_url}</p>
-        </div>
+    <main className="desktop-app">
+      <header className="desktop-topbar">
+        <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+        <nav className="desktop-sections">
+          <span className="desktop-section-active">{t("nav.items")}</span>
+          <span className="desktop-section-muted">Коллекции</span>
+        </nav>
         <div className="desktop-actions">
-          <Button loading={syncing} size="sm" onClick={() => void sync()}>
-            {syncing ? "Синхронизация…" : "Синхронизировать"}
-          </Button>
-          <Button variant="secondary" size="sm" onClick={async () => {
-            await invoke("local_sign_out");
-            setAccess(null);
-          }}>Выйти</Button>
+          <Button loading={syncing} size="sm" onClick={() => void sync()}>{syncing ? "Синхронизация…" : "Синхронизировать"}</Button>
           <Button variant="secondary" size="sm" onClick={async () => {
             const report = await invoke<{ path: string }>("local_export_json");
             setAction(`Экспорт: ${report.path}`);
@@ -251,73 +282,101 @@ export function App() {
             const report = await invoke<{ path: string; items: number; media_files: number }>("local_backup");
             setAction(`Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`);
           }}>Бэкап</Button>
+          <Button variant="secondary" size="sm" onClick={async () => {
+            await invoke("local_sign_out");
+            setAccess(null);
+          }}>Выйти</Button>
         </div>
       </header>
 
-      <section className="desktop-tools">
-        <Input label="Поиск" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название, автор или заметка" />
-      </section>
+      <div className="desktop-layout">
+        <aside className="desktop-sidebar">
+          <Card title="Типы">
+            <div className="desktop-type-list">
+              {KINDS.map(({ kind, label, Icon }) => (
+                <button
+                  className={`desktop-type ${kindFilter === kind ? "desktop-type-active" : ""}`}
+                  key={label}
+                  onClick={() => setKindFilter(kind)}
+                  type="button"
+                >
+                  <Icon size={14} />
+                  <span>{label}</span>
+                  <span className="desktop-type-count">{kind ? counts.get(kind) ?? 0 : items.length}</span>
+                </button>
+              ))}
+            </div>
+          </Card>
+          <Card title="Фильтры">
+            <div className="desktop-filter-form">
+              <Input label="Поиск" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название, автор или заметка" />
+              <Select label="Статус" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ItemStatus | "")}>
+                <option value="">Любой статус</option>
+                <option value="planned">Запланировано</option>
+                <option value="in_progress">В процессе</option>
+                <option value="done">Готово</option>
+                <option value="dropped">Брошено</option>
+              </Select>
+              <Button onClick={() => { setKindFilter(null); setStatusFilter(""); setQuery(""); }} type="button" variant="secondary">Сбросить фильтры</Button>
+            </div>
+          </Card>
+        </aside>
 
-      <Card title="Добавить запись">
-        <form className="desktop-form" onSubmit={create}>
-          <Select label="Тип" value={kind} onChange={(event) => setKind(event.target.value as ItemKind)}>
-            <option value="movie">{t("nav.movies")}</option>
-            <option value="tv">{t("nav.series")}</option>
-            <option value="anime">{t("nav.anime")}</option>
-            <option value="book">{t("nav.books")}</option>
-            <option value="game">{t("nav.games")}</option>
-          </Select>
-          <Input label="Название" value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={300} />
-          <Select label="Статус" value={status} onChange={(event) => setStatus(event.target.value as ItemStatus)}>
-            <option value="planned">Запланировано</option>
-            <option value="in_progress">В процессе</option>
-            <option value="done">Готово</option>
-            <option value="dropped">Брошено</option>
-          </Select>
-          <Button loading={busy} type="submit">Добавить</Button>
-        </form>
-      </Card>
+        <div className="desktop-main">
+          <PageHeader
+            action={<Button onClick={() => setCreating(true)}>Добавить запись</Button>}
+            title={t("nav.items")}
+          />
+          {syncStatus && syncStatus.changes_after > 0 ? (
+            <div className="desktop-banner">
+              Есть изменения в вебе: {syncStatus.changes_after}.{" "}
+              <button className="desktop-banner-action" onClick={() => void sync()} type="button">Синхронизировать</button>
+            </div>
+          ) : null}
+          {error ? <p className="desktop-error">{error}</p> : null}
+          {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
+          <ul className="desktop-list">
+            {visibleItems.map((item) => (
+              <li key={item.id} className="desktop-list-item">
+                <CardBoundary title={item.title}>
+                  <ItemCard item={item as Item} href={`#${item.id}`} onOpen={() => openItem(item)} />
+                </CardBoundary>
+                <div className="desktop-actions">
+                  <Button size="sm" variant="secondary" onClick={() => openItem(item)}>Открыть</Button>
+                  <Button size="sm" variant="secondary" onClick={async () => {
+                    if (!window.confirm(`Удалить «${item.title}»?`)) return;
+                    await tauriSource.delete(item.id);
+                    await load();
+                  }}>Удалить</Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {visibleItems.length === 0 ? <p className="desktop-empty">Записей пока нет.</p> : null}
+        </div>
+      </div>
 
-      {syncStatus && syncStatus.changes_after > 0 ? (
-        <div className="desktop-banner">
-          Есть изменения в вебе: {syncStatus.changes_after}.{" "}
-          <button className="desktop-banner-action" onClick={() => void sync()} type="button">
-            Синхронизировать
-          </button>
+      {creating ? (
+        <div className="desktop-modal-backdrop" onMouseDown={() => setCreating(false)}>
+          <div className="desktop-modal" onMouseDown={(event) => event.stopPropagation()}>
+            <Card title="Добавить запись">
+              <form className="desktop-form desktop-form-column" onSubmit={create}>
+                <Select label="Тип" value={newKind} onChange={(event) => setNewKind(event.target.value as ItemKind)}>
+                  <option value="movie">Фильм</option><option value="tv">Сериал</option><option value="anime">Аниме</option><option value="book">Книга</option><option value="game">Игра</option>
+                </Select>
+                <Input autoFocus label="Название" value={newTitle} onChange={(event) => setNewTitle(event.target.value)} required maxLength={300} />
+                <Select label="Статус" value={newStatus} onChange={(event) => setNewStatus(event.target.value as ItemStatus)}>
+                  <option value="planned">Запланировано</option><option value="in_progress">В процессе</option><option value="done">Готово</option><option value="dropped">Брошено</option>
+                </Select>
+                <div className="desktop-actions">
+                  <Button loading={busy} type="submit">Добавить</Button>
+                  <Button onClick={() => setCreating(false)} type="button" variant="secondary">Отмена</Button>
+                </div>
+              </form>
+            </Card>
+          </div>
         </div>
       ) : null}
-      {error ? <p className="desktop-error">{error}</p> : null}
-      {action ? <p className="desktop-muted">{action}</p> : null}
-
-      <ul className="desktop-list">
-        {items.map((item) => (
-          <li key={item.id} className="desktop-list-item">
-            <CardBoundary title={item.title}>
-              <ItemCard
-                item={item as Item}
-                href={`#${item.id}`}
-                onOpen={() => openItem(item)}
-              />
-            </CardBoundary>
-            {item.pending ? <span className="desktop-pending">ожидает синхронизации</span> : null}
-            <div className="desktop-actions">
-              <Button size="sm" variant="secondary" onClick={async () => {
-                const value = window.prompt("Новое название", item.title);
-                if (!value?.trim()) return;
-                await tauriSource.update(item.id, { title: value.trim() });
-                await load();
-              }}>Изменить</Button>
-              <Button size="sm" variant="secondary" onClick={async () => {
-                if (window.confirm(`Удалить «${item.title}»?`)) {
-                  await tauriSource.delete(item.id);
-                  await load();
-                }
-              }}>Удалить</Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      {items.length === 0 ? <p className="desktop-muted">Записей пока нет.</p> : null}
 
       {selected ? (
         <div className="desktop-modal-backdrop" onMouseDown={() => setSelected(null)}>
@@ -326,10 +385,7 @@ export function App() {
               <form className="desktop-form desktop-form-column" onSubmit={saveSelected}>
                 <Input label="Название" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required maxLength={300} />
                 <Select label="Статус" value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as ItemStatus)}>
-                  <option value="planned">Запланировано</option>
-                  <option value="in_progress">В процессе</option>
-                  <option value="done">Готово</option>
-                  <option value="dropped">Брошено</option>
+                  <option value="planned">Запланировано</option><option value="in_progress">В процессе</option><option value="done">Готово</option><option value="dropped">Брошено</option>
                 </Select>
                 <Input label="Оценка (1–10)" type="number" min={1} max={10} value={draftRating} onChange={(event) => setDraftRating(event.target.value)} />
                 <Textarea label="Рецензия" value={draftReview} onChange={(event) => setDraftReview(event.target.value)} rows={5} />
