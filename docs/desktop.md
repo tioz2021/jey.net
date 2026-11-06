@@ -31,6 +31,12 @@ timeout 5 ./target/release/jey-desktop
 функции, но не доступ к своим данным. Экспорт и локальный бэкап работают
 без сервера.
 
+## UI
+
+Текущий `crates/desktop/ui/index.html` — временный smoke-UI T92–T95.
+Финальная архитектура и план перехода на Vite + общие компоненты:
+[desktop-ui.md](desktop-ui.md).
+
 ## Текущее состояние
 
 - окно Tauri;
