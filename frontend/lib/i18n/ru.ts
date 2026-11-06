@@ -98,7 +98,7 @@ export const ru = {
   "nav.settings": "Настройки",
   "nav.trash": "Корзина",
   "nav.types": "Типы",
-  "nav.all": "Все мои записи",
+  "nav.all": "Все записи",
   "nav.movies": "Фильмы",
   "nav.anime": "Аниме",
   "nav.games": "Игры",
