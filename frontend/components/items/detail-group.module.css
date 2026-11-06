@@ -1,20 +1,38 @@
 .group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .title {
   margin: 0;
-  font-size: var(--text-xs);
+  padding: 7px var(--space-3);
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0;
+}
+
+/* Cards inside a group become sections, not separate floating panels. */
+.body > :global(section) {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.body > :global(section) + :global(section) {
+  border-top: 1px solid var(--color-border);
+}
+
+.body > :global(section) > :global(div:last-child) {
+  padding: var(--space-3);
 }
