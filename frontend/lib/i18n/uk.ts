@@ -388,7 +388,7 @@ export const uk = {
   'filters.reset': 'Скинути фільтри',
   'filters.deleted': 'Кошик',
   'search.fieldLabel': 'Пошук',
-  'search.fieldPlaceholder': 'Назва, автор або нотатка',
+  'search.fieldPlaceholder': 'Назва або автор',
   'items.empty.searchTitle': 'Нічого не знайдено',
   'items.empty.searchText': 'Спробуйте змінити фільтри або пошуковий запит.',
   'items.empty.searchAction': 'Скинути фільтри',

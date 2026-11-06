@@ -387,7 +387,7 @@ export const ru = {
   'filters.reset': 'Сбросить фильтры',
   'filters.deleted': 'Корзина',
   'search.fieldLabel': 'Поиск',
-  'search.fieldPlaceholder': 'Название, автор или заметка',
+  'search.fieldPlaceholder': 'Название или автор',
   'items.empty.searchTitle': 'Ничего не найдено',
   'items.empty.searchText': 'Попробуйте изменить фильтры или поисковый запрос.',
   'items.empty.searchAction': 'Сбросить фильтры',

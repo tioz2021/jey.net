@@ -388,7 +388,7 @@ export const en = {
   'filters.reset': 'Reset filters',
   'filters.deleted': 'Trash',
   'search.fieldLabel': 'Search',
-  'search.fieldPlaceholder': 'Title, author or note',
+  'search.fieldPlaceholder': 'Title or author',
   'items.empty.searchTitle': 'Nothing found',
   'items.empty.searchText': 'Try changing the filters or the search query.',
   'items.empty.searchAction': 'Reset filters',
