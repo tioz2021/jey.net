@@ -262,19 +262,21 @@
 }
 
 
-.collections {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.collectionStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
-.collections a {
-  display: flex;
+.collectionStrip a {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px;
+  gap: 5px;
+  padding: 2px 7px;
   color: var(--color-text);
   text-decoration: none;
   background: var(--color-surface);
@@ -282,11 +284,11 @@
   border-radius: var(--radius-sm);
 }
 
-.collections a:hover {
+.collectionStrip a:hover {
   border-color: var(--color-accent);
 }
 
-.collections a span:last-child {
+.collectionStrip a span {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }

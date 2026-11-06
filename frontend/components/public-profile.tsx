@@ -105,6 +105,11 @@ export function PublicProfileView({
     [items],
   );
 
+  const visibleCollections = useMemo(
+    () => collections.filter((collection) => collection.item_count > 0),
+    [collections],
+  );
+
   const counts = useMemo(() => {
     const map = new Map<ItemKind, number>();
     for (const item of visibleItems) {
@@ -259,26 +264,24 @@ export function PublicProfileView({
                 ))}
               </ul>
             ) : null}
+
+            {visibleCollections.length > 0 ? (
+              <div className={styles.collectionStrip}>
+                <span>{t("collections.title")}:</span>
+                {visibleCollections.map((collection) => (
+                  <Link
+                    href={`/u/${profile.handle}/collection/${collection.slug}`}
+                    key={collection.id}
+                  >
+                    {collection.title}
+                    <span>{collection.item_count}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
-
-      {collections.length > 0 ? (
-        <Card title={t("collections.publicTitle")}>
-          <ul className={styles.collections}>
-            {collections.map((collection) => (
-              <li key={collection.id}>
-                <Link
-                  href={`/u/${profile.handle}/collection/${collection.slug}`}
-                >
-                  <span>{collection.title}</span>
-                  <span>{collection.item_count}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
 
       <Card
         action={
