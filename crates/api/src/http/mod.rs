@@ -194,6 +194,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/collections",
             get(crate::collections::list).post(crate::collections::create),
         )
+        .route("/devices", post(crate::devices::register))
         .route(
             "/collections/for-item/{item_id}",
             get(crate::collections::for_item),

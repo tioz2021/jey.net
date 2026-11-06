@@ -12,6 +12,7 @@ pub mod collections;
 pub mod comments;
 pub mod config;
 pub mod db;
+pub mod devices;
 pub mod error;
 pub mod export;
 pub mod fuzzy;

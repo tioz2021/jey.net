@@ -630,10 +630,9 @@ paths:
       tags: [Sync]
       summary: Register a desktop installation
       description: |
-        Contract v1. Idempotent by `device_id` for the current account.
-        Not implemented in the current build.
-      parameters:
-        - { name: X-Sync-Version, in: header, required: true, schema: { type: integer, const: 1 } }
+        Idempotent by `device_id` for the current account. Re-registration
+        updates the name/platform and binds the current session to the device.
+        Does not require `X-Device-Id`: the body carries it.
       requestBody:
         required: true
         content:
@@ -1048,7 +1047,7 @@ components:
       required: [device_id, name, platform]
       properties:
         device_id: { type: string, format: uuid }
-        name: { type: string, minLength: 1, maxLength: 120 }
+        name: { type: string, minLength: 1, maxLength: 60 }
         platform: { type: string, enum: [linux, windows, macos] }
     Device:
       type: object
