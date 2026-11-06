@@ -292,3 +292,29 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
+
+@media (width <= 520px) {
+  .banner {
+    height: 82px;
+  }
+
+  .identity {
+    gap: var(--space-3);
+    padding: 0 var(--space-3) var(--space-3);
+  }
+
+  .avatar,
+  .avatarPlaceholder {
+    width: 6.5rem;
+    height: 6.5rem;
+    margin-top: -2.5rem;
+  }
+
+  .name {
+    font-size: var(--text-lg);
+  }
+
+  .identityText {
+    padding-top: var(--space-1);
+  }
+}

@@ -103,6 +103,8 @@ export default function RecommendationsPage() {
       <Card title={t("recommendations.friendsTitle")}>
         {!loading && visibleFriends.length === 0 ? (
           <EmptyState
+            actionHref="/people"
+            actionLabel={t("recommendations.findPeople")}
             text={t("recommendations.emptyText")}
             title={t("recommendations.emptyTitle")}
           />

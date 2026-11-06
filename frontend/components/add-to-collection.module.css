@@ -40,3 +40,17 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
+
+@media (width <= 520px) {
+  .wrap {
+    flex-wrap: wrap;
+  }
+
+  .wrap > :first-child {
+    flex-basis: 100%;
+  }
+
+  .wrap > :global(button) {
+    width: 100%;
+  }
+}

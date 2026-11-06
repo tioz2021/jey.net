@@ -58,8 +58,15 @@ export function Onboarding({ fallback }: { fallback?: ReactNode }) {
               <span className={styles.stepText}>{t("onboarding.step2")}</span>
             </span>
           </Link>
-          <Link className={styles.stepCard} href="/recommendations">
+          <Link className={styles.stepCard} href="/collections">
             <span className={styles.stepNumber}>3</span>
+            <span>
+              <strong>{t("onboarding.collections")}</strong>
+              <span className={styles.stepText}>{t("onboarding.step4")}</span>
+            </span>
+          </Link>
+          <Link className={styles.stepCard} href="/recommendations">
+            <span className={styles.stepNumber}>4</span>
             <span>
               <strong>{t("onboarding.recommendations")}</strong>
               <span className={styles.stepText}>{t("onboarding.step3")}</span>
