@@ -25,6 +25,7 @@ pub mod media;
 pub mod movies;
 pub mod site;
 pub mod stats;
+pub mod sync_push;
 pub mod system;
 pub mod telemetry;
 pub mod users;

@@ -196,6 +196,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/devices", post(crate::devices::register))
         .route(
+            "/sync/push",
+            post(crate::sync_push::push).layer(axum::extract::DefaultBodyLimit::max(1024 * 1024)),
+        )
+        .route(
             "/collections/for-item/{item_id}",
             get(crate::collections::for_item),
         )

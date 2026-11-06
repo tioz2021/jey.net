@@ -659,8 +659,7 @@ paths:
       summary: Push a batch of local changes
       description: |
         Contract v1. Up to 500 changes and 1 MiB. A repeated
-        `(device_id, batch_id)` inside 30 days is a no-op.
-        Not implemented in the current build.
+        `(device_id, batch_id)` inside 30 days is a no-op. Implemented in T98.
       parameters:
         - $ref: "#/components/parameters/DeviceId"
         - $ref: "#/components/parameters/SyncVersion"

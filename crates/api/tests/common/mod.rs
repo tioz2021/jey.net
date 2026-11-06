@@ -272,6 +272,32 @@ impl TestClient {
         .await
     }
 
+    /// POST with sync headers alongside the session cookie.
+    pub async fn post_with_headers(
+        &self,
+        path: &str,
+        body: Value,
+        cookie: &str,
+        headers: &[(&str, &str)],
+    ) -> TestResponse {
+        let mut request = Request::builder()
+            .method(Method::POST)
+            .uri(path)
+            .header("x-forwarded-for", &self.ip)
+            .header("origin", "http://localhost:3000")
+            .header("cookie", cookie)
+            .header("content-type", "application/json");
+        for (name, value) in headers {
+            request = request.header(*name, *value);
+        }
+        self.execute(
+            request
+                .body(Body::from(body.to_string()))
+                .expect("valid request"),
+        )
+        .await
+    }
+
     pub async fn patch(&self, path: &str, body: Value, cookie: &str) -> TestResponse {
         self.send(
             Method::PATCH,
