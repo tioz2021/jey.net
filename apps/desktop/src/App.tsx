@@ -5,6 +5,7 @@ import { Button, Card, Input, Select } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
+import { CardBoundary } from "./CardBoundary";
 import { tauriSource } from "./data/tauri-source";
 import type { LocalItem } from "./data/source";
 import "./app.css";
@@ -254,7 +255,9 @@ export function App() {
       <ul className="desktop-list">
         {items.map((item) => (
           <li key={item.id} className="desktop-list-item">
-            <ItemCard item={item as Item} href={`#${item.id}`} />
+            <CardBoundary title={item.title}>
+              <ItemCard item={item as Item} href={`#${item.id}`} />
+            </CardBoundary>
             {item.pending ? <span className="desktop-pending">ожидает синхронизации</span> : null}
             <div className="desktop-actions">
               <Button size="sm" variant="secondary" onClick={async () => {
