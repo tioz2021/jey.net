@@ -41,9 +41,13 @@ timeout 5 ./target/release/jey-desktop
 - собранные `AppImage`, `.deb` и `.rpm`;
 - AppImage запускается без запущенного сервера;
 - локальный grant `access.json` в app data;
-- `local_access_status` не делает сетевых запросов.
+- `local_access_status` не делает сетевых запросов;
+- локальная SQLite `jey.db` в app data;
+- миграции, WAL, `sync_state`, `outbox`, `conflicts`;
+- `local_db_status` показывает путь, версию схемы и размеры очередей.
 
-Библиотека, SQLite и sync появятся в T93–T95 и T127.
+T93 готова: SQLite-схема и миграции есть. Репозитории, офлайн-редактирование
+и sync появятся в T94–T95 и T127.
 
 ## Запуск
 

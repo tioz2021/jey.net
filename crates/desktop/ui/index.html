@@ -23,10 +23,12 @@
       <p>Каркас Tauri готов. Библиотека и синхронизация появятся в следующих задачах M8.3.</p>
       <p>Версия: <span id="version">…</span></p>
       <p>Локальный доступ: <span id="access">…</span></p>
+      <p>Локальная база: <span id="db">…</span></p>
     </div>
     <script>
       const version = document.getElementById("version");
       const access = document.getElementById("access");
+      const db = document.getElementById("db");
       if (window.__TAURI__) {
         window.__TAURI__.core.invoke("app_version").then((value) => {
           version.textContent = value;
@@ -36,9 +38,13 @@
             ? `есть (${value.server_url})`
             : "нет, нужен первый вход онлайн";
         }).catch(() => { access.textContent = "ошибка чтения"; });
+        window.__TAURI__.core.invoke("local_db_status").then((value) => {
+          db.textContent = `${value.path} · schema ${value.schema_version} · ${value.items} items`;
+        }).catch(() => { db.textContent = "ошибка открытия"; });
       } else {
         version.textContent = "web preview";
         access.textContent = "доступно только в приложении";
+        db.textContent = "доступно только в приложении";
       }
     </script>
   </body>

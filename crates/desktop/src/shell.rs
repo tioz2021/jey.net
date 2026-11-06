@@ -3,9 +3,11 @@
 use tauri::{Manager, State};
 
 use crate::access::AccessStore;
+use crate::store::DesktopStore;
 
 struct DesktopState {
     access: AccessStore,
+    store: DesktopStore,
 }
 
 #[tauri::command]
@@ -29,6 +31,13 @@ fn local_access_status(state: State<'_, DesktopState>) -> Result<serde_json::Val
     }
 }
 
+/// Path, schema version and sync queue counters for the local database.
+#[tauri::command]
+fn local_db_status(state: State<'_, DesktopState>) -> Result<serde_json::Value, String> {
+    let status = state.store.status().map_err(|error| error.to_string())?;
+    serde_json::to_value(status).map_err(|error| error.to_string())
+}
+
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
@@ -36,8 +45,11 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .map_err(|error| format!("app data directory: {error}"))?;
+            let store = DesktopStore::open(&data_dir)
+                .map_err(|error| format!("local database: {error}"))?;
             app.manage(DesktopState {
                 access: AccessStore::new(data_dir),
+                store,
             });
 
             if let Some(window) = app.get_webview_window("main") {
