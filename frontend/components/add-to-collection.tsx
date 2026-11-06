@@ -74,7 +74,7 @@ export function AddToCollection({ itemId }: { itemId: string }) {
           disabled={busy || !selected || Boolean(selectedCollection?.contains)}
           onClick={() => void add()}
           size="sm"
-          variant="secondary"
+          variant="primary"
         >
           {selectedCollection?.contains
             ? t("collections.alreadyAdded")
