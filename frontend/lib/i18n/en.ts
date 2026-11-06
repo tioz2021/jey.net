@@ -881,6 +881,7 @@ export const en = {
   'public.unblock': 'Unblock',
   'public.privacy': 'Privacy settings',
   'collections.title': 'Collections',
+  'collections.allShort': 'All',
   'collections.all': 'All collections',
   'collections.emptySidebar': 'No collections yet',
   'collections.empty': 'Nothing here yet. Add records from their pages.',

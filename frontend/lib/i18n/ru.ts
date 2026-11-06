@@ -880,6 +880,7 @@ export const ru = {
   'public.unblock': 'Разблокировать',
   'public.privacy': 'Настройки приватности',
   'collections.title': 'Коллекции',
+  'collections.allShort': 'Все',
   'collections.all': 'Все коллекции',
   'collections.emptySidebar': 'Пока нет коллекций',
   'collections.empty': 'Здесь пока пусто. Добавьте записи из карточки.',

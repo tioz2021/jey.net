@@ -35,7 +35,10 @@ export function CollectionsSidebar() {
     <section className={styles.panel} aria-label={t("collections.title")}>
       <div className={styles.head}>
         <span>{t("collections.title")}</span>
-        <Link href="/collections">＋</Link>
+        <span className={styles.actions}>
+          <Link href="/collections">{t("collections.allShort")}</Link>
+          <Link href="/collections">＋</Link>
+        </span>
       </div>
       {collections.length === 0 ? (
         <p className={styles.empty}>{t("collections.emptySidebar")}</p>
@@ -51,9 +54,6 @@ export function CollectionsSidebar() {
           ))}
         </ul>
       )}
-      <Link className={styles.all} href="/collections">
-        {t("collections.all")}
-      </Link>
     </section>
   );
 }

@@ -17,7 +17,13 @@
   box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
-.head a {
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.actions a {
   color: var(--color-accent);
   text-decoration: none;
 }
@@ -30,10 +36,8 @@
 }
 
 .list {
-  max-height: 190px;
   margin: 0;
   padding: var(--space-1) 0;
-  overflow-y: auto;
   list-style: none;
 }
 

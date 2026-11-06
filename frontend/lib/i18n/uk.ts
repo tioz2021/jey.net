@@ -881,6 +881,7 @@ export const uk = {
   'public.unblock': 'Розблокувати',
   'public.privacy': 'Налаштування приватності',
   'collections.title': 'Колекції',
+  'collections.allShort': 'Усі',
   'collections.all': 'Усі колекції',
   'collections.emptySidebar': 'Колекцій поки немає',
   'collections.empty': 'Тут поки порожньо. Додайте записи з картки.',

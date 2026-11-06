@@ -46,7 +46,6 @@ export function AddToCollection({ itemId }: { itemId: string }) {
     <Card className={styles.card} title={t("collections.addTo")}>
       <div className={styles.wrap}>
         <Select
-          compact
           hideLabel
           label={t("collections.addTo")}
           onChange={(event) => setSelected(event.target.value)}
