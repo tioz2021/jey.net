@@ -21,6 +21,7 @@
 | `Origin` | запрос | обязателен для POST/PATCH/DELETE |
 | `X-Request-Id` | запрос/ответ | сквозной идентификатор для логов |
 | `X-Device-Id` | запрос | устройство, от которого идёт синхронизация |
+| `X-Sync-Version` | запрос | версия sync-протокола; для v1 — `1` |
 | `Retry-After` | ответ | при `429` |
 
 ## 2. Аутентификация и сессии
@@ -57,6 +58,8 @@
 | `not_found` | 404 | объект не существует или не принадлежит пользователю, а также неизвестный маршрут |
 | `method_not_allowed` | 405 | метод не поддерживается для этого маршрута |
 | `conflict` | 409 | дубликат email, тега, гонка версий |
+| `unsupported_sync_version` | 400 | неизвестная версия `X-Sync-Version` |
+| `unknown_device` | 400 | `X-Device-Id` не зарегистрирован |
 | `payload_too_large` | 413 | тело или файл больше лимита |
 | `unsupported_media_type` | 415 | тип файла не поддерживается |
 | `rate_limited` | 429 | превышен лимит попыток |
@@ -95,9 +98,10 @@ GET /api/v1/items?limit=20&cursor=eyJjIjoiMjAyNi0xMS0wMlQxMjowMDowMFoiLCJpIjoiLi
 | GET | `/api/v1/public/users/{id}` | публичный профиль: только `done`-записи с заметками автора, без email; `404`, если профиль закрыт |
 | GET | `/api/v1/public/users` | список публичных профилей (для `sitemap.xml`) |
 | GET | `/api/v1/public/users/{id}/items/{item_id}` | одна публичная запись: только `done`, с заметкой автора; иначе `404` |
+| GET | `/api/v1/public/users/{id}/collections/{slug}` | публичная коллекция: только публичные записи; иначе `404` |
 | GET | `/health/ready` | готовность: доступна БД |
 
-`GET /health` → `200 {"status":"ok","version":"0.1.0"}`.
+`GET /health` → `200 {"status":"ok","version":"0.2.0"}`.
 
 ### 5.2 Аккаунты
 
@@ -170,7 +174,7 @@ Origin: http://localhost:3000
 
 | Параметр | Значения |
 |---|---|
-| `kind` | `movie`, `book`, `image`, `other` |
+| `kind` | `movie`, `tv`, `anime`, `book`, `game` (устаревшие `image`/`other` — только чтение) |
 | `status` | `planned`, `in_progress`, `done`, `dropped` |
 | `tag` | имя тега |
 | `q` | поиск по `title`, `subtitle`, `review` |
@@ -274,7 +278,7 @@ Origin: http://localhost:3000
 ```json
 {
   "total": 123,
-  "by_kind": { "movie": 80, "book": 30, "image": 10, "other": 3 },
+  "by_kind": { "movie": 80, "tv": 10, "anime": 6, "book": 30, "game": 7 },
   "by_status": { "planned": 20, "in_progress": 3, "done": 95, "dropped": 5 },
   "average_rating": 7.8,
   "by_year": [ { "year": 2026, "count": 41 }, { "year": 2025, "count": 33 } ],
@@ -292,58 +296,68 @@ Origin: http://localhost:3000
 
 Ответ импорта: `200 {"created": 40, "skipped": 2, "failed": 0}`.
 
-### 5.8 Устройства (планируется, M8)
+### 5.8 Устройства (контракт v1, реализация M8.2)
 
-Эндпоинты ещё не реализованы; появятся вместе с десктоп-клиентом.
+Эндпоинт контракта; в текущей сборке ещё не реализован.
 
 | Метод | Путь | Описание |
 |---|---|---|
-| POST | `/devices` | регистрация устройства, идемпотентно по `installation_id` |
-| GET | `/devices` | список устройств пользователя |
-| DELETE | `/devices/{id}` | забыть устройство (сессии устройства завершаются) |
+| POST | `/devices` | регистрация устройства, идемпотентно по `device_id` |
 
 ```json
-{ "installation_id": "d3a2…", "name": "Ноутбук", "platform": "linux" }
+{ "device_id": "d3a2c6a4-7c2f-4f1a-a3e8-2d6a8f0c1b77", "name": "Ноутбук", "platform": "linux" }
 ```
 
-### 5.9 Синхронизация (планируется, M8)
+Ответ: `200` или `201` с объектом `device`. Требуется сессия и
+`X-Sync-Version: 1`.
 
-Ниже — проектный контракт; в текущей версии эндпоинтов `/sync/*` нет.
+### 5.9 Синхронизация (контракт v1, реализация M8.2)
 
-Полный протокол — в [sync.md](sync.md). Эндпоинты:
+Полный протокол — в [sync.md](sync.md). Версия: `X-Sync-Version: 1`.
+В текущей сборке эндпоинтов `/sync/*` ещё нет.
 
 | Метод | Путь | Описание |
 |---|---|---|
-| POST | `/sync/push` | принять пачку локальных изменений |
-| GET | `/sync/pull?since=N&limit=500` | отдать изменения после `N`, включая надгробия |
-| GET | `/sync/status?since=N` | сколько изменений появилось после `N` |
+| POST | `/sync/push` | принять пачку изменений; до 500 изменений и 1 MiB |
+| GET | `/sync/pull?since=N&limit=200` | изменения после `N`, включая надгробия |
+| GET | `/sync/status?since=N` | `last_seq`, `changes_after`, `server_time` |
+| GET | `/sync/conflicts` | неразрешённые конфликтные копии |
+| POST | `/sync/conflicts/{id}/resolve` | выбрать `incoming` или `stored` |
 
-Все три требуют `X-Device-Id` и действуют в пределах текущего пользователя.
+Все `/sync/*` требуют `X-Device-Id` и `X-Sync-Version` и действуют в
+пределах текущего пользователя.
 
 `POST /sync/push`:
 
 ```json
 {
-  "batch_id": "b7f1…",
+  "batch_id": "b7f1c2d3-4e5f-4a6b-8c9d-0e1f2a3b4c5d",
   "changes": [
     { "entity": "item", "id": "8a1f…", "revision": 4,
-      "updated_at": "2026-11-02T12:00:00Z", "deleted_at": null,
-      "payload": { "title": "Interstellar", "rating": 9 } }
+      "updated_at": "2026-11-06T12:00:00Z", "deleted_at": null,
+      "payload": { "kind": "movie", "title": "Interstellar", "rating": 9 } }
   ]
 }
 ```
 
 ```json
-{ "applied": ["8a1f…"], "conflicts": [], "last_seq": 1042 }
+{
+  "protocol_version": 1,
+  "applied": [{ "entity": "item", "id": "8a1f…", "revision": 4, "sync_seq": 1042 }],
+  "conflicts": [],
+  "last_seq": 1042
+}
 ```
 
 `GET /sync/pull`:
 
 ```json
 {
+  "protocol_version": 1,
   "changes": [
     { "entity": "item", "id": "8a1f…", "revision": 5, "sync_seq": 1043,
-      "deleted_at": null, "payload": { "title": "Interstellar", "rating": 9 } }
+      "updated_at": "2026-11-06T12:01:00Z", "deleted_at": null,
+      "payload": { "kind": "movie", "title": "Interstellar" } }
   ],
   "next_since": 1043,
   "has_more": false
@@ -353,8 +367,24 @@ Origin: http://localhost:3000
 `GET /sync/status`:
 
 ```json
-{ "last_seq": 1045, "changes_after": 3 }
+{ "protocol_version": 1, "last_seq": 1045, "changes_after": 3, "server_time": "2026-11-06T12:02:00Z" }
 ```
+
+### 5.10 Коллекции
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/collections` | коллекции пользователя |
+| POST | `/collections` | создать: `{title, visibility}` |
+| GET | `/collections/for-item/{item_id}` | коллекции и признак `contains` |
+| GET | `/collections/{id}` | коллекция и записи |
+| PATCH | `/collections/{id}` | переименовать или сменить видимость |
+| DELETE | `/collections/{id}` | удалить коллекцию, записи остаются |
+| PUT | `/collections/{id}/items/{item_id}` | добавить запись |
+| DELETE | `/collections/{id}/items/{item_id}` | убрать запись |
+
+Видимость: `private` или `public`. Публичная коллекция отдаёт только публичные
+записи и не делает приватную запись видимой.
 
 ## 6. Лимиты запросов
 

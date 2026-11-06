@@ -2,6 +2,7 @@
 
 Машиночитаемая спецификация — [`openapi.yaml`](openapi.yaml) (OpenAPI 3.1).
 Подробный текстовый контракт — [`protocol.md`](protocol.md).
+Контракт синхронизации — [`sync.md`](sync.md) (v1, заморожен 6 ноября 2026).
 
 - **Прод:** `https://j3ynet.site/api/v1`
 - **Локально:** `http://localhost:8080/api/v1`
