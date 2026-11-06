@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <main className="desktop-shell">
         <div className="desktop-crash">
           <h1>Ошибка интерфейса</h1>
-          <p>Локальная библиотека не пострадала. Ниже техническая причина:</p>
+          <p>Локальная библиотека не пострадала. Причина: {this.state.error.message}</p>
           <pre>{this.state.error.stack ?? this.state.error.message}</pre>
           <button onClick={() => window.location.reload()} type="button">
             Перезагрузить окно

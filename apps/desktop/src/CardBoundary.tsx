@@ -27,7 +27,7 @@ export class CardBoundary extends Component<Props, State> {
     return (
       <div className="desktop-crash">
         <strong>{this.props.title}</strong>
-        <p>Не удалось отобразить запись.</p>
+        <p>Не удалось отобразить запись: {this.state.error.message}</p>
         <pre>{this.state.error.stack ?? this.state.error.message}</pre>
       </div>
     );
