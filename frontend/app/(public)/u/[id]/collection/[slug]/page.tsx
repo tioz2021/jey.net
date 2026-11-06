@@ -54,10 +54,15 @@ export default async function PublicCollectionPage({
 
   return (
     <main>
+      <Link className={styles.back} href={`/u/${id}`}>
+        {translate(locale, "item.backProfile")}
+      </Link>
       <p className={styles.kicker}>{translate(locale, "collections.publicKicker")}</p>
       <h1 className={styles.title}>{data.collection.title}</h1>
       <p className={styles.owner}>
-        {translate(locale, "collections.byOwner", { name: data.collection.owner_name })}
+        <Link href={`/u/${id}`}>
+          {translate(locale, "collections.byOwner", { name: data.collection.owner_name })}
+        </Link>
       </p>
       {data.items.length === 0 ? (
         <p className={styles.empty}>{translate(locale, "collections.empty")}</p>

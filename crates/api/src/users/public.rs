@@ -170,9 +170,17 @@ pub async fn profile(
     let collections: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', c.id, 'title', c.title, 'slug', c.slug,
-            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id)
+            'item_count', (
+                select count(*)
+                from collection_items ci
+                join items i on i.id = ci.item_id
+                where ci.collection_id = c.id
+                  and i.deleted_at is null and not i.public_hidden
+                  and i.status = ANY(u.public_statuses)
+            )
          )
          from collections c
+         join users u on u.id = c.user_id
          where c.user_id = $1 and c.visibility = 'public'
          order by c.created_at desc",
     )
@@ -227,9 +235,17 @@ pub async fn own_profile(
     let collections: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', c.id, 'title', c.title, 'slug', c.slug,
-            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id)
+            'item_count', (
+                select count(*)
+                from collection_items ci
+                join items i on i.id = ci.item_id
+                where ci.collection_id = c.id
+                  and i.deleted_at is null and not i.public_hidden
+                  and i.status = ANY(u.public_statuses)
+            )
          )
          from collections c
+         join users u on u.id = c.user_id
          where c.user_id = $1 and c.visibility = 'public'
          order by c.created_at desc",
     )
