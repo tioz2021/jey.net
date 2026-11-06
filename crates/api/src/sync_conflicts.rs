@@ -182,7 +182,7 @@ pub async fn resolve(
         .map_err(AppError::internal)?;
     tx.commit().await.map_err(AppError::internal)?;
 
-    let item = repo::get(&state.pool, current.user.id, conflict.item_id)
+    let item = repo::get_any(&state.pool, current.user.id, conflict.item_id)
         .await?
         .ok_or_else(|| AppError::not_found("item"))?;
     Ok((StatusCode::OK, Json(ItemView::from(item))))

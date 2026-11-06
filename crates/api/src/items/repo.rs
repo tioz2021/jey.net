@@ -22,6 +22,17 @@ const SELECT_BY_ID: &str = r#"
     where i.id = $1 and i.user_id = $2 and i.deleted_at is null
 "#;
 
+const SELECT_ANY_BY_ID: &str = r#"
+    select
+        i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
+        i.review, i.body, i.source_url, i.cover_key, i.public_hidden, i.external_source,
+        i.external_id, i.details, i.details_fetched_at, i.revision, i.sync_seq,
+        i.device_id,
+        i.created_at, i.updated_at, i.deleted_at
+    from items i
+    where i.id = $1 and i.user_id = $2
+"#;
+
 const SELECT_ALL: &str = r#"
     select
         i.id, i.slug, i.user_id, i.kind, i.title, i.subtitle, i.year, i.status, i.rating,
@@ -176,6 +187,18 @@ pub async fn create(
 /// Reads one live record.
 pub async fn get(pool: &PgPool, user_id: Uuid, id: Uuid) -> Result<Option<Item>, AppError> {
     let row = sqlx::query_as::<_, ItemRow>(SELECT_BY_ID)
+        .bind(id)
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(AppError::internal)?;
+
+    row.map(Item::try_from).transpose()
+}
+
+/// Reads a record even when it is a tombstone; sync needs that state.
+pub async fn get_any(pool: &PgPool, user_id: Uuid, id: Uuid) -> Result<Option<Item>, AppError> {
+    let row = sqlx::query_as::<_, ItemRow>(SELECT_ANY_BY_ID)
         .bind(id)
         .bind(user_id)
         .fetch_optional(pool)
