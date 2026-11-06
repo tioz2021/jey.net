@@ -199,6 +199,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/sync/push",
             post(crate::sync_push::push).layer(axum::extract::DefaultBodyLimit::max(1024 * 1024)),
         )
+        .route("/sync/pull", get(crate::sync_pull::pull))
         .route(
             "/collections/for-item/{item_id}",
             get(crate::collections::for_item),

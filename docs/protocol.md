@@ -314,8 +314,8 @@ Origin: http://localhost:3000
 ### 5.9 Синхронизация (контракт v1, реализация M8.2)
 
 Полный протокол — в [sync.md](sync.md). Версия: `X-Sync-Version: 1`.
-`POST /sync/push` реализован в T98; `pull`, `status` и `conflicts` — следующие
-задачи M8.2.
+`POST /sync/push` реализован в T98, `GET /sync/pull` — в T99; `status` и
+`conflicts` — следующие задачи M8.2.
 
 | Метод | Путь | Описание |
 |---|---|---|

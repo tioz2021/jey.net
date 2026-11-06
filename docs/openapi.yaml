@@ -687,7 +687,7 @@ paths:
       summary: Pull changes after a sync sequence
       description: |
         Contract v1. Tombstones are included; changes are ordered by
-        `sync_seq`. Not implemented in the current build.
+        `sync_seq`. Implemented in T99.
       parameters:
         - $ref: "#/components/parameters/DeviceId"
         - $ref: "#/components/parameters/SyncVersion"
