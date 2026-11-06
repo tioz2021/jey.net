@@ -15,6 +15,11 @@
 }
 
 .cardLinkOverlay {
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
   position: absolute;
   inset: 0;
   z-index: 1;

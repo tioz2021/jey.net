@@ -100,6 +100,7 @@ export function ItemCard({
   reactions = false,
   showContinue = false,
   footer,
+  onOpen,
 }: {
   item: ItemCardData;
   query?: string;
@@ -108,6 +109,8 @@ export function ItemCard({
   reactions?: boolean;
   showContinue?: boolean;
   footer?: React.ReactNode;
+  /** Desktop opens a local detail view instead of following a web route. */
+  onOpen?: () => void;
 }) {
   const { t, locale } = useI18n();
   const { user } = useUser();
@@ -294,7 +297,16 @@ export function ItemCard({
   return (
     <div className={styles.cardWrap}>
       {card}
-      <Link aria-label={title} className={styles.cardLinkOverlay} href={target} />
+      {onOpen ? (
+        <button
+          aria-label={title}
+          className={styles.cardLinkOverlay}
+          onClick={onOpen}
+          type="button"
+        />
+      ) : (
+        <Link aria-label={title} className={styles.cardLinkOverlay} href={target} />
+      )}
       {reactions ? (
         <div className={styles.reactionSlot}>
           <CardReaction itemId={item.id} />

@@ -119,16 +119,26 @@ async fn local_create_item(
 async fn local_update_item(
     state: State<'_, DesktopState>,
     id: uuid::Uuid,
-    title: String,
+    title: Option<String>,
+    status: Option<String>,
+    rating: Option<u8>,
+    review: Option<String>,
 ) -> Result<Option<Value>, String> {
     let user = current_user(&state)?;
     let repository = SqliteItems::new(state.store.clone());
+    let status = status
+        .map(|value| jey_core::items::ItemStatus::parse(&value))
+        .transpose()
+        .map_err(|error| error.to_string())?;
     let item = repository
         .update_item(
             user,
             id,
             &ItemPatch {
-                title: Some(title),
+                title,
+                status,
+                rating,
+                review,
                 ..ItemPatch::default()
             },
         )

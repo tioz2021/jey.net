@@ -16,6 +16,12 @@ export const tauriSource: ItemSource = {
   list: (query) => invoke()<Item[]>("local_list_items", { query: query ?? null }),
   create: (input: NewItem) => invoke()<Item>("local_create_item", { newItem: input }),
   update: (id: string, patch: ItemPatch) =>
-    invoke()<Item | null>("local_update_item", { id, title: patch.title ?? "" }),
+    invoke()<Item | null>("local_update_item", {
+      id,
+      title: patch.title ?? null,
+      status: patch.status ?? null,
+      rating: patch.rating ?? null,
+      review: patch.review ?? null,
+    }),
   delete: (id: string) => invoke()<boolean>("local_delete_item", { id }),
 };

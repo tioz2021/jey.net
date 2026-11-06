@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
-import { Button, Card, Input, Select } from "@/components/ui";
+import { Button, Card, Input, Select, Textarea } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
@@ -32,6 +32,11 @@ export function App() {
   const [action, setAction] = useState("");
   const [syncStatus, setSyncStatus] = useState<{ changes_after: number; last_seq: number } | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [selected, setSelected] = useState<LocalItem | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftStatus, setDraftStatus] = useState<ItemStatus>("planned");
+  const [draftRating, setDraftRating] = useState("");
+  const [draftReview, setDraftReview] = useState("");
 
   const invoke = <T,>(command: string, args?: Record<string, unknown>): Promise<T> => {
     const api = (window as unknown as { __TAURI__?: { core?: { invoke?: <R>(name: string, args?: Record<string, unknown>) => Promise<R> } } }).__TAURI__;
@@ -149,6 +154,36 @@ export function App() {
     }
   }
 
+  function openItem(item: LocalItem) {
+    setSelected(item);
+    setDraftTitle(item.title);
+    setDraftStatus(item.status);
+    setDraftRating(item.rating == null ? "" : String(item.rating));
+    setDraftReview(item.review ?? "");
+  }
+
+  async function saveSelected(event: React.FormEvent) {
+    event.preventDefault();
+    if (!selected) return;
+    setBusy(true);
+    setError("");
+    try {
+      const rating = draftRating.trim() === "" ? null : Number(draftRating);
+      await tauriSource.update(selected.id, {
+        title: draftTitle.trim(),
+        status: draftStatus,
+        rating: rating && rating >= 1 && rating <= 10 ? rating : null,
+        review: draftReview,
+      });
+      setSelected(null);
+      await load();
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function create(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim()) return;
@@ -258,7 +293,11 @@ export function App() {
         {items.map((item) => (
           <li key={item.id} className="desktop-list-item">
             <CardBoundary title={item.title}>
-              <ItemCard item={item as Item} href={`#${item.id}`} />
+              <ItemCard
+                item={item as Item}
+                href={`#${item.id}`}
+                onOpen={() => openItem(item)}
+              />
             </CardBoundary>
             {item.pending ? <span className="desktop-pending">ожидает синхронизации</span> : null}
             <div className="desktop-actions">
@@ -279,6 +318,36 @@ export function App() {
         ))}
       </ul>
       {items.length === 0 ? <p className="desktop-muted">Записей пока нет.</p> : null}
+
+      {selected ? (
+        <div className="desktop-modal-backdrop" onMouseDown={() => setSelected(null)}>
+          <div className="desktop-modal" onMouseDown={(event) => event.stopPropagation()}>
+            <Card title={selected.title}>
+              <form className="desktop-form desktop-form-column" onSubmit={saveSelected}>
+                <Input label="Название" value={draftTitle} onChange={(event) => setDraftTitle(event.target.value)} required maxLength={300} />
+                <Select label="Статус" value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as ItemStatus)}>
+                  <option value="planned">Запланировано</option>
+                  <option value="in_progress">В процессе</option>
+                  <option value="done">Готово</option>
+                  <option value="dropped">Брошено</option>
+                </Select>
+                <Input label="Оценка (1–10)" type="number" min={1} max={10} value={draftRating} onChange={(event) => setDraftRating(event.target.value)} />
+                <Textarea label="Рецензия" value={draftReview} onChange={(event) => setDraftReview(event.target.value)} rows={5} />
+                <div className="desktop-actions">
+                  <Button loading={busy} type="submit">Сохранить</Button>
+                  <Button onClick={() => setSelected(null)} type="button" variant="secondary">Отмена</Button>
+                  <Button onClick={async () => {
+                    if (!window.confirm(`Удалить «${selected.title}»?`)) return;
+                    await tauriSource.delete(selected.id);
+                    setSelected(null);
+                    await load();
+                  }} type="button" variant="secondary">Удалить</Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
