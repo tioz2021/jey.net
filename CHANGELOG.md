@@ -3,6 +3,13 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.8] — 2026-11-08
+
+### Исправлено
+
+- Publish-job делает checkout перед `gh release create --generate-notes`;
+  без git-репозитория генерация release notes падала.
+
 ## [0.3.7] — 2026-11-07
 
 ### Исправлено
