@@ -15,7 +15,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["../../frontend/*"],
-      "@/lib/user-context": ["src/shims/user-context.tsx"],
       "next/link": ["src/shims/next-link.tsx"],
       "next/navigation": ["src/shims/next-navigation.tsx"]
     },

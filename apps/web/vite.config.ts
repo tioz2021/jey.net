@@ -15,7 +15,6 @@ export default defineConfig({
     // Exact aliases must come before the broad `@` prefix. If `@` wins first,
     // ItemCard imports the web UserProvider and throws outside it.
     alias: [
-      { find: "@/lib/user-context", replacement: path.resolve(here, "src/shims/user-context.tsx") },
       { find: "next/link", replacement: path.resolve(here, "src/shims/next-link.tsx") },
       { find: "next/navigation", replacement: path.resolve(here, "src/shims/next-navigation.tsx") },
       { find: "@", replacement: frontend },
