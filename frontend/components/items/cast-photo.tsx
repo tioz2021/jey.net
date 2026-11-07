@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { apiAsset } from "@/lib/media";
+
 import styles from "./cast-photo.module.css";
 
 function initials(name: string): string {
@@ -42,7 +44,7 @@ export function CastPhoto({
       decoding="async"
       loading="lazy"
       onError={() => setFailed(true)}
-      src={`/api/v1/movies/image?size=w185&path=${encodeURIComponent(profilePath)}`}
+      src={apiAsset(`/api/v1/movies/image?size=w185&path=${encodeURIComponent(profilePath)}`)}
     />
   );
 }

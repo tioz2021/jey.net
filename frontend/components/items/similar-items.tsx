@@ -6,6 +6,7 @@ import { HideRecommendation } from "@/components/hide-recommendation";
 import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { apiAsset } from "@/lib/media";
 import {
   similarRecommendationKey,
   useHiddenRecommendations,
@@ -60,20 +61,22 @@ export function SimilarItems({
                 // eslint-disable-next-line @next/next/no-img-element -- TMDB proxy
                 <img
                   alt=""
-                  src={`/api/v1/movies/image?size=w185&path=${encodeURIComponent(item.poster_path)}`}
+                  src={apiAsset(`/api/v1/movies/image?size=w185&path=${encodeURIComponent(item.poster_path)}`)}
                 />
               ) : item.cover_url || item.cover_id ? (
                 // eslint-disable-next-line @next/next/no-img-element -- provider cover proxy
                 <img
                   alt=""
                   src={
-                    item.source === "igdb"
-                      ? `/api/v1/games/image?url=${encodeURIComponent(item.cover_url ?? "")}`
-                      : item.source === "anime" || item.kind === "anime"
-                        ? `/api/v1/anime/image?url=${encodeURIComponent(item.cover_url ?? "")}`
-                        : item.source === "openlibrary" && item.cover_id
-                          ? `/api/v1/books/image?size=M&cover=${encodeURIComponent(String(item.cover_id))}`
-                          : `/api/v1/books/image?url=${encodeURIComponent(item.cover_url ?? "")}`
+                    apiAsset(
+                      item.source === "igdb"
+                        ? `/api/v1/games/image?url=${encodeURIComponent(item.cover_url ?? "")}`
+                        : item.source === "anime" || item.kind === "anime"
+                          ? `/api/v1/anime/image?url=${encodeURIComponent(item.cover_url ?? "")}`
+                          : item.source === "openlibrary" && item.cover_id
+                            ? `/api/v1/books/image?size=M&cover=${encodeURIComponent(String(item.cover_id))}`
+                            : `/api/v1/books/image?url=${encodeURIComponent(item.cover_url ?? "")}`,
+                    )
                   }
                 />
               ) : (

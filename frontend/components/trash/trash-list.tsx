@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useToast } from "@/components/toasts";
@@ -13,8 +12,7 @@ import type { Item } from "@/lib/types";
 
 import styles from "./trash-list.module.css";
 
-export function TrashList({ items }: { items: Item[] }) {
-  const router = useRouter();
+export function TrashList({ items, onChanged }: { items: Item[]; onChanged: () => void }) {
   const { t, date } = useI18n();
   const { notify, notifyError } = useToast();
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -25,7 +23,7 @@ export function TrashList({ items }: { items: Item[] }) {
 
     try {
       await api.items.restore(item.id);
-      router.refresh();
+      onChanged();
       notify({
         tone: "success",
         title: t("trash.restored"),
@@ -45,7 +43,7 @@ export function TrashList({ items }: { items: Item[] }) {
     try {
       await api.items.purge(item.id);
       setConfirming(null);
-      router.refresh();
+      onChanged();
       notify({
         tone: "success",
         title: t("trash.purged"),
