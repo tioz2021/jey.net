@@ -11,6 +11,7 @@ pub struct CommentSyncRow {
     pub item_id: String,
     pub parent_id: Option<String>,
     pub body: String,
+    pub deleted_at: Option<i64>,
 }
 
 impl DesktopStore {
@@ -95,8 +96,8 @@ impl DesktopStore {
     pub fn comments_for_sync(&self, user_id: Uuid) -> Result<Vec<CommentSyncRow>, StoreError> {
         let connection = self.connection()?;
         let mut statement = connection.prepare(
-            "select id, item_id, parent_id, body from comments
-             where user_id = ?1 and deleted_at is null order by created_at asc",
+            "select id, item_id, parent_id, body, deleted_at from comments
+             where user_id = ?1 order by created_at asc",
         )?;
         let rows = statement.query_map([user_id.to_string()], |row| {
             Ok(CommentSyncRow {
@@ -104,6 +105,7 @@ impl DesktopStore {
                 item_id: row.get(1)?,
                 parent_id: row.get(2)?,
                 body: row.get(3)?,
+                deleted_at: row.get(4)?,
             })
         })?;
         rows.collect::<rusqlite::Result<Vec<_>>>()

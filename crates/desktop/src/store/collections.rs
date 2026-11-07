@@ -24,7 +24,7 @@ impl DesktopStore {
             "select c.id, c.title, c.slug, c.visibility, c.created_at,
                     (select count(*) from collection_items ci where ci.collection_id = c.id)
              from collections c
-             where c.user_id = ?1
+             where c.user_id = ?1 and c.deleted_at is null
              order by c.created_at desc",
         )?;
         let rows = statement.query_map([user_id.to_string()], |row| {
@@ -81,13 +81,13 @@ impl DesktopStore {
         let now = super::now_millis();
         if let Some(title) = title {
             connection.execute(
-                "update collections set title = ?3, updated_at = ?4 where id = ?1 and user_id = ?2",
+                "update collections set title = ?3, updated_at = ?4 where id = ?1 and user_id = ?2 and deleted_at is null",
                 params![id, user_id.to_string(), title.trim(), now],
             )?;
         }
         if let Some(visibility) = visibility {
             connection.execute(
-                "update collections set visibility = ?3, updated_at = ?4 where id = ?1 and user_id = ?2",
+                "update collections set visibility = ?3, updated_at = ?4 where id = ?1 and user_id = ?2 and deleted_at is null",
                 params![id, user_id.to_string(), visibility, now],
             )?;
         }
@@ -97,8 +97,8 @@ impl DesktopStore {
     pub fn delete_collection(&self, user_id: Uuid, id: &str) -> Result<(), StoreError> {
         let connection = self.connection()?;
         connection.execute(
-            "delete from collections where id = ?1 and user_id = ?2",
-            params![id, user_id.to_string()],
+            "update collections set deleted_at = ?3, updated_at = ?3 where id = ?1 and user_id = ?2",
+            params![id, user_id.to_string(), super::now_millis()],
         )?;
         Ok(())
     }
@@ -110,7 +110,7 @@ impl DesktopStore {
         let mut statement = connection.prepare(
             "select ci.item_id from collection_items ci
              join collections c on c.id = ci.collection_id
-             where ci.collection_id = ?1 and c.user_id = ?2",
+             where ci.collection_id = ?1 and c.user_id = ?2 and c.deleted_at is null",
         )?;
         let rows = statement.query_map(params![id, user_id.to_string()], |row| {
             row.get::<_, String>(0)
@@ -125,17 +125,29 @@ impl DesktopStore {
     }
 }
 
+pub struct CollectionSyncRow {
+    pub id: String,
+    pub title: String,
+    pub visibility: String,
+    pub deleted_at: Option<i64>,
+}
+
 impl DesktopStore {
     pub fn collections_for_sync(
         &self,
         user_id: Uuid,
-    ) -> Result<Vec<(String, String, String)>, StoreError> {
+    ) -> Result<Vec<CollectionSyncRow>, StoreError> {
         let connection = self.connection()?;
         let mut statement = connection.prepare(
-            "select id, title, visibility from collections where user_id = ?1 order by created_at asc",
+            "select id, title, visibility, deleted_at from collections where user_id = ?1 order by created_at asc",
         )?;
         let rows = statement.query_map([user_id.to_string()], |row| {
-            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            Ok(CollectionSyncRow {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                visibility: row.get(2)?,
+                deleted_at: row.get(3)?,
+            })
         })?;
         rows.collect::<rusqlite::Result<Vec<_>>>()
             .map_err(StoreError::Sql)
@@ -157,8 +169,19 @@ impl DesktopStore {
             "insert into collections (id, user_id, title, slug, visibility, created_at, updated_at)
              values (?1, ?2, ?3, ?4, ?5, ?6, ?6)
              on conflict(id) do update set title = excluded.title, slug = excluded.slug,
-               visibility = excluded.visibility, updated_at = excluded.updated_at",
+               visibility = excluded.visibility, updated_at = excluded.updated_at, deleted_at = null",
             params![id, user_id.to_string(), title, slug, visibility, created_at],
+        )?;
+        Ok(())
+    }
+}
+
+impl DesktopStore {
+    pub fn purge_collection(&self, user_id: Uuid, id: &str) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        connection.execute(
+            "delete from collections where id = ?1 and user_id = ?2",
+            params![id, user_id.to_string()],
         )?;
         Ok(())
     }

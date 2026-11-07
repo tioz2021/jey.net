@@ -11,7 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use rusqlite::{Connection, OptionalExtension, params};
 
-mod collections;
+pub mod collections;
 pub mod comments;
 mod export;
 mod media;
@@ -25,6 +25,10 @@ pub use sync::RemoteChange;
 const MIGRATIONS: &[(i64, &str)] = &[
     (1, include_str!("../../migrations/0001_init.sql")),
     (2, include_str!("../../migrations/0002_comments.sql")),
+    (
+        3,
+        include_str!("../../migrations/0003_social_tombstones.sql"),
+    ),
 ];
 
 fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
@@ -271,7 +275,7 @@ mod tests {
     fn migrates_and_survives_reopen() {
         let dir = temp_dir();
         let store = DesktopStore::open(&dir).expect("open store");
-        assert_eq!(store.schema_version().unwrap(), 2);
+        assert_eq!(store.schema_version().unwrap(), 3);
         assert_eq!(store.status().unwrap().items, 0);
 
         {
@@ -297,7 +301,7 @@ mod tests {
         let store = DesktopStore::in_memory().expect("store");
         store.migrate().unwrap();
         store.migrate().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 2);
+        assert_eq!(store.schema_version().unwrap(), 3);
     }
 
     #[test]

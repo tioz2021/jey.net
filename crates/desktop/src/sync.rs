@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::access::AccessStore;
 use crate::session_store::SessionStore;
+use crate::store::collections::CollectionSyncRow;
 use crate::store::comments::CommentSyncRow;
 use crate::store::{DesktopStore, RemoteChange};
 
@@ -295,11 +296,34 @@ impl SyncService {
     }
 
     async fn sync_social(&self) -> Result<(), String> {
-        for (id, title, visibility) in self
+        for collection in self
             .store
             .collections_for_sync(self.user_id)
             .map_err(|error| error.to_string())?
         {
+            let CollectionSyncRow {
+                id,
+                title,
+                visibility,
+                deleted_at,
+            } = collection;
+            if deleted_at.is_some() {
+                let response = self
+                    .headers(
+                        self.client
+                            .delete(format!("{}/api/v1/collections/{id}", self.server)),
+                    )
+                    .send()
+                    .await
+                    .map_err(|error| error.to_string())?;
+                if !response.status().is_success() && response.status() != StatusCode::NOT_FOUND {
+                    return Err(api_error(response).await);
+                }
+                self.store
+                    .purge_collection(self.user_id, &id)
+                    .map_err(|error| error.to_string())?;
+                continue;
+            }
             let response = self
                 .headers(
                     self.client
@@ -340,7 +364,22 @@ impl SyncService {
                 item_id,
                 parent_id,
                 body,
+                deleted_at,
             } = comment;
+            if deleted_at.is_some() {
+                let response = self
+                    .headers(
+                        self.client
+                            .delete(format!("{}/api/v1/comments/{id}", self.server)),
+                    )
+                    .send()
+                    .await
+                    .map_err(|error| error.to_string())?;
+                if !response.status().is_success() && response.status() != StatusCode::NOT_FOUND {
+                    return Err(api_error(response).await);
+                }
+                continue;
+            }
             let response = self
                 .headers(self.client.post(format!(
                     "{}/api/v1/public/users/{}/items/{item_id}/comments",
