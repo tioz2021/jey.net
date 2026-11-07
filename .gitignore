@@ -50,3 +50,6 @@ var/
 
 /apps/desktop/node_modules/
 /apps/desktop/dist/
+/apps/web/node_modules/
+/apps/web/dist/
+/apps/web/.vite/
