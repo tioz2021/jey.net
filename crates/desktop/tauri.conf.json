@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "identifier": "net.jey.desktop",
   "build": {
-    "frontendDist": "../../apps/desktop/dist"
+    "frontendDist": "../../apps/client/dist"
   },
   "app": {
     "withGlobalTauri": true,

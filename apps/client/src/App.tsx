@@ -15,7 +15,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
 import { CardBoundary } from "./CardBoundary";
-import { tauriSource } from "./data/tauri-source";
+import { useItemSource } from "./data/source-context";
 import type { LocalItem } from "./data/source";
 import "./app.css";
 
@@ -36,6 +36,7 @@ const KINDS: Array<{ kind: ItemKind | null; label: string; Icon: typeof IconList
 
 export function App() {
   const { t } = useI18n();
+  const source = useItemSource();
   const [access, setAccess] = useState<Access | null>(null);
   const [items, setItems] = useState<LocalItem[]>([]);
   const [searchResults, setSearchResults] = useState<LocalItem[] | null>(null);
@@ -80,7 +81,7 @@ export function App() {
     try {
       setError("");
       const [nextItems, db] = await Promise.all([
-        tauriSource.list() as Promise<LocalItem[]>,
+        source.list() as Promise<LocalItem[]>,
         invoke<{ path: string; outbox: number; schema_version: number; media_files: number }>("local_db_status"),
       ]);
       // Media cache arrives in T109; until then a remote /media URL would be a
@@ -127,7 +128,7 @@ export function App() {
     }
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      tauriSource
+      source
         .search(needle)
         .then((results) => {
           if (!cancelled) setSearchResults(results as LocalItem[]);
@@ -242,7 +243,7 @@ export function App() {
     setError("");
     try {
       const rating = draftRating.trim() === "" ? null : Number(draftRating);
-      const updated = await tauriSource.update(selected.id, {
+      const updated = await source.update(selected.id, {
         title: draftTitle.trim(),
         status: draftStatus,
         rating: rating && rating >= 1 && rating <= 10 ? rating : null,
@@ -270,7 +271,7 @@ export function App() {
     setError("");
     try {
       const input: NewItem = { kind: newKind, title: newTitle.trim(), status: newStatus };
-      await tauriSource.create(input);
+      await source.create(input);
       setNewTitle("");
       setCreating(false);
       await load();
@@ -373,7 +374,7 @@ export function App() {
                 <Button onClick={() => setSelected(null)} type="button" variant="secondary">Отмена</Button>
                 <Button onClick={async () => {
                   if (!window.confirm(`Удалить «${selected.title}»?`)) return;
-                  await tauriSource.delete(selected.id);
+                  await source.delete(selected.id);
                   setSelected(null);
                   await load();
                 }} type="button" variant="secondary">Удалить</Button>

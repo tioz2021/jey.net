@@ -29,7 +29,7 @@ mkdir -p "${TMPDIR}" "${XDG_CACHE_HOME}"
 
 echo "Building the desktop UI..."
 (
-  cd "${ROOT}/apps/desktop"
+  cd "${ROOT}/apps/client"
   npm run build
 )
 

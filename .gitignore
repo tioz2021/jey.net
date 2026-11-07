@@ -48,5 +48,5 @@ var/
 /coverage/
 .shots/
 
-/apps/desktop/node_modules/
-/apps/desktop/dist/
+/apps/client/node_modules/
+/apps/client/dist/

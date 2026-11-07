@@ -53,13 +53,14 @@ crates/desktop/          Tauri + SQLite + sync
 
 ## Этапы
 
-### T125.1 · Каркас общего клиента
+### T125.1 · Каркас общего клиента `[x]`
 
-- `apps/client`;
-- общий роутер;
-- `ItemSource`;
-- перенос каталога;
-- desktop использует этот экран.
+- `apps/client` — бывший `apps/desktop`;
+- общие `AppRoutes`;
+- `SourceProvider` и `ItemSource`;
+- `main.tsx` — Tauri/HashRouter;
+- `main-web.tsx` — HTTP/BrowserRouter, ждёт подключения к Next;
+- Tauri `frontendDist` указывает на `apps/client/dist`.
 
 ### T125.2 · Перенос списка и фильтров
 
