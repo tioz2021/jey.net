@@ -1,3 +1,9 @@
+import { useEffect, useState } from "react";
+
+function currentPathname() {
+  return window.location.pathname.replace(/^\/spa/, "") || "/";
+}
+
 export function useRouter() {
   return {
     push: (href: string) => { window.location.href = href; },
@@ -9,7 +15,17 @@ export function useRouter() {
 }
 
 export function usePathname() {
-  return window.location.pathname.replace(/^\/spa/, "") || "/";
+  const [pathname, setPathname] = useState(currentPathname);
+  useEffect(() => {
+    const sync = () => setPathname(currentPathname());
+    window.addEventListener("popstate", sync);
+    window.addEventListener("jey:route-changed", sync);
+    return () => {
+      window.removeEventListener("popstate", sync);
+      window.removeEventListener("jey:route-changed", sync);
+    };
+  }, []);
+  return pathname;
 }
 
 export function useSearchParams() {
