@@ -3,6 +3,15 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.6] — 2026-11-07
+
+### Исправлено
+
+- Desktop применяет сортировку каталога: новые, старые, обновлённые, высокая
+  оценка, название, год.
+- Release workflow публикует артефакты через `gh release`, без падения
+  `softprops/action-gh-release`.
+
 ## [0.3.5] — 2026-11-07
 
 ### Исправлено
