@@ -1,0 +1,84 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux bundles
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: System libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf pkg-config libdbus-1-dev
+      - name: Build SPA
+        working-directory: apps/web
+        run: npm ci && npm run build
+      - name: Build AppImage and deb
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: crates/desktop
+          args: --features tauri --bundles appimage,deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
+            target/release/bundle/appimage/*.AppImage
+            target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
+  windows:
+    name: Windows installer (unsigned)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Build SPA
+        working-directory: apps/web
+        run: npm ci; npm run build
+      - name: Build NSIS installer
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: crates/desktop
+          args: --features tauri --bundles nsis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: [linux, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: artifacts
+      - name: Checksums
+        run: cd artifacts && sha256sum * > SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/*
