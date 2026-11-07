@@ -126,6 +126,11 @@ async fn spa_file(
                 Some("js") => "text/javascript; charset=utf-8",
                 Some("css") => "text/css; charset=utf-8",
                 Some("svg") => "image/svg+xml",
+                Some("png") => "image/png",
+                Some("webp") => "image/webp",
+                Some("ico") => "image/x-icon",
+                Some("json") | Some("webmanifest") => "application/manifest+json",
+                Some("wav") => "audio/wav",
                 _ => "text/html; charset=utf-8",
             };
             ([(axum::http::header::CONTENT_TYPE, content_type)], bytes).into_response()
