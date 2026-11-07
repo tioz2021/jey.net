@@ -242,7 +242,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route(
             "/comments/{id}/reaction",
-            post(crate::comments::toggle_reaction),
+            post(crate::comments::toggle_reaction).put(crate::comments::set_reaction),
         )
         .route(
             "/public/items/{id}/reactions",

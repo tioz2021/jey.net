@@ -343,6 +343,77 @@ pub async fn toggle_reaction(
     Ok(Json(json!({ "reacted": !removed, "count": count })))
 }
 
+/// `PUT /api/v1/comments/{id}/reaction` — set like state explicitly.
+pub async fn set_reaction(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<ReactionInput>,
+) -> Result<Json<Value>, AppError> {
+    let context: Option<(Uuid, Uuid, Uuid)> = sqlx::query_as(
+        "select c.item_id, c.user_id, i.user_id
+         from comments c join items i on i.id = c.item_id
+         join users u on u.id = i.user_id
+         where c.id = $1 and c.deleted_at is null
+           and i.deleted_at is null and not i.public_hidden
+           and u.is_public and u.deleted_at is null
+           and i.status = ANY(u.public_statuses)",
+    )
+    .bind(id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((item_id, comment_author, item_owner)) = context else {
+        return Err(AppError::not_found("comment"));
+    };
+    if blocked_between(&state.pool, current.user.id, item_owner).await? {
+        return Err(AppError::forbidden("blocked"));
+    }
+    if payload.liked {
+        sqlx::query("insert into comment_reactions (user_id, comment_id) values ($1, $2) on conflict do nothing")
+            .bind(current.user.id)
+            .bind(id)
+            .execute(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+        notify_social(
+            &state,
+            comment_author,
+            current.user.id,
+            SocialNotification {
+                kind: "reaction",
+                item_id,
+                comment_id: Some(id),
+                push_body: &format!(
+                    "{} отреагировал(а) на ваш комментарий",
+                    current.user.display_name
+                ),
+                url: &format!("/u/{item_owner}/{item_id}"),
+            },
+        )
+        .await;
+    } else {
+        sqlx::query("delete from comment_reactions where user_id = $1 and comment_id = $2")
+            .bind(current.user.id)
+            .bind(id)
+            .execute(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    }
+    let count: i64 =
+        sqlx::query_scalar("select count(*) from comment_reactions where comment_id = $1")
+            .bind(id)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    Ok(Json(json!({ "reacted": payload.liked, "count": count })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReactionInput {
+    pub liked: bool,
+}
+
 /// `DELETE /api/v1/comments/{id}` — the author can remove their comment.
 pub async fn remove(
     State(state): State<AppState>,

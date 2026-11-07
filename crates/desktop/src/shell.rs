@@ -377,6 +377,16 @@ fn local_create_comment(state: State<'_, DesktopState>, input: Value) -> Result<
 }
 
 #[tauri::command]
+fn local_react_comment(state: State<'_, DesktopState>, id: String) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let (reacted, count) = state
+        .store
+        .toggle_comment_reaction(user, &id)
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "reacted": reacted, "count": count }))
+}
+
+#[tauri::command]
 fn local_delete_comment(state: State<'_, DesktopState>, id: String) -> Result<Value, String> {
     let user = current_user(&state)?;
     state
@@ -778,6 +788,7 @@ pub fn run() {
             local_list_comments,
             local_create_comment,
             local_delete_comment,
+            local_react_comment,
             local_create_item,
             local_update_item,
             local_delete_item,

@@ -51,7 +51,15 @@ pub async fn social(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(
-        json!({ "collections": collections, "comments": comments, "profile": profile }),
-    ))
+    let reactions: Vec<uuid::Uuid> =
+        sqlx::query_scalar("select comment_id from comment_reactions where user_id = $1")
+            .bind(current.user.id)
+            .fetch_all(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+
+    Ok(Json(json!({
+        "collections": collections, "comments": comments, "profile": profile,
+        "reactions": reactions,
+    })))
 }

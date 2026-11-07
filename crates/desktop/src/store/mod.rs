@@ -29,6 +29,10 @@ const MIGRATIONS: &[(i64, &str)] = &[
         3,
         include_str!("../../migrations/0003_social_tombstones.sql"),
     ),
+    (
+        4,
+        include_str!("../../migrations/0004_comment_reactions.sql"),
+    ),
 ];
 
 fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
@@ -275,7 +279,7 @@ mod tests {
     fn migrates_and_survives_reopen() {
         let dir = temp_dir();
         let store = DesktopStore::open(&dir).expect("open store");
-        assert_eq!(store.schema_version().unwrap(), 3);
+        assert_eq!(store.schema_version().unwrap(), 4);
         assert_eq!(store.status().unwrap().items, 0);
 
         {
@@ -301,7 +305,7 @@ mod tests {
         let store = DesktopStore::in_memory().expect("store");
         store.migrate().unwrap();
         store.migrate().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 3);
+        assert_eq!(store.schema_version().unwrap(), 4);
     }
 
     #[test]

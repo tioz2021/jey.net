@@ -394,6 +394,46 @@ impl SyncService {
             }
         }
 
+        for comment_id in self
+            .store
+            .liked_comments(self.user_id)
+            .map_err(|error| error.to_string())?
+        {
+            let response = self
+                .headers(self.client.put(format!(
+                    "{}/api/v1/comments/{comment_id}/reaction",
+                    self.server
+                )))
+                .json(&json!({ "liked": true }))
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            if !response.status().is_success() && response.status() != StatusCode::NOT_FOUND {
+                return Err(api_error(response).await);
+            }
+        }
+        for comment_id in self
+            .store
+            .unliked_comments(self.user_id)
+            .map_err(|error| error.to_string())?
+        {
+            let response = self
+                .headers(self.client.put(format!(
+                    "{}/api/v1/comments/{comment_id}/reaction",
+                    self.server
+                )))
+                .json(&json!({ "liked": false }))
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            if !response.status().is_success() && response.status() != StatusCode::NOT_FOUND {
+                return Err(api_error(response).await);
+            }
+        }
+        self.store
+            .clear_reaction_tombstones(self.user_id)
+            .map_err(|error| error.to_string())?;
+
         if let Ok(profile) = self.store.local_profile(self.user_id) {
             let patch = json!({
                 "display_name": profile.get("display_name"),
@@ -492,6 +532,18 @@ impl SyncService {
         if let Some(profile) = body.get("profile") {
             let _ = self.store.save_local_profile(self.user_id, profile);
         }
+        let reactions: Vec<String> = body
+            .get("reactions")
+            .and_then(Value::as_array)
+            .map(|rows| {
+                rows.iter()
+                    .filter_map(|value| value.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .unwrap_or_default();
+        self.store
+            .replace_reactions(self.user_id, &reactions)
+            .map_err(|error| error.to_string())?;
         Ok(())
     }
 

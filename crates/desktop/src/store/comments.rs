@@ -29,20 +29,26 @@ impl DesktopStore {
             |row| row.get(0),
         )?;
         let mut statement = connection.prepare(
-            "select id, body, created_at, user_id from comments
-             where item_id = ?1 and deleted_at is null and parent_id is null
-             order by created_at desc limit ?2 offset ?3",
+            "select c.id, c.body, c.created_at, c.user_id,
+                    (select count(*) from comment_reactions cr where cr.comment_id = c.id),
+                    (select coalesce(json_group_array(user_id), '[]') from comment_reactions cr where cr.comment_id = c.id)
+             from comments c
+             where c.item_id = ?1 and c.deleted_at is null and c.parent_id is null
+             order by c.created_at desc limit ?2 offset ?3",
         )?;
         let rows = statement.query_map(params![item_id, limit + 1, offset], |row| {
             let id: String = row.get(0)?;
             let body: String = row.get(1)?;
             let created_at: i64 = row.get(2)?;
             let author: String = row.get(3)?;
+            let like_count: i64 = row.get(4)?;
+            let liker_json: String = row.get(5)?;
+            let liker_ids: Value = serde_json::from_str(&liker_json).unwrap_or_else(|_| json!([]));
             Ok(json!({
                 "id": id, "parent_id": null, "body": body,
                 "created_at": created_at.to_string(), "author_id": author,
                 "author_name": "Вы", "author_avatar": null,
-                "like_count": 0, "liker_ids": [], "replies": [],
+                "like_count": like_count, "liker_ids": liker_ids, "replies": [],
             }))
         })?;
         let mut comments = rows
@@ -135,6 +141,83 @@ impl DesktopStore {
                 id, user_id, item_id, parent_id, body, created_at, deleted_at
             ],
         )?;
+        Ok(())
+    }
+}
+
+impl DesktopStore {
+    pub fn toggle_comment_reaction(
+        &self,
+        user_id: Uuid,
+        comment_id: &str,
+    ) -> Result<(bool, i64), StoreError> {
+        let connection = self.connection()?;
+        let removed = connection.execute(
+            "delete from comment_reactions where comment_id = ?1 and user_id = ?2",
+            params![comment_id, user_id.to_string()],
+        )? > 0;
+        if removed {
+            connection.execute(
+                "insert or replace into reaction_tombstones (comment_id, user_id, created_at) values (?1, ?2, ?3)",
+                params![comment_id, user_id.to_string(), super::now_millis()],
+            )?;
+        } else {
+            connection.execute(
+                "insert or replace into comment_reactions (comment_id, user_id, created_at) values (?1, ?2, ?3)",
+                params![comment_id, user_id.to_string(), super::now_millis()],
+            )?;
+            connection.execute(
+                "delete from reaction_tombstones where comment_id = ?1 and user_id = ?2",
+                params![comment_id, user_id.to_string()],
+            )?;
+        }
+        let count: i64 = connection.query_row(
+            "select count(*) from comment_reactions where comment_id = ?1",
+            [comment_id],
+            |row| row.get(0),
+        )?;
+        Ok((!removed, count))
+    }
+
+    pub fn liked_comments(&self, user_id: Uuid) -> Result<Vec<String>, StoreError> {
+        let connection = self.connection()?;
+        let mut statement =
+            connection.prepare("select comment_id from comment_reactions where user_id = ?1")?;
+        let rows = statement.query_map([user_id.to_string()], |row| row.get(0))?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(StoreError::Sql)
+    }
+
+    pub fn unliked_comments(&self, user_id: Uuid) -> Result<Vec<String>, StoreError> {
+        let connection = self.connection()?;
+        let mut statement =
+            connection.prepare("select comment_id from reaction_tombstones where user_id = ?1")?;
+        let rows = statement.query_map([user_id.to_string()], |row| row.get(0))?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(StoreError::Sql)
+    }
+
+    pub fn clear_reaction_tombstones(&self, user_id: Uuid) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        connection.execute(
+            "delete from reaction_tombstones where user_id = ?1",
+            [user_id.to_string()],
+        )?;
+        Ok(())
+    }
+
+    pub fn replace_reactions(&self, user_id: Uuid, comments: &[String]) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        connection.execute(
+            "delete from comment_reactions where user_id = ?1",
+            [user_id.to_string()],
+        )?;
+        for comment in comments {
+            connection.execute(
+                "insert or ignore into comment_reactions (comment_id, user_id, created_at) values (?1, ?2, ?3)",
+                params![comment, user_id.to_string(), super::now_millis()],
+            )?;
+        }
         Ok(())
     }
 }
