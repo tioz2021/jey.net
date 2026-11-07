@@ -113,9 +113,12 @@ crates/api/      сервер
 - T127.2: форма создания/редактирования переиспользует общий `ItemForm`;
 - T127.3: список и детальная коллекция перенесены в shared-слой;
 - T127.4: feed, recommendations, people и notifications перенесены;
+- T127.5: dashboard и trash перенесены; reports/analytics пока редиректят
+  в Next-админку;
 - preview: `/spa/items/:id`, `/spa/items/new`, `/spa/items/:id/edit`,
   `/spa/collections`, `/spa/collections/:id`, `/spa/feed`,
-  `/spa/recommendations`, `/spa/people`, `/spa/notifications`;
+  `/spa/recommendations`, `/spa/people`, `/spa/notifications`,
+  `/spa/dashboard`, `/spa/trash`;
 - основной Next-маршрут не переключён;
 - desktop не изменялся и не собирался.
 
