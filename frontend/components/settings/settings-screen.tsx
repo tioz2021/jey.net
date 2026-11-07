@@ -6,6 +6,7 @@ import { BlockedProfiles } from "@/components/blocked-profiles";
 import { ExportPanel } from "@/components/export-panel";
 import { SettingsForm } from "@/components/forms/settings-form";
 import { DesktopStorage } from "./desktop-storage";
+import { DesktopAbout } from "./desktop-about";
 import { NotificationSettings } from "@/components/notification-settings";
 import { PushSettings } from "@/components/push-settings";
 import { ShareProfile } from "@/components/share-profile";
@@ -33,6 +34,7 @@ export function SettingsScreen() {
       <div style={{ display: "grid", gap: "var(--space-4)" }}>
         <SettingsForm initialUser={user} />
         <DesktopStorage />
+        <DesktopAbout />
         <NotificationSettings />
         <PushSettings />
         <BlockedProfiles />

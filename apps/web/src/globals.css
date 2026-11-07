@@ -357,3 +357,8 @@ button:not(:disabled):active {
   width: 0;
   height: 0;
 }
+
+.about-list { display: grid; gap: 0.5rem; margin: 0 0 0.75rem; }
+.about-list > div { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 0.75rem; }
+.about-list dt { color: var(--color-text-muted); }
+.about-list dd { margin: 0; overflow-wrap: anywhere; }

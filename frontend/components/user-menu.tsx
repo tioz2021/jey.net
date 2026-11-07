@@ -150,6 +150,9 @@ export function UserMenu({ user }: { user: User }) {
           <Link className={styles.item} href={`/u/${user.handle}`} role="menuitem">
             {t("account.myPage")}
           </Link>
+          <a className={styles.item} href={`https://j3ynet.site${user.handle === "local" ? "" : `/u/${user.handle}`}`} rel="noreferrer" role="menuitem" target="_blank">
+            {t("account.webVersion")} ↗
+          </a>
           <Link className={styles.item} href="/settings" role="menuitem">
             {t("account.settings")}
           </Link>
