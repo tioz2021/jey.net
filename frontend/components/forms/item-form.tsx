@@ -27,6 +27,7 @@ import { GameSearch } from "@/components/items/game-search";
 import { AnimeSearch } from "@/components/items/anime-search";
 import { MovieSearch } from "@/components/items/movie-search";
 import { useToast } from "@/components/toasts";
+import { mediaUrl } from "@/lib/media";
 import styles from "./item-form.module.css";
 
 const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
@@ -543,7 +544,7 @@ export function ItemForm({
           selected={values.external_id ? values.title : null}
           selectedDirector={values.subtitle || undefined}
           selectedPosterUrl={
-            initial?.cover_key ? `/media/${initial.cover_key}` : null
+            initial?.cover_key ? mediaUrl(initial.cover_key) : null
           }
           selectedYear={values.year || undefined}
         />
@@ -648,7 +649,7 @@ export function ItemForm({
 
           <CoverPicker
             currentUrl={
-              initial?.cover_key ? `/media/${initial.cover_key}` : null
+              initial?.cover_key ? mediaUrl(initial.cover_key) : null
             }
             onUploaded={(uploadId) => {
               setCoverUploadId(uploadId);
