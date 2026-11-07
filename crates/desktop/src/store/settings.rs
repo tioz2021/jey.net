@@ -68,3 +68,30 @@ impl DesktopStore {
         Ok(profile)
     }
 }
+
+impl DesktopStore {
+    pub fn profile_dirty(&self) -> Result<bool, StoreError> {
+        let connection = self.connection()?;
+        let value: Option<String> = connection
+            .query_row(
+                "select value from local_settings where key = 'profile_dirty'",
+                [],
+                |row| row.get(0),
+            )
+            .ok();
+        Ok(value.as_deref() == Some("1"))
+    }
+
+    pub fn set_profile_dirty(&self, dirty: bool) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        if dirty {
+            connection.execute(
+                "insert or replace into local_settings (key, value) values ('profile_dirty', '1')",
+                [],
+            )?;
+        } else {
+            connection.execute("delete from local_settings where key = 'profile_dirty'", [])?;
+        }
+        Ok(())
+    }
+}

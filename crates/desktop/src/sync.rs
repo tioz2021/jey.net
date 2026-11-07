@@ -434,7 +434,15 @@ impl SyncService {
             .clear_reaction_tombstones(self.user_id)
             .map_err(|error| error.to_string())?;
 
-        if let Ok(profile) = self.store.local_profile(self.user_id) {
+        if self
+            .store
+            .profile_dirty()
+            .map_err(|error| error.to_string())?
+        {
+            let profile = self
+                .store
+                .local_profile(self.user_id)
+                .map_err(|error| error.to_string())?;
             let patch = json!({
                 "display_name": profile.get("display_name"),
                 "locale": profile.get("locale"),
@@ -451,6 +459,9 @@ impl SyncService {
             if !response.status().is_success() {
                 return Err(api_error(response).await);
             }
+            self.store
+                .set_profile_dirty(false)
+                .map_err(|error| error.to_string())?;
         }
 
         let response = self
