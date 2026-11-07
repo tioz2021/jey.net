@@ -3,6 +3,13 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.7] — 2026-11-07
+
+### Исправлено
+
+- Release workflow собирает артефакты в плоский каталог перед checksums
+  и публикацией; `sha256sum` больше не получает директории.
+
 ## [0.3.6] — 2026-11-07
 
 ### Исправлено
