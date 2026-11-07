@@ -11,7 +11,7 @@ import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
 import { PublicItemRoute } from "./screens/PublicItemRoute";
 
-import "@/app/globals.css";
+import "./globals.css";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { BackToTop } from "@/components/back-to-top";
@@ -43,7 +43,7 @@ createRoot(document.getElementById("root")!).render(
     <LocaleProvider initialLocale={initialLocale}>
       <UserProvider>
       <ToastProvider>
-      <BrowserRouter basename="/spa">
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />

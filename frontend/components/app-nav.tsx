@@ -43,7 +43,7 @@ function kindFromLocation(): string | null {
 
 export function AppNav() {
   const { t } = useI18n();
-  const pathname = typeof window === "undefined" ? "/items" : window.location.pathname.replace(/^\/spa/, "") || "/items";
+  const pathname = typeof window === "undefined" ? "/items" : window.location.pathname || "/items";
   const params = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
   const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
@@ -117,7 +117,7 @@ export function AppNav() {
               }
 
               const query = next.toString();
-              const base = window.location.pathname.startsWith("/spa") ? "/spa/items" : "/items";
+              const base = "/items";
               window.history.replaceState(
                 null,
                 "",

@@ -43,17 +43,12 @@ if [[ -f /opt/jey/jey-api.prev ]]; then
     systemctl restart jey-api
 fi
 
-if [[ -d /opt/jey/web.prev ]]; then
-    rm -rf /opt/jey/web.bad
-    mv /opt/jey/web /opt/jey/web.bad
-    mv /opt/jey/web.prev /opt/jey/web
-    systemctl restart jey-web
-fi
+
 
 sleep 3
 curl -fsS http://127.0.0.1:8080/api/v1/health
 echo
-curl -fsS -o /dev/null -w "web: %{http_code}\n" http://127.0.0.1:3000/login
+curl -fsS -o /dev/null -w "spa: %{http_code}\n" http://127.0.0.1:8080/
 REMOTE
     say "rollback done"
     exit 0
@@ -64,16 +59,6 @@ say "building API"
 # files, so a fresh migration would be skipped by the cached build.
 touch crates/api/src/db.rs
 cargo build --release -p jey-api --bin jey-api
-
-say "building web"
-(
-    cd frontend
-    BACKEND_URL="${BACKEND_URL:-http://127.0.0.1:8080}" npm run build
-    cp -R .next/static .next/standalone/.next/static
-    # Standalone does not include public assets (screenshots, icons).
-    cp -R public .next/standalone/public
-    tar -C .next/standalone -czf ../jey-web.tar.gz .
-)
 
 say "building SPA"
 (
@@ -86,7 +71,6 @@ tar -C apps/web/dist -czf jey-spa.tar.gz .
 
 say "uploading artifacts"
 "${SCP[@]}" target/release/jey-api "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/jey/jey-api.new"
-"${SCP[@]}" jey-web.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-web.tar.gz"
 "${SCP[@]}" jey-spa.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-spa.tar.gz"
 "${SCP[@]}" deploy/Caddyfile "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/caddy/Caddyfile.new"
 "${SCP[@]}" deploy/jey-api.service "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-api.service.new"
@@ -97,7 +81,7 @@ say "uploading artifacts"
 "${SCP[@]}" deploy/healthcheck.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-healthcheck.new"
 "${SCP[@]}" deploy/jey-healthcheck.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.service"
 "${SCP[@]}" deploy/jey-healthcheck.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.timer"
-rm -f jey-web.tar.gz jey-spa.tar.gz
+rm -f jey-spa.tar.gz
 
 say "activating"
 "${SSH[@]}" "BACKUP_DIR='${BACKUP_DIR}' bash -s" <<'REMOTE'
@@ -167,7 +151,10 @@ else
     echo "warning: /etc/jey/backup-recipient is missing, backup timer not enabled" >&2
 fi
 
-# 4. Caddy routing for /spa to Rust (validate before replacing).
+# 4. Retire the old Next service; the SPA is served by jey-api.
+systemctl disable --now jey-web 2>/dev/null || true
+
+# 4b. Caddy routing for SPA to Rust (validate before replacing).
 if command -v caddy >/dev/null 2>&1; then
     caddy validate --config /etc/caddy/Caddyfile.new
     mv /etc/caddy/Caddyfile /etc/caddy/Caddyfile.prev
@@ -175,18 +162,8 @@ if command -v caddy >/dev/null 2>&1; then
     systemctl reload caddy
 fi
 
-# 5. Web client: keep the previous bundle for rollback.
-rm -rf /opt/jey/web.prev
-mv /opt/jey/web /opt/jey/web.prev
-install -d -o jey -g jey -m 750 /opt/jey/web
-tar -xzf /tmp/jey-web.tar.gz -C /opt/jey/web
-rm -f /tmp/jey-web.tar.gz
-install -d -o jey -g jey -m 750 /opt/jey/web/.next/cache
-chown -R jey:jey /opt/jey/web
-systemctl restart jey-web
-
 sleep 2
-curl -fsS -o /dev/null -w "web: %{http_code}\n" http://127.0.0.1:3000/login
+curl -fsS -o /dev/null -w "spa: %{http_code}\n" http://127.0.0.1:8080/
 curl -fsS http://127.0.0.1:8080/api/v1/health
 echo
 REMOTE

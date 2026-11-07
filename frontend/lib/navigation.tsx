@@ -5,10 +5,7 @@ import type { AnchorHTMLAttributes, ReactNode } from "react";
 const SPA_ROUTES = ["/items", "/collections", "/feed", "/recommendations", "/people", "/notifications", "/settings", "/dashboard", "/trash", "/privacy", "/terms", "/login", "/admin"];
 
 function withSpaBase(href: string): string {
-  if (typeof window === "undefined") return href;
-  if (!href.startsWith("/") || href.startsWith("/spa")) return href;
-  if (!SPA_ROUTES.some((route) => href === route || href.startsWith(`${route}/`) || href.startsWith(`${route}?`))) return href;
-  return window.location.pathname.startsWith("/spa") ? `/spa${href}` : href;
+  return href;
 }
 
 /** Minimal navigation boundary shared by Next pages and the Vite SPA. */

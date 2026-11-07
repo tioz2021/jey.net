@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LEGAL } from "@/lib/i18n/legal";
 import type { Locale } from "@/lib/i18n";
 
-import styles from "@/app/(public)/legal.module.css";
+import styles from "./legal/legal.module.css";
 
 const CONTACT = "https://github.com/tioz2021/jey.net/issues";
 

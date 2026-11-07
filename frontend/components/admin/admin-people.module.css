@@ -1,0 +1,195 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  
+}
+
+.stats strong {
+  font-size: var(--text-2xl);
+}
+
+.stats span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.people {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 7px;
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.people code {
+  flex: 1;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.people small {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-success);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 18%, transparent);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.table td:nth-child(2) {
+  max-width: 230px;
+  overflow-x: auto;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.role {
+  margin-left: 5px;
+  padding: 1px 5px;
+  font-size: var(--text-2xs);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+@media (width <= 800px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 480px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.searchRow {
+  margin-bottom: var(--space-3);
+}
+
+.searchRow input {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.actions button {
+  padding: 3px 6px;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-link);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.actions button:hover {
+  border-color: var(--color-accent);
+}
+
+.actions .danger {
+  color: var(--color-danger);
+}
+
+.table th:nth-child(5) {
+  min-width: 220px;
+}
+
+.testRole {
+  margin-left: 5px;
+  padding: 1px 5px;
+  font-size: var(--text-2xs);
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border-radius: var(--radius-sm);
+}
+
+.confirmInput {
+  width: 100%;
+  min-height: 38px;
+  margin-top: var(--space-3);
+  padding: 7px 10px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.roleSelect {
+  padding: 3px 5px;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}

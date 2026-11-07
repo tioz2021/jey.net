@@ -1,0 +1,147 @@
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.head span,
+.meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.target {
+  margin: 4px 0;
+  font-weight: 600;
+}
+
+.meta {
+  margin: 0;
+}
+
+.details {
+  margin: var(--space-2) 0 0;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.error {
+  margin: 0 0 var(--space-3);
+  color: var(--color-danger);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.tab,
+.tabActive {
+  padding: 6px 10px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.tabActive {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.targetLink {
+  color: var(--color-link);
+}
+
+.item {
+  align-items: flex-start;
+}
+
+@media (width <= 700px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filters select {
+  min-height: 34px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.selected {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.check {
+  flex: none;
+  margin-top: 4px;
+}
+
+.preview {
+  margin: var(--space-2) 0 0;
+  padding: 7px 9px;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.filters {
+  align-items: flex-end;
+}
+
+.filterSelect {
+  width: 190px;
+  max-width: 100%;
+}
+
+@media (width <= 480px) {
+  .filterSelect {
+    width: 100%;
+  }
+}

@@ -47,9 +47,9 @@
 		respond "Not found" 404
 	}
 
-	# Everything else is the Next.js web client.
+	# Everything else is the Vite SPA served by the Rust API.
 	handle {
-		reverse_proxy 127.0.0.1:3000
+		reverse_proxy 127.0.0.1:8080
 	}
 }
 

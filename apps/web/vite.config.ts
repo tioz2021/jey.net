@@ -8,7 +8,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const frontend = path.resolve(here, "../../frontend");
 
 export default defineConfig({
-  base: "/spa/",
+  base: "/",
   plugins: [react()],
   resolve: {
     dedupe: ["react", "react-dom"],
