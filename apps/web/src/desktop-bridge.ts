@@ -29,7 +29,7 @@ export function installDesktopBridge() {
   if (!api) return;
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (!raw.includes("/api/v1/")) return new Response(null, { status: 503 });
+    if (!raw.includes("/api/v1/")) return originalFetch(input, init);
     const url = new URL(raw, window.location.origin);
     const path = url.pathname;
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
