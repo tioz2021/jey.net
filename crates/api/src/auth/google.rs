@@ -25,10 +25,16 @@ use crate::http::AppState;
 use crate::users::user::{self, UserView};
 
 const STATE_COOKIE: &str = "jey_oauth_state";
+const NEXT_COOKIE: &str = "jey_oauth_next";
 const STATE_TTL_SECS: u64 = 600;
 const AUTH_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const TOKEN_INFO_URL: &str = "https://oauth2.googleapis.com/tokeninfo";
+
+#[derive(Debug, Deserialize)]
+pub struct StartQuery {
+    next: Option<String>,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct DesktopStartQuery {
@@ -67,7 +73,10 @@ struct Claims {
 }
 
 /// `GET /api/v1/auth/google/start`
-pub async fn start(State(state): State<AppState>) -> Result<Response, AppError> {
+pub async fn start(
+    State(state): State<AppState>,
+    Query(query): Query<StartQuery>,
+) -> Result<Response, AppError> {
     let Some((client_id, _, redirect_url)) = state.config.google_oauth() else {
         return Ok(fail(&state, "unavailable"));
     };
@@ -78,6 +87,12 @@ pub async fn start(State(state): State<AppState>) -> Result<Response, AppError> 
     let cookie = state_cookie(&state_token, state.config.is_production());
     let mut response = redirect(url);
     append_cookie(&mut response, &cookie)?;
+    if let Some(next) = query.next.as_deref().and_then(safe_next) {
+        append_cookie(
+            &mut response,
+            &next_cookie(next, state.config.is_production()),
+        )?;
+    }
 
     Ok(response)
 }
@@ -334,13 +349,20 @@ pub async fn callback(
     );
 
     let base = state.config.public_url.trim_end_matches('/');
-    let target = if created {
+    let next = session::cookie_value(&headers, NEXT_COOKIE).and_then(safe_next);
+    let target = if let Some(next) = next {
+        format!("{base}{next}")
+    } else if created {
         format!("{base}/welcome")
     } else {
         format!("{base}/items")
     };
 
     let mut response = redirect(target);
+    append_cookie(
+        &mut response,
+        &cleared_next_cookie(state.config.is_production()),
+    )?;
     append_cookie(&mut response, &session_cookie)?;
     append_cookie(
         &mut response,
@@ -422,6 +444,27 @@ fn random_state() -> String {
     hex::encode(bytes)
 }
 
+fn safe_next(value: &str) -> Option<&str> {
+    let value = value.trim();
+    if value.starts_with("/spa") && !value.starts_with("//") {
+        Some(value)
+    } else {
+        None
+    }
+}
+
+fn next_cookie(value: &str, secure: bool) -> String {
+    let secure = if secure { "; Secure" } else { "" };
+    format!(
+        "{NEXT_COOKIE}={value}; Path=/api/v1/auth/google; HttpOnly; SameSite=Lax; Max-Age={STATE_TTL_SECS}{secure}"
+    )
+}
+
+fn cleared_next_cookie(secure: bool) -> String {
+    let secure = if secure { "; Secure" } else { "" };
+    format!("{NEXT_COOKIE}=; Path=/api/v1/auth/google; HttpOnly; SameSite=Lax; Max-Age=0{secure}")
+}
+
 fn state_cookie(value: &str, secure: bool) -> String {
     let secure = if secure { "; Secure" } else { "" };
 
@@ -461,6 +504,10 @@ fn clear_and_fail(state: &AppState, reason: &str) -> Response {
     let _ = append_cookie(
         &mut response,
         &cleared_state_cookie(state.config.is_production()),
+    );
+    let _ = append_cookie(
+        &mut response,
+        &cleared_next_cookie(state.config.is_production()),
     );
     response
 }

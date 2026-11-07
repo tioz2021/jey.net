@@ -4,11 +4,11 @@ import { useI18n } from "@/lib/locale-context";
 
 import styles from "./google-sign-in.module.css";
 
-export function GoogleSignIn({ label }: { label?: string }) {
+export function GoogleSignIn({ label, next }: { label?: string; next?: string }) {
   const { t } = useI18n();
 
   return (
-    <a className={styles.button} href="/api/v1/auth/google/start">
+    <a className={styles.button} href={`/api/v1/auth/google/start${next ? `?next=${encodeURIComponent(next)}` : ""}`}>
       <svg aria-hidden="true" height="18" viewBox="0 0 48 48" width="18">
         <path
           d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"

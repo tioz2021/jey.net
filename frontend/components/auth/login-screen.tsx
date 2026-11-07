@@ -29,7 +29,7 @@ export function LoginScreen() {
         {/* useSearchParams needs a Suspense boundary during prerendering. */}
         <Suspense fallback={null}>
           <RedirectIfAuthenticated />
-          <LoginOptions />
+          <LoginOptions next="/spa/items" />
         </Suspense>
       </Card>
 

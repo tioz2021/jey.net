@@ -19,7 +19,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   registration_closed: "auth.googleErrorRegistrationClosed",
 };
 
-export function LoginOptions() {
+export function LoginOptions({ next }: { next?: string }) {
   const params = useSearchParams();
   const { t } = useI18n();
   const error = params.get("google");
@@ -32,7 +32,7 @@ export function LoginOptions() {
         </p>
       ) : null}
 
-      <GoogleSignIn />
+      <GoogleSignIn next={next} />
 
       <p className={styles.note}>{t("auth.firstTime")}</p>
     </div>
