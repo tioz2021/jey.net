@@ -186,6 +186,8 @@
 .cardWrap {
   position: relative;
   animation: card-in 240ms var(--ease-out) both;
+  content-visibility: auto;
+  contain-intrinsic-size: 160px;
 }
 
 @keyframes card-in {

@@ -204,6 +204,29 @@ a {
   border: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* WebKitGTK in the desktop app runs on llvmpipe here. Keep scrolling free of
+   hover transforms and page fades that force full-surface repaints. */
+html[data-runtime="desktop"] main { animation: none; }
+html[data-runtime="desktop"] article,
+html[data-runtime="desktop"] article:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+html[data-runtime="desktop"] .cardWrap,
+html[data-runtime="desktop"] [class*="cardWrap"] {
+  content-visibility: auto;
+  contain-intrinsic-size: 160px;
+}
+
 main {
   animation: page-in var(--duration-base) var(--ease-out);
 }
