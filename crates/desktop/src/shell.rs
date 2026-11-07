@@ -1,5 +1,7 @@
 //! Tauri window, local library commands and first online login.
 
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -20,6 +22,7 @@ use crate::store::{DesktopStore, SqliteItems, backup, export_json};
 use crate::sync::SyncService;
 
 struct DesktopState {
+    default_dir: PathBuf,
     access: AccessStore,
     store: DesktopStore,
     session: SessionStore,
@@ -45,6 +48,77 @@ fn local_access_status(state: State<'_, DesktopState>) -> Result<Value, String> 
         Ok(None) => Ok(json!({ "has_access": false })),
         Err(error) => Err(error.to_string()),
     }
+}
+
+fn storage_config_path(default_dir: &Path) -> PathBuf {
+    default_dir.join("storage.json")
+}
+
+fn configured_data_dir(default_dir: &Path) -> Option<PathBuf> {
+    let raw = std::fs::read_to_string(storage_config_path(default_dir)).ok()?;
+    let value: Value = serde_json::from_str(&raw).ok()?;
+    let path = value.get("data_dir")?.as_str()?;
+    let path = PathBuf::from(path);
+    path.is_dir().then_some(path)
+}
+
+fn save_data_dir(default_dir: &Path, path: &Path) -> Result<(), String> {
+    std::fs::create_dir_all(default_dir).map_err(|error| error.to_string())?;
+    std::fs::write(
+        storage_config_path(default_dir),
+        json!({ "data_dir": path }).to_string(),
+    )
+    .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_storage_info(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let current = state.store.path().parent().unwrap_or(Path::new("."));
+    Ok(json!({ "data_dir": current, "default_dir": state.default_dir }))
+}
+
+#[tauri::command]
+fn local_choose_data_dir(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let output = Command::new("zenity")
+        .args([
+            "--file-selection",
+            "--directory",
+            "--title=Папка данных jey.net",
+        ])
+        .output()
+        .or_else(|_| {
+            Command::new("kdialog")
+                .args(["--getexistingdirectory"])
+                .output()
+        })
+        .map_err(|error| format!("Не удалось открыть выбор папки: {error}"))?;
+    if !output.status.success() {
+        return Ok(json!({ "cancelled": true }));
+    }
+    let path = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+    if path.is_empty() {
+        return Ok(json!({ "cancelled": true }));
+    }
+    let target = PathBuf::from(path);
+    let current = state.store.path().parent().unwrap_or(Path::new("."));
+    if target == current {
+        return Ok(json!({ "data_dir": current, "restart": false }));
+    }
+    if target.join("jey.db").exists() {
+        return Err("В выбранной папке уже есть локальная база jey.net".to_owned());
+    }
+    state
+        .store
+        .copy_to(&target)
+        .map_err(|error| error.to_string())?;
+    save_data_dir(&state.default_dir, &target)?;
+    Ok(json!({ "data_dir": target, "restart": true }))
+}
+
+#[tauri::command]
+fn local_use_default_data_dir(state: State<'_, DesktopState>) -> Result<(), String> {
+    let _ = std::fs::remove_file(storage_config_path(&state.default_dir));
+    Ok(())
 }
 
 fn current_user(state: &DesktopState) -> Result<uuid::Uuid, String> {
@@ -678,13 +752,15 @@ async fn local_google_sign_in(
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let data_dir = app
+            let default_dir = app
                 .path()
                 .app_data_dir()
                 .map_err(|error| format!("app data directory: {error}"))?;
+            let data_dir = configured_data_dir(&default_dir).unwrap_or_else(|| default_dir.clone());
             let store = DesktopStore::open(&data_dir)
                 .map_err(|error| format!("local database: {error}"))?;
             app.manage(DesktopState {
+                default_dir,
                 access: AccessStore::new(data_dir.clone()),
                 store,
                 session: SessionStore::new(data_dir),
@@ -700,6 +776,9 @@ pub fn run() {
             app_version,
             local_access_status,
             local_db_status,
+            local_storage_info,
+            local_choose_data_dir,
+            local_use_default_data_dir,
             local_list_items,
             local_search_items,
             local_list_collections,

@@ -27,6 +27,24 @@ const MIGRATIONS: &[(i64, &str)] = &[
     (2, include_str!("../../migrations/0002_comments.sql")),
 ];
 
+fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
+    if !source.is_dir() {
+        return Ok(());
+    }
+    std::fs::create_dir_all(target)?;
+    for entry in std::fs::read_dir(source)? {
+        let entry = entry?;
+        let path = entry.path();
+        let destination = target.join(entry.file_name());
+        if path.is_dir() {
+            copy_dir(&path, &destination)?;
+        } else {
+            std::fs::copy(&path, &destination)?;
+        }
+    }
+    Ok(())
+}
+
 #[derive(Debug)]
 pub enum StoreError {
     Sql(rusqlite::Error),
@@ -118,6 +136,19 @@ impl DesktopStore {
 
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    /// Copies the database and media cache into a new directory. The source
+    /// stays intact until the next start, so an interrupted copy is harmless.
+    pub fn copy_to(&self, target: &Path) -> Result<(), StoreError> {
+        std::fs::create_dir_all(target)?;
+        {
+            let connection = self.connection()?;
+            connection.execute_batch("pragma wal_checkpoint(truncate);")?;
+        }
+        std::fs::copy(&self.path, target.join("jey.db"))?;
+        copy_dir(&self.media_dir(), &target.join("media"))?;
+        Ok(())
     }
 
     pub fn connection(&self) -> Result<MutexGuard<'_, Connection>, StoreError> {
