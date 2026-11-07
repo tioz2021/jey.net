@@ -80,12 +80,12 @@ export function App() {
       setError("");
       const [nextItems, db] = await Promise.all([
         tauriSource.list(search || undefined) as Promise<LocalItem[]>,
-        invoke<{ path: string; outbox: number; schema_version: number }>("local_db_status"),
+        invoke<{ path: string; outbox: number; schema_version: number; media_files: number }>("local_db_status"),
       ]);
       // Media cache arrives in T109; until then a remote /media URL would be a
       // broken image inside the Tauri WebView.
       setItems(nextItems);
-      setAction(`${db.path} · schema ${db.schema_version} · outbox ${db.outbox}`);
+      setAction(`${db.path} · schema ${db.schema_version} · outbox ${db.outbox} · обложек ${db.media_files}`);
       const loaded: Record<string, string> = {};
       await Promise.all(
         nextItems.map(async (item) => {
@@ -95,6 +95,10 @@ export function App() {
         }),
       );
       setCovers(loaded);
+      const expected = nextItems.filter((item) => item.cover_key).length;
+      if (expected > 0 && Object.keys(loaded).length === 0) {
+        setError("Обложки есть в кэше, но локальный файл не читается");
+      }
     } catch (cause) {
       setError(String(cause));
     }

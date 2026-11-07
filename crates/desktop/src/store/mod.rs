@@ -60,6 +60,7 @@ pub struct StoreStatus {
     pub outbox: i64,
     pub conflicts: i64,
     pub last_sync_seq: i64,
+    pub media_files: i64,
 }
 
 /// Thread-safe handle used by Tauri commands and the sync worker.
@@ -178,6 +179,14 @@ impl DesktopStore {
             [],
             |row| row.get(0),
         )?;
+        let media_files = std::fs::read_dir(self.media_dir())
+            .map(|entries| {
+                entries
+                    .filter_map(Result::ok)
+                    .filter(|entry| entry.path().is_file())
+                    .count() as i64
+            })
+            .unwrap_or(0);
         Ok(StoreStatus {
             path: self.path.display().to_string(),
             schema_version: connection.query_row(
@@ -189,6 +198,7 @@ impl DesktopStore {
             outbox,
             conflicts,
             last_sync_seq,
+            media_files,
         })
     }
 }

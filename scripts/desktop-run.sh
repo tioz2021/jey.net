@@ -8,10 +8,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="${ROOT}/target/release/jey-desktop"
 
-if [[ ! -x "${BIN}" ]]; then
-    echo "Desktop binary not found; building first..." >&2
-    bash "${ROOT}/scripts/desktop-build.sh"
-fi
+# Always rebuild: Vite and Cargo are incremental, and launching a stale binary
+# after source changes is more confusing than a short build.
+echo "Building the desktop app before launch..."
+bash "${ROOT}/scripts/desktop-build.sh"
 
 # A writable per-run home avoids dconf/runtime errors in restricted sessions.
 export HOME="${JEY_DESKTOP_HOME:-${HOME}}"
