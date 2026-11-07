@@ -102,6 +102,129 @@ async fn local_list_items(
 }
 
 #[tauri::command]
+fn local_list_collections(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let collections = state
+        .store
+        .list_collections(user)
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "collections": collections }))
+}
+
+#[tauri::command]
+fn local_create_collection(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let title = input
+        .get("title")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "title is required".to_owned())?;
+    let collection = state
+        .store
+        .create_collection(user, title)
+        .map_err(|error| error.to_string())?;
+    serde_json::to_value(collection).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_update_collection(
+    state: State<'_, DesktopState>,
+    id: String,
+    input: Value,
+) -> Result<(), String> {
+    let user = current_user(&state)?;
+    let title = input.get("title").and_then(Value::as_str);
+    let visibility = input.get("visibility").and_then(Value::as_str);
+    state
+        .store
+        .update_collection(user, &id, title, visibility)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_delete_collection(state: State<'_, DesktopState>, id: String) -> Result<(), String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .delete_collection(user, &id)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+async fn local_collection_detail(
+    state: State<'_, DesktopState>,
+    id: String,
+) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let collections = state
+        .store
+        .list_collections(user)
+        .map_err(|error| error.to_string())?;
+    let collection = collections
+        .into_iter()
+        .find(|entry| entry.id == id)
+        .ok_or_else(|| "collection not found".to_owned())?;
+    let ids = state
+        .store
+        .collection_item_ids(user, &id)
+        .map_err(|error| error.to_string())?;
+    let repository = SqliteItems::new(state.store.clone());
+    let items = repository
+        .list_items(user)
+        .await
+        .map_err(|error| error.to_string())?;
+    let selected = items
+        .iter()
+        .filter(|item| ids.contains(&item.id))
+        .map(|item| item_json(item, false))
+        .collect::<Vec<_>>();
+    Ok(json!({ "collection": collection, "items": selected }))
+}
+
+#[tauri::command]
+fn local_list_comments(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let item_id = input
+        .get("itemId")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "itemId is required".to_owned())?;
+    let offset = input.get("offset").and_then(Value::as_i64).unwrap_or(0);
+    let limit = input.get("limit").and_then(Value::as_i64).unwrap_or(5);
+    state
+        .store
+        .list_comments(user, item_id, offset, limit)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_create_comment(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let item_id = input
+        .get("itemId")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "itemId is required".to_owned())?;
+    let body = input
+        .get("body")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "body is required".to_owned())?;
+    let parent = input.get("parentId").and_then(Value::as_str);
+    let id = state
+        .store
+        .create_comment(user, item_id, body, parent)
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "id": id }))
+}
+
+#[tauri::command]
+fn local_delete_comment(state: State<'_, DesktopState>, id: String) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .delete_comment(user, &id)
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "deleted": true }))
+}
+
+#[tauri::command]
 async fn local_search_items(
     state: State<'_, DesktopState>,
     query: String,
@@ -475,6 +598,14 @@ pub fn run() {
             local_db_status,
             local_list_items,
             local_search_items,
+            local_list_collections,
+            local_create_collection,
+            local_update_collection,
+            local_delete_collection,
+            local_collection_detail,
+            local_list_comments,
+            local_create_comment,
+            local_delete_comment,
             local_create_item,
             local_update_item,
             local_delete_item,

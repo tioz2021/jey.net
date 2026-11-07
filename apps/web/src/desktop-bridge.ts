@@ -55,6 +55,32 @@ export function installDesktopBridge() {
       return json({ item: await api.invoke<Item>("local_create_item", { newItem: body }) });
     }
     if (path === "/api/v1/stats") return json(statsFrom(await api.invoke<Item[]>("local_list_items", { query: null })));
+
+    if (path === "/api/v1/collections" && method === "GET") return json(await api.invoke("local_list_collections"));
+    if (path === "/api/v1/collections" && method === "POST") return json(await api.invoke("local_create_collection", { input: body }));
+    const collectionItem = path.match(/^\/api\/v1\/collections\/([^/]+)$/);
+    if (collectionItem) {
+      const id = collectionItem[1];
+      if (method === "GET") return json(await api.invoke("local_collection_detail", { id }));
+      if (method === "PATCH") { await api.invoke("local_update_collection", { id, input: body }); return json({ ok: true }); }
+      if (method === "DELETE") { await api.invoke("local_delete_collection", { id }); return new Response(null, { status: 204 }); }
+    }
+    if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) return json({ collections: [] });
+
+    const commentsPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)\/comments$/);
+    if (commentsPath) {
+      const itemId = commentsPath[1];
+      if (method === "GET") {
+        const offset = Number(url.searchParams.get("offset") ?? "0");
+        return json(await api.invoke("local_list_comments", { input: { itemId, offset, limit: 5 } }));
+      }
+      if (method === "POST") {
+        return json(await api.invoke("local_create_comment", { input: { itemId, body: body?.body, parentId: body?.parent_id ?? null } }));
+      }
+    }
+    const commentDelete = path.match(/^\/api\/v1\/comments\/([^/]+)$/);
+    if (commentDelete && method === "DELETE") return json(await api.invoke("local_delete_comment", { id: commentDelete[1] }));
+    if (/^\/api\/v1\/comments\/[^/]+\/reaction$/.test(path)) return json({ reacted: false, count: 0 });
     if (/^\/api\/v1\/items\/[^/]+\/neighbors$/.test(path)) return json({ prev_id: null, next_id: null });
     const itemPath = path.match(/^\/api\/v1\/items\/([^/]+)$/);
     if (itemPath) {
