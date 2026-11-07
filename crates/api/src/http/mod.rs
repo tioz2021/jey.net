@@ -80,7 +80,7 @@ pub fn router(state: AppState) -> Router {
         .route("/media/{*key}", get(serve_media))
         .route("/spa", get(spa_root))
         .route("/spa/{*path}", get(spa_file))
-        .route("/assets/{*path}", get(spa_file))
+        .route("/assets/{*path}", get(spa_asset))
         .nest("/api/v1", api_v1(state.clone()))
         .fallback(spa_fallback)
         .method_not_allowed_fallback(method_not_allowed)
@@ -89,6 +89,13 @@ pub fn router(state: AppState) -> Router {
 
 async fn spa_root(State(state): State<AppState>) -> Response {
     spa_file(State(state), axum::extract::Path(String::new())).await
+}
+
+async fn spa_asset(
+    State(state): State<AppState>,
+    axum::extract::Path(path): axum::extract::Path<String>,
+) -> Response {
+    spa_file(State(state), axum::extract::Path(format!("assets/{path}"))).await
 }
 
 async fn spa_fallback(State(state): State<AppState>, uri: axum::http::Uri) -> Response {
