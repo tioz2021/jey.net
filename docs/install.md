@@ -27,6 +27,7 @@ jey.net
 jey.net_0.2.0_x64-setup.exe
 ```
 
+Артефакт `jey-desktop-windows` из GitHub Actions содержит NSIS `.exe`.
 Сборка **не подписана** сертификатом Authenticode. Windows SmartScreen может
 показать предупреждение «Неизвестный издатель» — это ожидаемо до T111.1.
 
