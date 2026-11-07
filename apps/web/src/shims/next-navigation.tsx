@@ -9,7 +9,7 @@ export function useRouter() {
 }
 
 export function usePathname() {
-  return window.location.pathname;
+  return window.location.pathname.replace(/^\/spa/, "") || "/";
 }
 
 export function useSearchParams() {

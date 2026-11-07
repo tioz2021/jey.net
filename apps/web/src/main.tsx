@@ -6,7 +6,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { LegalScreen } from "@/components/legal/legal-screen";
 import { PublicShell } from "@/components/legal/public-shell";
 import { AppFrame } from "./screens/AppFrame";
-import { ItemsScreen } from "@/components/items/items-screen";
+import { ItemsRoute } from "./screens/ItemsRoute";
 import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
 import { PublicItemRoute } from "./screens/PublicItemRoute";
@@ -47,7 +47,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/privacy" element={<PublicShell><LegalScreen page="privacy" /></PublicShell>} />
           <Route path="/terms" element={<PublicShell><LegalScreen page="terms" /></PublicShell>} />
           <Route element={<AppFrame />}>
-            <Route path="/items" element={<ItemsScreen />} />
+            <Route path="/items" element={<ItemsRoute />} />
             <Route path="/items/new" element={<ItemFormRoute mode="new" />} />
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />

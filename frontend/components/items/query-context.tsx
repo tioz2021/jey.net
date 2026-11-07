@@ -64,7 +64,8 @@ export function ItemsQueryProvider({
     change(next);
 
     const query = next.toString();
-    window.history.replaceState(null, "", query ? `/items?${query}` : "/items");
+    const base = window.location.pathname.startsWith("/spa") ? "/spa/items" : "/items";
+    window.history.replaceState(null, "", query ? `${base}?${query}` : base);
     window.dispatchEvent(new Event(ITEMS_QUERY_EVENT));
   }, []);
 
