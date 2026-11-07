@@ -65,6 +65,37 @@ fn item_json(item: &Item, pending: bool) -> Value {
 }
 
 #[tauri::command]
+fn local_bootstrap_access(state: State<'_, DesktopState>) -> Result<Value, String> {
+    if let Some(grant) = state.access.load().map_err(|error| error.to_string())? {
+        return Ok(json!({ "user_id": grant.user_id }));
+    }
+    let user = uuid::Uuid::new_v4();
+    let grant = state
+        .access
+        .grant(user, "local")
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "user_id": grant.user_id }))
+}
+
+#[tauri::command]
+fn local_profile(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .local_profile(user)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_update_profile(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .save_local_profile(user, &input)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn local_db_status(state: State<'_, DesktopState>) -> Result<Value, String> {
     let status = state.store.status().map_err(|error| error.to_string())?;
     serde_json::to_value(status).map_err(|error| error.to_string())
@@ -603,6 +634,9 @@ pub fn run() {
             local_update_collection,
             local_delete_collection,
             local_collection_detail,
+            local_bootstrap_access,
+            local_profile,
+            local_update_profile,
             local_list_comments,
             local_create_comment,
             local_delete_comment,

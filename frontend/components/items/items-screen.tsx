@@ -24,6 +24,7 @@ export function ItemsScreen() {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
+  const [covers, setCovers] = useState<Record<string, string>>({});
   const kind = (params.get("kind") as ItemKind | null) ?? undefined;
   const status = (params.get("status") as ItemStatus | null) ?? undefined;
   const query = params.get("q") ?? "";
@@ -34,7 +35,19 @@ export function ItemsScreen() {
     let cancelled = false;
     setLoading(true);
     source.list({ kind, status, q: query || undefined, sort, limit: 100 })
-      .then((response) => { if (!cancelled) setItems(response.items); })
+      .then(async (response) => {
+        if (cancelled) return;
+        setItems(response.items);
+        if (source.coverData) {
+          const loaded: Record<string, string> = {};
+          await Promise.all(response.items.map(async (item) => {
+            if (!item.cover_key) return;
+            const data = await source.coverData?.(item.cover_key);
+            if (data) loaded[item.cover_key] = data;
+          }));
+          if (!cancelled) setCovers(loaded);
+        }
+      })
       .catch((cause) => { if (!cancelled) setError(String(cause)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -71,7 +84,7 @@ export function ItemsScreen() {
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>
               {selectionMode ? <label style={{ position: "absolute", zIndex: 2, top: 8, left: 8 }}><input checked={selected.has(item.id)} onChange={() => toggle(item.id)} type="checkbox" /></label> : null}
-              <ItemCard href={`/items/${item.id}`} item={item} selected={selectionMode && selected.has(item.id)} />
+              <ItemCard coverSrc={item.cover_key ? covers[item.cover_key] : undefined} href={`/items/${item.id}`} item={item} selected={selectionMode && selected.has(item.id)} />
             </li>
           ))}
         </ul>

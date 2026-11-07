@@ -11,10 +11,6 @@ function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
 }
 
-function localUser(id: string) {
-  return { id, handle: "local", display_name: "Локальная библиотека", email: null, role: "user", is_public: false, avatar_key: null, banner_key: null, locale: "ru", public_statuses: [], public_show_progress: false };
-}
-
 function statsFrom(items: Item[]): Stats {
   const by_kind: Record<string, number> = {};
   const by_status: Record<string, number> = {};
@@ -42,7 +38,8 @@ export function installDesktopBridge() {
     if (path === "/api/v1/me") {
       const access = await api.invoke<{ has_access: boolean; user_id?: string }>("local_access_status");
       if (!access.has_access || !access.user_id) return json({ error: { code: "unauthorized" } }, 401);
-      return json({ user: localUser(access.user_id) });
+      if (method === "GET") return json({ user: await api.invoke("local_profile") });
+      if (method === "PATCH") return json({ user: await api.invoke("local_update_profile", { input: body }) });
     }
     if (path === "/api/v1/items" && method === "GET") {
       const query = url.searchParams.get("q")?.trim() ?? "";

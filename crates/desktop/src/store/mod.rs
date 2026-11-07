@@ -16,6 +16,7 @@ mod comments;
 mod export;
 mod media;
 mod repository;
+mod settings;
 mod sync;
 pub use export::{BackupReport, ExportReport, backup, export_json};
 pub use repository::SqliteItems;

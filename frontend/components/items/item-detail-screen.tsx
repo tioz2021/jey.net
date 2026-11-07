@@ -52,6 +52,7 @@ export function ItemDetailScreen({
   const [item, setItem] = useState<Item | null>(null);
   const [neighbors, setNeighbors] = useState<ItemNeighborsResponse | null>(null);
   const [error, setError] = useState("");
+  const [coverSrc, setCoverSrc] = useState<string | undefined>(undefined);
   const queryString = searchParams.toString();
   const backHref = `/items${queryString ? `?${queryString}` : ""}`;
   const continueSeason = searchParams.get("season") ? Number(searchParams.get("season")) : undefined;
@@ -60,7 +61,14 @@ export function ItemDetailScreen({
   useEffect(() => {
     let cancelled = false;
     setError("");
-    source.get(id).then((next) => { if (!cancelled) setItem(next); }).catch((cause) => { if (!cancelled) setError(String(cause)); });
+    source.get(id).then(async (next) => {
+      if (cancelled) return;
+      setItem(next);
+      if (next.cover_key && source.coverData) {
+        const data = await source.coverData(next.cover_key);
+        if (!cancelled && data) setCoverSrc(data);
+      }
+    }).catch((cause) => { if (!cancelled) setError(String(cause)); });
     if (!searchParams.get("q")) {
       fetch(`/api/v1/items/${encodeURIComponent(id)}/neighbors${queryString ? `?${queryString}` : ""}`, { credentials: "include" })
         .then((response) => (response.ok ? response.json() : null))
@@ -91,7 +99,7 @@ export function ItemDetailScreen({
       <div className={styles.layout}>
         <aside className={styles.rail}>
           <div className={styles.cover}>
-            {item.cover_key ? <img src={`/media/${item.cover_key}`} alt={t("cover.altTitle", { title: displayTitle })} /> : <div className={styles.coverPlaceholder}><KindIcon size={36} /><span>{t(KIND_KEYS[item.kind])}</span></div>}
+            {item.cover_key ? <img src={coverSrc ?? `/media/${item.cover_key}`} alt={t("cover.altTitle", { title: displayTitle })} /> : <div className={styles.coverPlaceholder}><KindIcon size={36} /><span>{t(KIND_KEYS[item.kind])}</span></div>}
           </div>
           <div className={styles.railPanel}>
             <div className={styles.actions}>
