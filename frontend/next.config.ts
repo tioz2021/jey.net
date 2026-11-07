@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
       // SPA shadow route. Only page URLs are rewritten; /spa/assets stays static.
       { source: "/spa/items/:path*", destination: "/spa/index.html" },
       { source: "/spa/collections/:path*", destination: "/spa/index.html" },
+      { source: "/spa/feed", destination: "/spa/index.html" },
+      { source: "/spa/recommendations", destination: "/spa/index.html" },
+      { source: "/spa/people", destination: "/spa/index.html" },
+      { source: "/spa/notifications", destination: "/spa/index.html" },
       { source: "/spa", destination: "/spa/index.html" },
       // Covers and avatars are served by the API as well.
       {

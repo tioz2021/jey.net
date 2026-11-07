@@ -13,6 +13,10 @@ import { ItemDetailRoute } from "./screens/ItemDetailRoute";
 import { ItemFormRoute } from "./screens/ItemFormRoute";
 import { CollectionsRoute } from "./screens/CollectionsRoute";
 import { CollectionDetailRoute } from "./screens/CollectionDetailRoute";
+import { FeedScreen } from "@/components/social/feed-screen";
+import { RecommendationsScreen } from "@/components/social/recommendations-screen";
+import { PeopleScreen } from "@/components/social/people-screen";
+import { NotificationsScreen } from "@/components/social/notifications-screen";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -27,6 +31,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/items/:id" element={<ItemDetailRoute />} />
             <Route path="/collections" element={<CollectionsRoute />} />
             <Route path="/collections/:id" element={<CollectionDetailRoute />} />
+            <Route path="/feed" element={<FeedScreen />} />
+            <Route path="/recommendations" element={<RecommendationsScreen />} />
+            <Route path="/people" element={<PeopleScreen />} />
+            <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AppShell>

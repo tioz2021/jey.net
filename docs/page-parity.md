@@ -112,8 +112,10 @@ crates/api/      сервер
 - `ItemDetailScreen` в `frontend/components/items`;
 - T127.2: форма создания/редактирования переиспользует общий `ItemForm`;
 - T127.3: список и детальная коллекция перенесены в shared-слой;
+- T127.4: feed, recommendations, people и notifications перенесены;
 - preview: `/spa/items/:id`, `/spa/items/new`, `/spa/items/:id/edit`,
-  `/spa/collections`, `/spa/collections/:id`;
+  `/spa/collections`, `/spa/collections/:id`, `/spa/feed`,
+  `/spa/recommendations`, `/spa/people`, `/spa/notifications`;
 - основной Next-маршрут не переключён;
 - desktop не изменялся и не собирался.
 
