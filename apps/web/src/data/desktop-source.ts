@@ -36,7 +36,18 @@ export const desktopCatalogueSource: CatalogueSource = {
       (!filters.kind || item.kind === filters.kind) &&
       (!filters.status || item.status === filters.status),
     );
-    return { items: selected, next_cursor: null } satisfies ItemList;
+    const time = (value: string | null | undefined) => value ? new Date(value).getTime() : 0;
+    const sorted = [...selected].sort((a, b) => {
+      switch (filters.sort) {
+        case "created_asc": return time(a.created_at) - time(b.created_at);
+        case "updated_desc": return time(b.updated_at) - time(a.updated_at);
+        case "rating_desc": return (b.rating ?? -1) - (a.rating ?? -1);
+        case "title_asc": return a.title.localeCompare(b.title, "ru");
+        case "year_desc": return (b.year ?? 0) - (a.year ?? 0);
+        default: return time(b.created_at) - time(a.created_at);
+      }
+    });
+    return { items: sorted, next_cursor: null } satisfies ItemList;
   },
   async get(id) {
     try {
