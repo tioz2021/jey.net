@@ -25,6 +25,7 @@ import { DashboardRoute } from "./screens/DashboardRoute";
 import { TrashRoute } from "./screens/TrashRoute";
 import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
 import { AdminRoute } from "./screens/AdminRoute";
+import { AdminSubRoute } from "./screens/AdminSubRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -49,6 +50,9 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/trash" element={<TrashRoute />} />
             <Route path="/admin" element={<AdminRoute />} />
+            <Route path="/admin/reports" element={<AdminSubRoute page="reports" />} />
+            <Route path="/admin/people" element={<AdminSubRoute page="people" />} />
+            <Route path="/admin/site" element={<AdminSubRoute page="site" />} />
             <Route path="/reports" element={<AdminRedirectRoute target="/admin/reports" />} />
             <Route path="/analytics" element={<AdminRedirectRoute target="/admin/analytics" />} />
             <Route path="*" element={<Home />} />
