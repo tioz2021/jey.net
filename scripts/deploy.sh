@@ -81,8 +81,8 @@ say "building SPA"
     mkdir -p "${ROOT_DIR}/.staging/npm-cache"
     npm ci --no-audit --no-fund --cache "${ROOT_DIR}/.staging/npm-cache"
     npm run build
-    tar -C dist -czf ../jey-spa.tar.gz .
 )
+tar -C apps/web/dist -czf jey-spa.tar.gz .
 
 say "uploading artifacts"
 "${SCP[@]}" target/release/jey-api "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/jey/jey-api.new"
