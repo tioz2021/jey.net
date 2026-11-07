@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
       { source: "/spa/login", destination: "/spa/index.html" },
       { source: "/spa/privacy", destination: "/spa/index.html" },
       { source: "/spa/terms", destination: "/spa/index.html" },
+      { source: "/spa/admin", destination: "/spa/index.html" },
       { source: "/spa", destination: "/spa/index.html" },
       // Covers and avatars are served by the API as well.
       {

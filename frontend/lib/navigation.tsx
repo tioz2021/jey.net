@@ -2,7 +2,7 @@
 
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 
-const SPA_ROUTES = ["/items", "/collections", "/feed", "/recommendations", "/people", "/notifications", "/settings", "/dashboard", "/trash", "/privacy", "/terms", "/login"];
+const SPA_ROUTES = ["/items", "/collections", "/feed", "/recommendations", "/people", "/notifications", "/settings", "/dashboard", "/trash", "/privacy", "/terms", "/login", "/admin"];
 
 function withSpaBase(href: string): string {
   if (typeof window === "undefined") return href;

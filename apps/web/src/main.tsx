@@ -24,6 +24,7 @@ import { NotificationsScreen } from "@/components/social/notifications-screen";
 import { DashboardRoute } from "./screens/DashboardRoute";
 import { TrashRoute } from "./screens/TrashRoute";
 import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
+import { AdminRoute } from "./screens/AdminRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -47,6 +48,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/trash" element={<TrashRoute />} />
+            <Route path="/admin" element={<AdminRoute />} />
             <Route path="/reports" element={<AdminRedirectRoute target="/admin/reports" />} />
             <Route path="/analytics" element={<AdminRedirectRoute target="/admin/analytics" />} />
             <Route path="*" element={<Home />} />
