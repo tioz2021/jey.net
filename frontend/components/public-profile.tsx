@@ -19,6 +19,7 @@ import type {
 } from "@/lib/types";
 
 import styles from "./public-profile.module.css";
+import { mediaUrl } from "@/lib/media";
 
 const ORDER: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 const PAGE_LIMIT = 12;
@@ -196,7 +197,7 @@ export function PublicProfileView({
             // eslint-disable-next-line @next/next/no-img-element -- uploaded avatar
             <img
               className={styles.avatar}
-              src={`/media/${profile.avatar_key}`}
+              src={mediaUrl(profile.avatar_key)}
               alt=""
               decoding="async"
             />

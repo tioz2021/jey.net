@@ -12,6 +12,7 @@ import { useUser } from "@/lib/user-context";
 import type { Comment } from "@/lib/types";
 
 import styles from "./comments.module.css";
+import { mediaUrl } from "@/lib/media";
 
 export function Comments({ userId, itemId }: { userId: string; itemId: string }) {
   const { t, date } = useI18n();
@@ -126,7 +127,7 @@ export function Comments({ userId, itemId }: { userId: string; itemId: string })
         <Link href={`/u/${comment.author_id}`}>
           {comment.author_avatar ? (
             // eslint-disable-next-line @next/next/no-img-element -- local avatar
-            <img alt="" className={styles.avatar} src={`/media/${comment.author_avatar}`} />
+            <img alt="" className={styles.avatar} src={mediaUrl(comment.author_avatar)} />
           ) : (
             <span aria-hidden="true" className={styles.initial}>
               {comment.author_name.trim().charAt(0).toUpperCase()}

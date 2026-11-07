@@ -87,6 +87,45 @@ fn local_profile(state: State<'_, DesktopState>) -> Result<Value, String> {
 }
 
 #[tauri::command]
+async fn local_proxy(
+    state: State<'_, DesktopState>,
+    method: String,
+    path: String,
+    body: Option<Value>,
+) -> Result<Value, String> {
+    if !path.starts_with("/api/v1/") {
+        return Err("Недопустимый путь".to_owned());
+    }
+    let grant = state
+        .access
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет доступа".to_owned())?;
+    let token = state
+        .session
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет сессии".to_owned())?;
+    let method =
+        reqwest::Method::from_bytes(method.as_bytes()).map_err(|error| error.to_string())?;
+    let mut request = reqwest::Client::new()
+        .request(method, format!("{}{}", grant.server_url, path))
+        .header("Cookie", format!("jey_session={token}"));
+    if let Some(body) = body {
+        request = request.json(&body);
+    }
+    let response = request.send().await.map_err(|error| error.to_string())?;
+    let status = response.status().as_u16();
+    let bytes = response.bytes().await.map_err(|error| error.to_string())?;
+    let value = if bytes.is_empty() {
+        Value::Null
+    } else {
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null)
+    };
+    Ok(json!({ "status": status, "body": value }))
+}
+
+#[tauri::command]
 async fn local_refresh_profile(state: State<'_, DesktopState>) -> Result<Value, String> {
     let user = current_user(&state)?;
     let grant = state
@@ -668,6 +707,7 @@ pub fn run() {
             local_delete_collection,
             local_collection_detail,
             local_bootstrap_access,
+            local_proxy,
             local_refresh_profile,
             local_profile,
             local_update_profile,

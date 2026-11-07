@@ -24,6 +24,7 @@ import { CardReaction } from "./card-reaction";
 import { ContinueLink } from "./continue-link";
 import { RestoreButton } from "./restore-button";
 import styles from "./item-card.module.css";
+import { mediaUrl } from "@/lib/media";
 
 const KIND_ICONS = {
   movie: IconFilm,
@@ -167,7 +168,7 @@ export function ItemCard({
         {coverSrc ?? item.cover_key ? (
           <img
             className={styles.cover}
-            src={coverSrc ?? `/media/${item.cover_key}`}
+            src={coverSrc ?? mediaUrl(item.cover_key)}
             alt=""
             loading="lazy"
             decoding="async"

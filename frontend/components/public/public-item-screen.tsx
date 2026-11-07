@@ -24,6 +24,7 @@ import type { PublicItem } from "@/lib/types";
 
 import styles from "./public-item-screen.module.css";
 import { LoadingScreen } from "@/components/loading-screen";
+import { mediaUrl } from "@/lib/media";
 
 const KIND_ICONS = { movie: IconFilm, tv: IconTv, book: IconBook, game: IconGame, anime: IconTv, image: IconImage, other: IconOther } as const;
 
@@ -85,7 +86,7 @@ return (
           {item.cover_key ? (
             // eslint-disable-next-line @next/next/no-img-element -- WebP rendition
             <img
-              src={`/media/${item.cover_key}`}
+              src={mediaUrl(item.cover_key)}
               alt={t("cover.altTitle", { title: displayTitle })}
             />
           ) : (

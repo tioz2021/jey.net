@@ -35,6 +35,15 @@ export function installDesktopBridge() {
     const path = url.pathname;
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
     const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
+    const remote = async (remoteMethod: string, remotePath: string, remoteBody?: unknown) => {
+      const result = await api.invoke<{ status: number; body: unknown }>("local_proxy", {
+        method: remoteMethod,
+        path: `${remotePath}${url.search}`,
+        body: remoteBody,
+      });
+      if (result.status === 204) return new Response(null, { status: 204 });
+      return new Response(JSON.stringify(result.body), { status: result.status, headers: { "Content-Type": "application/json" } });
+    };
 
     if (path === "/api/v1/me") {
       const access = await api.invoke<{ has_access: boolean; user_id?: string }>("local_access_status");
@@ -51,6 +60,7 @@ export function installDesktopBridge() {
     }
 
     if (path === "/api/v1/me/profile" || /^\/api\/v1\/public\/users\/[^/]+$/.test(path)) {
+      try { return await remote(method, path); } catch { /* offline fallback below */ }
       const profile = await api.invoke<Record<string, unknown>>("local_profile");
       const items = await api.invoke<Item[]>("local_list_items", { query: null });
       return json({
@@ -78,7 +88,11 @@ export function installDesktopBridge() {
     }
     if (path === "/api/v1/stats") return json(statsFrom(await api.invoke<Item[]>("local_list_items", { query: null })));
 
-    if (path === "/api/v1/collections" && method === "GET") return json(await api.invoke("local_list_collections"));
+    if (path === "/api/v1/collections" && method === "GET") {
+      const local = await api.invoke<{ collections: unknown[] }>("local_list_collections");
+      if (local.collections?.length) return json(local);
+      try { return await remote(method, path); } catch { return json(local); }
+    }
     if (path === "/api/v1/collections" && method === "POST") return json(await api.invoke("local_create_collection", { input: body }));
     const collectionItem = path.match(/^\/api\/v1\/collections\/([^/]+)$/);
     if (collectionItem) {
@@ -91,6 +105,7 @@ export function installDesktopBridge() {
 
     const publicItemPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)$/);
     if (publicItemPath) {
+      try { return await remote(method, path); } catch { /* offline fallback below */ }
       const items = await api.invoke<Item[]>("local_list_items", { query: null });
       const item = items.find((entry) => entry.id === publicItemPath[1] || entry.slug === publicItemPath[1]);
       if (!item) return json({ error: { code: "not_found" } }, 404);
@@ -111,10 +126,12 @@ export function installDesktopBridge() {
       const itemId = commentsPath[1];
       if (method === "GET") {
         const offset = Number(url.searchParams.get("offset") ?? "0");
-        return json(await api.invoke("local_list_comments", { input: { itemId, offset, limit: 5 } }));
+        const local = await api.invoke<{ total: number }>("local_list_comments", { input: { itemId, offset, limit: 5 } });
+        if (local.total > 0) return json(local);
+        try { return await remote(method, path); } catch { return json(local); }
       }
       if (method === "POST") {
-        return json(await api.invoke("local_create_comment", { input: { itemId, body: body?.body, parentId: body?.parent_id ?? null } }));
+        try { return await remote(method, path, body); } catch { return json(await api.invoke("local_create_comment", { input: { itemId, body: body?.body, parentId: body?.parent_id ?? null } })); }
       }
     }
     const commentDelete = path.match(/^\/api\/v1\/comments\/([^/]+)$/);
@@ -137,6 +154,7 @@ export function installDesktopBridge() {
         return new Response(null, { status: 204 });
       }
     }
-    return json({ error: { code: "offline_unsupported", message: "Раздел пока недоступен офлайн" } }, 503);
+    try { return await remote(method, path, body); }
+    catch { return json({ error: { code: "offline_unsupported", message: "Раздел пока недоступен офлайн" } }, 503); }
   };
 }

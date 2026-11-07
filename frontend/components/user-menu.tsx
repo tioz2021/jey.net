@@ -12,6 +12,7 @@ import { useUser } from "@/lib/user-context";
 import type { User } from "@/lib/types";
 
 import styles from "./user-menu.module.css";
+import { mediaUrl } from "@/lib/media";
 
 export function UserMenu({ user }: { user: User }) {
   const router = useRouter();
@@ -121,7 +122,7 @@ export function UserMenu({ user }: { user: User }) {
         type="button"
       >
         <Avatar
-          url={user.avatar_key ? `/media/${user.avatar_key}` : null}
+          url={user.avatar_key ? mediaUrl(user.avatar_key) : null}
           name={user.display_name}
           size={34}
         />
