@@ -78,22 +78,12 @@
 
 @media (width > 1000px) {
   .column {
-    max-height: calc(100vh - 72px);
-    padding-right: 4px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-  }
-}
-
-@media (width > 1000px) and (height <= 820px) {
-  .column {
-    position: static;
     max-height: none;
     padding-right: 0;
     overflow: visible;
   }
 }
+
 
 @media (width <= 1000px) {
   .column {
