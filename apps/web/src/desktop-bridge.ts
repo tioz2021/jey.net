@@ -89,6 +89,23 @@ export function installDesktopBridge() {
     }
     if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) return json({ collections: [] });
 
+    const publicItemPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)$/);
+    if (publicItemPath) {
+      const items = await api.invoke<Item[]>("local_list_items", { query: null });
+      const item = items.find((entry) => entry.id === publicItemPath[1] || entry.slug === publicItemPath[1]);
+      if (!item) return json({ error: { code: "not_found" } }, 404);
+      return json({
+        item: {
+          id: item.id, slug: item.slug ?? item.id, kind: item.kind, title: item.title,
+          subtitle: item.subtitle, year: item.year, status: item.status, rating: item.rating,
+          review: item.review, cover_key: item.cover_key, external_source: item.external_source,
+          external_id: item.external_id, details: item.details ?? null,
+          public_hidden: Boolean(item.public_hidden), updated_at: item.updated_at,
+        },
+        progress_visible: false,
+      });
+    }
+
     const commentsPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)\/comments$/);
     if (commentsPath) {
       const itemId = commentsPath[1];
