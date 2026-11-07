@@ -75,7 +75,7 @@ send_alert() {
 }
 
 check_http "API readiness" "${BASE_URL}/health/ready"
-check_http "Веб" "${BASE_URL}/login"
+check_http "SPA" "${BASE_URL}/"
 
 if command -v pg_isready >/dev/null 2>&1; then
     if ! pg_isready -q -h 127.0.0.1; then
@@ -90,7 +90,7 @@ if [[ -n "${DATABASE_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
 fi
 
 if command -v systemctl >/dev/null 2>&1; then
-    for unit in jey-api jey-web; do
+    for unit in jey-api; do
         if ! systemctl is-active --quiet "${unit}"; then
             problems+=("${unit} не запущен")
         fi

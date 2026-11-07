@@ -1,18 +1,14 @@
-// The desktop app and the web app share React components. TypeScript treats
-// two physical copies of @types/react as different types, so point the desktop
-// install at the web install when both exist.
-import fs from "node:fs";
-import path from "node:path";
+import { existsSync, symlinkSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const appTypes = path.resolve(here, "../node_modules/@types");
-const webTypes = path.resolve(here, "../../../frontend/node_modules/@types");
+const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const frontendRoot = resolve(appRoot, "../../frontend");
+const sharedModules = resolve(appRoot, "node_modules");
+const frontendModules = resolve(frontendRoot, "node_modules");
 
-for (const name of ["react", "react-dom"]) {
-  const source = path.join(webTypes, name);
-  const target = path.join(appTypes, name);
-  if (!fs.existsSync(source)) continue;
-  fs.rmSync(target, { recursive: true, force: true });
-  fs.symlinkSync(source, target, "junction");
+// Shared components live outside apps/web. Give TypeScript and Vite one
+// dependency tree without maintaining a second node_modules for frontend/.
+if (!existsSync(frontendModules)) {
+  symlinkSync(sharedModules, frontendModules, "dir");
 }

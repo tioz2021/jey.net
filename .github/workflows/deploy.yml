@@ -36,18 +36,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: apps/web/package-lock.json
 
-      - name: Build web
-        working-directory: frontend
-        env:
-          BACKEND_URL: http://127.0.0.1:8080
+      - name: Build SPA
+        working-directory: apps/web
         run: |
           npm ci
           npm run build
-          cp -R .next/static .next/standalone/.next/static
-          cp -R public .next/standalone/public
-          tar -C .next/standalone -czf ../jey-web.tar.gz .
+          tar -C dist -czf ../../jey-spa.tar.gz .
 
       - name: Set up SSH
         run: |
@@ -60,8 +56,8 @@ jobs:
         run: |
           rsync -av --chmod=755 target/release/jey-api \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/jey/jey-api.new"
-          rsync -av jey-web.tar.gz \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/jey-web.tar.gz"
+          rsync -av jey-spa.tar.gz \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/jey-spa.tar.gz"
 
       - name: Activate
         run: |
@@ -72,14 +68,13 @@ jobs:
             mv /opt/jey/jey-api.new /opt/jey/jey-api
             systemctl restart jey-api
 
-            rm -rf /opt/jey/web.prev
-            mv /opt/jey/web /opt/jey/web.prev
-            install -d -o jey -g jey -m 750 /opt/jey/web
-            tar -xzf /tmp/jey-web.tar.gz -C /opt/jey/web
-            rm -f /tmp/jey-web.tar.gz
-            install -d -o jey -g jey -m 750 /opt/jey/web/.next/cache
-            chown -R jey:jey /opt/jey/web
-            systemctl restart jey-web
+            rm -rf /opt/jey/spa.prev
+            mv /opt/jey/spa /opt/jey/spa.prev
+            install -d -o jey -g jey -m 755 /opt/jey/spa
+            tar -xzf /tmp/jey-spa.tar.gz -C /opt/jey/spa
+            rm -f /tmp/jey-spa.tar.gz
+            systemctl disable --now jey-web 2>/dev/null || true
+            systemctl restart jey-api
 
             sleep 3
             curl -fsS http://127.0.0.1:8080/api/v1/health

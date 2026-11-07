@@ -54,3 +54,7 @@ var/
 /apps/web/dist/
 /apps/web/.vite/
 /frontend/public/spa/
+/.staging/
+/.shots/
+/jey-spa.tar.gz
+/frontend/tsconfig.tsbuildinfo

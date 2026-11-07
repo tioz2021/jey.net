@@ -1,95 +1,50 @@
-# Деплой фронтенда
+# Деплой SPA
 
-Next.js собирается в **standalone**-бандл и работает как обычный Node-процесс
-за Caddy. Статику отдаёт сам Next, API и медиа проксируются на Rust-сервис.
+Веб-клиент — Vite SPA в `apps/web`. Next.js больше не используется.
+Caddy направляет все не-API маршруты в Rust API, который отдаёт статику SPA
+из `/opt/jey/spa`.
 
-## Переменные окружения
+## Переменные
 
 | Переменная | Где задана | Смысл |
 |---|---|---|
-| `BACKEND_URL` | `jey-web.service` | адрес API для серверных запросов (`http://127.0.0.1:8080`) |
-| `PORT` | `jey-web.service` | порт Next (`3000`, слушает только localhost) |
-| `HOSTNAME` | `jey-web.service` | `127.0.0.1` — наружу смотрит Caddy |
-| `NODE_ENV` | `jey-web.service` | `production` |
-| `PUBLIC_URL` | `jey-web.service` | публичный адрес для `metadataBase`, `robots.txt` и `sitemap.xml` |
-
-**Смена адреса API не требует пересборки.** `BACKEND_URL` читается серверными
-компонентами во время запроса, поэтому достаточно поменять строку в юните,
-сделать `systemctl daemon-reload` и `systemctl restart jey-web`.
-
-Проверено: тот же собранный бандл, запущенный с `BACKEND_URL=http://127.0.0.1:9999`,
-отвечает ошибкой — значит адрес берётся из окружения, а не вшит в сборку.
+| `SPA_DIR` | `jey-api.service` | каталог собранной SPA (`/opt/jey/spa`) |
+| `BACKEND_URL` | `jey-api.service` | внутренний адрес API (`http://127.0.0.1:8080`) |
+| `DATABASE_URL` | `/etc/jey/api.env` | PostgreSQL |
 
 ## Сборка
 
 ```bash
-cd frontend
+cd apps/web
 npm ci
-BACKEND_URL=http://127.0.0.1:8080 npm run build
-
-# standalone не включает статику и public — копируем отдельно
-cp -R .next/static .next/standalone/.next/static
-cp -R public .next/standalone/public
-tar -C .next/standalone -czf ../jey-web.tar.gz .
+npm run build
+tar -C dist -czf ../jey-spa.tar.gz .
 ```
 
 ## Выкладка
 
 ```bash
-scp jey-web.tar.gz root@<IP>:/tmp/
+scp jey-spa.tar.gz root@<IP>:/tmp/
 ssh root@<IP> '
   set -e
-  rm -rf /opt/jey/web.prev
-  mv /opt/jey/web /opt/jey/web.prev
-  install -d -o jey -g jey -m 750 /opt/jey/web
-  tar -xzf /tmp/jey-web.tar.gz -C /opt/jey/web
-  rm -f /tmp/jey-web.tar.gz
-  install -d -o jey -g jey -m 750 /opt/jey/web/.next/cache
-  chown -R jey:jey /opt/jey/web
-  systemctl restart jey-web
+  rm -rf /opt/jey/spa.prev
+  mv /opt/jey/spa /opt/jey/spa.prev
+  install -d -o jey -g jey -m 755 /opt/jey/spa
+  tar -xzf /tmp/jey-spa.tar.gz -C /opt/jey/spa
+  rm -f /tmp/jey-spa.tar.gz
+  systemctl restart jey-api
 '
 ```
 
-Юнит лежит в репозитории: `deploy/jey-web.service`. Он запускает
-`node server.js` от пользователя `jey`, с `Restart=always`, лимитом памяти
-512 МБ и файловой системой только для чтения (запись разрешена лишь в
-`.next/cache`).
+Caddy проксирует `/` в `jey-api`; API отдаёт `index.html` для SPA-маршрутов
+и файлы из `/opt/jey/spa`.
 
-Проверка:
+## Проверка
 
 ```bash
-systemctl is-active jey-web
-curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/login
+systemctl is-active jey-api
+curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/
 curl -fsS https://<host>/api/v1/health
 ```
 
-## CI
-
-- `.github/workflows/ci.yml` — job `Frontend`: `npm ci`, `npm run lint`,
-  `npm run build` на каждый push и pull request;
-- `.github/workflows/deploy.yml` — ручной деплой (`workflow_dispatch`):
-  собирает API и фронтенд, заливает по rsync, применяет миграции и
-  перезапускает сервисы.
-
-Для деплоя в GitHub нужны секреты:
-
-| Секрет | Значение |
-|---|---|
-| `DEPLOY_HOST` | IP или домен сервера |
-| `DEPLOY_USER` | `root` (нужны права на `/opt` и `systemctl`) |
-| `DEPLOY_SSH_KEY` | приватный ключ в формате OpenSSH |
-
-## Откат
-
-Предыдущая версия остаётся в `/opt/jey/web.prev`:
-
-```bash
-ssh root@<IP> '
-  rm -rf /opt/jey/web
-  mv /opt/jey/web.prev /opt/jey/web
-  systemctl restart jey-web
-'
-```
-
-У API откат — вернуть предыдущий бинарник и перезапустить `jey-api`
-(миграции назад не откатываются, поэтому деплой идёт только вперёд).
+CI: `.github/workflows/ci.yml` собирает `apps/web`, а не `frontend`.

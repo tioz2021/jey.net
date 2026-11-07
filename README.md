@@ -10,7 +10,7 @@
 
 **Живой сайт:** https://j3ynet.site
 
-![Каталог записей](frontend/public/screenshots/items.webp)
+![Каталог записей](apps/web/public/screenshots/items.webp)
 
 ## Что уже работает
 
@@ -37,7 +37,7 @@
 |---|---|
 | Ядро | Rust (edition 2024), крейт `jey-core` — домен и правила синхронизации |
 | Сервер | axum, tokio, sqlx, PostgreSQL 18 |
-| Веб | Next.js 15, React 19, TypeScript, нативный CSS (CSS Modules) |
+| Веб | Vite, React 19, React Router, TypeScript, CSS Modules |
 | Десктоп | Tauri 2 + SQLite — этап M8 |
 | Пароли и сессии | argon2id, непрозрачные токены, в базе только SHA-256 |
 | Файлы | локальный диск VPS, без объектного хранилища |
@@ -57,9 +57,9 @@ bash scripts/db.sh migrate           # применить миграции
 
 cargo run -p jey-api                 # API на http://127.0.0.1:8080
 
-cd frontend
+cd apps/web
 npm ci
-npm run dev                          # веб на http://localhost:3000
+npm run dev                          # SPA на http://localhost:5174
 ```
 
 Демо-данные:
@@ -72,7 +72,7 @@ bash scripts/seed.sh                 # аккаунт и 200 записей
 
 ```bash
 bash scripts/check.sh                # fmt, clippy, тесты, release-сборка
-cd frontend && npm run lint && npm run build
+cd apps/web && npm run build
 ```
 
 ## Документация
@@ -100,7 +100,8 @@ jey.net/
 ├── crates/
 │   ├── core/         # домен, репозитории, правила синхронизации
 │   └── api/          # HTTP-сервер (axum, sqlx, PostgreSQL)
-├── frontend/         # Next.js-приложение и скриншоты лендинга
+├── frontend/         # общие компоненты, стили и i18n
+├── apps/web/         # Vite SPA — единственный веб-клиент
 ├── deploy/           # Caddyfile, systemd-юниты, документация по деплою
 ├── migrations/       # серверные миграции
 ├── scripts/          # db.sh, seed.sh, check.sh, deploy.sh, provision.sh
