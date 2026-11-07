@@ -1,7 +1,5 @@
 .page {
-  max-width: 68rem;
-  margin: 0 auto;
-  padding: var(--space-4);
+  min-width: 0;
 }
 
 .heading {
