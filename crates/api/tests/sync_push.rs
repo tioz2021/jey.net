@@ -183,3 +183,27 @@ async fn rejects_unknown_device_and_missing_version() {
         .await;
     assert_eq!(missing_version.status, StatusCode::BAD_REQUEST);
 }
+
+#[tokio::test]
+async fn deleting_an_unknown_local_item_is_a_noop() {
+    let (client, cookie, device_id) = setup().await;
+    let item_id = Uuid::new_v4();
+    let now = Utc::now();
+    let response = client
+        .post_with_headers(
+            "/api/v1/sync/push",
+            json!({
+                "batch_id": Uuid::new_v4(),
+                "changes": [{
+                    "entity": "item", "id": item_id, "revision": 2,
+                    "updated_at": now, "deleted_at": now, "payload": null
+                }]
+            }),
+            &cookie,
+            &as_refs(&headers(device_id)),
+        )
+        .await;
+    assert_eq!(response.status, StatusCode::OK);
+    assert_eq!(response.body["applied"].as_array().unwrap().len(), 0);
+    assert_eq!(response.body["conflicts"].as_array().unwrap().len(), 0);
+}

@@ -436,10 +436,11 @@ pub async fn push(
                 "sync_seq": sync_seq,
             }));
         } else {
+            // A create+delete can happen before the first push. There is
+            // nothing to tombstone, so ignoring it is safer than failing the
+            // whole batch and blocking every later local change.
             if normalized.deleted_at.is_some() {
-                return Err(AppError::validation(
-                    "cannot delete an item the server has never seen",
-                ));
+                continue;
             }
             let sync_seq = apply_payload(
                 &mut tx,
