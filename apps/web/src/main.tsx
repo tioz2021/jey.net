@@ -34,7 +34,7 @@ import { AdminRoute } from "./screens/AdminRoute";
 import { AdminSubRoute } from "./screens/AdminSubRoute";
 
 const initialLocale = ((): Locale => {
-  const match = document.cookie.match(/(?:^|; )jey_locale=(ru|uk|en)(?:;|$)/);
+  const match = document.cookie.match(/(?:^|; )jey_lang=(ru|uk|en)(?:;|$)/);
   return (match?.[1] as Locale | undefined) ?? "ru";
 })();
 
@@ -81,6 +81,7 @@ createRoot(document.getElementById("root")!).render(
           </Route>
         </Routes>
       </BrowserRouter>
+      <BackToTop />
       </ToastProvider>
       </UserProvider>
     </LocaleProvider>
