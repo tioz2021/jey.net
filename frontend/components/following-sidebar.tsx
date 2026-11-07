@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
@@ -53,7 +53,7 @@ export function FollowingSidebar() {
         <ul className={styles.list}>
           {people.slice(0, 10).map((person) => (
             <li className={styles.personRow} key={person.id}>
-              <Link className={styles.person} href={`/u/${person.id}`}>
+              <AppLink className={styles.person} href={`/u/${person.id}`}>
                 {person.avatar_key ? (
                   // eslint-disable-next-line @next/next/no-img-element -- local avatar
                   <img alt="" src={`/media/${person.avatar_key}`} />
@@ -63,7 +63,7 @@ export function FollowingSidebar() {
                   </span>
                 )}
                 <span className={styles.name}>{person.display_name}</span>
-              </Link>
+              </AppLink>
               <button
                 aria-label={t(
                   person.notifications
@@ -93,9 +93,9 @@ export function FollowingSidebar() {
         </ul>
       )}
      {people.length > 0 ? (
-        <Link className={styles.all} href="/people">
+        <AppLink className={styles.all} href="/people">
           {t("public.allFollowing", { count: people.length })}
-        </Link>
+        </AppLink>
       ) : null}
     </section>
   );

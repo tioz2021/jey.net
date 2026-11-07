@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import "@/app/globals.css";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { UserProvider } from "@/lib/user-context";
@@ -16,12 +16,13 @@ createRoot(document.getElementById("root")!).render(
     <LocaleProvider initialLocale="ru">
       <UserProvider>
       <ToastProvider>
-      <SiteHeader />
       <BrowserRouter basename="/spa">
-        <Routes>
-          <Route path="/items/:id" element={<ItemDetailRoute />} />
-          <Route path="*" element={<Home />} />
-        </Routes>
+        <AppShell>
+          <Routes>
+            <Route path="/items/:id" element={<ItemDetailRoute />} />
+            <Route path="*" element={<Home />} />
+          </Routes>
+        </AppShell>
       </BrowserRouter>
       </ToastProvider>
       </UserProvider>

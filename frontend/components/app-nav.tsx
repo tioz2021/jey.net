@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
@@ -17,6 +15,7 @@ import { api } from "@/lib/api";
 import type { Stats } from "@/lib/types";
 
 import { useI18n } from "@/lib/locale-context";
+import { AppLink } from "@/lib/navigation";
 import type { TranslationKey } from "@/lib/i18n";
 
 import { FollowingSidebar } from "./following-sidebar";
@@ -44,8 +43,8 @@ function kindFromLocation(): string | null {
 
 export function AppNav() {
   const { t } = useI18n();
-  const pathname = usePathname();
-  const params = useSearchParams();
+  const pathname = window.location.pathname.replace(/^\/spa/, "") || "/items";
+  const params = new URLSearchParams(window.location.search);
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
   const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
   const onItems = pathname === "/items";
@@ -96,7 +95,7 @@ export function AppNav() {
         const href = kind ? `/items?kind=${kind}` : "/items";
 
         return (
-          <Link
+          <AppLink
             aria-current={active ? "page" : undefined}
             className={`${styles.link} ${active ? styles.active : ""}`}
             href={href}
@@ -136,11 +135,11 @@ export function AppNav() {
                   )
                 : (counts[kind] ?? 0)}
             </span>
-            </Link>
+            </AppLink>
           );
         })}
 
-        <Link
+        <AppLink
           aria-current={pathname === "/trash" ? "page" : undefined}
           className={`${styles.link} ${styles.trashLink} ${
             pathname === "/trash" ? styles.active : ""
@@ -149,7 +148,7 @@ export function AppNav() {
         >
           <IconTrash size={14} />
           {t("nav.trash")}
-        </Link>
+        </AppLink>
       </div>
     </aside>
     <div id="items-filter-slot" />
