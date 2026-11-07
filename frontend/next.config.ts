@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
       { source: "/spa/recommendations", destination: "/spa/index.html" },
       { source: "/spa/people", destination: "/spa/index.html" },
       { source: "/spa/notifications", destination: "/spa/index.html" },
+      { source: "/spa/dashboard", destination: "/spa/index.html" },
+      { source: "/spa/trash", destination: "/spa/index.html" },
+      { source: "/spa/reports", destination: "/spa/index.html" },
+      { source: "/spa/analytics", destination: "/spa/index.html" },
       { source: "/spa", destination: "/spa/index.html" },
       // Covers and avatars are served by the API as well.
       {

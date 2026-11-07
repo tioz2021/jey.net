@@ -17,6 +17,9 @@ import { FeedScreen } from "@/components/social/feed-screen";
 import { RecommendationsScreen } from "@/components/social/recommendations-screen";
 import { PeopleScreen } from "@/components/social/people-screen";
 import { NotificationsScreen } from "@/components/social/notifications-screen";
+import { DashboardRoute } from "./screens/DashboardRoute";
+import { TrashRoute } from "./screens/TrashRoute";
+import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -35,6 +38,10 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/recommendations" element={<RecommendationsScreen />} />
             <Route path="/people" element={<PeopleScreen />} />
             <Route path="/notifications" element={<NotificationsScreen />} />
+            <Route path="/dashboard" element={<DashboardRoute />} />
+            <Route path="/trash" element={<TrashRoute />} />
+            <Route path="/reports" element={<AdminRedirectRoute target="/admin/reports" />} />
+            <Route path="/analytics" element={<AdminRedirectRoute target="/admin/analytics" />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AppShell>
