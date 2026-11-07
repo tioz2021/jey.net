@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
@@ -219,7 +219,7 @@ export function ItemForm({
   initialKind?: ItemKind;
   lockKind?: ItemKind;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { t } = useI18n();
   const { notify, notifyError } = useToast();
   const [values, setValues] = useState<Values>(() =>

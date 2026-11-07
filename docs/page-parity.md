@@ -108,11 +108,11 @@ crates/api/      сервер
 ## Прогресс
 
 - T127.0: создан `apps/web`, Vite + React Router;
-- T127.1: `ItemDetailScreen` перенесён в `frontend/components/items`;
-- функции сведены в `docs/t127-item-detail-checklist.md`;
-- Next-зависимости убраны из экрана и прямых компонентов;
-- маршрут основного сайта ещё не переключён;
-- preview доступен по path-маршруту `/spa/items/:id`;
+- T127.1: принят владельцем, визуальных отличий от Next не осталось;
+- `ItemDetailScreen` в `frontend/components/items`;
+- T127.2: форма создания/редактирования переиспользует общий `ItemForm`;
+- preview: `/spa/items/:id`, `/spa/items/new`, `/spa/items/:id/edit`;
+- основной Next-маршрут не переключён;
 - desktop не изменялся и не собирался.
 
 ## Как открыть preview

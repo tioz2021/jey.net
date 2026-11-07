@@ -10,6 +10,7 @@ import { UserProvider } from "@/lib/user-context";
 
 import { Home } from "./screens/Home";
 import { ItemDetailRoute } from "./screens/ItemDetailRoute";
+import { ItemFormRoute } from "./screens/ItemFormRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -19,6 +20,8 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter basename="/spa">
         <AppShell>
           <Routes>
+            <Route path="/items/new" element={<ItemFormRoute mode="new" />} />
+            <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />
             <Route path="*" element={<Home />} />
           </Routes>
