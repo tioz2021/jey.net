@@ -1,9 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { LoginScreen } from "@/components/auth/login-screen";
+import { LegalScreen } from "@/components/legal/legal-screen";
+import { AppFrame } from "./screens/AppFrame";
 
 import "@/app/globals.css";
-import { AppShell } from "@/components/app-shell";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { UserProvider } from "@/lib/user-context";
@@ -27,8 +29,11 @@ createRoot(document.getElementById("root")!).render(
       <UserProvider>
       <ToastProvider>
       <BrowserRouter basename="/spa">
-        <AppShell>
-          <Routes>
+        <Routes>
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/privacy" element={<LegalScreen page="privacy" />} />
+          <Route path="/terms" element={<LegalScreen page="terms" />} />
+          <Route element={<AppFrame />}>
             <Route path="/items/new" element={<ItemFormRoute mode="new" />} />
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />
@@ -43,8 +48,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/reports" element={<AdminRedirectRoute target="/admin/reports" />} />
             <Route path="/analytics" element={<AdminRedirectRoute target="/admin/analytics" />} />
             <Route path="*" element={<Home />} />
-          </Routes>
-        </AppShell>
+          </Route>
+        </Routes>
       </BrowserRouter>
       </ToastProvider>
       </UserProvider>
