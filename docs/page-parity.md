@@ -111,7 +111,9 @@ crates/api/      сервер
 - T127.1: принят владельцем, визуальных отличий от Next не осталось;
 - `ItemDetailScreen` в `frontend/components/items`;
 - T127.2: форма создания/редактирования переиспользует общий `ItemForm`;
-- preview: `/spa/items/:id`, `/spa/items/new`, `/spa/items/:id/edit`;
+- T127.3: список и детальная коллекция перенесены в shared-слой;
+- preview: `/spa/items/:id`, `/spa/items/new`, `/spa/items/:id/edit`,
+  `/spa/collections`, `/spa/collections/:id`;
 - основной Next-маршрут не переключён;
 - desktop не изменялся и не собирался.
 
