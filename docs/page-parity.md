@@ -111,7 +111,23 @@ crates/api/      сервер
 - T127.1: собран первый богатый экран `/items/:id` с обложкой,
   метаданными, рецензией, составом, коллекциями, эпизодами и соседями;
 - маршрут основного сайта ещё не переключён;
+- preview доступен на том же домене: `/spa/index.html`;
 - desktop не изменялся и не собирался.
+
+## Как открыть preview
+
+```bash
+bash scripts/web-spa-preview.sh
+DEPLOY_HOST=129.121.149.16 bash scripts/deploy.sh
+```
+
+После деплоя, в браузере с активной сессией:
+
+```text
+https://j3ynet.site/spa/index.html#/items/<uuid>
+```
+
+UUID можно взять из `/api/v1/items?limit=5` или из локальной базы desktop.
 
 ## Следующий шаг
 

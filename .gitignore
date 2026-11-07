@@ -53,3 +53,4 @@ var/
 /apps/web/node_modules/
 /apps/web/dist/
 /apps/web/.vite/
+/frontend/public/spa/
