@@ -35,26 +35,22 @@ export function useAppRouter() {
 export function AppLink({
   href,
   children,
+  onClick,
   ...rest
 }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
   return (
     <a
+      {...rest}
       href={withSpaBase(href)}
       onClick={(event) => {
-        if (rest.target || rest.download || !isInternalHref(href)) {
-          rest.onClick?.(event);
-          return;
-        }
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        if (rest.target || rest.download || !isInternalHref(href)) return;
         const bridge = (window as unknown as { __jeyNavigate?: (value: string) => void }).__jeyNavigate;
-        if (!bridge) {
-          rest.onClick?.(event);
-          return;
-        }
+        if (!bridge) return;
         event.preventDefault();
-        rest.onClick?.(event);
         bridge(href);
       }}
-      {...rest}
     >
       {children}
     </a>

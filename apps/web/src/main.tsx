@@ -53,6 +53,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />
           <Route path="/u/:id/collection/:slug" element={<PublicShell><PublicCollectionRoute /></PublicShell>} />
           <Route path="/u/:id/item/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
+          <Route path="/u/:id/cart/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/u/:id/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/login" element={<AuthShell><LoginScreen /></AuthShell>} />
           <Route path="/privacy" element={<PublicShell><LegalScreen page="privacy" /></PublicShell>} />
@@ -70,6 +71,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/trash" element={<TrashRoute />} />
+            <Route path="/welcome" element={<ItemsRoute />} />
             <Route path="/settings" element={<SettingsScreen />} />
             <Route path="/admin" element={<AdminRoute />} />
             <Route path="/admin/reports" element={<AdminSubRoute page="reports" />} />
