@@ -4,10 +4,11 @@ import ReportsPage from "@/app/(app)/admin/reports/page";
 import { AdminErrorsScreen } from "@/components/admin/admin-errors-screen";
 import { AdminSystemScreen } from "@/components/admin/admin-system-screen";
 import { AdminAuditScreen } from "@/components/admin/admin-audit-screen";
+import { AdminAnalyticsScreen } from "@/components/admin/admin-analytics-screen";
 import { AdminPeople } from "@/app/(app)/admin/people/admin-people";
 import { SiteAdminForm } from "@/app/(app)/admin/site/site-admin-form";
 
-export function AdminSubRoute({ page }: { page: "reports" | "people" | "site" | "errors" | "system" | "audit" }) {
+export function AdminSubRoute({ page }: { page: "reports" | "people" | "site" | "errors" | "system" | "audit" | "analytics" }) {
   return (
     <AdminFrame>
       {page === "reports" ? <ReportsPage /> : null}
@@ -16,6 +17,7 @@ export function AdminSubRoute({ page }: { page: "reports" | "people" | "site" | 
       {page === "errors" ? <AdminErrorsScreen /> : null}
       {page === "system" ? <AdminSystemScreen /> : null}
       {page === "audit" ? <AdminAuditScreen /> : null}
+      {page === "analytics" ? <AdminAnalyticsScreen /> : null}
     </AdminFrame>
   );
 }
