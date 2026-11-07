@@ -27,6 +27,7 @@ function statsFrom(items: Item[]): Stats {
 export function installDesktopBridge() {
   const api = tauri();
   if (!api) return;
+  const originalFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     if (!raw.includes("/api/v1/")) return originalFetch(input, init);
