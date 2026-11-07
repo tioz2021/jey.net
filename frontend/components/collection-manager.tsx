@@ -4,13 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button, Dialog, Input, Select } from "@/components/ui";
-import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { httpCollectionSource, type CollectionSource } from "@/lib/collection-source";
 import type { Collection } from "@/lib/types";
 
 import styles from "./collection-manager.module.css";
 
-export function CollectionManager() {
+export function CollectionManager({
+  source = httpCollectionSource,
+  showLinks = true,
+}: {
+  source?: CollectionSource;
+  showLinks?: boolean;
+}) {
   const { t } = useI18n();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [title, setTitle] = useState("");
@@ -20,20 +26,20 @@ export function CollectionManager() {
   const [error, setError] = useState<string | null>(null);
 
   function load() {
-    api.collections
+    source
       .list()
-      .then((response) => setCollections(response.collections))
+      .then(setCollections)
       .catch(() => setError(t("collections.loadError")));
   }
 
-  useEffect(load, [t]);
+  useEffect(load, [source, t]);
 
   async function create() {
     if (!title.trim()) return;
     setBusy(true);
     setError(null);
     try {
-      await api.collections.create({ title: title.trim(), visibility });
+      await source.create({ title: title.trim(), visibility });
       setTitle("");
       load();
       window.dispatchEvent(new Event("jey:collections-changed"));
@@ -47,7 +53,7 @@ export function CollectionManager() {
   async function remove(id: string) {
     setBusy(true);
     try {
-      await api.collections.remove(id);
+      await source.remove(id);
       load();
       window.dispatchEvent(new Event("jey:collections-changed"));
     } catch {
@@ -88,7 +94,7 @@ export function CollectionManager() {
         <ul className={styles.list}>
           {collections.map((collection) => (
             <li className={styles.item} key={collection.id}>
-              <Link className={styles.link} href={`/collections/${collection.id}`}>
+              {showLinks ? <Link className={styles.link} href={`/collections/${collection.id}`}>
                 <span>{collection.title}</span>
                 <span className={styles.meta}>
                   {collection.visibility === "public"
@@ -97,11 +103,11 @@ export function CollectionManager() {
                   {" · "}
                   {collection.item_count}
                 </span>
-              </Link>
+              </Link> : <span className={styles.link}>{collection.title}</span>}
               <Button
                 onClick={() => {
                   const next = collection.visibility === "public" ? "private" : "public";
-                  void api.collections
+                  void source
                     .update(collection.id, { title: collection.title, visibility: next })
                     .then(() => {
                       load();

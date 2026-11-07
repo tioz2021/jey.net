@@ -201,3 +201,18 @@ body { margin: 0; background: var(--color-surface); }
   justify-content: flex-start;
   width: 100%;
 }
+
+
+.desktop-nav-button {
+  padding: 0.2rem 0;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.desktop-nav-button:hover { color: var(--color-text); }
+.desktop-nav-button.desktop-section-active { color: var(--color-text); border-bottom-color: var(--color-accent); }

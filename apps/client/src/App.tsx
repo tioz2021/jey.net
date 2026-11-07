@@ -6,8 +6,10 @@ import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
 import { useItemSource } from "./data/source-context";
+import { localCollectionSource } from "./data/collection-source";
 import type { LocalItem } from "./data/source";
 import { CatalogPage } from "@/components/items/catalog-page";
+import { CollectionsClient } from "@/components/collections/collections-client";
 import "./app.css";
 
 type Access = {
@@ -20,6 +22,7 @@ export function App() {
   const { t } = useI18n();
   const source = useItemSource();
   const [access, setAccess] = useState<Access | null>(null);
+  const [view, setView] = useState<"catalog" | "collections" | "settings">("catalog");
   const [items, setItems] = useState<LocalItem[]>([]);
   const [searchResults, setSearchResults] = useState<LocalItem[] | null>(null);
   const [covers, setCovers] = useState<Record<string, string>>({});
@@ -291,6 +294,69 @@ export function App() {
     );
   }
 
+  if (view === "collections") {
+    return (
+      <main className="desktop-app">
+        <header className="desktop-topbar">
+          <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+          <nav className="desktop-sections">
+            <button className="desktop-nav-button" onClick={() => setView("catalog")} type="button">Мои записи</button>
+            <button className="desktop-nav-button desktop-section-active" onClick={() => setView("collections")} type="button">Коллекции</button>
+          </nav>
+          <div className="desktop-actions">
+            <Button size="sm" variant="secondary" onClick={() => setView("catalog")}>← К записям</Button>
+          </div>
+        </header>
+        <div className="desktop-detail">
+          <CollectionsClient showLinks={false} source={localCollectionSource} />
+        </div>
+      </main>
+    );
+  }
+
+  if (view === "settings") {
+    return (
+      <main className="desktop-app">
+        <header className="desktop-topbar">
+          <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+          <nav className="desktop-sections">
+            <button className="desktop-nav-button" onClick={() => setView("catalog")} type="button">Мои записи</button>
+          </nav>
+          <div className="desktop-actions">
+            <Button size="sm" variant="secondary" onClick={() => setView("catalog")}>← К записям</Button>
+          </div>
+        </header>
+        <div className="desktop-detail">
+          <PageHeader title="Настройки" />
+          <Card title="Аккаунт">
+            <p className="desktop-muted">Пользователь: {access.user_id}</p>
+            <p className="desktop-muted">Сервер: {access.server_url}</p>
+          </Card>
+          <Card title="Данные">
+            <div className="desktop-actions">
+              <Button onClick={async () => {
+                const report = await invoke<{ path: string }>("local_export_json");
+                setAction(`Экспорт: ${report.path}`);
+              }}>Экспорт JSON</Button>
+              <Button variant="secondary" onClick={async () => {
+                const report = await invoke<{ path: string; items: number; media_files: number }>("local_backup");
+                setAction(`Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`);
+              }}>Бэкап</Button>
+            </div>
+            {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
+          </Card>
+          <Card title="Сессия">
+            <Button variant="secondary" onClick={async () => {
+              await invoke("local_sign_out");
+              setAccess(null);
+              setView("catalog");
+            }}>Выйти</Button>
+          </Card>
+        </div>
+      </main>
+    );
+  }
+
   if (creating) {
     return (
       <main className="desktop-app">
@@ -373,8 +439,8 @@ export function App() {
       <header className="desktop-topbar">
         <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
         <nav className="desktop-sections">
-          <span className="desktop-section-active">{t("nav.items")}</span>
-          <span className="desktop-section-muted">Коллекции</span>
+          <button className="desktop-nav-button desktop-section-active" onClick={() => setView("catalog")} type="button">{t("nav.items")}</button>
+          <button className="desktop-nav-button" onClick={() => setView("collections")} type="button">Коллекции</button>
         </nav>
         <div className="desktop-actions">
           <Button loading={syncing} size="sm" onClick={() => void sync()}>{syncing ? "Синхронизация…" : "Синхронизировать"}</Button>
@@ -389,6 +455,7 @@ export function App() {
                 const report = await invoke<{ path: string; items: number; media_files: number }>("local_backup");
                 setAction(`Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`);
               }}>Бэкап</Button>
+              <Button variant="secondary" size="sm" onClick={() => setView("settings")}>Настройки</Button>
               <Button variant="secondary" size="sm" onClick={async () => {
                 await invoke("local_sign_out");
                 setAccess(null);

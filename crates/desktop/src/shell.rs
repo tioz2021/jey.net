@@ -102,6 +102,54 @@ async fn local_list_items(
 }
 
 #[tauri::command]
+fn local_list_collections(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let collections = state
+        .store
+        .list_collections(user)
+        .map_err(|error| error.to_string())?;
+    Ok(json!({ "collections": collections }))
+}
+
+#[tauri::command]
+fn local_create_collection(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let title = input
+        .get("title")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "title is required".to_owned())?;
+    let collection = state
+        .store
+        .create_collection(user, title)
+        .map_err(|error| error.to_string())?;
+    serde_json::to_value(collection).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_update_collection(
+    state: State<'_, DesktopState>,
+    id: String,
+    input: Value,
+) -> Result<(), String> {
+    let user = current_user(&state)?;
+    let title = input.get("title").and_then(Value::as_str);
+    let visibility = input.get("visibility").and_then(Value::as_str);
+    state
+        .store
+        .update_collection(user, &id, title, visibility)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_delete_collection(state: State<'_, DesktopState>, id: String) -> Result<(), String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .delete_collection(user, &id)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 async fn local_search_items(
     state: State<'_, DesktopState>,
     query: String,
@@ -475,6 +523,10 @@ pub fn run() {
             local_db_status,
             local_list_items,
             local_search_items,
+            local_list_collections,
+            local_create_collection,
+            local_update_collection,
+            local_delete_collection,
             local_create_item,
             local_update_item,
             local_delete_item,
