@@ -403,10 +403,15 @@ export function App() {
           {syncMessage ? <p className="desktop-sync-result">{syncMessage}</p> : null}
           {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
           <ul className="desktop-list">
-            {visibleItems.map((item) => (
+            {displayItems.map((item) => (
               <li key={item.id} className="desktop-list-item">
                 <CardBoundary title={item.title}>
-                  <ItemCard item={item as Item} href={`#${item.id}`} onOpen={() => openItem(item)} />
+                  <ItemCard
+                    coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
+                    item={item as Item}
+                    href={`#${item.id}`}
+                    onOpen={() => openItem(item)}
+                  />
                 </CardBoundary>
                 <div className="desktop-actions">
                   <Button size="sm" variant="secondary" onClick={() => openItem(item)}>Открыть</Button>

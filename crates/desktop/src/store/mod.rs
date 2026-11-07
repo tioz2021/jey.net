@@ -179,14 +179,7 @@ impl DesktopStore {
             [],
             |row| row.get(0),
         )?;
-        let media_files = std::fs::read_dir(self.media_dir())
-            .map(|entries| {
-                entries
-                    .filter_map(Result::ok)
-                    .filter(|entry| entry.path().is_file())
-                    .count() as i64
-            })
-            .unwrap_or(0);
+        let media_files = count_files(&self.media_dir());
         Ok(StoreStatus {
             path: self.path.display().to_string(),
             schema_version: connection.query_row(
@@ -201,6 +194,25 @@ impl DesktopStore {
             media_files,
         })
     }
+}
+
+fn count_files(path: &std::path::Path) -> i64 {
+    let Ok(entries) = std::fs::read_dir(path) else {
+        return 0;
+    };
+    entries
+        .filter_map(Result::ok)
+        .map(|entry| {
+            let path = entry.path();
+            if path.is_dir() {
+                count_files(&path)
+            } else if path.is_file() {
+                1
+            } else {
+                0
+            }
+        })
+        .sum()
 }
 
 fn now_millis() -> i64 {
