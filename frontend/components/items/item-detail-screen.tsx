@@ -53,14 +53,22 @@ export function ItemDetailScreen({
   const [neighbors, setNeighbors] = useState<ItemNeighborsResponse | null>(null);
   const [error, setError] = useState("");
   const [coverSrc, setCoverSrc] = useState<string | undefined>(undefined);
+  const [refreshKey, setRefreshKey] = useState(0);
   const queryString = searchParams.toString();
   const backHref = `/items${queryString ? `?${queryString}` : ""}`;
   const continueSeason = searchParams.get("season") ? Number(searchParams.get("season")) : undefined;
   const continueEpisode = searchParams.get("continue") === "1" && searchParams.get("episode") ? Number(searchParams.get("episode")) : undefined;
 
   useEffect(() => {
+    const onRefresh = () => setRefreshKey((value) => value + 1);
+    window.addEventListener("jey:item-refreshed", onRefresh);
+    return () => window.removeEventListener("jey:item-refreshed", onRefresh);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     setError("");
+    setCoverSrc(undefined);
     source.get(id).then(async (next) => {
       if (cancelled) return;
       setItem(next);
@@ -76,7 +84,7 @@ export function ItemDetailScreen({
         .catch(() => {});
     }
     return () => { cancelled = true; };
-  }, [id, queryString, searchParams, source]);
+  }, [id, queryString, searchParams, source, refreshKey]);
 
   if (error) return <main className={styles.page}><Card title={t("item.loadErrorTitle")}><p className={styles.muted}>{t("item.loadErrorText")}</p><p><AppLink href="/items">← К записям</AppLink></p></Card></main>;
   if (!item) return <main className={styles.page}><LoadingScreen /></main>;

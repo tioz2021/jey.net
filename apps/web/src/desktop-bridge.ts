@@ -153,7 +153,12 @@ export function installDesktopBridge() {
     const itemAction = path.match(/^\/api\/v1\/items\/[^/]+\/(poster|refresh)$/);
     if (itemAction && method === "POST") {
       try { await api.invoke("local_sync"); } catch { /* the item can still be retried */ }
-      try { return await remote(method, path, body); } catch { /* fall through */ }
+      try {
+        const response = await remote(method, path, body);
+        try { await api.invoke("local_sync"); } catch { /* media may lag */ }
+        window.dispatchEvent(new Event("jey:item-refreshed"));
+        return response;
+      } catch { /* fall through */ }
     }
 
     const itemPath = path.match(/^\/api\/v1\/items\/([^/]+)$/);
