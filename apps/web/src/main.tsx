@@ -19,6 +19,8 @@ import { LocaleProvider } from "@/lib/locale-context";
 import { BackToTop } from "@/components/back-to-top";
 import type { Locale } from "@/lib/i18n";
 import { UserProvider } from "@/lib/user-context";
+import { CatalogueSourceProvider, webCatalogueSource } from "@/lib/data-source";
+import { activeCatalogueSource } from "./data/desktop-source";
 
 import { Home } from "./screens/Home";
 import { ItemDetailRoute } from "./screens/ItemDetailRoute";
@@ -43,6 +45,7 @@ const initialLocale = ((): Locale => {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LocaleProvider initialLocale={initialLocale}>
+      <CatalogueSourceProvider source={activeCatalogueSource ?? webCatalogueSource}>
       <UserProvider>
       <ToastProvider>
       <BrowserRouter>
@@ -90,6 +93,7 @@ createRoot(document.getElementById("root")!).render(
       <BackToTop />
       </ToastProvider>
       </UserProvider>
+      </CatalogueSourceProvider>
     </LocaleProvider>
   </StrictMode>,
 );

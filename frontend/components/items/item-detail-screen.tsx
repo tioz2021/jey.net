@@ -15,7 +15,7 @@ import { RefreshMovieButton } from "@/components/items/refresh-movie-button";
 import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { SimilarItems } from "@/components/items/similar-items";
 import { Badge, Card } from "@/components/ui";
-import { api } from "@/lib/api";
+import { useCatalogueSource } from "@/lib/data-source";
 import { AppLink } from "@/lib/navigation";
 import { formatDate as formatDateI18n } from "@/lib/i18n";
 import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
@@ -48,6 +48,7 @@ export function ItemDetailScreen({
   searchParams: URLSearchParams;
 }) {
   const { locale, t } = useI18n();
+  const source = useCatalogueSource();
   const [item, setItem] = useState<Item | null>(null);
   const [neighbors, setNeighbors] = useState<ItemNeighborsResponse | null>(null);
   const [error, setError] = useState("");
@@ -59,7 +60,7 @@ export function ItemDetailScreen({
   useEffect(() => {
     let cancelled = false;
     setError("");
-    api.items.get(id).then((response) => { if (!cancelled) setItem(response.item); }).catch((cause) => { if (!cancelled) setError(String(cause)); });
+    source.get(id).then((next) => { if (!cancelled) setItem(next); }).catch((cause) => { if (!cancelled) setError(String(cause)); });
     if (!searchParams.get("q")) {
       fetch(`/api/v1/items/${encodeURIComponent(id)}/neighbors${queryString ? `?${queryString}` : ""}`, { credentials: "include" })
         .then((response) => (response.ok ? response.json() : null))
@@ -67,7 +68,7 @@ export function ItemDetailScreen({
         .catch(() => {});
     }
     return () => { cancelled = true; };
-  }, [id, queryString, searchParams]);
+  }, [id, queryString, searchParams, source]);
 
   if (error) return <main className={styles.page}><Card title={t("item.loadErrorTitle")}><p className={styles.muted}>{t("item.loadErrorText")}</p><p><AppLink href="/items">← К записям</AppLink></p></Card></main>;
   if (!item) return <main className={styles.page}><LoadingScreen /></main>;

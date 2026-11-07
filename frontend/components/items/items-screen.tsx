@@ -8,7 +8,7 @@ import { ItemCard } from "@/components/items/item-card";
 import { useItemsQuery } from "@/components/items/query-context";
 import { useAppRouter } from "@/lib/navigation";
 import { Button, PageHeader } from "@/components/ui";
-import { api } from "@/lib/api";
+import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
@@ -16,6 +16,7 @@ import { LoadingScreen } from "@/components/loading-screen";
 export function ItemsScreen() {
   const { t } = useI18n();
   const router = useAppRouter();
+  const source = useCatalogueSource();
   const { params } = useItemsQuery();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,12 +33,12 @@ export function ItemsScreen() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    api.items.list({ kind, status, q: query || undefined, sort, limit: 100 })
+    source.list({ kind, status, q: query || undefined, sort, limit: 100 })
       .then((response) => { if (!cancelled) setItems(response.items); })
       .catch((cause) => { if (!cancelled) setError(String(cause)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [kind, status, query, sort]);
+  }, [kind, status, query, sort, source]);
 
   function toggle(id: string) {
     setSelected((current) => {
