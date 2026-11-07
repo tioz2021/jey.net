@@ -33,7 +33,8 @@ export function LoginOptions({ next }: { next?: string }) {
     setStarting(true);
     try {
       await api.core.invoke("local_bootstrap_access");
-      window.location.assign("/items");
+      window.sessionStorage.setItem("jey-after-login", "/items");
+      window.location.assign("/");
     } finally {
       setStarting(false);
     }

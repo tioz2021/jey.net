@@ -17,5 +17,13 @@ export function NavigationBridge() {
     window.dispatchEvent(new Event("jey:route-changed"));
   }, [location.pathname, location.search]);
 
+  useEffect(() => {
+    const pending = window.sessionStorage.getItem("jey-after-login");
+    if (pending) {
+      window.sessionStorage.removeItem("jey-after-login");
+      navigate(pending);
+    }
+  }, [navigate]);
+
   return null;
 }

@@ -19,7 +19,8 @@ export function GoogleSignIn({ label, next }: { label?: string; next?: string })
     setError(null);
     try {
       await desktop.core.invoke("local_google_sign_in", { input: { server_url: "https://j3ynet.site" } });
-      window.location.assign(next ?? "/items");
+      window.sessionStorage.setItem("jey-after-login", next ?? "/items");
+      window.location.assign("/");
     } catch (cause) {
       setError(String(cause));
       setPending(false);
