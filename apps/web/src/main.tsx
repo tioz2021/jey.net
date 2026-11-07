@@ -7,6 +7,7 @@ import { LegalScreen } from "@/components/legal/legal-screen";
 import { PublicShell } from "@/components/legal/public-shell";
 import { AppFrame } from "./screens/AppFrame";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
+import { PublicItemRoute } from "./screens/PublicItemRoute";
 
 import "@/app/globals.css";
 import { ToastProvider } from "@/components/toasts";
@@ -38,6 +39,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />
           <Route path="/u/:id/collection/:slug" element={<PublicShell><PublicCollectionRoute /></PublicShell>} />
+          <Route path="/u/:id/item/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
+          <Route path="/u/:id/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/login" element={<AuthShell><LoginScreen /></AuthShell>} />
           <Route path="/privacy" element={<PublicShell><LegalScreen page="privacy" /></PublicShell>} />
           <Route path="/terms" element={<PublicShell><LegalScreen page="terms" /></PublicShell>} />
