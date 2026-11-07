@@ -150,6 +150,12 @@ export function installDesktopBridge() {
     if (commentDelete && method === "DELETE") return json(await api.invoke("local_delete_comment", { id: commentDelete[1] }));
     if (/^\/api\/v1\/comments\/[^/]+\/reaction$/.test(path)) return json({ reacted: false, count: 0 });
     if (/^\/api\/v1\/items\/[^/]+\/neighbors$/.test(path)) return json({ prev_id: null, next_id: null });
+    const itemAction = path.match(/^\/api\/v1\/items\/[^/]+\/(poster|refresh)$/);
+    if (itemAction && method === "POST") {
+      try { await api.invoke("local_sync"); } catch { /* the item can still be retried */ }
+      try { return await remote(method, path, body); } catch { /* fall through */ }
+    }
+
     const itemPath = path.match(/^\/api\/v1\/items\/([^/]+)$/);
     if (itemPath) {
       const id = itemPath[1];
