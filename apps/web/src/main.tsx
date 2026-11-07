@@ -6,6 +6,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { LegalScreen } from "@/components/legal/legal-screen";
 import { PublicShell } from "@/components/legal/public-shell";
 import { AppFrame } from "./screens/AppFrame";
+import { DocumentTitle } from "./DocumentTitle";
 import { ItemsRoute } from "./screens/ItemsRoute";
 import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
@@ -44,6 +45,7 @@ createRoot(document.getElementById("root")!).render(
       <UserProvider>
       <ToastProvider>
       <BrowserRouter>
+        <DocumentTitle />
         <Routes>
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />
