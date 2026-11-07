@@ -12,6 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rusqlite::{Connection, OptionalExtension, params};
 
 mod export;
+mod media;
 mod repository;
 mod sync;
 pub use export::{BackupReport, ExportReport, backup, export_json};

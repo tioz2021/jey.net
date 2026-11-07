@@ -21,6 +21,7 @@ pub struct SyncReport {
     pub pushed: usize,
     pub pulled: usize,
     pub conflicts: usize,
+    pub media: usize,
     pub last_seq: i64,
 }
 
@@ -275,6 +276,7 @@ impl SyncService {
             }
         }
 
+        let media = self.cache_media().await?;
         let last_seq = self
             .store
             .last_sync_seq()
@@ -283,8 +285,43 @@ impl SyncService {
             pushed,
             pulled,
             conflicts,
+            media,
             last_seq,
         })
+    }
+
+    async fn cache_media(&self) -> Result<usize, String> {
+        let keys = self
+            .store
+            .cover_keys(self.user_id)
+            .map_err(|error| error.to_string())?;
+        let mut downloaded = 0;
+        for key in keys {
+            if self
+                .store
+                .media_cached(&key)
+                .map_err(|error| error.to_string())?
+            {
+                continue;
+            }
+            let response = self
+                .headers(self.client.get(format!("{}/media/{key}", self.server)))
+                .send()
+                .await
+                .map_err(|error| format!("Медиа недоступно: {error}"))?;
+            if response.status() == StatusCode::NOT_FOUND {
+                continue;
+            }
+            if !response.status().is_success() {
+                return Err(api_error(response).await);
+            }
+            let bytes = response.bytes().await.map_err(|error| error.to_string())?;
+            self.store
+                .write_media(&key, &bytes)
+                .map_err(|error| error.to_string())?;
+            downloaded += 1;
+        }
+        Ok(downloaded)
     }
 }
 

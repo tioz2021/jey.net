@@ -38,6 +38,7 @@ export function App() {
   const { t } = useI18n();
   const [access, setAccess] = useState<Access | null>(null);
   const [items, setItems] = useState<LocalItem[]>([]);
+  const [covers, setCovers] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState<ItemKind | null>(null);
   const [statusFilter, setStatusFilter] = useState<ItemStatus | "">("");
@@ -82,8 +83,17 @@ export function App() {
       ]);
       // Media cache arrives in T109; until then a remote /media URL would be a
       // broken image inside the Tauri WebView.
-      setItems(nextItems.map((item) => ({ ...item, cover_key: null })));
+      setItems(nextItems);
       setAction(`${db.path} · schema ${db.schema_version} · outbox ${db.outbox}`);
+      const loaded: Record<string, string> = {};
+      await Promise.all(
+        nextItems.map(async (item) => {
+          if (!item.cover_key) return;
+          const data = await invoke<string | null>("local_cover_data", { key: item.cover_key });
+          if (data) loaded[item.cover_key] = data;
+        }),
+      );
+      setCovers(loaded);
     } catch (cause) {
       setError(String(cause));
     }
@@ -136,6 +146,11 @@ export function App() {
       ),
     [items, kindFilter, statusFilter],
   );
+
+  const displayItems = visibleItems.map((item) => ({
+    ...item,
+    cover_key: item.cover_key && covers[item.cover_key] ? item.cover_key : null,
+  }));
 
   async function signIn(event: React.FormEvent) {
     event.preventDefault();

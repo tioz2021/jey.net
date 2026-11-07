@@ -148,6 +148,29 @@ async fn local_update_item(
 }
 
 #[tauri::command]
+fn local_cover_data(state: State<'_, DesktopState>, key: String) -> Result<Option<String>, String> {
+    let _user = current_user(&state)?;
+    let bytes = state
+        .store
+        .read_media(&key)
+        .map_err(|error| error.to_string())?;
+    let Some(bytes) = bytes else {
+        return Ok(None);
+    };
+    let mime = if key.ends_with(".png") {
+        "image/png"
+    } else if key.ends_with(".jpg") || key.ends_with(".jpeg") {
+        "image/jpeg"
+    } else {
+        "image/webp"
+    };
+    Ok(Some(format!(
+        "data:{mime};base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(bytes)
+    )))
+}
+
+#[tauri::command]
 fn local_export_json(state: State<'_, DesktopState>) -> Result<crate::store::ExportReport, String> {
     let user = current_user(&state)?;
     export_json(&state.store, user).map_err(|error| error.to_string())
@@ -435,6 +458,7 @@ pub fn run() {
             local_delete_item,
             local_export_json,
             local_backup,
+            local_cover_data,
             local_sign_in,
             local_google_sign_in,
             local_sign_out,

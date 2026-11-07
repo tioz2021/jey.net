@@ -101,6 +101,7 @@ export function ItemCard({
   showContinue = false,
   footer,
   onOpen,
+  coverSrc,
 }: {
   item: ItemCardData;
   query?: string;
@@ -111,6 +112,8 @@ export function ItemCard({
   footer?: React.ReactNode;
   /** Desktop opens a local detail view instead of following a web route. */
   onOpen?: () => void;
+  /** Explicit image source for clients with a local media cache. */
+  coverSrc?: string;
 }) {
   const { t, locale } = useI18n();
   const { user } = useUser();
@@ -161,10 +164,10 @@ export function ItemCard({
   const card = (
     <article className={`${styles.card} ${selected ? styles.cardSelected : ""}`}>
       <div className={styles.poster}>
-        {item.cover_key ? (
+        {coverSrc ?? item.cover_key ? (
           <img
             className={styles.cover}
-            src={`/media/${item.cover_key}`}
+            src={coverSrc ?? `/media/${item.cover_key}`}
             alt=""
             loading="lazy"
             decoding="async"
