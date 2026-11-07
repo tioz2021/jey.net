@@ -19,7 +19,6 @@ import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
-import { resolvePublicUserId } from "@/lib/public-user";
 import { AppLink } from "@/lib/navigation";
 import type { PublicItem } from "@/lib/types";
 
@@ -34,10 +33,16 @@ export function PublicItemScreen({ id, itemId }: { id: string; itemId: string })
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    resolvePublicUserId(id)
-      .then((userId) => {
+    fetch(`/api/v1/public/users/${encodeURIComponent(id)}`, { credentials: "include" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((profile) => {
+        const userId = profile.profile.id as string;
         setOwnerId(userId);
-        return fetch(`/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}`, { credentials: "include" });
+        const match = (profile.items as Array<{ id: string; slug: string }>).find(
+          (entry) => entry.slug === itemId || entry.id === itemId,
+        );
+        if (!match) return Promise.reject();
+        return fetch(`/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(match.id)}`, { credentials: "include" });
       })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((body) => setItem({ ...body.item, progress_visible: body.progress_visible }))
