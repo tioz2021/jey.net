@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppRouter } from "@/lib/navigation";
+import { AppLink } from "@/lib/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -16,20 +16,15 @@ export function ItemActions({
   itemId: string;
   title: string;
 }) {
-  const router = useAppRouter();
   const [confirming, setConfirming] = useState(false);
 
   const { t } = useI18n();
 
   return (
     <div className={styles.actions}>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => router.push(`/items/${itemId}/edit`)}
-      >
+      <AppLink className={styles.editLink} href={`/items/${itemId}/edit`}>
         {t("common.edit")}
-      </Button>
+      </AppLink>
       <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
         {t("common.delete")}
       </Button>

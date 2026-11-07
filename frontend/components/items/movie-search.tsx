@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { apiAsset } from "@/lib/media";
 import type { MovieDetailsResponse, MovieSearchItem } from "@/lib/types";
 
 import styles from "./movie-search.module.css";
@@ -209,7 +210,7 @@ export function MovieSearch({
               className={styles.selectedPoster}
               src={
                 posterPath
-                  ? `/api/v1/movies/image?size=w92&path=${encodeURIComponent(posterPath)}`
+                  ? apiAsset(`/api/v1/movies/image?size=w92&path=${encodeURIComponent(posterPath)}`)
                   : (selectedPosterUrl ?? "")
               }
             />
@@ -263,7 +264,7 @@ export function MovieSearch({
                         alt=""
                         className={styles.poster}
                         loading="lazy"
-                        src={`/api/v1/movies/image?size=w92&path=${encodeURIComponent(item.poster_path)}`}
+                        src={apiAsset(`/api/v1/movies/image?size=w92&path=${encodeURIComponent(item.poster_path)}`)}
                       />
                     ) : (
                       <span className={styles.poster} aria-hidden="true" />
