@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { RecommendationHighlights } from "@/components/recommendation-highlights";
 import { CatalogPage, type CatalogItem } from "@/components/items/catalog-page";
 import { httpClientSource } from "@/lib/client-source";
 import type { ItemKind, ItemStatus } from "@/lib/types";
@@ -55,6 +56,20 @@ export function CatalogClient() {
   }, [query]);
 
   const counts = useMemo(() => countKinds(items), [items]);
+
+  function reload() {
+    return httpClientSource.list().then(setItems);
+  }
+
+  async function bulkStatus(ids: string[], status: ItemStatus) {
+    await Promise.all(ids.map((id) => httpClientSource.update(id, { status })));
+    await reload();
+  }
+
+  async function bulkDelete(ids: string[]) {
+    await Promise.all(ids.map((id) => httpClientSource.delete(id)));
+    await reload();
+  }
   const visibleItems = useMemo(
     () =>
       (searchResults ?? items).filter(
@@ -83,8 +98,11 @@ export function CatalogClient() {
         setQuery("");
       }}
       onStatusChange={setStatusFilter}
+      onBulkDelete={bulkDelete}
+      onBulkStatus={bulkStatus}
       query={query}
       statusFilter={statusFilter}
+      top={<RecommendationHighlights />}
       hrefFor={(item) => `/items/${item.id}`}
     />
   );

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { ItemCard } from "@/components/items/item-card";
 import {
@@ -45,7 +45,10 @@ export interface CatalogPageProps {
   onOpen?: (item: CatalogItem) => void;
   onSync?: () => void;
   header?: ReactNode;
+  top?: ReactNode;
   hrefFor?: (item: CatalogItem) => string;
+  onBulkStatus?: (ids: string[], status: ItemStatus) => Promise<void> | void;
+  onBulkDelete?: (ids: string[]) => Promise<void> | void;
 }
 
 /** Framework-neutral catalogue content; web and desktop provide their own shell. */
@@ -69,9 +72,56 @@ export function CatalogPage({
   onOpen,
   onSync,
   header,
+  top,
   hrefFor,
+  onBulkStatus,
+  onBulkDelete,
 }: CatalogPageProps) {
   const { t } = useI18n();
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<ItemStatus | "">("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const canSelect = Boolean(onBulkDelete || onBulkStatus);
+
+  function toggleSelected(id: string) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected((current) =>
+      current.size === displayItems.length
+        ? new Set()
+        : new Set(displayItems.map((item) => item.id)),
+    );
+  }
+
+  function cancelSelection() {
+    setSelectionMode(false);
+    setSelected(new Set());
+    setBulkStatus("");
+  }
+
+  async function runBulk(action: "status" | "delete") {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = [...selected];
+      if (action === "status" && bulkStatus && onBulkStatus) {
+        await onBulkStatus(ids, bulkStatus);
+      } else if (action === "delete" && onBulkDelete) {
+        await onBulkDelete(ids);
+      }
+      cancelSelection();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   return (
     <>
@@ -122,9 +172,66 @@ export function CatalogPage({
 
         <div className={styles.main}>
           <PageHeader
-            action={<Button onClick={onCreate}>Добавить запись</Button>}
+            action={
+              <>
+                {canSelect ? (
+                  <Button
+                    onClick={() => (selectionMode ? cancelSelection() : setSelectionMode(true))}
+                    variant="secondary"
+                  >
+                    {selectionMode ? "Отменить выбор" : "Выбрать записи"}
+                  </Button>
+                ) : null}
+                <Button onClick={onCreate}>Добавить запись</Button>
+              </>
+            }
             title={t("nav.items")}
           />
+          {top}
+          {selectionMode ? (
+            <div className={styles.bulk}>
+              <span>Выбрано: {selected.size}</span>
+              <Button size="sm" variant="secondary" onClick={toggleAll} type="button">
+                {selected.size === displayItems.length ? "Снять все" : "Выбрать все"}
+              </Button>
+              {onBulkStatus ? (
+                <>
+                  <Select
+                    label=""
+                    value={bulkStatus}
+                    onChange={(event) => setBulkStatus(event.target.value as ItemStatus | "")}
+                  >
+                    <option value="">Новый статус</option>
+                    <option value="planned">Запланировано</option>
+                    <option value="in_progress">В процессе</option>
+                    <option value="done">Готово</option>
+                    <option value="dropped">Брошено</option>
+                  </Select>
+                  <Button
+                    disabled={selected.size === 0 || !bulkStatus}
+                    loading={bulkBusy}
+                    onClick={() => void runBulk("status")}
+                    size="sm"
+                    type="button"
+                  >
+                    Сменить статус
+                  </Button>
+                </>
+              ) : null}
+              {onBulkDelete ? (
+                <Button
+                  disabled={selected.size === 0}
+                  loading={bulkBusy}
+                  onClick={() => void runBulk("delete")}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  Удалить
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
           {syncStatus && syncStatus.changes_after > 0 ? (
             <div className={styles.banner}>
               Есть изменения в вебе: {syncStatus.changes_after}.{" "}
@@ -139,11 +246,22 @@ export function CatalogPage({
           <ul className={styles.list}>
             {displayItems.map((item) => (
               <li key={item.id} className={styles.listItem}>
+                {selectionMode ? (
+                  <label className={styles.select}>
+                    <input
+                      aria-label={`Выбрать ${item.title}`}
+                      checked={selected.has(item.id)}
+                      onChange={() => toggleSelected(item.id)}
+                      type="checkbox"
+                    />
+                  </label>
+                ) : null}
                 <ItemCard
                   coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
                   item={item}
                   href={hrefFor ? hrefFor(item) : `#${item.id}`}
                   onOpen={onOpen ? () => onOpen(item) : undefined}
+                  selected={selectionMode && selected.has(item.id)}
                 />
               </li>
             ))}
