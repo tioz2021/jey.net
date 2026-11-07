@@ -113,7 +113,9 @@ export function installDesktopBridge() {
         try { return await remote(method, path); } catch { await api.invoke("local_delete_collection", { id }); return new Response(null, { status: 204 }); }
       }
     }
-    if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) return json({ collections: [] });
+    if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) {
+      try { return await remote(method, path); } catch { return json({ collections: [] }); }
+    }
 
     const publicItemPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)$/);
     if (publicItemPath) {

@@ -9,7 +9,7 @@ import type { Collection } from "@/lib/types";
 
 import styles from "./add-to-collection.module.css";
 
-export function AddToCollection({ itemId }: { itemId: string }) {
+export function AddToCollection({ itemId, compact = false }: { itemId: string; compact?: boolean }) {
   const { t } = useI18n();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selected, setSelected] = useState("");
@@ -52,6 +52,21 @@ export function AddToCollection({ itemId }: { itemId: string }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (compact) {
+    return (
+      <div className={styles.compact}>
+        <Select hideLabel label={t("collections.addTo")} onChange={(event) => setSelected(event.target.value)} value={selected}>
+          {collections.map((collection) => (
+            <option key={collection.id} value={collection.id}>{collection.contains ? "✓ " : ""}{collection.title}</option>
+          ))}
+        </Select>
+        <Button disabled={busy || !selected || Boolean(selectedCollection?.contains)} onClick={() => void add()} size="sm" variant="secondary">
+          {selectedCollection?.contains ? "✓" : "+"}
+        </Button>
+      </div>
+    );
   }
 
   return (
