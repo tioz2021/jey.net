@@ -14,6 +14,8 @@ import {
 import { api } from "@/lib/api";
 import type { Stats } from "@/lib/types";
 
+import { usePathname } from "next/navigation";
+
 import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
 import type { TranslationKey } from "@/lib/i18n";
@@ -43,7 +45,7 @@ function kindFromLocation(): string | null {
 
 export function AppNav() {
   const { t } = useI18n();
-  const pathname = typeof window === "undefined" ? "/items" : window.location.pathname || "/items";
+  const pathname = usePathname();
   const params = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
   const [counts, setCounts] = useState<Partial<Record<string, number>>>({});

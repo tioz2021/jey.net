@@ -97,9 +97,15 @@ export function installDesktopBridge() {
     const collectionItem = path.match(/^\/api\/v1\/collections\/([^/]+)$/);
     if (collectionItem) {
       const id = collectionItem[1];
-      if (method === "GET") return json(await api.invoke("local_collection_detail", { id }));
-      if (method === "PATCH") { await api.invoke("local_update_collection", { id, input: body }); return json({ ok: true }); }
-      if (method === "DELETE") { await api.invoke("local_delete_collection", { id }); return new Response(null, { status: 204 }); }
+      if (method === "GET") {
+        try { return await remote(method, path); } catch { return json(await api.invoke("local_collection_detail", { id })); }
+      }
+      if (method === "PATCH") {
+        try { return await remote(method, path, body); } catch { await api.invoke("local_update_collection", { id, input: body }); return json({ ok: true }); }
+      }
+      if (method === "DELETE") {
+        try { return await remote(method, path); } catch { await api.invoke("local_delete_collection", { id }); return new Response(null, { status: 204 }); }
+      }
     }
     if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) return json({ collections: [] });
 
