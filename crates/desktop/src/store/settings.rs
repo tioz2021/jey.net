@@ -42,9 +42,9 @@ impl DesktopStore {
             .get("public_show_progress")
             .cloned()
             .unwrap_or(Value::Bool(false));
-        value["email"] = Value::Null;
-        value["avatar_key"] = Value::Null;
-        value["banner_key"] = Value::Null;
+        value["email"] = value.get("email").cloned().unwrap_or(Value::Null);
+        value["avatar_key"] = value.get("avatar_key").cloned().unwrap_or(Value::Null);
+        value["banner_key"] = value.get("banner_key").cloned().unwrap_or(Value::Null);
         Ok(value)
     }
 

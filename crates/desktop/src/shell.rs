@@ -87,6 +87,39 @@ fn local_profile(state: State<'_, DesktopState>) -> Result<Value, String> {
 }
 
 #[tauri::command]
+async fn local_refresh_profile(state: State<'_, DesktopState>) -> Result<Value, String> {
+    let user = current_user(&state)?;
+    let grant = state
+        .access
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет доступа".to_owned())?;
+    let token = state
+        .session
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет сессии".to_owned())?;
+    let response = reqwest::Client::new()
+        .get(format!("{}/api/v1/me", grant.server_url))
+        .header("Cookie", format!("jey_session={token}"))
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+    if !response.status().is_success() {
+        return Err("Сервер не подтвердил сессию".to_owned());
+    }
+    let body: Value = response.json().await.map_err(|error| error.to_string())?;
+    let profile = body
+        .get("user")
+        .cloned()
+        .ok_or_else(|| "Сервер не вернул профиль".to_owned())?;
+    state
+        .store
+        .save_local_profile(user, &profile)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn local_update_profile(state: State<'_, DesktopState>, input: Value) -> Result<Value, String> {
     let user = current_user(&state)?;
     state
@@ -635,6 +668,7 @@ pub fn run() {
             local_delete_collection,
             local_collection_detail,
             local_bootstrap_access,
+            local_refresh_profile,
             local_profile,
             local_update_profile,
             local_list_comments,
