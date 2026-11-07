@@ -14,6 +14,8 @@ import { PublicItemRoute } from "./screens/PublicItemRoute";
 import "@/app/globals.css";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
+import { BackToTop } from "@/components/back-to-top";
+import type { Locale } from "@/lib/i18n";
 import { UserProvider } from "@/lib/user-context";
 
 import { Home } from "./screens/Home";
@@ -31,9 +33,14 @@ import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
 import { AdminRoute } from "./screens/AdminRoute";
 import { AdminSubRoute } from "./screens/AdminSubRoute";
 
+const initialLocale = ((): Locale => {
+  const match = document.cookie.match(/(?:^|; )jey_locale=(ru|uk|en)(?:;|$)/);
+  return (match?.[1] as Locale | undefined) ?? "ru";
+})();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <LocaleProvider initialLocale="ru">
+    <LocaleProvider initialLocale={initialLocale}>
       <UserProvider>
       <ToastProvider>
       <BrowserRouter basename="/spa">
