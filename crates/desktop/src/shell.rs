@@ -71,6 +71,16 @@ fn save_data_dir(default_dir: &Path, path: &Path) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn local_open_external(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") && !url.starts_with("http://") {
+        return Err("Разрешены только http(s)-ссылки".to_owned());
+    }
+    webbrowser::open(&url)
+        .map(|_| ())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn local_storage_info(state: State<'_, DesktopState>) -> Result<Value, String> {
     let current = state.store.path().parent().unwrap_or(Path::new("."));
     Ok(json!({ "data_dir": current, "default_dir": state.default_dir }))
@@ -770,6 +780,7 @@ pub fn run() {
             app_version,
             local_access_status,
             local_db_status,
+            local_open_external,
             local_storage_info,
             local_choose_data_dir,
             local_use_default_data_dir,
