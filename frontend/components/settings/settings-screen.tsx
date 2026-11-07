@@ -12,6 +12,7 @@ import { Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { User } from "@/lib/types";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function SettingsScreen() {
   const { t } = useI18n();
@@ -23,7 +24,7 @@ export function SettingsScreen() {
   }, []);
 
   if (error) return <main><Card title={t("settings.errorTitle")}><p>Не удалось загрузить настройки</p></Card></main>;
-  if (!user) return <main><p>Загрузка…</p></main>;
+  if (!user) return <main><LoadingScreen /></main>;
 
   return (
     <main>

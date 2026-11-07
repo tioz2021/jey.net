@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { ItemFormScreen } from "@/components/items/item-form-screen";
 import { api } from "@/lib/api";
 import type { Item } from "@/lib/types";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function ItemFormRoute({ mode }: { mode: "new" | "edit" }) {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +17,7 @@ export function ItemFormRoute({ mode }: { mode: "new" | "edit" }) {
   }, [id, mode]);
 
   if (mode === "edit" && error) return <main><p>{error}</p></main>;
-  if (mode === "edit" && !item) return <main><p>Загрузка…</p></main>;
+  if (mode === "edit" && !item) return <main><LoadingScreen /></main>;
 
   return <ItemFormScreen initial={item ?? undefined} itemId={mode === "edit" ? id : undefined} />;
 }

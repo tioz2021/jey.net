@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { PublicCollection } from "@/lib/types";
 
 import styles from "./public-collection-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function PublicCollectionScreen({ id, slug }: { id: string; slug: string }) {
   const { t } = useI18n();
@@ -21,7 +22,7 @@ export function PublicCollectionScreen({ id, slug }: { id: string; slug: string 
   }, [id, slug]);
 
   if (error) return <main><Card title={t("collections.loadError")}><AppLink href={`/u/${id}`}>← {t("item.backProfile")}</AppLink></Card></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   return (
     <main>

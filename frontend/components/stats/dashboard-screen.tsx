@@ -13,6 +13,7 @@ import { KIND_KEYS, STATUS_KEYS } from "@/lib/i18n/labels";
 import type { ItemKind, ItemStatus, Stats } from "@/lib/types";
 
 import styles from "./dashboard-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function DashboardScreen() {
   const { t } = useI18n();
@@ -24,7 +25,7 @@ export function DashboardScreen() {
   }, []);
 
   if (error) return <main><Card title={t("dashboard.errorTitle")}><p className={styles.muted}>{t("dashboard.errorText")}</p></Card></main>;
-  if (!stats) return <main><p>Загрузка…</p></main>;
+  if (!stats) return <main><LoadingScreen /></main>;
 
   if (stats.total === 0) {
     return (

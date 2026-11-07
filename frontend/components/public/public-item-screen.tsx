@@ -23,6 +23,7 @@ import { AppLink } from "@/lib/navigation";
 import type { PublicItem } from "@/lib/types";
 
 import styles from "./public-item-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 const KIND_ICONS = { movie: IconFilm, tv: IconTv, book: IconBook, game: IconGame, anime: IconTv, image: IconImage, other: IconOther } as const;
 
@@ -50,7 +51,7 @@ export function PublicItemScreen({ id, itemId }: { id: string; itemId: string })
   }, [id, itemId]);
 
   if (error) return <main><p>Запись не найдена</p></main>;
-  if (!item) return <main><p>Загрузка…</p></main>;
+  if (!item) return <main><LoadingScreen /></main>;
 
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);

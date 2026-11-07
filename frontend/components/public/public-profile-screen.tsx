@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { PublicProfileView } from "@/components/public-profile";
 import type { PublicProfileResponse } from "@/lib/types";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function PublicProfileScreen({ id }: { id: string }) {
   const [data, setData] = useState<PublicProfileResponse | null>(null);
@@ -22,6 +23,6 @@ export function PublicProfileScreen({ id }: { id: string }) {
   }, [id]);
 
   if (error) return <main><p>Профиль не найден</p></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
   return <PublicProfileView collections={data.collections ?? []} items={data.items} preview={data.preview} profile={data.profile} />;
 }

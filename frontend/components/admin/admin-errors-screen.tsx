@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { SystemErrorsResponse } from "@/lib/types";
 
 import styles from "./admin-errors.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function AdminErrorsScreen() {
   const { t, locale } = useI18n();
@@ -21,7 +22,7 @@ export function AdminErrorsScreen() {
   }, []);
 
   if (error) return <main><PageHeader title={t("admin.errors")} /><Card><p>Нет доступа</p></Card></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   const dateTime = (value: string) => new Intl.DateTimeFormat(locale === "uk" ? "uk-UA" : locale === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 

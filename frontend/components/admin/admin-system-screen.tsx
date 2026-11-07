@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { SystemStatus } from "@/lib/types";
 
 import styles from "./admin-system.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 function percent(used: number, total: number) { return total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0; }
 function bytes(value: number) {
@@ -30,7 +31,7 @@ export function AdminSystemScreen() {
   }, []);
 
   if (error) return <main><PageHeader title={t("admin.system")} /><Card><p>Нет доступа</p></Card></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   const dateTime = (value: string | null | undefined) => value ? new Intl.DateTimeFormat(locale === "uk" ? "uk-UA" : locale === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value)) : "—";
   const services = [["api", data.services.api], ["web", data.services.web], ["caddy", data.services.caddy], ["postgres", data.services.postgres]] as const;

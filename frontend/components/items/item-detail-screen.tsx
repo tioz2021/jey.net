@@ -25,6 +25,7 @@ import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import type { Item, ItemNeighbors as ItemNeighborsResponse } from "@/lib/types";
 
 import styles from "./item-detail-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 const KIND_ICONS = {
   movie: IconFilm,
@@ -69,7 +70,7 @@ export function ItemDetailScreen({
   }, [id, queryString, searchParams]);
 
   if (error) return <main className={styles.page}><Card title={t("item.loadErrorTitle")}><p className={styles.muted}>{t("item.loadErrorText")}</p><p><AppLink href="/items">← К записям</AppLink></p></Card></main>;
-  if (!item) return <main className={styles.page}><p className={styles.muted}>Загрузка…</p></main>;
+  if (!item) return <main className={styles.page}><LoadingScreen /></main>;
 
   const displayTitle = localizedTitle(item, locale);
   const displaySubtitle = localizedSubtitle(item, locale);

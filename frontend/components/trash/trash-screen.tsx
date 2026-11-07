@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { Item } from "@/lib/types";
 
 import styles from "./trash-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function TrashScreen() {
   const { t } = useI18n();
@@ -22,7 +23,7 @@ export function TrashScreen() {
   }, []);
 
   if (error) return <main><Card title={t("trash.errorTitle")}><p>{t("trash.errorText")}</p></Card></main>;
-  if (!items) return <main><p>Загрузка…</p></main>;
+  if (!items) return <main><LoadingScreen /></main>;
 
   return (
     <main>

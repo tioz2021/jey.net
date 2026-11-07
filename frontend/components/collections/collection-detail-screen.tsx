@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { CollectionDetail } from "@/lib/types";
 
 import styles from "./collection-detail-screen.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function CollectionDetailScreen({ id }: { id: string }) {
   const { t } = useI18n();
@@ -31,7 +32,7 @@ export function CollectionDetailScreen({ id }: { id: string }) {
     );
   }
 
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   return (
     <main>

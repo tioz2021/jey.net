@@ -11,6 +11,7 @@ import { Button, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function ItemsScreen() {
   const { t } = useI18n();
@@ -64,7 +65,7 @@ export function ItemsScreen() {
       />
       {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
       {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : null}
-      {loading ? <p>Загрузка…</p> : items.length === 0 ? <p>Записей пока нет.</p> : (
+      {loading ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
         <ul style={{ display: "grid", gap: "0.75rem", padding: 0, margin: "0.75rem 0", listStyle: "none" }}>
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>

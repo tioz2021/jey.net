@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { AdminActionsResponse } from "@/lib/types";
 
 import styles from "./admin-audit.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 const ACTIONS = [
   "user.sessions_revoked", "user.suspended", "user.restored", "user.admin_granted",
@@ -48,7 +49,7 @@ export function AdminAuditScreen() {
   }, [action]);
 
   if (error) return <main><PageHeader title={t("admin.audit")} /><Card><p>Нет доступа</p></Card></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   const dateTime = (value: string) => new Intl.DateTimeFormat(locale === "uk" ? "uk-UA" : locale === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 

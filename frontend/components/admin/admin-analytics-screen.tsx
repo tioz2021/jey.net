@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/locale-context";
 import type { AnalyticsSummary } from "@/lib/types";
 
 import styles from "./admin-analytics.module.css";
+import { LoadingScreen } from "@/components/loading-screen";
 
 export function AdminAnalyticsScreen() {
   const { t, locale } = useI18n();
@@ -21,7 +22,7 @@ export function AdminAnalyticsScreen() {
   }, []);
 
   if (error) return <main><PageHeader title={t("analytics.title")} /><Card><p>Нет доступа</p></Card></main>;
-  if (!data) return <main><p>Загрузка…</p></main>;
+  if (!data) return <main><LoadingScreen /></main>;
 
   const counts = data.counts ?? {};
   const views = counts.page_view ?? 0;
