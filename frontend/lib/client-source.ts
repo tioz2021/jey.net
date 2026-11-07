@@ -5,6 +5,7 @@ import type { ItemPatch, NewItem } from "@/lib/types";
 export interface ClientSource {
   list(): Promise<CatalogItem[]>;
   search(query: string): Promise<CatalogItem[]>;
+  get(id: string): Promise<CatalogItem | null>;
   create(input: NewItem): Promise<CatalogItem>;
   update(id: string, patch: ItemPatch): Promise<CatalogItem | null>;
   delete(id: string): Promise<boolean>;
@@ -19,6 +20,14 @@ export const httpClientSource: ClientSource = {
   async search(query) {
     const response = await api.items.list({ q: query, limit: 100 });
     return response.items;
+  },
+  async get(id) {
+    try {
+      const response = await api.items.get(id);
+      return response.item;
+    } catch {
+      return null;
+    }
   },
   async create(input) {
     const response = await api.items.create(input);

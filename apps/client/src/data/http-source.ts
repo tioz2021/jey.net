@@ -34,6 +34,10 @@ export const httpSource: ItemSource = {
     );
     return response.items;
   },
+  get: (id: string) =>
+    request<{ item: Item }>(`/items/${encodeURIComponent(id)}`).then(
+      (response) => response.item,
+    ),
   create: (input: NewItem) =>
     request<{ item: Item }>("/items", {
       method: "POST",

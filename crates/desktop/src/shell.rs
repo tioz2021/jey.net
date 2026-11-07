@@ -10,6 +10,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use tauri::{Manager, State};
+use uuid::Uuid;
 
 use jey_core::items::{Item, ItemPatch, NewItem};
 use jey_core::repositories::ItemRepository;
@@ -168,6 +169,21 @@ async fn local_search_items(
         .iter()
         .map(|item| item_json(item, pending.contains(&item.id.to_string())))
         .collect())
+}
+
+#[tauri::command]
+async fn local_get_item(
+    state: State<'_, DesktopState>,
+    id: String,
+) -> Result<Option<Value>, String> {
+    let user = current_user(&state)?;
+    let id = Uuid::parse_str(&id).map_err(|error| error.to_string())?;
+    let repository = SqliteItems::new(state.store.clone());
+    let item = repository
+        .get_item(user, id)
+        .await
+        .map_err(|error| error.to_string())?;
+    Ok(item.map(|item| item_json(&item, false)))
 }
 
 #[tauri::command]
@@ -527,6 +543,7 @@ pub fn run() {
             local_create_collection,
             local_update_collection,
             local_delete_collection,
+            local_get_item,
             local_create_item,
             local_update_item,
             local_delete_item,
