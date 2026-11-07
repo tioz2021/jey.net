@@ -185,9 +185,12 @@
 
 .cardWrap {
   position: relative;
+  z-index: 0;
   animation: card-in 240ms var(--ease-out) both;
-  content-visibility: auto;
-  contain-intrinsic-size: 160px;
+}
+
+.cardWrap:hover {
+  z-index: 2;
 }
 
 @keyframes card-in {

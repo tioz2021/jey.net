@@ -221,12 +221,6 @@ html[data-runtime="desktop"] article:hover {
   box-shadow: none !important;
   transform: none !important;
 }
-html[data-runtime="desktop"] .cardWrap,
-html[data-runtime="desktop"] [class*="cardWrap"] {
-  content-visibility: auto;
-  contain-intrinsic-size: 160px;
-}
-
 main {
   animation: page-in var(--duration-base) var(--ease-out);
 }
