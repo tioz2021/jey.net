@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { AppLink } from "@/lib/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useEffect } from "react";
 
 import { useI18n } from "@/lib/locale-context";
@@ -19,7 +19,7 @@ export function ItemNeighbors({
   prevHref: string | null;
   nextHref: string | null;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { t } = useI18n();
 
   useEffect(() => {
@@ -56,9 +56,9 @@ export function ItemNeighbors({
   return (
     <nav aria-label={t("item.previous")} className={styles.pager}>
       {prevHref ? (
-        <Link className={styles.link} href={prevHref} title="Предыдущая запись (←)">
+        <AppLink className={styles.link} href={prevHref} title="Предыдущая запись (←)">
           {t("item.previous")}
-        </Link>
+        </AppLink>
       ) : (
         <span aria-disabled="true" className={styles.disabled}>
           {t("item.previous")}
@@ -66,9 +66,9 @@ export function ItemNeighbors({
       )}
 
       {nextHref ? (
-        <Link className={styles.link} href={nextHref} title="Следующая запись (→)">
+        <AppLink className={styles.link} href={nextHref} title="Следующая запись (→)">
           {t("item.next")}
-        </Link>
+        </AppLink>
       ) : (
         <span aria-disabled="true" className={styles.disabled}>
           {t("item.next")}

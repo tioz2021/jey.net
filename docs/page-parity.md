@@ -108,10 +108,11 @@ crates/api/      сервер
 ## Прогресс
 
 - T127.0: создан `apps/web`, Vite + React Router;
-- T127.1: собран первый богатый экран `/items/:id` с обложкой,
-  метаданными, рецензией, составом, коллекциями, эпизодами и соседями;
+- T127.1: `ItemDetailScreen` перенесён в `frontend/components/items`;
+- функции сведены в `docs/t127-item-detail-checklist.md`;
+- Next-зависимости убраны из экрана и прямых компонентов;
 - маршрут основного сайта ещё не переключён;
-- preview доступен на том же домене: `/spa/index.html`;
+- preview доступен по path-маршруту `/spa/items/:id`;
 - desktop не изменялся и не собирался.
 
 ## Как открыть preview
@@ -124,7 +125,7 @@ DEPLOY_HOST=129.121.149.16 bash scripts/deploy.sh
 После деплоя, в браузере с активной сессией:
 
 ```text
-https://j3ynet.site/spa/index.html#/items/<uuid>
+https://j3ynet.site/spa/items/<uuid>
 ```
 
 UUID можно взять из `/api/v1/items?limit=5` или из локальной базы desktop.

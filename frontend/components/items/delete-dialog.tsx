@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useState } from "react";
 
 import { Button, Dialog } from "@/components/ui";
@@ -21,7 +21,7 @@ export function DeleteDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { notifyError } = useToast();
   const [pending, setPending] = useState(false);
 

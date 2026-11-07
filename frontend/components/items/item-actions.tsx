@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -16,7 +16,7 @@ export function ItemActions({
   itemId: string;
   title: string;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const [confirming, setConfirming] = useState(false);
 
   const { t } = useI18n();

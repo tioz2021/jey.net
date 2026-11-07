@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useState } from "react";
 
 import { Button, Card, Input } from "@/components/ui";
@@ -12,7 +12,7 @@ import styles from "./record-editor.module.css";
 
 /** One compact form for the action date, progress and film rewatches. */
 export function RecordEditor({ item }: { item: Item }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { t } = useI18n();
   const unit = item.kind === "book" ? "page" : "hour";
   const hasProgress = ["book", "game"].includes(item.kind);

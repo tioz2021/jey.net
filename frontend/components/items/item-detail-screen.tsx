@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-
-import Link from "next/link";
 
 import { AddToCollection } from "@/components/add-to-collection";
 import { IconBook, IconFilm, IconGame, IconImage, IconOther, IconTv } from "@/components/icons";
@@ -19,6 +16,7 @@ import { SeriesEpisodes } from "@/components/items/series-episodes";
 import { SimilarItems } from "@/components/items/similar-items";
 import { Badge, Card } from "@/components/ui";
 import { api } from "@/lib/api";
+import { AppLink } from "@/lib/navigation";
 import { formatDate as formatDateI18n } from "@/lib/i18n";
 import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
@@ -26,7 +24,7 @@ import { STATUS_TONES } from "@/lib/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import type { Item, ItemNeighbors as ItemNeighborsResponse } from "@/lib/types";
 
-import styles from "./item-detail.module.css";
+import styles from "./item-detail-screen.module.css";
 
 const KIND_ICONS = {
   movie: IconFilm,
@@ -41,9 +39,13 @@ const KIND_ICONS = {
 const dateFormat = new Intl.DateTimeFormat("ru-RU", { dateStyle: "long", timeStyle: "short" });
 const formatDate = (value: string) => dateFormat.format(new Date(value));
 
-export function ItemDetailScreen() {
-  const { id = "" } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
+export function ItemDetailScreen({
+  id,
+  searchParams,
+}: {
+  id: string;
+  searchParams: URLSearchParams;
+}) {
   const { locale, t } = useI18n();
   const [item, setItem] = useState<Item | null>(null);
   const [neighbors, setNeighbors] = useState<ItemNeighborsResponse | null>(null);
@@ -66,7 +68,7 @@ export function ItemDetailScreen() {
     return () => { cancelled = true; };
   }, [id, queryString, searchParams]);
 
-  if (error) return <main className={styles.page}><Card title={t("item.loadErrorTitle")}><p className={styles.muted}>{t("item.loadErrorText")}</p><p><Link href="/items">← К записям</Link></p></Card></main>;
+  if (error) return <main className={styles.page}><Card title={t("item.loadErrorTitle")}><p className={styles.muted}>{t("item.loadErrorText")}</p><p><AppLink href="/items">← К записям</AppLink></p></Card></main>;
   if (!item) return <main className={styles.page}><p className={styles.muted}>Загрузка…</p></main>;
 
   const displayTitle = localizedTitle(item, locale);
@@ -79,7 +81,7 @@ export function ItemDetailScreen() {
   return (
     <main>
       <header className={styles.heading}>
-        <Link className={styles.back} href={backHref}>{t("item.back")}</Link>
+        <AppLink className={styles.back} href={backHref}>{t("item.back")}</AppLink>
         <p className={styles.kicker}>{t(KIND_KEYS[item.kind])}</p>
         <h1 className={styles.title}>{displayTitle}{item.year ? <span className={styles.year}> ({item.year})</span> : null}</h1>
         {displaySubtitle ? <p className={styles.subtitle}>{displaySubtitle}</p> : null}

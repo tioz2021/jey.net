@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useMemo, useState } from "react";
 
 import { Button, Card } from "@/components/ui";
@@ -20,7 +20,7 @@ function initialWatched(item: Item): Set<number> {
 }
 
 export function AnimeEpisodes({ item }: { item: Item }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { t } = useI18n();
   const total =
     item.details?.progress?.total ?? item.details?.number_of_episodes ?? null;

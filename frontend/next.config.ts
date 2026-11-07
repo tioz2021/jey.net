@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
         source: "/health/ready",
         destination: `${backendUrl}/health/ready`,
       },
+      // SPA shadow route. Only page URLs are rewritten; /spa/assets stays static.
+      { source: "/spa/items/:path*", destination: "/spa/index.html" },
+      { source: "/spa", destination: "/spa/index.html" },
       // Covers and avatars are served by the API as well.
       {
         source: "/media/:path*",

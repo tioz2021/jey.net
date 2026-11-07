@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import "@/app/globals.css";
 import { SiteHeader } from "@/components/site-header";
@@ -9,7 +9,7 @@ import { LocaleProvider } from "@/lib/locale-context";
 import { UserProvider } from "@/lib/user-context";
 
 import { Home } from "./screens/Home";
-import { ItemDetailScreen } from "./screens/ItemDetailScreen";
+import { ItemDetailRoute } from "./screens/ItemDetailRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -17,12 +17,12 @@ createRoot(document.getElementById("root")!).render(
       <UserProvider>
       <ToastProvider>
       <SiteHeader />
-      <HashRouter>
+      <BrowserRouter basename="/spa">
         <Routes>
-          <Route path="/items/:id" element={<ItemDetailScreen />} />
+          <Route path="/items/:id" element={<ItemDetailRoute />} />
           <Route path="*" element={<Home />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
       </ToastProvider>
       </UserProvider>
     </LocaleProvider>
