@@ -6,6 +6,20 @@ import { useI18n } from "@/lib/locale-context";
 
 import styles from "./google-sign-in.module.css";
 
+function describeError(cause: unknown): string {
+  if (cause instanceof ArrayBuffer) {
+    const text = new TextDecoder().decode(cause).trim();
+    return text || "Ошибка Tauri";
+  }
+  if (ArrayBuffer.isView(cause)) {
+    const text = new TextDecoder().decode(cause as ArrayBufferView).trim();
+    return text || "Ошибка Tauri";
+  }
+  if (cause instanceof Error) return cause.message;
+  if (typeof cause === "string") return cause;
+  try { return JSON.stringify(cause); } catch { return String(cause); }
+}
+
 export function GoogleSignIn({ label, next }: { label?: string; next?: string }) {
   const { t } = useI18n();
   const [pending, setPending] = useState(false);
@@ -22,7 +36,8 @@ export function GoogleSignIn({ label, next }: { label?: string; next?: string })
       window.sessionStorage.setItem("jey-after-login", next ?? "/items");
       window.location.assign("/");
     } catch (cause) {
-      setError(String(cause));
+      console.error("desktop google sign-in failed", cause);
+      setError(describeError(cause));
       setPending(false);
     }
   }
