@@ -13,11 +13,11 @@ export interface ClientSource {
 /** Browser data source for the shared catalogue. */
 export const httpClientSource: ClientSource = {
   async list() {
-    const response = await api.items.list({ limit: 200 });
+    const response = await api.items.list({ limit: 100 });
     return response.items;
   },
   async search(query) {
-    const response = await api.items.list({ q: query, limit: 200 });
+    const response = await api.items.list({ q: query, limit: 100 });
     return response.items;
   },
   async create(input) {
