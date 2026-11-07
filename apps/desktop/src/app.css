@@ -150,3 +150,13 @@ body { margin: 0; background: var(--color-surface); }
   margin: 0 auto;
   padding: 1rem;
 }
+
+
+.desktop-sync-result {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text);
+  background: var(--color-accent-soft);
+  border-left: 3px solid var(--color-accent);
+  font-size: var(--text-sm);
+}

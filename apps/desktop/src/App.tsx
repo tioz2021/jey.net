@@ -45,6 +45,7 @@ export function App() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [action, setAction] = useState("");
+  const [syncMessage, setSyncMessage] = useState("");
   const [syncStatus, setSyncStatus] = useState<{ changes_after: number; last_seq: number } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [selected, setSelected] = useState<LocalItem | null>(null);
@@ -184,8 +185,9 @@ export function App() {
     setSyncing(true);
     setError("");
     try {
-      const report = await invoke<{ pushed: number; pulled: number; conflicts: number; last_seq: number }>("local_sync");
-      setAction(`Sync: отправлено ${report.pushed}, получено ${report.pulled}, конфликтов ${report.conflicts}`);
+      const report = await invoke<{ pushed: number; pulled: number; conflicts: number; media: number; last_seq: number }>("local_sync");
+      const summary = `Синхронизировано: отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}, конфликтов ${report.conflicts}`;
+      setSyncMessage(report.pushed + report.pulled + report.media === 0 ? `${summary} — изменений не было` : summary);
       setSyncStatus({ changes_after: 0, last_seq: report.last_seq });
       await load();
     } catch (cause) {
@@ -394,6 +396,7 @@ export function App() {
             </div>
           ) : null}
           {error ? <p className="desktop-error">{error}</p> : null}
+          {syncMessage ? <p className="desktop-sync-result">{syncMessage}</p> : null}
           {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
           <ul className="desktop-list">
             {visibleItems.map((item) => (
