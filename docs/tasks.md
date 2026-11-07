@@ -114,7 +114,7 @@
 | T111 | Windows/Linux, подпись, автообновление | — | следующая после T122 |
 | T105 | Релиз 0.3.0 | — | после T111 |
 | T124 | Единый контракт поиска | 07.11.2026 | `afb68ab` |
-| T122 | Desktop UX stabilization | в работе | detail screen |
+| T122 | Desktop UX stabilization | 07.11.2026 | pending |
 | T121 | UI parity с вебом | 07.11.2026 | `4be0afd` |
 | T102 | Sync и уведомления | 07.11.2026 | `e4d1d97` |
 | T120 | Google-вход в desktop | 07.11.2026 | `f78b51a` |

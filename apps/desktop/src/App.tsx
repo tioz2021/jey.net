@@ -308,6 +308,44 @@ export function App() {
     );
   }
 
+  if (creating) {
+    return (
+      <main className="desktop-app">
+        <header className="desktop-topbar">
+          <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+          <div className="desktop-actions">
+            <Button variant="secondary" size="sm" onClick={() => setCreating(false)}>← Назад к записям</Button>
+          </div>
+        </header>
+        <div className="desktop-detail">
+          <PageHeader title="Добавить запись" />
+          <Card title="Новая запись">
+            <form className="desktop-form desktop-form-column" onSubmit={create}>
+              <Select label="Тип" value={newKind} onChange={(event) => setNewKind(event.target.value as ItemKind)}>
+                <option value="movie">Фильм</option>
+                <option value="tv">Сериал</option>
+                <option value="anime">Аниме</option>
+                <option value="book">Книга</option>
+                <option value="game">Игра</option>
+              </Select>
+              <Input autoFocus label="Название" value={newTitle} onChange={(event) => setNewTitle(event.target.value)} required maxLength={300} />
+              <Select label="Статус" value={newStatus} onChange={(event) => setNewStatus(event.target.value as ItemStatus)}>
+                <option value="planned">Запланировано</option>
+                <option value="in_progress">В процессе</option>
+                <option value="done">Готово</option>
+                <option value="dropped">Брошено</option>
+              </Select>
+              <div className="desktop-actions">
+                <Button loading={busy} type="submit">Добавить</Button>
+                <Button onClick={() => setCreating(false)} type="button" variant="secondary">Отмена</Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      </main>
+    );
+  }
+
   if (selected) {
     return (
       <main className="desktop-app">
@@ -357,18 +395,23 @@ export function App() {
         </nav>
         <div className="desktop-actions">
           <Button loading={syncing} size="sm" onClick={() => void sync()}>{syncing ? "Синхронизация…" : "Синхронизировать"}</Button>
-          <Button variant="secondary" size="sm" onClick={async () => {
-            const report = await invoke<{ path: string }>("local_export_json");
-            setAction(`Экспорт: ${report.path}`);
-          }}>Экспорт JSON</Button>
-          <Button variant="secondary" size="sm" onClick={async () => {
-            const report = await invoke<{ path: string; items: number; media_files: number }>("local_backup");
-            setAction(`Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`);
-          }}>Бэкап</Button>
-          <Button variant="secondary" size="sm" onClick={async () => {
-            await invoke("local_sign_out");
-            setAccess(null);
-          }}>Выйти</Button>
+          <details className="desktop-tools-menu">
+            <summary aria-label="Дополнительные действия">⋯</summary>
+            <div className="desktop-tools-popover">
+              <Button variant="secondary" size="sm" onClick={async () => {
+                const report = await invoke<{ path: string }>("local_export_json");
+                setAction(`Экспорт: ${report.path}`);
+              }}>Экспорт JSON</Button>
+              <Button variant="secondary" size="sm" onClick={async () => {
+                const report = await invoke<{ path: string; items: number; media_files: number }>("local_backup");
+                setAction(`Бэкап: ${report.path} · ${report.items} записей · ${report.media_files} файлов`);
+              }}>Бэкап</Button>
+              <Button variant="secondary" size="sm" onClick={async () => {
+                await invoke("local_sign_out");
+                setAccess(null);
+              }}>Выйти</Button>
+            </div>
+          </details>
         </div>
       </header>
 
@@ -392,7 +435,7 @@ export function App() {
           </Card>
           <Card title="Фильтры">
             <div className="desktop-filter-form">
-              <Input label="Поиск" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название, автор или заметка" />
+              <Input label="Поиск" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название или автор" />
               <Select label="Статус" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ItemStatus | "")}>
                 <option value="">Любой статус</option>
                 <option value="planned">Запланировано</option>
@@ -400,7 +443,7 @@ export function App() {
                 <option value="done">Готово</option>
                 <option value="dropped">Брошено</option>
               </Select>
-              <Button onClick={() => { setKindFilter(null); setStatusFilter(""); setQuery(""); }} type="button" variant="secondary">Сбросить фильтры</Button>
+              <Button onClick={() => { setKindFilter(null); setStatusFilter(""); setQuery(""); }} type="button" variant="secondary">Сбросить</Button>
             </div>
           </Card>
         </aside>
@@ -430,42 +473,13 @@ export function App() {
                     onOpen={() => openItem(item)}
                   />
                 </CardBoundary>
-                <div className="desktop-actions">
-                  <Button size="sm" variant="secondary" onClick={() => openItem(item)}>Открыть</Button>
-                  <Button size="sm" variant="secondary" onClick={async () => {
-                    if (!window.confirm(`Удалить «${item.title}»?`)) return;
-                    await tauriSource.delete(item.id);
-                    await load();
-                  }}>Удалить</Button>
-                </div>
+
               </li>
             ))}
           </ul>
           {visibleItems.length === 0 ? <p className="desktop-empty">Записей пока нет.</p> : null}
         </div>
       </div>
-
-      {creating ? (
-        <div className="desktop-modal-backdrop" onMouseDown={() => setCreating(false)}>
-          <div className="desktop-modal" onMouseDown={(event) => event.stopPropagation()}>
-            <Card title="Добавить запись">
-              <form className="desktop-form desktop-form-column" onSubmit={create}>
-                <Select label="Тип" value={newKind} onChange={(event) => setNewKind(event.target.value as ItemKind)}>
-                  <option value="movie">Фильм</option><option value="tv">Сериал</option><option value="anime">Аниме</option><option value="book">Книга</option><option value="game">Игра</option>
-                </Select>
-                <Input autoFocus label="Название" value={newTitle} onChange={(event) => setNewTitle(event.target.value)} required maxLength={300} />
-                <Select label="Статус" value={newStatus} onChange={(event) => setNewStatus(event.target.value as ItemStatus)}>
-                  <option value="planned">Запланировано</option><option value="in_progress">В процессе</option><option value="done">Готово</option><option value="dropped">Брошено</option>
-                </Select>
-                <div className="desktop-actions">
-                  <Button loading={busy} type="submit">Добавить</Button>
-                  <Button onClick={() => setCreating(false)} type="button" variant="secondary">Отмена</Button>
-                </div>
-              </form>
-            </Card>
-          </div>
-        </div>
-      ) : null}
     </main>
   );
 }
