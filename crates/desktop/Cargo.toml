@@ -30,6 +30,7 @@ rand = "0.9"
 sha2 = "0.10"
 tiny_http = "0.12"
 webbrowser = "1"
+rfd = "0.15"
 tauri = { version = "2", optional = true , features = [] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

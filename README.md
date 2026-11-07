@@ -86,6 +86,7 @@ cd apps/web && npm run build
 | [docs/protocol.md](docs/protocol.md) | Полный текстовый контракт HTTP API |
 | [docs/sync.md](docs/sync.md) | Протокол синхронизации (этап M8) |
 | [docs/deploy.md](docs/deploy.md) | Провижининг, Postgres, systemd, Caddy, секреты |
+| [docs/install.md](docs/install.md) | Установка desktop: AppImage, deb, Windows NSIS |
 | [docs/monitoring.md](docs/monitoring.md) | Health-check, алерты, ротация логов |
 | [docs/security.md](docs/security.md) | Аудит безопасности и остаточные риски |
 | [docs/perf.md](docs/perf.md) | Нагрузочные тесты и LCP |

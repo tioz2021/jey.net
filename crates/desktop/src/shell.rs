@@ -1,7 +1,6 @@
 //! Tauri window, local library commands and first online login.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -79,27 +78,12 @@ fn local_storage_info(state: State<'_, DesktopState>) -> Result<Value, String> {
 
 #[tauri::command]
 fn local_choose_data_dir(state: State<'_, DesktopState>) -> Result<Value, String> {
-    let output = Command::new("zenity")
-        .args([
-            "--file-selection",
-            "--directory",
-            "--title=Папка данных jey.net",
-        ])
-        .output()
-        .or_else(|_| {
-            Command::new("kdialog")
-                .args(["--getexistingdirectory"])
-                .output()
-        })
-        .map_err(|error| format!("Не удалось открыть выбор папки: {error}"))?;
-    if !output.status.success() {
+    let Some(target) = rfd::FileDialog::new()
+        .set_title("Папка данных jey.net")
+        .pick_folder()
+    else {
         return Ok(json!({ "cancelled": true }));
-    }
-    let path = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-    if path.is_empty() {
-        return Ok(json!({ "cancelled": true }));
-    }
-    let target = PathBuf::from(path);
+    };
     let current = state.store.path().parent().unwrap_or(Path::new("."));
     if target == current {
         return Ok(json!({ "data_dir": current, "restart": false }));
