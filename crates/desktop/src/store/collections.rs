@@ -141,3 +141,25 @@ impl DesktopStore {
             .map_err(StoreError::Sql)
     }
 }
+
+impl DesktopStore {
+    pub fn upsert_collection(
+        &self,
+        user_id: Uuid,
+        id: &str,
+        title: &str,
+        slug: &str,
+        visibility: &str,
+        created_at: i64,
+    ) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        connection.execute(
+            "insert into collections (id, user_id, title, slug, visibility, created_at, updated_at)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?6)
+             on conflict(id) do update set title = excluded.title, slug = excluded.slug,
+               visibility = excluded.visibility, updated_at = excluded.updated_at",
+            params![id, user_id.to_string(), title, slug, visibility, created_at],
+        )?;
+        Ok(())
+    }
+}

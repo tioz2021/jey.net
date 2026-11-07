@@ -28,6 +28,7 @@ pub mod stats;
 pub mod sync_conflicts;
 pub mod sync_pull;
 pub mod sync_push;
+pub mod sync_social;
 pub mod sync_status;
 pub mod system;
 pub mod telemetry;

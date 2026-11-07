@@ -110,3 +110,29 @@ impl DesktopStore {
             .map_err(StoreError::Sql)
     }
 }
+
+impl DesktopStore {
+    #[allow(clippy::too_many_arguments)]
+    pub fn upsert_comment(
+        &self,
+        id: &str,
+        user_id: &str,
+        item_id: &str,
+        parent_id: Option<&str>,
+        body: &str,
+        created_at: i64,
+        deleted_at: Option<i64>,
+    ) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        connection.execute(
+            "insert into comments (id, user_id, item_id, parent_id, body, created_at, deleted_at)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             on conflict(id) do update set body = excluded.body,
+               parent_id = excluded.parent_id, deleted_at = excluded.deleted_at",
+            params![
+                id, user_id, item_id, parent_id, body, created_at, deleted_at
+            ],
+        )?;
+        Ok(())
+    }
+}

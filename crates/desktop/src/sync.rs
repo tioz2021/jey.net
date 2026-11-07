@@ -354,6 +354,105 @@ impl SyncService {
                 return Err(api_error(response).await);
             }
         }
+
+        if let Ok(profile) = self.store.local_profile(self.user_id) {
+            let patch = json!({
+                "display_name": profile.get("display_name"),
+                "locale": profile.get("locale"),
+                "is_public": profile.get("is_public"),
+                "public_statuses": profile.get("public_statuses"),
+                "public_show_progress": profile.get("public_show_progress"),
+            });
+            let response = self
+                .headers(self.client.patch(format!("{}/api/v1/me", self.server)))
+                .json(&patch)
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            if !response.status().is_success() {
+                return Err(api_error(response).await);
+            }
+        }
+
+        let response = self
+            .headers(
+                self.client
+                    .get(format!("{}/api/v1/sync/social", self.server)),
+            )
+            .send()
+            .await
+            .map_err(|error| error.to_string())?;
+        if !response.status().is_success() {
+            return Err(api_error(response).await);
+        }
+        let body: Value = response.json().await.map_err(|error| error.to_string())?;
+        for collection in body
+            .get("collections")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            let id = collection
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let title = collection
+                .get("title")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let slug = collection
+                .get("slug")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let visibility = collection
+                .get("visibility")
+                .and_then(Value::as_str)
+                .unwrap_or("private");
+            let created_at = collection
+                .get("created_at")
+                .and_then(Value::as_i64)
+                .unwrap_or_default();
+            self.store
+                .upsert_collection(self.user_id, id, title, slug, visibility, created_at)
+                .map_err(|error| error.to_string())?;
+        }
+        for comment in body
+            .get("comments")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            let id = comment
+                .get("id")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let item_id = comment
+                .get("item_id")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let parent_id = comment.get("parent_id").and_then(Value::as_str);
+            let body_text = comment
+                .get("body")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let author = comment
+                .get("user_id")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let created_at = comment
+                .get("created_at")
+                .and_then(Value::as_i64)
+                .unwrap_or_default();
+            let deleted_at = comment.get("deleted_at").and_then(Value::as_i64);
+            self.store
+                .upsert_comment(
+                    id, author, item_id, parent_id, body_text, created_at, deleted_at,
+                )
+                .map_err(|error| error.to_string())?;
+        }
+        if let Some(profile) = body.get("profile") {
+            let _ = self.store.save_local_profile(self.user_id, profile);
+        }
         Ok(())
     }
 
