@@ -10,5 +10,6 @@ const frontendModules = resolve(frontendRoot, "node_modules");
 // Shared components live outside apps/web. Give TypeScript and Vite one
 // dependency tree without maintaining a second node_modules for frontend/.
 if (!existsSync(frontendModules)) {
-  symlinkSync(sharedModules, frontendModules, "dir");
+  // Windows runners disallow symlink without Developer Mode; junction works.
+  symlinkSync(sharedModules, frontendModules, process.platform === "win32" ? "junction" : "dir");
 }

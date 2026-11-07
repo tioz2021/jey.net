@@ -15,6 +15,10 @@ export default defineConfig({
     // Exact aliases must come before the broad `@` prefix. If `@` wins first,
     // ItemCard imports the web UserProvider and throws outside it.
     alias: [
+      { find: /^react$/, replacement: path.resolve(here, "node_modules/react") },
+      { find: /^react\/jsx-runtime$/, replacement: path.resolve(here, "node_modules/react/jsx-runtime") },
+      { find: /^react-dom$/, replacement: path.resolve(here, "node_modules/react-dom") },
+      { find: /^react-dom\/client$/, replacement: path.resolve(here, "node_modules/react-dom/client") },
       { find: "next/link", replacement: path.resolve(here, "src/shims/next-link.tsx") },
       { find: "next/navigation", replacement: path.resolve(here, "src/shims/next-navigation.tsx") },
       { find: "@", replacement: frontend },

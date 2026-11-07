@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
@@ -14,11 +18,33 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["../../frontend/*"],
-      "next/link": ["src/shims/next-link.tsx"],
-      "next/navigation": ["src/shims/next-navigation.tsx"]
+      "@/*": [
+        "../../frontend/*"
+      ],
+      "next/link": [
+        "src/shims/next-link.tsx"
+      ],
+      "next/navigation": [
+        "src/shims/next-navigation.tsx"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react/jsx-runtime": [
+        "./node_modules/@types/react/jsx-runtime"
+      ],
+      "react-dom": [
+        "./node_modules/@types/react-dom"
+      ],
+      "react-dom/client": [
+        "./node_modules/@types/react-dom/client"
+      ]
     },
-    "types": ["vite/client"]
+    "types": [
+      "vite/client"
+    ]
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }
