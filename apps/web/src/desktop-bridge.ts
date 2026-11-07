@@ -88,7 +88,9 @@ export function installDesktopBridge() {
       return json({ items: items.filter((item) => (!kind || item.kind === kind) && (!status || item.status === status)), next_cursor: null });
     }
     if (path === "/api/v1/items" && method === "POST") {
-      return json({ item: await api.invoke<Item>("local_create_item", { newItem: body }) });
+      const result = { item: await api.invoke<Item>("local_create_item", { newItem: body }) };
+      window.dispatchEvent(new Event("jey:sync-needed"));
+      return json(result);
     }
     if (path === "/api/v1/stats") return json(statsFrom(await api.invoke<Item[]>("local_list_items", { query: null })));
 
@@ -161,6 +163,7 @@ export function installDesktopBridge() {
       }
       if (method === "DELETE") {
         await api.invoke<boolean>("local_delete_item", { id });
+        window.dispatchEvent(new Event("jey:sync-needed"));
         return new Response(null, { status: 204 });
       }
     }

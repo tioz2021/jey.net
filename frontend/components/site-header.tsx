@@ -16,6 +16,7 @@ import {
 } from "@/components/icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { QuickAdd } from "@/components/quick-add";
+import { DesktopSync } from "@/components/desktop-sync";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -83,6 +84,7 @@ export function SiteHeader() {
             <>
               <div className={styles.tools}>
                 <QuickAdd />
+                <DesktopSync />
                 <ThemeToggle />
               </div>
 

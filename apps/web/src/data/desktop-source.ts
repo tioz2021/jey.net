@@ -51,7 +51,9 @@ export const desktopCatalogueSource: CatalogueSource = {
   },
   create: (input) => invoke()<Item>("local_create_item", { newItem: input }),
   async update(id, patch) {
-    return invoke()<Item | null>("local_update_item", { id, title: patch.title ?? null, status: patch.status ?? null, rating: patch.rating ?? null, review: patch.review ?? null });
+    const item = await invoke()<Item | null>("local_update_item", { id, title: patch.title ?? null, status: patch.status ?? null, rating: patch.rating ?? null, review: patch.review ?? null });
+    window.dispatchEvent(new Event("jey:sync-needed"));
+    return item;
   },
   delete: (id) => invoke()<boolean>("local_delete_item", { id }),
   coverData: (key) => invoke()<string | null>("local_cover_data", { key }),
