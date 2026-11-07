@@ -75,11 +75,11 @@ export function App() {
     if (status.has_access) await load();
   }
 
-  async function load(search = query) {
+  async function load() {
     try {
       setError("");
       const [nextItems, db] = await Promise.all([
-        tauriSource.list(search || undefined) as Promise<LocalItem[]>,
+        tauriSource.list() as Promise<LocalItem[]>,
         invoke<{ path: string; outbox: number; schema_version: number; media_files: number }>("local_db_status"),
       ]);
       // Media cache arrives in T109; until then a remote /media URL would be a
@@ -129,28 +129,29 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [access?.has_access]);
 
-  useEffect(() => {
-    if (!access?.has_access) return;
-    const timer = window.setTimeout(() => void load(query), 180);
-    return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
-
   const counts = useMemo(() => {
     const result = new Map<string, number>();
     for (const item of items) result.set(item.kind, (result.get(item.kind) ?? 0) + 1);
     return result;
   }, [items]);
 
-  const visibleItems = useMemo(
-    () =>
-      items.filter(
-        (item) =>
-          (!kindFilter || item.kind === kindFilter) &&
-          (!statusFilter || item.status === statusFilter),
-      ),
-    [items, kindFilter, statusFilter],
-  );
+  const visibleItems = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase();
+    return items.filter((item) => {
+      if (kindFilter && item.kind !== kindFilter) return false;
+      if (statusFilter && item.status !== statusFilter) return false;
+      if (!needle) return true;
+      const haystack = [
+        item.title,
+        item.subtitle ?? "",
+        item.review ?? "",
+        JSON.stringify(item.details ?? {}),
+      ]
+        .join(" ")
+        .toLocaleLowerCase();
+      return haystack.includes(needle);
+    });
+  }, [items, kindFilter, statusFilter, query]);
 
   const displayItems = visibleItems.map((item) => ({
     ...item,
