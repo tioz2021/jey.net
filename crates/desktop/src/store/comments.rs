@@ -6,6 +6,13 @@ use uuid::Uuid;
 
 use super::{DesktopStore, StoreError};
 
+pub struct CommentSyncRow {
+    pub id: String,
+    pub item_id: String,
+    pub parent_id: Option<String>,
+    pub body: String,
+}
+
 impl DesktopStore {
     pub fn list_comments(
         &self,
@@ -81,5 +88,25 @@ impl DesktopStore {
             params![id, user_id.to_string(), super::now_millis()],
         )?;
         Ok(())
+    }
+}
+
+impl DesktopStore {
+    pub fn comments_for_sync(&self, user_id: Uuid) -> Result<Vec<CommentSyncRow>, StoreError> {
+        let connection = self.connection()?;
+        let mut statement = connection.prepare(
+            "select id, item_id, parent_id, body from comments
+             where user_id = ?1 and deleted_at is null order by created_at asc",
+        )?;
+        let rows = statement.query_map([user_id.to_string()], |row| {
+            Ok(CommentSyncRow {
+                id: row.get(0)?,
+                item_id: row.get(1)?,
+                parent_id: row.get(2)?,
+                body: row.get(3)?,
+            })
+        })?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(StoreError::Sql)
     }
 }

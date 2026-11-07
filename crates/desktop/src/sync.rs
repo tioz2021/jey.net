@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::access::AccessStore;
 use crate::session_store::SessionStore;
+use crate::store::comments::CommentSyncRow;
 use crate::store::{DesktopStore, RemoteChange};
 
 const PROTOCOL: &str = "1";
@@ -276,6 +277,9 @@ impl SyncService {
             }
         }
 
+        if let Err(error) = self.sync_social().await {
+            eprintln!("social sync skipped: {error}");
+        }
         let media = self.cache_media().await?;
         let last_seq = self
             .store
@@ -288,6 +292,69 @@ impl SyncService {
             media,
             last_seq,
         })
+    }
+
+    async fn sync_social(&self) -> Result<(), String> {
+        for (id, title, visibility) in self
+            .store
+            .collections_for_sync(self.user_id)
+            .map_err(|error| error.to_string())?
+        {
+            let response = self
+                .headers(
+                    self.client
+                        .post(format!("{}/api/v1/collections", self.server)),
+                )
+                .json(&json!({ "id": id, "title": title, "visibility": visibility }))
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+                return Err(api_error(response).await);
+            }
+            for item_id in self
+                .store
+                .collection_item_ids(self.user_id, &id)
+                .map_err(|error| error.to_string())?
+            {
+                let response = self
+                    .headers(self.client.put(format!(
+                        "{}/api/v1/collections/{id}/items/{item_id}",
+                        self.server
+                    )))
+                    .send()
+                    .await
+                    .map_err(|error| error.to_string())?;
+                if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+                    return Err(api_error(response).await);
+                }
+            }
+        }
+        for comment in self
+            .store
+            .comments_for_sync(self.user_id)
+            .map_err(|error| error.to_string())?
+        {
+            let CommentSyncRow {
+                id,
+                item_id,
+                parent_id,
+                body,
+            } = comment;
+            let response = self
+                .headers(self.client.post(format!(
+                    "{}/api/v1/public/users/{}/items/{item_id}/comments",
+                    self.server, self.user_id
+                )))
+                .json(&json!({ "id": id, "body": body, "parent_id": parent_id }))
+                .send()
+                .await
+                .map_err(|error| error.to_string())?;
+            if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+                return Err(api_error(response).await);
+            }
+        }
+        Ok(())
     }
 
     async fn cache_media(&self) -> Result<usize, String> {

@@ -12,7 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use rusqlite::{Connection, OptionalExtension, params};
 
 mod collections;
-mod comments;
+pub mod comments;
 mod export;
 mod media;
 mod repository;

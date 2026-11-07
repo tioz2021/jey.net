@@ -124,3 +124,20 @@ impl DesktopStore {
             .collect()
     }
 }
+
+impl DesktopStore {
+    pub fn collections_for_sync(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<(String, String, String)>, StoreError> {
+        let connection = self.connection()?;
+        let mut statement = connection.prepare(
+            "select id, title, visibility from collections where user_id = ?1 order by created_at asc",
+        )?;
+        let rows = statement.query_map([user_id.to_string()], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+        })?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(StoreError::Sql)
+    }
+}

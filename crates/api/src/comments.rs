@@ -15,6 +15,9 @@ use crate::users::notifications::{SocialNotification, notify_social};
 pub struct NewComment {
     pub body: String,
     pub parent_id: Option<Uuid>,
+    /// Supplied by the desktop sync worker so local IDs stay stable.
+    #[serde(default)]
+    pub id: Option<Uuid>,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -213,7 +216,18 @@ pub async fn create(
             ));
         }
     }
-    let id = Uuid::new_v4();
+    let id = payload.id.unwrap_or_else(Uuid::new_v4);
+    if payload.id.is_some() {
+        let exists: bool =
+            sqlx::query_scalar("select exists(select 1 from comments where id = $1)")
+                .bind(id)
+                .fetch_one(&state.pool)
+                .await
+                .map_err(AppError::internal)?;
+        if exists {
+            return Err(AppError::conflict("comment already exists"));
+        }
+    }
     sqlx::query(
         "insert into comments (id, item_id, user_id, parent_id, body)
          values ($1, $2, $3, $4, $5)",

@@ -17,6 +17,9 @@ pub struct CollectionInput {
     pub title: String,
     #[serde(default)]
     pub visibility: Option<String>,
+    /// Supplied by the desktop sync worker so local IDs stay stable.
+    #[serde(default)]
+    pub id: Option<Uuid>,
 }
 
 fn clean_title(raw: &str) -> Result<String, AppError> {
@@ -95,7 +98,18 @@ pub async fn create(
         base
     };
 
-    let id = Uuid::new_v4();
+    let id = input.id.unwrap_or_else(Uuid::new_v4);
+    if input.id.is_some() {
+        let exists: bool =
+            sqlx::query_scalar("select exists(select 1 from collections where id = $1)")
+                .bind(id)
+                .fetch_one(&state.pool)
+                .await
+                .map_err(AppError::internal)?;
+        if exists {
+            return Err(AppError::conflict("collection already exists"));
+        }
+    }
     let mut suffix = 0;
     let slug = loop {
         let candidate = if suffix == 0 {
