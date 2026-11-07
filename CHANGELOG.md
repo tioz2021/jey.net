@@ -3,6 +3,13 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.9] — 2026-11-08
+
+### Исправлено
+
+- Windows-сборка использует GUI-подсистему (`windows_subsystem = "windows"`),
+  а не консольную; при запуске не должно открываться чёрное окно терминала.
+
 ## [0.3.8] — 2026-11-08
 
 ### Исправлено
