@@ -110,6 +110,7 @@ async fn local_proxy(
         reqwest::Method::from_bytes(method.as_bytes()).map_err(|error| error.to_string())?;
     let mut request = reqwest::Client::new()
         .request(method, format!("{}{}", grant.server_url, path))
+        .header("Origin", &grant.server_url)
         .header("Cookie", format!("jey_session={token}"));
     if let Some(body) = body {
         request = request.json(&body);
