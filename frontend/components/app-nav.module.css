@@ -78,9 +78,12 @@
 
 @media (width > 1000px) {
   .column {
-    max-height: none;
-    padding-right: 0;
-    overflow: visible;
+    max-height: calc(100vh - 80px);
+    padding-right: 2px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 }
 
@@ -88,6 +91,8 @@
 @media (width <= 1000px) {
   .column {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .nav {
