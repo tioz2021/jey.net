@@ -53,7 +53,10 @@ export function installDesktopBridge() {
         try { return json({ user: await api.invoke("local_refresh_profile") }); }
         catch { return json({ user: await api.invoke("local_profile") }); }
       }
-      if (method === "PATCH") return json({ user: await api.invoke("local_update_profile", { input: body }) });
+      if (method === "PATCH") {
+        try { return await remote("PATCH", "/api/v1/me", body); }
+        catch { return json({ user: await api.invoke("local_update_profile", { input: body }) }); }
+      }
     }
     if (path === "/api/v1/auth/logout" || path === "/api/v1/auth/logout-all") {
       await api.invoke("local_sign_out");
