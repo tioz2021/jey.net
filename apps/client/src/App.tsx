@@ -1,22 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { ItemCard } from "@/components/items/item-card";
 import { Logo } from "@/components/logo";
-import {
-  IconAnime,
-  IconBook,
-  IconFilm,
-  IconGame,
-  IconList,
-  IconTv,
-} from "@/components/icons";
 import { Button, Card, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
-import { CardBoundary } from "./CardBoundary";
 import { useItemSource } from "./data/source-context";
 import type { LocalItem } from "./data/source";
+import { CatalogPage } from "./screens/CatalogPage";
 import "./app.css";
 
 type Access = {
@@ -24,15 +15,6 @@ type Access = {
   user_id?: string;
   server_url?: string;
 };
-
-const KINDS: Array<{ kind: ItemKind | null; label: string; Icon: typeof IconList }> = [
-  { kind: null, label: "Все записи", Icon: IconList },
-  { kind: "movie", label: "Фильмы", Icon: IconFilm },
-  { kind: "tv", label: "Сериалы", Icon: IconTv },
-  { kind: "anime", label: "Аниме", Icon: IconAnime },
-  { kind: "book", label: "Книги", Icon: IconBook },
-  { kind: "game", label: "Игры", Icon: IconGame },
-];
 
 export function App() {
   const { t } = useI18n();
@@ -415,72 +397,27 @@ export function App() {
           </details>
         </div>
       </header>
-
-      <div className="desktop-layout">
-        <aside className="desktop-sidebar">
-          <Card title="Типы">
-            <div className="desktop-type-list">
-              {KINDS.map(({ kind, label, Icon }) => (
-                <button
-                  className={`desktop-type ${kindFilter === kind ? "desktop-type-active" : ""}`}
-                  key={label}
-                  onClick={() => setKindFilter(kind)}
-                  type="button"
-                >
-                  <Icon size={14} />
-                  <span>{label}</span>
-                  <span className="desktop-type-count">{kind ? counts.get(kind) ?? 0 : items.length}</span>
-                </button>
-              ))}
-            </div>
-          </Card>
-          <Card title="Фильтры">
-            <div className="desktop-filter-form">
-              <Input label="Поиск" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название или автор" />
-              <Select label="Статус" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ItemStatus | "")}>
-                <option value="">Любой статус</option>
-                <option value="planned">Запланировано</option>
-                <option value="in_progress">В процессе</option>
-                <option value="done">Готово</option>
-                <option value="dropped">Брошено</option>
-              </Select>
-              <Button onClick={() => { setKindFilter(null); setStatusFilter(""); setQuery(""); }} type="button" variant="secondary">Сбросить</Button>
-            </div>
-          </Card>
-        </aside>
-
-        <div className="desktop-main">
-          <PageHeader
-            action={<Button onClick={() => setCreating(true)}>Добавить запись</Button>}
-            title={t("nav.items")}
-          />
-          {syncStatus && syncStatus.changes_after > 0 ? (
-            <div className="desktop-banner">
-              Есть изменения в вебе: {syncStatus.changes_after}.{" "}
-              <button className="desktop-banner-action" onClick={() => void sync()} type="button">Синхронизировать</button>
-            </div>
-          ) : null}
-          {error ? <p className="desktop-error">{error}</p> : null}
-          {syncMessage ? <p className="desktop-sync-result">{syncMessage}</p> : null}
-          {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
-          <ul className="desktop-list">
-            {displayItems.map((item) => (
-              <li key={item.id} className="desktop-list-item">
-                <CardBoundary title={item.title}>
-                  <ItemCard
-                    coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
-                    item={item as Item}
-                    href={`#${item.id}`}
-                    onOpen={() => openItem(item)}
-                  />
-                </CardBoundary>
-
-              </li>
-            ))}
-          </ul>
-          {visibleItems.length === 0 ? <p className="desktop-empty">Записей пока нет.</p> : null}
-        </div>
-      </div>
+      <CatalogPage
+        action={action}
+        counts={counts}
+        covers={covers}
+        displayItems={displayItems}
+        error={error}
+        items={items}
+        kindFilter={kindFilter}
+        onCreate={() => setCreating(true)}
+        onKindChange={setKindFilter}
+        onOpen={openItem}
+        onQueryChange={setQuery}
+        onReset={() => { setKindFilter(null); setStatusFilter(""); setQuery(""); }}
+        onStatusChange={setStatusFilter}
+        onSync={() => void sync()}
+        query={query}
+        statusFilter={statusFilter}
+        syncMessage={syncMessage}
+        syncStatus={syncStatus}
+        syncing={syncing}
+      />
     </main>
   );
 }

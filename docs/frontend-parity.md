@@ -62,11 +62,12 @@ crates/desktop/          Tauri + SQLite + sync
 - `main-web.tsx` — HTTP/BrowserRouter, ждёт подключения к Next;
 - Tauri `frontendDist` указывает на `apps/client/dist`.
 
-### T125.2 · Перенос списка и фильтров
+### T125.2 · Перенос списка и фильтров `[~]`
 
-- PageHeader, типы, фильтры, поиск, карточки;
-- list/detail/create;
-- web использует те же экраны.
+- T125.2a: `CatalogPage` вынесен из `App` и принимает данные/колбэки;
+- desktop использует `CatalogPage`;
+- следующий шаг: вынести `CatalogPage` в `frontend` и подключить
+  `/items` через HTTP source.
 
 ### T125.3 · Коллекции и настройки
 
