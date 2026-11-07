@@ -20,8 +20,6 @@ import { useUser } from "@/lib/user-context";
 import { STATUS_TONES } from "@/lib/labels";
 import type { ItemKind, ItemProgress, ItemStatus } from "@/lib/types";
 
-import { AddToCollection } from "@/components/add-to-collection";
-
 import { CardReaction } from "./card-reaction";
 import { ContinueLink } from "./continue-link";
 import { RestoreButton } from "./restore-button";
@@ -284,10 +282,9 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {footer || (user && target.startsWith("/items")) || (showContinue && (item.kind === "tv" || item.kind === "anime")) ? (
+        {footer || (showContinue && (item.kind === "tv" || item.kind === "anime")) ? (
           <div className={styles.cardFooter}>
             {footer}
-            {user && target.startsWith("/items") ? <AddToCollection compact itemId={item.id} /> : null}
             {showContinue && (item.kind === "tv" || item.kind === "anime") ? (
               <ContinueLink details={item.details} kind={item.kind} target={target} />
             ) : null}
