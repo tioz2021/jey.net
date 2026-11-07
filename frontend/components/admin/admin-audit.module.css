@@ -1,0 +1,117 @@
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.filter label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.filter select,
+.filter button {
+  min-height: 34px;
+  padding: 5px 8px;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.filter button {
+  cursor: pointer;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.table th,
+.table td {
+  padding: 7px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table td small {
+  display: block;
+  color: var(--color-text-muted);
+}
+
+.table code {
+  font-size: var(--text-xs);
+  word-break: break-word;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.table td {
+  padding: 10px 8px;
+  line-height: 1.45;
+  vertical-align: top;
+}
+
+.table td:nth-child(5) {
+  min-width: 260px;
+}
+
+.table td span {
+  overflow-wrap: anywhere;
+}
+
+.table {
+  min-width: 980px;
+}
+
+.table td:nth-child(6) {
+  min-width: 260px;
+}
+
+.json {
+  display: block;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.scrollBlock {
+  min-width: 0;
+}
+
+.topScroll {
+  height: 12px;
+  margin-bottom: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.topScrollInner {
+  height: 1px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
