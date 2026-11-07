@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { CardBoundary } from "../CardBoundary";
 import { ItemCard } from "@/components/items/item-card";
 import {
   IconAnime,
@@ -13,8 +12,9 @@ import {
 import { Button, Card, Input, PageHeader, Select } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus } from "@/lib/types";
+import styles from "./catalog-page.module.css";
 
-import type { LocalItem } from "../data/source";
+export type CatalogItem = Item & { pending?: boolean };
 
 export const KINDS: Array<{ kind: ItemKind | null; label: string; Icon: typeof IconList }> = [
   { kind: null, label: "Все записи", Icon: IconList },
@@ -26,8 +26,8 @@ export const KINDS: Array<{ kind: ItemKind | null; label: string; Icon: typeof I
 ];
 
 export interface CatalogPageProps {
-  items: LocalItem[];
-  displayItems: LocalItem[];
+  items: CatalogItem[];
+  displayItems: CatalogItem[];
   covers: Record<string, string>;
   counts: Map<string, number>;
   query: string;
@@ -37,15 +37,15 @@ export interface CatalogPageProps {
   syncMessage?: string;
   action?: string;
   syncStatus?: { changes_after: number; last_seq: number } | null;
-  syncing?: boolean;
   onQueryChange: (value: string) => void;
   onKindChange: (kind: ItemKind | null) => void;
   onStatusChange: (status: ItemStatus | "") => void;
   onReset: () => void;
   onCreate: () => void;
-  onOpen: (item: LocalItem) => void;
+  onOpen?: (item: CatalogItem) => void;
   onSync?: () => void;
   header?: ReactNode;
+  hrefFor?: (item: CatalogItem) => string;
 }
 
 /** Framework-neutral catalogue content; web and desktop provide their own shell. */
@@ -61,7 +61,6 @@ export function CatalogPage({
   syncMessage,
   action,
   syncStatus,
-  syncing = false,
   onQueryChange,
   onKindChange,
   onStatusChange,
@@ -70,26 +69,27 @@ export function CatalogPage({
   onOpen,
   onSync,
   header,
+  hrefFor,
 }: CatalogPageProps) {
   const { t } = useI18n();
 
   return (
     <>
       {header}
-      <div className="desktop-layout">
-        <aside className="desktop-sidebar">
+      <div className={styles.layout}>
+        <aside className={styles.sidebar}>
           <Card title="Типы">
-            <div className="desktop-type-list">
+            <div className={styles.typeList}>
               {KINDS.map(({ kind, label, Icon }) => (
                 <button
-                  className={`desktop-type ${kindFilter === kind ? "desktop-type-active" : ""}`}
+                  className={`${styles.type} ${kindFilter === kind ? styles.typeActive : ""}`}
                   key={label}
                   onClick={() => onKindChange(kind)}
                   type="button"
                 >
                   <Icon size={14} />
                   <span>{label}</span>
-                  <span className="desktop-type-count">
+                  <span className={styles.typeCount}>
                     {kind ? counts.get(kind) ?? 0 : items.length}
                   </span>
                 </button>
@@ -97,7 +97,7 @@ export function CatalogPage({
             </div>
           </Card>
           <Card title="Фильтры">
-            <div className="desktop-filter-form">
+            <div className={styles.filterForm}>
               <Input
                 label="Поиск"
                 value={query}
@@ -120,37 +120,35 @@ export function CatalogPage({
           </Card>
         </aside>
 
-        <div className="desktop-main">
+        <div className={styles.main}>
           <PageHeader
             action={<Button onClick={onCreate}>Добавить запись</Button>}
             title={t("nav.items")}
           />
           {syncStatus && syncStatus.changes_after > 0 ? (
-            <div className="desktop-banner">
+            <div className={styles.banner}>
               Есть изменения в вебе: {syncStatus.changes_after}.{" "}
-              <button className="desktop-banner-action" onClick={onSync} type="button">
+              <button className={styles.bannerAction} onClick={onSync} type="button">
                 Синхронизировать
               </button>
             </div>
           ) : null}
-          {error ? <p className="desktop-error">{error}</p> : null}
-          {syncMessage ? <p className="desktop-sync-result">{syncMessage}</p> : null}
-          {action ? <p className="desktop-muted desktop-path">{action}</p> : null}
-          <ul className="desktop-list">
+          {error ? <p className={styles.error}>{error}</p> : null}
+          {syncMessage ? <p className={styles.syncResult}>{syncMessage}</p> : null}
+          {action ? <p className={`${styles.muted} ${styles.path}`}>{action}</p> : null}
+          <ul className={styles.list}>
             {displayItems.map((item) => (
-              <li key={item.id} className="desktop-list-item">
-                <CardBoundary title={item.title}>
-                  <ItemCard
-                    coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
-                    item={item as Item}
-                    href={`#${item.id}`}
-                    onOpen={() => onOpen(item)}
-                  />
-                </CardBoundary>
+              <li key={item.id} className={styles.listItem}>
+                <ItemCard
+                  coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
+                  item={item}
+                  href={hrefFor ? hrefFor(item) : `#${item.id}`}
+                  onOpen={onOpen ? () => onOpen(item) : undefined}
+                />
               </li>
             ))}
           </ul>
-          {displayItems.length === 0 ? <p className="desktop-empty">Записей пока нет.</p> : null}
+          {displayItems.length === 0 ? <p className={styles.empty}>Записей пока нет.</p> : null}
         </div>
       </div>
     </>

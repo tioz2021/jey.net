@@ -7,7 +7,7 @@ import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
 import { useItemSource } from "./data/source-context";
 import type { LocalItem } from "./data/source";
-import { CatalogPage } from "./screens/CatalogPage";
+import { CatalogPage } from "@/components/items/catalog-page";
 import "./app.css";
 
 type Access = {
@@ -416,7 +416,6 @@ export function App() {
         statusFilter={statusFilter}
         syncMessage={syncMessage}
         syncStatus={syncStatus}
-        syncing={syncing}
       />
     </main>
   );
