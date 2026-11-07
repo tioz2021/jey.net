@@ -78,7 +78,8 @@ say "building web"
 say "building SPA"
 (
     cd apps/web
-    npm ci --no-audit --no-fund
+    mkdir -p "${ROOT_DIR}/.staging/npm-cache"
+    npm ci --no-audit --no-fund --cache "${ROOT_DIR}/.staging/npm-cache"
     npm run build
     tar -C dist -czf ../jey-spa.tar.gz .
 )
