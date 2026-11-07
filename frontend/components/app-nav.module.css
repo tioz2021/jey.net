@@ -1,3 +1,5 @@
+.column > * { flex: 0 0 auto; }
+
 .column {
   position: sticky;
   top: 64px;

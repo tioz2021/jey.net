@@ -49,6 +49,7 @@ export function installDesktopBridge() {
       const access = await api.invoke<{ has_access: boolean; user_id?: string }>("local_access_status");
       if (!access.has_access || !access.user_id) return json({ error: { code: "unauthorized" } }, 401);
       if (method === "GET") {
+        try { return await remote("GET", "/api/v1/me"); } catch { /* offline */ }
         try { return json({ user: await api.invoke("local_refresh_profile") }); }
         catch { return json({ user: await api.invoke("local_profile") }); }
       }

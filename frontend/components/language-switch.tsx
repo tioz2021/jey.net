@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
@@ -19,7 +18,6 @@ const LABELS: Record<Locale, { code: string; name: string }> = {
 
 /** A compact menu instead of three buttons, so the header never overflows. */
 export function LanguageSwitch() {
-  const router = useRouter();
   const { locale, setLocale, t } = useI18n();
   const { user, setUser } = useUser();
   const [open, setOpen] = useState(false);
@@ -109,7 +107,7 @@ export function LanguageSwitch() {
       }
     }
 
-    router.refresh();
+    // SPA state already switched; a full reload would reset the cookie in Tauri.
   }
 
   return (
