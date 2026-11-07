@@ -19,6 +19,7 @@ import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import { STATUS_TONES } from "@/lib/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
+import { resolvePublicUserId } from "@/lib/public-user";
 import { AppLink } from "@/lib/navigation";
 import type { PublicItem } from "@/lib/types";
 
@@ -29,10 +30,15 @@ const KIND_ICONS = { movie: IconFilm, tv: IconTv, book: IconBook, game: IconGame
 export function PublicItemScreen({ id, itemId }: { id: string; itemId: string }) {
   const { t, locale } = useI18n();
   const [item, setItem] = useState<PublicItem | null>(null);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/v1/public/users/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`, { credentials: "include" })
+    resolvePublicUserId(id)
+      .then((userId) => {
+        setOwnerId(userId);
+        return fetch(`/api/v1/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}`, { credentials: "include" });
+      })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((body) => setItem({ ...body.item, progress_visible: body.progress_visible }))
       .catch(() => setError(true));

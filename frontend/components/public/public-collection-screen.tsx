@@ -6,6 +6,7 @@ import { ItemCard } from "@/components/items/item-card";
 import { Card } from "@/components/ui";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
+import { resolvePublicUserId } from "@/lib/public-user";
 import { useI18n } from "@/lib/locale-context";
 import type { PublicCollection } from "@/lib/types";
 
@@ -17,7 +18,10 @@ export function PublicCollectionScreen({ id, slug }: { id: string; slug: string 
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    api.publicCollections.get(id, slug).then(setData).catch(() => setError(true));
+    resolvePublicUserId(id)
+      .then((userId) => api.publicCollections.get(userId, slug))
+      .then(setData)
+      .catch(() => setError(true));
   }, [id, slug]);
 
   if (error) return <main><Card title={t("collections.loadError")}><AppLink href={`/u/${id}`}>← {t("item.backProfile")}</AppLink></Card></main>;
