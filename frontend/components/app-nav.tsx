@@ -117,10 +117,11 @@ export function AppNav() {
               }
 
               const query = next.toString();
+              const base = window.location.pathname.startsWith("/spa") ? "/spa/items" : "/items";
               window.history.replaceState(
                 null,
                 "",
-                query ? `/items?${query}` : "/items",
+                query ? `${base}?${query}` : base,
               );
               window.dispatchEvent(new Event(ITEMS_QUERY_EVENT));
             }}
