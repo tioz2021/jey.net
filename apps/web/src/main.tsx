@@ -53,6 +53,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/admin/reports" element={<AdminSubRoute page="reports" />} />
             <Route path="/admin/people" element={<AdminSubRoute page="people" />} />
             <Route path="/admin/site" element={<AdminSubRoute page="site" />} />
+            <Route path="/admin/errors" element={<AdminSubRoute page="errors" />} />
+            <Route path="/admin/system" element={<AdminSubRoute page="system" />} />
             <Route path="/reports" element={<AdminRedirectRoute target="/admin/reports" />} />
             <Route path="/analytics" element={<AdminRedirectRoute target="/admin/analytics" />} />
             <Route path="*" element={<Home />} />
