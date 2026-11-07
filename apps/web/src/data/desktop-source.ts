@@ -32,7 +32,11 @@ export const desktopCatalogueSource: CatalogueSource = {
     const items = query
       ? await invoke()<Item[]>("local_search_items", { query })
       : await invoke()<Item[]>("local_list_items", { query: null });
-    return { items, next_cursor: null } satisfies ItemList;
+    const selected = items.filter((item) =>
+      (!filters.kind || item.kind === filters.kind) &&
+      (!filters.status || item.status === filters.status),
+    );
+    return { items: selected, next_cursor: null } satisfies ItemList;
   },
   async get(id) {
     try {
