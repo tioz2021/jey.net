@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/lib/navigation";
 import { useState } from "react";
 
 import { Button, Dialog } from "@/components/ui";
@@ -14,7 +14,7 @@ export function RemoveFromCollection({
   collectionId: string;
   itemId: string;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);

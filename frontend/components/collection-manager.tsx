@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { Button, Dialog, Input, Select } from "@/components/ui";
@@ -88,7 +88,7 @@ export function CollectionManager() {
         <ul className={styles.list}>
           {collections.map((collection) => (
             <li className={styles.item} key={collection.id}>
-              <Link className={styles.link} href={`/collections/${collection.id}`}>
+              <AppLink className={styles.link} href={`/collections/${collection.id}`}>
                 <span>{collection.title}</span>
                 <span className={styles.meta}>
                   {collection.visibility === "public"
@@ -97,7 +97,7 @@ export function CollectionManager() {
                   {" · "}
                   {collection.item_count}
                 </span>
-              </Link>
+              </AppLink>
               <Button
                 onClick={() => {
                   const next = collection.visibility === "public" ? "private" : "public";

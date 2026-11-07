@@ -4,6 +4,7 @@ export default function Link({
   href,
   children,
   ...rest
-}: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
-  return <a href={href} {...rest}>{children}</a>;
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children?: ReactNode }) {
+  const target = href.startsWith("/") && !href.startsWith("/spa") ? `/spa${href}` : href;
+  return <a href={target} {...rest}>{children}</a>;
 }

@@ -11,6 +11,8 @@ import { UserProvider } from "@/lib/user-context";
 import { Home } from "./screens/Home";
 import { ItemDetailRoute } from "./screens/ItemDetailRoute";
 import { ItemFormRoute } from "./screens/ItemFormRoute";
+import { CollectionsRoute } from "./screens/CollectionsRoute";
+import { CollectionDetailRoute } from "./screens/CollectionDetailRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -23,6 +25,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/items/new" element={<ItemFormRoute mode="new" />} />
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />
+            <Route path="/collections" element={<CollectionsRoute />} />
+            <Route path="/collections/:id" element={<CollectionDetailRoute />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </AppShell>
