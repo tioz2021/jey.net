@@ -12,6 +12,7 @@ User=jey
 Group=jey
 WorkingDirectory=/opt/jey
 EnvironmentFile=/etc/jey/api.env
+Environment=SPA_DIR=/opt/jey/spa
 ExecStart=/opt/jey/jey-api
 Restart=always
 RestartSec=2

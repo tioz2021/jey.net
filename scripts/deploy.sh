@@ -75,9 +75,20 @@ say "building web"
     tar -C .next/standalone -czf ../jey-web.tar.gz .
 )
 
+say "building SPA"
+(
+    cd apps/web
+    npm ci --no-audit --no-fund
+    npm run build
+    tar -C dist -czf ../jey-spa.tar.gz .
+)
+
 say "uploading artifacts"
 "${SCP[@]}" target/release/jey-api "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/jey/jey-api.new"
 "${SCP[@]}" jey-web.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-web.tar.gz"
+"${SCP[@]}" jey-spa.tar.gz "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-spa.tar.gz"
+"${SCP[@]}" deploy/Caddyfile "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/caddy/Caddyfile.new"
+"${SCP[@]}" deploy/jey-api.service "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-api.service.new"
 "${SCP[@]}" scripts/backup-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-backup-db.new"
 "${SCP[@]}" scripts/restore-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-restore-db.new"
 "${SCP[@]}" deploy/jey-backup.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.service"
@@ -85,7 +96,7 @@ say "uploading artifacts"
 "${SCP[@]}" deploy/healthcheck.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-healthcheck.new"
 "${SCP[@]}" deploy/jey-healthcheck.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.service"
 "${SCP[@]}" deploy/jey-healthcheck.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.timer"
-rm -f jey-web.tar.gz
+rm -f jey-web.tar.gz jey-spa.tar.gz
 
 say "activating"
 "${SSH[@]}" "BACKUP_DIR='${BACKUP_DIR}' bash -s" <<'REMOTE'
@@ -129,6 +140,18 @@ if [[ "${healthy}" -ne 1 ]]; then
     exit 1
 fi
 
+# 2b. SPA static bundle served by Rust.
+rm -rf /opt/jey/spa.prev
+if [[ -d /opt/jey/spa ]]; then mv /opt/jey/spa /opt/jey/spa.prev; fi
+install -d -o jey -g jey -m 755 /opt/jey/spa
+tar -xzf /tmp/jey-spa.tar.gz -C /opt/jey/spa
+rm -f /tmp/jey-spa.tar.gz
+
+# Install the API unit (SPA_DIR) and updated Caddy routing.
+install -m 644 /tmp/jey-api.service.new /etc/systemd/system/jey-api.service
+rm -f /tmp/jey-api.service.new
+systemctl daemon-reload
+
 # 3. Backup tooling. The GPG public key is installed once, out of band.
 install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
 install -m 700 /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-db
@@ -143,7 +166,15 @@ else
     echo "warning: /etc/jey/backup-recipient is missing, backup timer not enabled" >&2
 fi
 
-# 4. Web client: keep the previous bundle for rollback.
+# 4. Caddy routing for /spa to Rust (validate before replacing).
+if command -v caddy >/dev/null 2>&1; then
+    caddy validate --config /etc/caddy/Caddyfile.new
+    mv /etc/caddy/Caddyfile /etc/caddy/Caddyfile.prev
+    mv /etc/caddy/Caddyfile.new /etc/caddy/Caddyfile
+    systemctl reload caddy
+fi
+
+# 5. Web client: keep the previous bundle for rollback.
 rm -rf /opt/jey/web.prev
 mv /opt/jey/web /opt/jey/web.prev
 install -d -o jey -g jey -m 750 /opt/jey/web

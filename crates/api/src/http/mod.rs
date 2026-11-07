@@ -18,6 +18,7 @@ use axum::routing::{delete, get, post};
 use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
+use tower_http::services::{ServeDir, ServeFile};
 
 use crate::auth::email_verify::{resend_verification, verify_email};
 use crate::auth::login::login;
@@ -72,12 +73,15 @@ pub struct AppState {
 /// Builds the full application router.
 pub fn router(state: AppState) -> Router {
     crate::auth::login::warm_up();
+    let spa_index = state.config.spa_dir.join("index.html");
+    let spa = ServeDir::new(&state.config.spa_dir).not_found_service(ServeFile::new(spa_index));
 
     Router::new()
         .route("/health", get(health))
         .route("/health/ready", get(readiness))
         // Media is public route-wise: the handler checks ownership itself.
         .route("/media/{*key}", get(serve_media))
+        .nest_service("/spa", spa)
         .nest("/api/v1", api_v1(state.clone()))
         .fallback(fallback)
         .method_not_allowed_fallback(method_not_allowed)

@@ -92,6 +92,8 @@ pub struct Config {
     pub mail_dir: PathBuf,
     /// Where uploaded files are stored.
     pub media_dir: PathBuf,
+    /// Built Vite SPA served at `/spa`.
+    pub spa_dir: PathBuf,
     /// Per-user storage quota in bytes.
     pub media_quota_bytes: u64,
     /// Google OAuth client credentials; sign-in is disabled when absent.
@@ -188,6 +190,11 @@ impl Config {
             None => PathBuf::from("var/media"),
         };
 
+        let spa_dir = match var("SPA_DIR") {
+            Some(raw) => PathBuf::from(raw),
+            None => PathBuf::from("var/spa"),
+        };
+
         let media_quota_mb = match var("MEDIA_QUOTA_MB") {
             Some(raw) => parse_quota_mb(&raw)?,
             None => crate::media::DEFAULT_QUOTA_MB,
@@ -240,6 +247,7 @@ impl Config {
             mail_from,
             mail_dir,
             media_dir,
+            spa_dir,
             media_quota_bytes: media_quota_mb * 1024 * 1024,
             google_client_id,
             google_client_secret,

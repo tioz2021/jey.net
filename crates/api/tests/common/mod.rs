@@ -58,6 +58,7 @@ fn test_config() -> Config {
         public_url: "http://localhost:3000".to_owned(),
         mail_from: "jey@localhost".to_owned(),
         mail_dir: std::path::PathBuf::from("var/mail"),
+        spa_dir: std::path::PathBuf::from("var/spa"),
         media_dir: std::path::PathBuf::from("var/test-media"),
         media_quota_bytes: 200 * 1024 * 1024,
         google_client_id: std::env::var("GOOGLE_CLIENT_ID").ok(),

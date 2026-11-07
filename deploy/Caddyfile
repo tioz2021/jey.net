@@ -38,6 +38,10 @@
 		reverse_proxy 127.0.0.1:8080
 	}
 
+	handle /spa* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
 	# The component playground is a development tool, not part of the product.
 	handle /dev* {
 		respond "Not found" 404
