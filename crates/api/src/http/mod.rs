@@ -18,7 +18,6 @@ use axum::routing::{delete, get, post};
 use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
-use tower_http::services::{ServeDir, ServeFile};
 
 use crate::auth::email_verify::{resend_verification, verify_email};
 use crate::auth::login::login;
@@ -73,19 +72,49 @@ pub struct AppState {
 /// Builds the full application router.
 pub fn router(state: AppState) -> Router {
     crate::auth::login::warm_up();
-    let spa_index = state.config.spa_dir.join("index.html");
-    let spa = ServeDir::new(&state.config.spa_dir).not_found_service(ServeFile::new(spa_index));
 
     Router::new()
         .route("/health", get(health))
         .route("/health/ready", get(readiness))
         // Media is public route-wise: the handler checks ownership itself.
         .route("/media/{*key}", get(serve_media))
-        .nest_service("/spa", spa)
+        .route("/spa", get(spa_root))
+        .route("/spa/{*path}", get(spa_file))
         .nest("/api/v1", api_v1(state.clone()))
         .fallback(fallback)
         .method_not_allowed_fallback(method_not_allowed)
         .with_state(state)
+}
+
+async fn spa_root(State(state): State<AppState>) -> Response {
+    spa_file(State(state), axum::extract::Path(String::new())).await
+}
+
+async fn spa_file(
+    State(state): State<AppState>,
+    axum::extract::Path(path): axum::extract::Path<String>,
+) -> Response {
+    let root = &state.config.spa_dir;
+    let requested = path.trim_start_matches('/');
+    let candidate = root.join(requested);
+    let safe = !requested.split('/').any(|part| part == "..") && candidate.starts_with(root);
+    let file = if safe && candidate.is_file() {
+        candidate
+    } else {
+        root.join("index.html")
+    };
+    match tokio::fs::read(&file).await {
+        Ok(bytes) => {
+            let content_type = match file.extension().and_then(|value| value.to_str()) {
+                Some("js") => "text/javascript; charset=utf-8",
+                Some("css") => "text/css; charset=utf-8",
+                Some("svg") => "image/svg+xml",
+                _ => "text/html; charset=utf-8",
+            };
+            ([(axum::http::header::CONTENT_TYPE, content_type)], bytes).into_response()
+        }
+        Err(_) => (StatusCode::NOT_FOUND, "SPA not found").into_response(),
+    }
 }
 
 async fn track_errors(
