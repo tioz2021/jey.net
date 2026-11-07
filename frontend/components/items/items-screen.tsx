@@ -25,12 +25,22 @@ export function ItemsScreen() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
   const [covers, setCovers] = useState<Record<string, string>>({});
+  const [refreshTick, setRefreshTick] = useState(0);
   const kind = (params.get("kind") as ItemKind | null) ?? undefined;
   const status = (params.get("status") as ItemStatus | null) ?? undefined;
   const query = params.get("q") ?? "";
   const sort = (params.get("sort") as Sort | null) ?? undefined;
 
   useEffect(() => { setSlot(document.getElementById("items-filter-slot")); }, []);
+  useEffect(() => {
+    const refresh = () => setRefreshTick((value) => value + 1);
+    window.addEventListener("jey:sync-complete", refresh);
+    window.addEventListener("jey:item-refreshed", refresh);
+    return () => {
+      window.removeEventListener("jey:sync-complete", refresh);
+      window.removeEventListener("jey:item-refreshed", refresh);
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -51,7 +61,7 @@ export function ItemsScreen() {
       .catch((cause) => { if (!cancelled) setError(String(cause)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [kind, status, query, sort, source]);
+  }, [kind, status, query, sort, source, refreshTick]);
 
   function toggle(id: string) {
     setSelected((current) => {

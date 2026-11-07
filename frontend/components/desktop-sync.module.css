@@ -2,3 +2,6 @@
 .button:disabled { opacity: 0.6; }
 .dot { position: absolute; right: 5px; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--color-success, #2f9e44); }
 .error .dot { background: var(--color-danger); }
+
+.button:disabled svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

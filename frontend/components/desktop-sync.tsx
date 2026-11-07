@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useToast } from "@/components/toasts";
+
 import styles from "./desktop-sync.module.css";
 
 type Invoke = <T>(command: string, args?: Record<string, unknown>) => Promise<T>;
@@ -14,6 +16,7 @@ function tauri(): Invoke | null {
 type Report = { pushed: number; pulled: number; conflicts: number; media: number; last_seq: number };
 
 export function DesktopSync() {
+  const { notify, notifyError } = useToast();
   const invoke = useRef<Invoke | null>(null);
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<"idle" | "syncing" | "error">("idle");
@@ -26,6 +29,7 @@ export function DesktopSync() {
     busy.current = true;
     setState("syncing");
     setLabel("Синхронизация…");
+    if (showResult) notify({ tone: "info", title: "Синхронизация", text: "Проверяем изменения…", requestId: null });
     try {
       const access = await invoke.current<{ has_access: boolean }>("local_access_status");
       if (!access.has_access) {
@@ -38,13 +42,14 @@ export function DesktopSync() {
       setLabel("Синхронизировать");
       setDetail(`Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}`);
       if (showResult) {
-        window.dispatchEvent(new CustomEvent("jey:toast", { detail: `Синхронизировано: ${report.pushed} → ${report.pulled}` }));
+        notify({ tone: "success", title: "Синхронизировано", text: `Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}`, requestId: null });
       }
       window.dispatchEvent(new Event("jey:sync-complete"));
     } catch (cause) {
       setState("error");
       setLabel("Повторить синхронизацию");
       setDetail(String(cause));
+      if (showResult) notifyError(cause);
     } finally {
       busy.current = false;
     }

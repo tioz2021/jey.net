@@ -49,11 +49,22 @@ export function AppNav() {
   const params = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
   const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
+  const [countsTick, setCountsTick] = useState(0);
   const onItems = pathname === "/items";
 
   useEffect(() => {
     setActiveKind(params.get("kind"));
   }, [params]);
+
+  useEffect(() => {
+    const refresh = () => setCountsTick((value) => value + 1);
+    window.addEventListener("jey:sync-complete", refresh);
+    window.addEventListener("jey:item-refreshed", refresh);
+    return () => {
+      window.removeEventListener("jey:sync-complete", refresh);
+      window.removeEventListener("jey:item-refreshed", refresh);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +81,7 @@ export function AppNav() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, countsTick]);
 
   // Filters change the URL without an App Router navigation, so the active
   // item has to follow our own event as well as back/forward.
