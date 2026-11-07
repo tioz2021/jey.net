@@ -79,7 +79,7 @@ export function ItemDetailScreen({
   const nextHref = neighbors?.next_id ? `/items/${neighbors.next_id}${suffix}` : null;
 
   return (
-    <main>
+    <main className={styles.page}>
       <header className={styles.heading}>
         <AppLink className={styles.back} href={backHref}>{t("item.back")}</AppLink>
         <p className={styles.kicker}>{t(KIND_KEYS[item.kind])}</p>
