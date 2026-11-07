@@ -9,10 +9,8 @@ import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
 import { installDesktopBridge } from "./desktop-bridge";
-import { installDesktopSmoothScroll } from "./desktop-smooth-scroll";
 
 installDesktopBridge();
-installDesktopSmoothScroll();
 import { ItemsRoute } from "./screens/ItemsRoute";
 import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
