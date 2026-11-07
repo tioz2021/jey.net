@@ -1,14 +1,34 @@
 "use client";
 
+import { useState } from "react";
+
 import { useI18n } from "@/lib/locale-context";
 
 import styles from "./google-sign-in.module.css";
 
 export function GoogleSignIn({ label, next }: { label?: string; next?: string }) {
   const { t } = useI18n();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function signIn(event: React.MouseEvent<HTMLAnchorElement>) {
+    const desktop = (window as unknown as { __TAURI__?: { core?: { invoke?: <T>(command: string, args?: Record<string, unknown>) => Promise<T> } } }).__TAURI__;
+    if (!desktop?.core?.invoke) return;
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    try {
+      await desktop.core.invoke("local_google_sign_in", { input: { server_url: "https://j3ynet.site" } });
+      window.location.assign(next ?? "/items");
+    } catch (cause) {
+      setError(String(cause));
+      setPending(false);
+    }
+  }
 
   return (
-    <a className={styles.button} href={`/api/v1/auth/google/start${next ? `?next=${encodeURIComponent(next)}` : ""}`}>
+    <>
+    <a className={styles.button} href={`/api/v1/auth/google/start${next ? `?next=${encodeURIComponent(next)}` : ""}`} onClick={signIn}>
       <svg aria-hidden="true" height="18" viewBox="0 0 48 48" width="18">
         <path
           d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -27,7 +47,9 @@ export function GoogleSignIn({ label, next }: { label?: string; next?: string })
           fill="#34A853"
         />
       </svg>
-      {label ?? t("auth.google")}
+      {pending ? "Ожидаем Google…" : (label ?? t("auth.google"))}
     </a>
+    {error ? <p className={styles.error} role="alert">{error}</p> : null}
+    </>
   );
 }
