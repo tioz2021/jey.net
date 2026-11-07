@@ -72,7 +72,7 @@ return (
         <p className={styles.subtitle}>{displaySubtitle}</p>
       ) : null}
       <div className={styles.reportCorner}>
-        <ReportButton ownerId={id} targetId={item.id} targetType="item" />
+        <ReportButton ownerId={ownerId ?? id} targetId={item.id} targetType="item" />
       </div>
       <div className={styles.reactionCorner}>
         <Reactions itemId={item.id} />
@@ -151,14 +151,14 @@ return (
         {item.review ? (
           <ItemReview text={item.review} title={t("public.itemNote")} />
         ) : null}
-        <Comments itemId={item.id} userId={id} />
+        <Comments itemId={item.id} userId={ownerId ?? id} />
         {item.kind === "tv" &&
         item.details?.seasons &&
         item.details.seasons.length > 0 &&
         item.progress_visible !== false ? (
           <SeriesEpisodes
             itemId={item.id}
-            publicUserId={id}
+            publicUserId={ownerId ?? id}
             seasons={item.details.seasons}
             totalEpisodes={item.details.number_of_episodes}
             watched={item.details.watched_episodes ?? []}
