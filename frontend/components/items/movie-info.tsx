@@ -18,7 +18,7 @@ function cleanOverview(value: string | null): string | null {
 }
 
 /** Metadata snapshot: overview, runtime and cast names, with TMDB credit. */
-export async function MovieInfo({
+export function MovieInfo({
   details,
   tmdbId,
   locale,
