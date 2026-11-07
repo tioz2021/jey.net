@@ -58,3 +58,4 @@ var/
 /.shots/
 /jey-spa.tar.gz
 /frontend/tsconfig.tsbuildinfo
+/release/
