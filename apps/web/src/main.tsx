@@ -8,6 +8,9 @@ import { PublicShell } from "@/components/legal/public-shell";
 import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
+import { installDesktopBridge } from "./desktop-bridge";
+
+installDesktopBridge();
 import { ItemsRoute } from "./screens/ItemsRoute";
 import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
