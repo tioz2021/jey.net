@@ -2,7 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { LoginScreen } from "@/components/auth/login-screen";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { LegalScreen } from "@/components/legal/legal-screen";
+import { PublicShell } from "@/components/legal/public-shell";
 import { AppFrame } from "./screens/AppFrame";
 
 import "@/app/globals.css";
@@ -30,9 +32,9 @@ createRoot(document.getElementById("root")!).render(
       <ToastProvider>
       <BrowserRouter basename="/spa">
         <Routes>
-          <Route path="/login" element={<LoginScreen />} />
-          <Route path="/privacy" element={<LegalScreen page="privacy" />} />
-          <Route path="/terms" element={<LegalScreen page="terms" />} />
+          <Route path="/login" element={<AuthShell><LoginScreen /></AuthShell>} />
+          <Route path="/privacy" element={<PublicShell><LegalScreen page="privacy" /></PublicShell>} />
+          <Route path="/terms" element={<PublicShell><LegalScreen page="terms" /></PublicShell>} />
           <Route element={<AppFrame />}>
             <Route path="/items/new" element={<ItemFormRoute mode="new" />} />
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />

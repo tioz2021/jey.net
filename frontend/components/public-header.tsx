@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { AppLink } from "@/lib/navigation";
 
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
@@ -19,7 +18,7 @@ import styles from "./public-header.module.css";
 export function PublicHeader({ authenticated = false }: { authenticated?: boolean }) {
   const { user } = useUser();
   const { t } = useI18n();
-  const pathname = usePathname();
+  const pathname = typeof window === "undefined" ? "/" : window.location.pathname.replace(/^\/spa/, "");
 
   if ((authenticated || user) && (pathname.startsWith("/u/") || pathname.startsWith("/cart/"))) {
     return <SiteHeader />;
@@ -28,19 +27,19 @@ export function PublicHeader({ authenticated = false }: { authenticated?: boolea
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link className={styles.brand} href="/">
+        <AppLink className={styles.brand} href="/">
           <Logo size={22} />
           <span>jey.net</span>
-        </Link>
+        </AppLink>
 
         <nav className={styles.nav} aria-label="Основное">
-          <Link className={styles.navLink} href="/">
+          <AppLink className={styles.navLink} href="/">
             {t("public.home")}
-          </Link>
+          </AppLink>
           <LanguageSwitch />
-          <Link className={styles.cta} href="/login">
+          <AppLink className={styles.cta} href="/login">
             {t("public.login")}
-          </Link>
+          </AppLink>
         </nav>
       </div>
     </header>

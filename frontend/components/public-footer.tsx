@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { AppLink } from "@/lib/navigation";
 
 import type { TranslationKey } from "@/lib/i18n";
 import { useI18n } from "@/lib/locale-context";
@@ -22,7 +21,7 @@ function noteFor(pathname: string): TranslationKey | null {
 
 /** One full-width footer block: what this page is plus the legal links. */
 export function PublicFooter() {
-  const pathname = usePathname();
+  const pathname = typeof window === "undefined" ? "/" : window.location.pathname.replace(/^\/spa/, "");
   const { t } = useI18n();
   const note = noteFor(pathname);
 
@@ -35,9 +34,9 @@ export function PublicFooter() {
         </div>
 
         <nav aria-label="Документы" className={styles.links}>
-          <Link href="/privacy">{t("footer.privacy")}</Link>
+          <AppLink href="/privacy">{t("footer.privacy")}</AppLink>
           <span aria-hidden="true">·</span>
-          <Link href="/terms">{t("footer.terms")}</Link>
+          <AppLink href="/terms">{t("footer.terms")}</AppLink>
         </nav>
       </div>
     </footer>
