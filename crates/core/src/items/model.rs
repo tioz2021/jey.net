@@ -163,7 +163,7 @@ pub struct SeasonSummary {
 }
 
 /// Snapshot of the movie metadata we keep with a record.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MovieDetails {
     #[serde(default)]
     pub original_title: String,

@@ -6,6 +6,7 @@ use uuid::Uuid;
 use jey_core::DomainError;
 use jey_core::items::{Item, ItemKind, ItemPatch, ItemStatus, NewItem, validate};
 use jey_core::repositories::ItemRepository;
+use jey_core::search::rank_items;
 use jey_core::sync::{DeviceId, Revision, SyncSeq, Timestamp};
 
 use super::{DesktopStore, StoreError, now_millis};
@@ -232,22 +233,12 @@ impl SqliteItems {
     }
 
     pub fn search_items(&self, user_id: Uuid, query: &str) -> Result<Vec<Item>, DomainError> {
-        let connection = self.store.connection().map_err(internal)?;
-        let pattern = format!("%{}%", query.trim());
-        let sql = format!(
-            "select {COLUMNS} from items
-             where user_id = ?1 and deleted_at is null
-               and (title like ?2 or coalesce(subtitle, '') like ?2 or coalesce(review, '') like ?2)
-             order by updated_at desc, id desc"
-        );
-        let mut statement = connection
-            .prepare(&sql)
-            .map_err(|error| internal(StoreError::Sql(error)))?;
-        let rows = statement
-            .query_map(params![user_id.to_string(), pattern], item_from_row)
-            .map_err(|error| internal(StoreError::Sql(error)))?;
-        rows.collect::<rusqlite::Result<Vec<_>>>()
-            .map_err(|error| internal(StoreError::Sql(error)))
+        let items = self
+            .all_items(user_id)?
+            .into_iter()
+            .filter(|item| item.deleted_at.is_none())
+            .collect::<Vec<_>>();
+        Ok(rank_items(query, &items))
     }
 }
 

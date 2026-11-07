@@ -38,6 +38,7 @@ export function App() {
   const { t } = useI18n();
   const [access, setAccess] = useState<Access | null>(null);
   const [items, setItems] = useState<LocalItem[]>([]);
+  const [searchResults, setSearchResults] = useState<LocalItem[] | null>(null);
   const [covers, setCovers] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState<ItemKind | null>(null);
@@ -119,6 +120,30 @@ export function App() {
 
   useEffect(() => {
     if (!access?.has_access) return;
+    const needle = query.trim();
+    if (!needle) {
+      setSearchResults(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      tauriSource
+        .search(needle)
+        .then((results) => {
+          if (!cancelled) setSearchResults(results as LocalItem[]);
+        })
+        .catch((cause) => {
+          if (!cancelled) setError(String(cause));
+        });
+    }, 180);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [access?.has_access, query]);
+
+  useEffect(() => {
+    if (!access?.has_access) return;
     void refreshSyncStatus();
     const timer = window.setInterval(() => void refreshSyncStatus(), 30_000);
     window.addEventListener("focus", refreshSyncStatus);
@@ -136,22 +161,13 @@ export function App() {
   }, [items]);
 
   const visibleItems = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase();
-    return items.filter((item) => {
-      if (kindFilter && item.kind !== kindFilter) return false;
-      if (statusFilter && item.status !== statusFilter) return false;
-      if (!needle) return true;
-      const haystack = [
-        item.title,
-        item.subtitle ?? "",
-        item.review ?? "",
-        JSON.stringify(item.details ?? {}),
-      ]
-        .join(" ")
-        .toLocaleLowerCase();
-      return haystack.includes(needle);
-    });
-  }, [items, kindFilter, statusFilter, query]);
+    const source = searchResults ?? items;
+    return source.filter(
+      (item) =>
+        (!kindFilter || item.kind === kindFilter) &&
+        (!statusFilter || item.status === statusFilter),
+    );
+  }, [items, searchResults, kindFilter, statusFilter]);
 
   const displayItems = visibleItems.map((item) => ({
     ...item,

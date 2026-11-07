@@ -102,6 +102,27 @@ async fn local_list_items(
 }
 
 #[tauri::command]
+async fn local_search_items(
+    state: State<'_, DesktopState>,
+    query: String,
+) -> Result<Vec<Value>, String> {
+    let user = current_user(&state)?;
+    let repository = SqliteItems::new(state.store.clone());
+    let items = repository
+        .search_items(user, &query)
+        .map_err(|error| error.to_string())?;
+    let pending = repository
+        .pending_ids(user)
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .collect::<std::collections::HashSet<_>>();
+    Ok(items
+        .iter()
+        .map(|item| item_json(item, pending.contains(&item.id.to_string())))
+        .collect())
+}
+
+#[tauri::command]
 async fn local_create_item(
     state: State<'_, DesktopState>,
     new_item: NewItem,
@@ -453,6 +474,7 @@ pub fn run() {
             local_access_status,
             local_db_status,
             local_list_items,
+            local_search_items,
             local_create_item,
             local_update_item,
             local_delete_item,

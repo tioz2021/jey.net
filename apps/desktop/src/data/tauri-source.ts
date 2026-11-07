@@ -14,6 +14,7 @@ function invoke(): Invoke {
 
 export const tauriSource: ItemSource = {
   list: (query) => invoke()<Item[]>("local_list_items", { query: query ?? null }),
+  search: (query) => invoke()<Item[]>("local_search_items", { query }),
   create: (input: NewItem) => invoke()<Item>("local_create_item", { newItem: input }),
   update: (id: string, patch: ItemPatch) =>
     invoke()<Item | null>("local_update_item", {
