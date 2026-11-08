@@ -10,11 +10,13 @@ import { useAppRouter } from "@/lib/navigation";
 import { Button, PageHeader } from "@/components/ui";
 import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
+import { describeError } from "@/lib/messages";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
 
 export function ItemsScreen() {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
   const router = useAppRouter();
   const source = useCatalogueSource();
   const { params } = useItemsQuery();
@@ -58,7 +60,7 @@ export function ItemsScreen() {
           if (!cancelled) setCovers(loaded);
         }
       })
-      .catch((cause) => { if (!cancelled) setError(String(cause)); })
+      .catch((cause) => { if (!cancelled) setError(describeError(cause, i18n).text); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [kind, status, query, sort, source, refreshTick]);
@@ -88,8 +90,7 @@ export function ItemsScreen() {
         title={t("nav.items")}
       />
       {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
-      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : null}
-      {loading ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
+      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
         <ul style={{ display: "grid", gap: "0.75rem", padding: 0, margin: "0.75rem 0", listStyle: "none" }}>
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>
