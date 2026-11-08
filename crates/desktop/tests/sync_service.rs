@@ -31,12 +31,14 @@ async fn pushes_outbox_then_pulls_remote_change() {
     let remote_id = Uuid::new_v4().to_string();
     let remote = remote_id.clone();
     let handle = std::thread::spawn(move || {
-        for request in server.incoming_requests().take(4) {
+        for request in server.incoming_requests().take(5) {
             let path = request.url().to_owned();
             let body = if path.starts_with("/api/v1/devices") {
                 r#"{"device":{"device_id":"x"}}"#.to_owned()
             } else if path.starts_with("/api/v1/sync/push") {
                 r#"{"protocol_version":1,"applied":[{"entity":"item","id":"x","revision":1,"sync_seq":1}],"conflicts":[],"last_seq":1}"#.to_owned()
+            } else if path.starts_with("/api/v1/sync/social") {
+                r#"{"collections":[],"comments":[],"profile":null,"reactions":[]}"#.to_owned()
             } else if path.starts_with("/api/v1/sync/pull") {
                 format!(
                     r#"{{"protocol_version":1,"changes":[{{"entity":"item","id":"{remote}","revision":1,"sync_seq":1,"updated_at":"2026-11-07T00:00:00Z","deleted_at":null,"payload":{{"kind":"movie","title":"From server","status":"done","cover_key":"u/remote/large.webp"}}}}],"next_since":1,"has_more":false}}"#

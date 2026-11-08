@@ -36,7 +36,10 @@ async fn register_device(client: &TestClient, cookie: &str, name: &str) -> Devic
         )
         .await;
     assert_eq!(response.status, StatusCode::CREATED, "{}", response.body);
-    Device { cookie: cookie.to_owned(), id }
+    Device {
+        cookie: cookie.to_owned(),
+        id,
+    }
 }
 
 fn headers(device: &Device) -> Vec<(&'static str, String)> {
@@ -47,7 +50,10 @@ fn headers(device: &Device) -> Vec<(&'static str, String)> {
 }
 
 fn refs<'a>(values: &'a [(&'static str, String)]) -> Vec<(&'static str, &'a str)> {
-    values.iter().map(|(key, value)| (*key, value.as_str())).collect()
+    values
+        .iter()
+        .map(|(key, value)| (*key, value.as_str()))
+        .collect()
 }
 
 async fn push(
@@ -110,7 +116,16 @@ async fn two_devices_see_create_edit_and_delete_once() {
     assert_eq!(published["changes"][0]["payload"]["title"], "Created on A");
     let seq_after_create = published["next_since"].as_i64().unwrap();
 
-    push(&client, &b, id, 2, now + chrono::Duration::seconds(1), None, "Edited on B").await;
+    push(
+        &client,
+        &b,
+        id,
+        2,
+        now + chrono::Duration::seconds(1),
+        None,
+        "Edited on B",
+    )
+    .await;
 
     let edited = pull(&client, &a, seq_after_create).await;
     assert_eq!(edited["changes"].as_array().unwrap().len(), 1);

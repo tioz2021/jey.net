@@ -3,6 +3,14 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.10] — 2026-11-08
+
+### Исправлено
+
+- Windows-сборка использует статический CRT, чтобы не требовать
+  `VCRUNTIME140.dll` на чистой системе.
+- Windows-бинарник использует GUI-подсистему и не открывает консоль.
+
 ## [0.3.9] — 2026-11-08
 
 ### Исправлено
