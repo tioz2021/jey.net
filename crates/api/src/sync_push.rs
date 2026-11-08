@@ -397,6 +397,35 @@ pub async fn push(
                 incoming_device,
                 normalized.deleted_at.is_some(),
             );
+            // Two devices edited the same base revision. Keep both versions
+            // and let the user resolve instead of silently overwriting the
+            // stored one when the incoming timestamp happens to be newer.
+            if normalized.revision == row.revision {
+                let conflict_id = Uuid::new_v4();
+                let incoming_json =
+                    serde_json::to_value(&normalized).map_err(AppError::internal)?;
+                sqlx::query(
+                    "insert into sync_conflicts
+                     (id, user_id, item_id, device_id, reason, incoming, stored)
+                     values ($1, $2, $3, $4, 'clock_skew', $5, $6)",
+                )
+                .bind(conflict_id)
+                .bind(current.user.id)
+                .bind(change.id)
+                .bind(device_internal)
+                .bind(&incoming_json)
+                .bind(&row.snapshot)
+                .execute(&mut *tx)
+                .await
+                .map_err(AppError::internal)?;
+                conflicts.push(json!({
+                    "entity": "item",
+                    "id": change.id,
+                    "reason": "clock_skew",
+                    "conflict_id": conflict_id,
+                }));
+                continue;
+            }
             match merge(&stored_state, &incoming_state) {
                 MergeOutcome::Duplicate => continue,
                 MergeOutcome::KeepStored => {

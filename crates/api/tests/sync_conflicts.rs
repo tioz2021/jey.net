@@ -197,3 +197,34 @@ async fn rejects_bad_choice_and_unknown_conflict() {
 
     let _ = device;
 }
+
+#[tokio::test]
+async fn newer_same_revision_keeps_the_losing_version_as_conflict() {
+    let (client, cookie, device_id) = setup().await;
+    let now = Utc::now();
+    let id = Uuid::new_v4();
+
+    let _ = push_change(&client, &cookie, device_id, id, 1, "Stored version", now).await;
+    let incoming = push_change(
+        &client,
+        &cookie,
+        device_id,
+        id,
+        1,
+        "Newer version",
+        now + Duration::seconds(1),
+    )
+    .await;
+    assert_eq!(incoming["conflicts"].as_array().unwrap().len(), 1);
+
+    let open = conflicts(&client, &cookie, device_id).await;
+    assert_eq!(open["conflicts"].as_array().unwrap().len(), 1);
+    let conflict = &open["conflicts"][0];
+    assert_eq!(conflict["incoming"]["payload"]["title"], "Newer version");
+    assert_eq!(conflict["stored"]["title"], "Stored version");
+    let conflict_id = conflict["conflict_id"].as_str().unwrap();
+
+    let (status, item) = resolve(&client, &cookie, device_id, conflict_id, "stored").await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(item["title"], "Stored version");
+}

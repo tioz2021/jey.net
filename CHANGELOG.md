@@ -3,6 +3,14 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.15] — 2026-11-08
+
+### Исправлено
+
+- Одинаковая revision с разными данными больше не перезаписывает запись:
+  сервер сохраняет конфликт `clock_skew`, обе версии доступны для выбора.
+- `local_get_item` зарегистрирован; detail не использует fallback.
+
 ## [0.3.14] — 2026-11-08
 
 ### Исправлено
