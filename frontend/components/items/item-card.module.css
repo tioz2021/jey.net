@@ -283,3 +283,14 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
+
+@media (width <= 480px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .title {
+    flex: 1 1 100%;
+    overflow-wrap: break-word;
+  }
+}
