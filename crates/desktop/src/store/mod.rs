@@ -458,6 +458,30 @@ mod tests {
     }
 
     #[test]
+    fn busy_database_reports_lock_without_corruption() {
+        let dir = temp_dir();
+        let first = DesktopStore::open(&dir).expect("first store");
+        let second = DesktopStore::open(&dir).expect("second store");
+
+        {
+            let connection = first.connection().unwrap();
+            connection.execute_batch("begin exclusive;").unwrap();
+            let other = second.connection().unwrap();
+            let result = other.execute(
+                "insert into items (id, user_id, kind, title, status, created_at, updated_at)
+                 values ('busy-item', 'u1', 'movie', 'Busy', 'done', 1, 1)",
+                [],
+            );
+            assert!(result.is_err(), "second writer must not wait forever");
+            connection.execute_batch("rollback;").unwrap();
+        }
+
+        let reopened = DesktopStore::open(&dir).expect("database remains readable");
+        assert_eq!(reopened.status().unwrap().items, 0);
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
     fn damaged_database_is_reported() {
         let dir = temp_dir();
         std::fs::create_dir_all(&dir).unwrap();
