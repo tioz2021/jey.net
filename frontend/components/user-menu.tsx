@@ -21,6 +21,7 @@ export function UserMenu({ user }: { user: User }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
+  const desktop = typeof window !== "undefined" && Boolean((window as unknown as { __TAURI__?: unknown }).__TAURI__);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -150,9 +151,11 @@ export function UserMenu({ user }: { user: User }) {
           <Link className={styles.item} href={`/u/${user.handle}`} role="menuitem">
             {t("account.myPage")}
           </Link>
-          <a className={styles.item} href={`https://j3ynet.site${user.handle === "local" ? "" : `/u/${user.handle}`}`} rel="noreferrer" role="menuitem" target="_blank">
-            {t("account.webVersion")} ↗
-          </a>
+          {desktop ? (
+            <a className={styles.item} href={`https://j3ynet.site${user.handle === "local" ? "" : `/u/${user.handle}`}`} rel="noreferrer" role="menuitem" target="_blank">
+              {t("account.webVersion")} ↗
+            </a>
+          ) : null}
           <Link className={styles.item} href="/settings" role="menuitem">
             {t("account.settings")}
           </Link>
