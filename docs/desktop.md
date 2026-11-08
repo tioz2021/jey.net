@@ -49,13 +49,13 @@ timeout 5 ./target/release/jey-desktop
 
 ## UI
 
-Desktop UI теперь собирается из `apps/desktop` на Vite и использует общие
-компоненты `frontend/`. Старый smoke-UI удалён.
+Desktop UI использует общую SPA из `apps/web` и общие компоненты `frontend/`.
+Отдельного `apps/desktop` больше нет; desktop подключает SPA через Tauri.
 
 ## Текущее состояние
 
 - окно Tauri;
-- Vite + React UI в `apps/desktop`;
+- общая Vite + React SPA из `apps/web`;
 - команда `app_version`;
 - общий `jey-desktop` crate без GUI-зависимостей;
 - GUI включается только feature `tauri`;
@@ -159,7 +159,7 @@ bash scripts/desktop-run.sh
 AppImage:
 
 ```bash
-./target/release/bundle/appimage/jey.net_0.2.0_amd64.AppImage
+./target/release/bundle/appimage/jey.net_0.3.19_amd64.AppImage
 ```
 
 Для разработки с пересборкой:

@@ -302,15 +302,15 @@ Desktop (реальный запуск, локальная БД 1 200 запис
 - [x] CORS: заголовков `Access-Control-Allow-Origin` нет, preflight → `405`;
 - [x] rate limit: серия неверных login → `429` с `Retry-After`.
 
-#### S12. Документация
+#### S12. Документация — `[x]` закрыто
 
-- [ ] ограничения 0.3.x;
-- [ ] установка Windows/Linux;
-- [ ] где данные;
-- [ ] backup;
-- [ ] restore;
-- [ ] что делать при конфликте;
-- [ ] что делать без сервера.
+- [x] ограничения 0.3.x — `docs/known-limitations.md`;
+- [x] установка Windows/Linux — `docs/install.md`;
+- [x] где данные — `docs/data.md`;
+- [x] backup — `docs/data.md`;
+- [x] restore — `docs/data.md`;
+- [x] что делать при конфликте — `docs/data.md`, `docs/social.md`;
+- [x] что делать без сервера — `docs/data.md`.
 
 ### P2 — можно после стабильного релиза
 
