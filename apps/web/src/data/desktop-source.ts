@@ -50,14 +50,7 @@ export const desktopCatalogueSource: CatalogueSource = {
     return { items: sorted, next_cursor: null } satisfies ItemList;
   },
   async get(id) {
-    try {
-      const item = await invoke()<Item | null>("local_get_item", { id });
-      if (item) return item;
-    } catch {
-      // Fall through to the list when get_item is unavailable.
-    }
-    const items = await invoke()<Item[]>("local_list_items", { query: null });
-    const item = items.find((entry) => entry.id === id);
+    const item = await invoke()<Item | null>("local_get_item", { id });
     if (!item) throw new Error("Запись не найдена");
     return item;
   },

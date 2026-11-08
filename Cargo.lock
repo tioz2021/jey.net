@@ -2588,7 +2588,7 @@ dependencies = [
 
 [[package]]
 name = "jey-api"
-version = "0.3.13"
+version = "0.3.14"
 dependencies = [
  "argon2",
  "async-trait",
@@ -2621,7 +2621,7 @@ dependencies = [
 
 [[package]]
 name = "jey-core"
-version = "0.3.13"
+version = "0.3.14"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
@@ -2630,7 +2630,7 @@ dependencies = [
 
 [[package]]
 name = "jey-desktop"
-version = "0.3.13"
+version = "0.3.14"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2653,7 +2653,7 @@ dependencies = [
 
 [[package]]
 name = "jey-repo-contract"
-version = "0.3.13"
+version = "0.3.14"
 dependencies = [
  "jey-core",
  "uuid",

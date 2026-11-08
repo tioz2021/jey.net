@@ -11,6 +11,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use tauri::{Manager, State};
+use uuid::Uuid;
 
 use jey_core::items::{Item, ItemPatch, NewItem};
 use jey_core::repositories::ItemRepository;
@@ -271,6 +272,24 @@ async fn local_list_items(
         .iter()
         .map(|item| item_json(item, pending.contains(&item.id.to_string())))
         .collect())
+}
+
+#[tauri::command]
+async fn local_get_item(
+    state: State<'_, DesktopState>,
+    id: String,
+) -> Result<Option<Value>, String> {
+    let user = current_user(&state)?;
+    let item_id = Uuid::parse_str(&id).map_err(|_| "invalid item id".to_owned())?;
+    let repository = SqliteItems::new(state.store.clone());
+    let item = repository
+        .get_item(user, item_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    let pending = repository
+        .pending_ids(user)
+        .map_err(|error| error.to_string())?;
+    Ok(item.map(|item| item_json(&item, pending.contains(&item.id.to_string()))))
 }
 
 #[tauri::command]
@@ -785,6 +804,7 @@ pub fn run() {
             local_choose_data_dir,
             local_use_default_data_dir,
             local_list_items,
+            local_get_item,
             local_search_items,
             local_list_collections,
             local_create_collection,

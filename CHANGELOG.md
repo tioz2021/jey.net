@@ -3,6 +3,14 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.14] — 2026-11-08
+
+### Исправлено
+
+- Зарегистрирована Tauri-команда `local_get_item`; detail больше не
+  использует fallback через `local_list_items`.
+- Ошибка `Command local_get_item not found` устранена.
+
 ## [0.3.13] — 2026-11-08
 
 ### Исправлено
