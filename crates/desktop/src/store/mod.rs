@@ -116,6 +116,7 @@ impl DesktopStore {
     pub fn open(data_dir: impl AsRef<Path>) -> Result<Self, StoreError> {
         let data_dir = data_dir.as_ref();
         std::fs::create_dir_all(data_dir)?;
+        secure_private(data_dir, 0o700)?;
         let path = data_dir.join("jey.db");
         let connection = Connection::open(&path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
@@ -123,10 +124,11 @@ impl DesktopStore {
         connection.pragma_update(None, "foreign_keys", "ON")?;
         let store = Self {
             connection: Arc::new(Mutex::new(connection)),
-            path,
+            path: path.clone(),
         };
         store.backup_before_migration()?;
         store.migrate()?;
+        secure_database_files(&path)?;
         Ok(store)
     }
 
@@ -151,16 +153,20 @@ impl DesktopStore {
     /// stays intact until the next start, so an interrupted copy is harmless.
     pub fn copy_to(&self, target: &Path) -> Result<(), StoreError> {
         std::fs::create_dir_all(target)?;
+        secure_private(target, 0o700)?;
         {
             let connection = self.connection()?;
             connection.execute_batch("pragma wal_checkpoint(truncate);")?;
         }
         std::fs::copy(&self.path, target.join("jey.db"))?;
+        secure_database_files(&target.join("jey.db"))?;
         let source_dir = self.path.parent().unwrap_or_else(|| Path::new("."));
         for name in ["access.json", "session.json"] {
             let source = source_dir.join(name);
             if source.is_file() {
-                std::fs::copy(&source, target.join(name))?;
+                let destination = target.join(name);
+                std::fs::copy(&source, &destination)?;
+                secure_private(&destination, 0o600)?;
             }
         }
         copy_dir(&self.media_dir(), &target.join("media"))?;
@@ -312,6 +318,31 @@ fn count_files(path: &std::path::Path) -> i64 {
             }
         })
         .sum()
+}
+
+#[cfg(unix)]
+fn secure_private(path: &Path, mode: u32) -> Result<(), StoreError> {
+    use std::os::unix::fs::PermissionsExt;
+    let mut permissions = std::fs::metadata(path)?.permissions();
+    permissions.set_mode(mode);
+    std::fs::set_permissions(path, permissions)?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn secure_private(_path: &Path, _mode: u32) -> Result<(), StoreError> {
+    Ok(())
+}
+
+fn secure_database_files(path: &Path) -> Result<(), StoreError> {
+    secure_private(path, 0o600)?;
+    for suffix in ["-wal", "-shm"] {
+        let sidecar = PathBuf::from(format!("{}{suffix}", path.display()));
+        if sidecar.exists() {
+            secure_private(&sidecar, 0o600)?;
+        }
+    }
+    Ok(())
 }
 
 fn now_millis() -> i64 {
@@ -478,6 +509,23 @@ mod tests {
 
         let reopened = DesktopStore::open(&dir).expect("database remains readable");
         assert_eq!(reopened.status().unwrap().items, 0);
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn data_directory_and_database_are_private() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = temp_dir();
+        let store = DesktopStore::open(&dir).expect("store");
+        let dir_mode = std::fs::metadata(&dir).unwrap().permissions().mode() & 0o777;
+        let db_mode = std::fs::metadata(store.path())
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777;
+        assert_eq!(dir_mode, 0o700);
+        assert_eq!(db_mode, 0o600);
         std::fs::remove_dir_all(dir).ok();
     }
 

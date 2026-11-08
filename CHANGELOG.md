@@ -3,6 +3,14 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.19] — 2026-11-08
+
+### Безопасность
+
+- Папка данных получает права `700`, `jey.db` и WAL/SHM — `600`.
+- При переносе папки сохраняются приватные права.
+- Проверены Origin/CSRF, CORS, media traversal, rate limit и внешние ссылки.
+
 ## [0.3.18] — 2026-11-08
 
 ### Добавлено
