@@ -3,6 +3,15 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.20] — 2026-11-08
+
+### Добавлено
+
+- PWA: manifest, регистрация service worker, офлайн-оболочка.
+- Страница `offline.html` с кнопкой повтора.
+- Кеширование Vite-ассетов и обложек; API не кешируется.
+- `docs/pwa.md`.
+
 ## [0.3.19] — 2026-11-08
 
 ### Безопасность

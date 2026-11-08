@@ -87,6 +87,7 @@ cd apps/web && npm run build
 | [docs/sync.md](docs/sync.md) | Протокол синхронизации (этап M8) |
 | [docs/social.md](docs/social.md) | Конфликты social-сущностей |
 | [docs/data.md](docs/data.md) | Где данные, backup, restore, работа без сервера |
+| [docs/pwa.md](docs/pwa.md) | Установка PWA и офлайн-оболочка |
 | [docs/known-limitations.md](docs/known-limitations.md) | Известные ограничения 0.3.x |
 | [docs/deploy.md](docs/deploy.md) | Провижининг, Postgres, systemd, Caddy, секреты |
 | [docs/install.md](docs/install.md) | Установка desktop: AppImage, deb, Windows NSIS |

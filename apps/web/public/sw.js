@@ -1,7 +1,7 @@
 /* jey.net offline shell. API responses are never cached: they are private. */
-const CACHE = "jey-shell-v4";
-const OFFLINE = "/offline";
-const PRECACHE = [OFFLINE, "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE = "jey-shell-v7";
+const OFFLINE = "/offline.html";
+const PRECACHE = [OFFLINE, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/og.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -20,11 +20,12 @@ self.addEventListener("activate", (event) => {
 
 function cacheable(url) {
   return (
-    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/assets/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/media/") ||
-    url.pathname === "/icon.svg" ||
-    url.pathname === "/og.png"
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname === "/og.png" ||
+    url.pathname === OFFLINE
   );
 }
 
@@ -38,16 +39,19 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      (async () => {
+        if (!self.navigator.onLine) {
+          return (await caches.match(OFFLINE)) || Response.redirect(OFFLINE, 302);
+        }
+        try {
+          const response = await fetch(request, { cache: "no-store" });
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
           return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(request);
-          return cached || caches.match(OFFLINE);
-        }),
+        } catch {
+          return (await caches.match(OFFLINE)) || Response.redirect(OFFLINE, 302);
+        }
+      })(),
     );
     return;
   }

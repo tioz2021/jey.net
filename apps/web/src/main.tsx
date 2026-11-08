@@ -17,6 +17,7 @@ import { ItemsRoute } from "./screens/ItemsRoute";
 import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
 import { PublicItemRoute } from "./screens/PublicItemRoute";
+import { OfflineScreen } from "./screens/OfflineScreen";
 
 import "./globals.css";
 import { ToastProvider } from "@/components/toasts";
@@ -63,6 +64,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/u/:id/item/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/u/:id/cart/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/u/:id/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
+          <Route path="/offline" element={<OfflineScreen />} />
           <Route path="/login" element={<AuthShell><LoginScreen /></AuthShell>} />
           <Route path="/privacy" element={<PublicShell><LegalScreen page="privacy" /></PublicShell>} />
           <Route path="/terms" element={<PublicShell><LegalScreen page="terms" /></PublicShell>} />
@@ -102,3 +104,10 @@ createRoot(document.getElementById("root")!).render(
     </LocaleProvider>
   </StrictMode>,
 );
+
+// Register the shell worker in the browser. Tauri has its own asset protocol.
+if ("serviceWorker" in navigator && import.meta.env.PROD && !("__TAURI__" in window)) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

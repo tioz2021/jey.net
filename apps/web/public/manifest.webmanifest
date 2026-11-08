@@ -2,8 +2,13 @@
   "name": "jey.net — личный каталог",
   "short_name": "jey.net",
   "description": "Фильмы, сериалы, книги, игры и аниме в одном личном каталоге.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "lang": "ru",
   "background_color": "#0f1014",
   "theme_color": "#7c3aed",
   "icons": [
