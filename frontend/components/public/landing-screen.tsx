@@ -2,6 +2,7 @@
 
 import { AppLink } from "@/lib/navigation";
 import { useI18n } from "@/lib/locale-context";
+import { useUser } from "@/lib/user-context";
 import type { TranslationKey } from "@/lib/i18n";
 
 import styles from "./landing-screen.module.css";
@@ -21,6 +22,7 @@ const SCREENSHOT_KEYS = [
 
 export function LandingScreen() {
   const { t } = useI18n();
+  const { user } = useUser();
 
   return (
     <div className={styles.page}>
@@ -34,12 +36,17 @@ export function LandingScreen() {
         </p>
 
         <div className={styles.actions}>
-          <AppLink className={styles.primary} href="/api/v1/auth/google/start">
-            {t("landing.google")}
-          </AppLink>
-          <AppLink className={styles.secondary} href="/u/tios23">
-            {t("landing.example")}
-          </AppLink>
+          {user ? (
+            <>
+              <AppLink className={styles.primary} href="/items">{t("nav.items")}</AppLink>
+              <AppLink className={styles.secondary} href={`/u/${user.handle}`}>{t("account.myPage")}</AppLink>
+            </>
+          ) : (
+            <>
+              <AppLink className={styles.primary} href="/api/v1/auth/google/start">{t("landing.google")}</AppLink>
+              <AppLink className={styles.secondary} href="/u/tios23">{t("landing.example")}</AppLink>
+            </>
+          )}
         </div>
 
         <p className={styles.note}>

@@ -18,9 +18,7 @@ import styles from "./public-header.module.css";
 export function PublicHeader({ authenticated = false }: { authenticated?: boolean }) {
   const { user } = useUser();
   const { t } = useI18n();
-  const pathname = typeof window === "undefined" ? "/" : window.location.pathname.replace(/^\/spa/, "");
-
-  if ((authenticated || user) && (pathname.startsWith("/u/") || pathname.startsWith("/cart/"))) {
+  if (authenticated || user) {
     return <SiteHeader />;
   }
 
