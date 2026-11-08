@@ -18,6 +18,7 @@ import { SettingsScreen } from "@/components/settings/settings-screen";
 import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
 import { PublicItemRoute } from "./screens/PublicItemRoute";
 import { OfflineScreen } from "./screens/OfflineScreen";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 import "./globals.css";
 import { ToastProvider } from "@/components/toasts";
@@ -57,6 +58,7 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <DocumentTitle />
         <NavigationBridge />
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />
@@ -96,6 +98,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="*" element={<Home />} />
           </Route>
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
       <BackToTop />
       </ToastProvider>

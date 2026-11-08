@@ -108,9 +108,15 @@ export function formatDate(
   value: Date | number | string,
   options: Intl.DateTimeFormatOptions = { dateStyle: "long" },
 ): string {
-  return new Intl.DateTimeFormat(localeTag(locale), options).format(
-    new Date(value),
-  );
+  // Local SQLite timestamps arrive as millisecond strings; the server uses
+  // RFC 3339. Normalise both before handing them to Intl.
+  const input =
+    typeof value === "string" && /^\d+$/.test(value.trim())
+      ? Number(value)
+      : value;
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(localeTag(locale), options).format(date);
 }
 
 export function formatNumber(locale: Locale, value: number): string {
