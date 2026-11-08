@@ -125,6 +125,7 @@ impl DesktopStore {
             connection: Arc::new(Mutex::new(connection)),
             path,
         };
+        store.backup_before_migration()?;
         store.migrate()?;
         Ok(store)
     }
@@ -155,6 +156,13 @@ impl DesktopStore {
             connection.execute_batch("pragma wal_checkpoint(truncate);")?;
         }
         std::fs::copy(&self.path, target.join("jey.db"))?;
+        let source_dir = self.path.parent().unwrap_or_else(|| Path::new("."));
+        for name in ["access.json", "session.json"] {
+            let source = source_dir.join(name);
+            if source.is_file() {
+                std::fs::copy(&source, target.join(name))?;
+            }
+        }
         copy_dir(&self.media_dir(), &target.join("media"))?;
         Ok(())
     }
@@ -163,6 +171,52 @@ impl DesktopStore {
         self.connection
             .lock()
             .map_err(|_| StoreError::Invalid("database lock poisoned".to_owned()))
+    }
+
+    fn backup_before_migration(&self) -> Result<(), StoreError> {
+        if self.path == Path::new(":memory:") {
+            return Ok(());
+        }
+        let connection = self.connection()?;
+        let has_table: Option<i64> = connection
+            .query_row(
+                "select 1 from sqlite_master where type = 'table' and name = '_local_migrations'",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
+        let Some(_) = has_table else {
+            return Ok(());
+        };
+        let current: i64 = connection.query_row(
+            "select coalesce(max(version), 0) from _local_migrations",
+            [],
+            |row| row.get(0),
+        )?;
+        let latest = MIGRATIONS.last().map(|(version, _)| *version).unwrap_or(0);
+        if current == 0 || current >= latest {
+            return Ok(());
+        }
+        let data_dir = self.path.parent().unwrap_or_else(|| Path::new("."));
+        let backup_dir = data_dir
+            .join("backups")
+            .join(format!("pre-migration-v{current}-{}", now_millis()));
+        std::fs::create_dir_all(&backup_dir)?;
+        connection.execute(
+            "VACUUM INTO ?1",
+            [backup_dir.join("jey.db").to_string_lossy().as_ref()],
+        )?;
+        std::fs::write(
+            backup_dir.join("manifest.json"),
+            serde_json::to_vec_pretty(&serde_json::json!({
+                "version": 1,
+                "kind": "pre_migration",
+                "schema_version": current,
+                "created_at": now_millis(),
+            }))
+            .map_err(|error| StoreError::Invalid(error.to_string()))?,
+        )?;
+        Ok(())
     }
 
     pub fn migrate(&self) -> Result<(), StoreError> {
@@ -316,5 +370,118 @@ mod tests {
         assert_eq!(status.outbox, 0);
         assert_eq!(status.conflicts, 0);
         assert_eq!(status.last_sync_seq, 0);
+    }
+
+    #[test]
+    fn migrates_old_schema_and_keeps_a_pre_migration_backup() {
+        let dir = temp_dir();
+        std::fs::create_dir_all(&dir).unwrap();
+        {
+            let connection = rusqlite::Connection::open(dir.join("jey.db")).unwrap();
+            connection.execute_batch(MIGRATIONS[0].1).unwrap();
+            connection
+                .execute_batch(
+                    "create table _local_migrations (version integer primary key, applied_at integer not null);
+                     insert into _local_migrations (version, applied_at) values (1, 1);
+                     insert into items (id, user_id, kind, title, status, created_at, updated_at)
+                     values ('old-item', 'u1', 'movie', 'Old schema item', 'done', 1, 1);",
+                )
+                .unwrap();
+        }
+
+        let store = DesktopStore::open(&dir).expect("migrate old store");
+        assert_eq!(store.schema_version().unwrap(), 4);
+        assert_eq!(store.status().unwrap().items, 1);
+        let backups = std::fs::read_dir(dir.join("backups"))
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().is_dir())
+            .count();
+        assert_eq!(backups, 1, "pre-migration backup must exist");
+        std::fs::remove_dir_all(dir).ok();
+    }
+    #[test]
+    fn migrates_each_old_version_and_keeps_data() {
+        for old in 1..4 {
+            let dir = temp_dir();
+            std::fs::create_dir_all(&dir).unwrap();
+            {
+                let connection = rusqlite::Connection::open(dir.join("jey.db")).unwrap();
+                for (version, sql) in MIGRATIONS.iter().take(old as usize) {
+                    connection.execute_batch(sql).unwrap();
+                    let _ = version;
+                }
+                connection
+                    .execute_batch(
+                        "create table _local_migrations (version integer primary key, applied_at integer not null);",
+                    )
+                    .unwrap();
+                for version in 1..=old {
+                    connection
+                        .execute(
+                            "insert into _local_migrations (version, applied_at) values (?1, 1)",
+                            [version],
+                        )
+                        .unwrap();
+                }
+                connection
+                    .execute(
+                        "insert into items (id, user_id, kind, title, status, created_at, updated_at)
+                         values ('old-item', 'u1', 'movie', 'Old schema item', 'done', 1, 1)",
+                        [],
+                    )
+                    .unwrap();
+            }
+            let store = DesktopStore::open(&dir).expect("migrate old store");
+            assert_eq!(store.schema_version().unwrap(), 4, "old={old}");
+            assert_eq!(store.status().unwrap().items, 1, "old={old}");
+            std::fs::remove_dir_all(dir).ok();
+        }
+    }
+
+    #[test]
+    fn copy_to_moves_database_media_and_login() {
+        let dir = temp_dir();
+        let target = temp_dir();
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("access.json"), "access").unwrap();
+        std::fs::write(dir.join("session.json"), "session").unwrap();
+        std::fs::create_dir_all(dir.join("media")).unwrap();
+        std::fs::write(dir.join("media/cover.webp"), "cover").unwrap();
+        let store = DesktopStore::open(&dir).expect("store");
+        store.copy_to(&target).expect("copy");
+        assert!(target.join("access.json").exists());
+        assert!(target.join("session.json").exists());
+        assert!(target.join("media/cover.webp").exists());
+        std::fs::remove_dir_all(dir).ok();
+        std::fs::remove_dir_all(target).ok();
+    }
+
+    #[test]
+    fn damaged_database_is_reported() {
+        let dir = temp_dir();
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("jey.db"), "this is not a sqlite database").unwrap();
+        let result = DesktopStore::open(&dir);
+        assert!(
+            result.is_err(),
+            "damaged database must not be silently replaced"
+        );
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn read_only_data_folder_is_reported() {
+        let dir = temp_dir();
+        std::fs::create_dir_all(&dir).unwrap();
+        let mut permissions = std::fs::metadata(&dir).unwrap().permissions();
+        std::os::unix::fs::PermissionsExt::set_mode(&mut permissions, 0o555);
+        std::fs::set_permissions(&dir, permissions.clone()).unwrap();
+        let result = DesktopStore::open(dir.join("app"));
+        let mut restore = std::fs::metadata(&dir).unwrap().permissions();
+        std::os::unix::fs::PermissionsExt::set_mode(&mut restore, 0o755);
+        std::fs::set_permissions(&dir, restore).unwrap();
+        assert!(result.is_err(), "read-only data folder must be reported");
+        std::fs::remove_dir_all(dir).ok();
     }
 }

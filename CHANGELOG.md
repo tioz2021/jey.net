@@ -3,6 +3,16 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.12] — 2026-11-08
+
+### Исправлено
+
+- Перед миграцией SQLite создаётся backup в `backups/pre-migration-*`.
+- Перенос папки данных копирует `access.json` и `session.json`, поэтому
+  после смены папки не нужно входить заново.
+- Добавлены проверки миграций 1→4, повреждённой БД, read-only папки,
+  переноса данных и восстановления backup.
+
 ## [0.3.11] — 2026-11-08
 
 ### Исправлено
