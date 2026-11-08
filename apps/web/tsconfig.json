@@ -16,16 +16,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "../../frontend/*"
       ],
       "next/link": [
-        "src/shims/next-link.tsx"
+        "./src/shims/next-link.tsx"
       ],
       "next/navigation": [
-        "src/shims/next-navigation.tsx"
+        "./src/shims/next-navigation.tsx"
       ],
       "react": [
         "./node_modules/@types/react"
