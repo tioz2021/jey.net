@@ -225,6 +225,32 @@ pub async fn create(
                 .await
                 .map_err(AppError::internal)?;
         if exists {
+            let stored: Option<Value> = sqlx::query_scalar(
+                "select to_jsonb(c) from comments c where id = $1 and item_id = $2",
+            )
+            .bind(id)
+            .bind(item_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+            if let Some(stored) = stored {
+                let same = stored.get("body").and_then(Value::as_str) == Some(body);
+                if !same {
+                    let incoming = json!({
+                        "body": body,
+                        "parent_id": payload.parent_id,
+                    });
+                    crate::social_conflicts::record(
+                        &state.pool,
+                        current.user.id,
+                        "comment",
+                        id,
+                        &incoming,
+                        &stored,
+                    )
+                    .await?;
+                }
+            }
             return Err(AppError::conflict("comment already exists"));
         }
     }

@@ -107,6 +107,31 @@ pub async fn create(
                 .await
                 .map_err(AppError::internal)?;
         if exists {
+            let stored: Option<Value> = sqlx::query_scalar(
+                "select to_jsonb(c) from collections c where id = $1 and user_id = $2",
+            )
+            .bind(id)
+            .bind(current.user.id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+            if let Some(stored) = stored {
+                let same = stored.get("title").and_then(Value::as_str) == Some(title.as_str())
+                    && stored.get("visibility").and_then(Value::as_str)
+                        == Some(visibility.as_str());
+                if !same {
+                    let incoming = json!({ "title": title, "visibility": visibility });
+                    crate::social_conflicts::record(
+                        &state.pool,
+                        current.user.id,
+                        "collection",
+                        id,
+                        &incoming,
+                        &stored,
+                    )
+                    .await?;
+                }
+            }
             return Err(AppError::conflict("collection already exists"));
         }
     }

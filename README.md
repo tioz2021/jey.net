@@ -85,6 +85,7 @@ cd apps/web && npm run build
 | [docs/openapi.yaml](docs/openapi.yaml) | OpenAPI 3.1, все эндпоинты v1 |
 | [docs/protocol.md](docs/protocol.md) | Полный текстовый контракт HTTP API |
 | [docs/sync.md](docs/sync.md) | Протокол синхронизации (этап M8) |
+| [docs/social.md](docs/social.md) | Конфликты social-сущностей |
 | [docs/deploy.md](docs/deploy.md) | Провижининг, Postgres, systemd, Caddy, секреты |
 | [docs/install.md](docs/install.md) | Установка desktop: AppImage, deb, Windows NSIS |
 | [docs/monitoring.md](docs/monitoring.md) | Health-check, алерты, ротация логов |

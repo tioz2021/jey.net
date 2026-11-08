@@ -13,7 +13,7 @@ function tauri(): Invoke | null {
   return api?.core?.invoke ?? null;
 }
 
-type Report = { pushed: number; pulled: number; conflicts: number; media: number; last_seq: number };
+type Report = { pushed: number; pulled: number; conflicts: number; social_conflicts: number; media: number; last_seq: number };
 
 export function DesktopSync() {
   const { notify, notifyError } = useToast();
@@ -40,9 +40,10 @@ export function DesktopSync() {
       const report = await invoke.current<Report>("local_sync");
       setState("idle");
       setLabel("Синхронизировать");
-      setDetail(`Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}`);
+      const conflicts = report.social_conflicts > 0 ? `, конфликтов ${report.social_conflicts}` : "";
+      setDetail(`Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}${conflicts}`);
       if (showResult) {
-        notify({ tone: "success", title: "Синхронизировано", text: `Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}`, requestId: null });
+        notify({ tone: "success", title: "Синхронизировано", text: `Отправлено ${report.pushed}, получено ${report.pulled}, обложек ${report.media}${conflicts}`, requestId: null });
       }
       window.dispatchEvent(new Event("jey:sync-complete"));
     } catch (cause) {

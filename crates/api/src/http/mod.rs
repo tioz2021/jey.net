@@ -266,6 +266,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/sync/status", get(crate::sync_status::status))
         .route("/sync/social", get(crate::sync_social::social))
         .route("/sync/conflicts", get(crate::sync_conflicts::list))
+        .route("/social/conflicts", get(crate::social_conflicts::list))
+        .route(
+            "/social/conflicts/{id}/resolve",
+            post(crate::social_conflicts::resolve),
+        )
         .route(
             "/sync/conflicts/{id}/resolve",
             post(crate::sync_conflicts::resolve),

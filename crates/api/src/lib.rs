@@ -24,6 +24,7 @@ pub mod mail;
 pub mod media;
 pub mod movies;
 pub mod site;
+pub mod social_conflicts;
 pub mod stats;
 pub mod sync_conflicts;
 pub mod sync_pull;

@@ -23,6 +23,7 @@ pub struct SyncReport {
     pub pushed: usize,
     pub pulled: usize,
     pub conflicts: usize,
+    pub social_conflicts: usize,
     pub media: usize,
     pub last_seq: i64,
 }
@@ -278,9 +279,13 @@ impl SyncService {
             }
         }
 
-        if let Err(error) = self.sync_social().await {
-            eprintln!("social sync skipped: {error}");
-        }
+        let social_conflicts = match self.sync_social().await {
+            Ok(count) => count,
+            Err(error) => {
+                eprintln!("social sync skipped: {error}");
+                0
+            }
+        };
         let media = self.cache_media().await?;
         let last_seq = self
             .store
@@ -290,12 +295,14 @@ impl SyncService {
             pushed,
             pulled,
             conflicts,
+            social_conflicts,
             media,
             last_seq,
         })
     }
 
-    async fn sync_social(&self) -> Result<(), String> {
+    async fn sync_social(&self) -> Result<usize, String> {
+        let mut social_conflicts = 0;
         for collection in self
             .store
             .collections_for_sync(self.user_id)
@@ -333,7 +340,9 @@ impl SyncService {
                 .send()
                 .await
                 .map_err(|error| error.to_string())?;
-            if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+            if response.status() == StatusCode::CONFLICT {
+                social_conflicts += 1;
+            } else if !response.status().is_success() {
                 return Err(api_error(response).await);
             }
             for item_id in self
@@ -349,7 +358,9 @@ impl SyncService {
                     .send()
                     .await
                     .map_err(|error| error.to_string())?;
-                if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+                if response.status() == StatusCode::CONFLICT {
+                    social_conflicts += 1;
+                } else if !response.status().is_success() {
                     return Err(api_error(response).await);
                 }
             }
@@ -389,7 +400,9 @@ impl SyncService {
                 .send()
                 .await
                 .map_err(|error| error.to_string())?;
-            if !response.status().is_success() && response.status() != StatusCode::CONFLICT {
+            if response.status() == StatusCode::CONFLICT {
+                social_conflicts += 1;
+            } else if !response.status().is_success() {
                 return Err(api_error(response).await);
             }
         }
@@ -555,7 +568,7 @@ impl SyncService {
         self.store
             .replace_reactions(self.user_id, &reactions)
             .map_err(|error| error.to_string())?;
-        Ok(())
+        Ok(social_conflicts)
     }
 
     async fn cache_media(&self) -> Result<usize, String> {

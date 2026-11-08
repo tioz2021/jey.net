@@ -3,6 +3,26 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [Semantic Versioning](https://semver.org/lang/ru/).
 
+## [0.3.17] — 2026-11-08
+
+### Добавлено
+
+- Desktop показывает количество social-конфликтов в тосте синхронизации.
+- `docs/social.md` фиксирует conflict copy для коллекций/комментариев и
+  last-write-wins для профиля/лайков.
+
+## [0.3.16] — 2026-11-08
+
+### Добавлено
+
+- Конфликтные копии для коллекций и комментариев: при одинаковом `id`
+  сохраняются обе версии, доступные через `/api/v1/social/conflicts`.
+- `POST /api/v1/social/conflicts/{id}/resolve` с выбором `incoming`/`stored`.
+
+### Ограничения
+
+- Профиль и лайки остаются last-write-wins.
+
 ## [0.3.15] — 2026-11-08
 
 ### Исправлено
