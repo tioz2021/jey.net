@@ -6,6 +6,7 @@ import type { FormEvent } from "react";
 
 import { CoverPicker } from "@/components/items/cover-picker";
 import { BannerPicker } from "@/components/profile/banner-picker";
+import { SocialConflicts } from "@/components/social-conflicts";
 import { Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { STATUS_KEYS } from "@/lib/i18n/labels";
@@ -280,6 +281,8 @@ export function SettingsForm({ initialUser }: { initialUser: User }) {
         </form>
       </Card>
       </div>
+
+      <SocialConflicts />
 
       <Card title={t("settings.sessions")}>
         <p className={styles.muted}>

@@ -27,8 +27,10 @@ Content-Type: application/json
 
 `stored` keeps the current row; `incoming` applies the saved losing version.
 
-Desktop sync shows the number of social conflicts in its toast. A dedicated
-conflict-resolution screen is not implemented yet; use the API above.
+Desktop sync shows the number of social conflicts in its toast. Открыть
+разрешение можно в **Настройки → Конфликты синхронизации**: видны обе версии
+и кнопки «Оставить серверную» / «Оставить входящую». API остаётся доступным
+для автоматизации.
 
 ## Profile and likes
 

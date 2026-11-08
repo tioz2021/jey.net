@@ -189,6 +189,15 @@ export interface PasswordChangeInput {
   new_password: string;
 }
 
+export interface SocialConflict {
+  conflict_id: string;
+  entity: "collection" | "comment";
+  entity_id: string;
+  incoming: Record<string, unknown>;
+  stored: Record<string, unknown>;
+  created_at: string;
+}
+
 export const auth = {
   login: (input: LoginInput) =>
     request<UserResponse>("/auth/login", {
@@ -675,6 +684,15 @@ export const transfer = {
     request<ImportReport>("/import", { method: "POST", body: file }),
 };
 
-export const api = { admin, anime, auth, books, collections, publicCollections, comments, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
+export const social = {
+  conflicts: () => request<{ conflicts: SocialConflict[] }>("/social/conflicts"),
+  resolve: (id: string, keep: "incoming" | "stored") =>
+    request<{ resolved: boolean }>(`/social/conflicts/${id}/resolve`, {
+      method: "POST",
+      body: { keep },
+    }),
+};
+
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };
