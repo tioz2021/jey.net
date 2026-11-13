@@ -95,7 +95,7 @@ cd apps/web && npm run build
 | [docs/security.md](docs/security.md) | Аудит безопасности и остаточные риски |
 | [docs/perf.md](docs/perf.md) | Нагрузочные тесты и LCP |
 | [docs/runbook.md](docs/runbook.md) | Что делать, когда всё сломалось |
-| [docs/workflow.md](docs/workflow.md) | Как ведётся работа над задачами |
+| [docs/workflow.md](docs/workflow.md) | Как ведётся работа, включая веб-первый цикл фич |
 | [ROADMAP.md](ROADMAP.md) | План работ по задачам |
 
 ## Структура репозитория
