@@ -167,8 +167,13 @@ export function ItemsScreen() {
         <ul aria-busy={loading} className={view === "grid" ? "items-grid" : "items-list"} style={{ opacity: loading ? 0.55 : 1, transition: "opacity 120ms ease" }}>
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>
-              {selectionMode ? <label style={{ position: "absolute", zIndex: 2, top: 8, left: 8 }}><input checked={selected.has(item.id)} onChange={() => toggle(item.id)} type="checkbox" /></label> : null}
-              <ItemCard coverSrc={item.cover_key ? covers[item.cover_key] : undefined} href={`/items/${item.id}`} item={item} selected={selectionMode && selected.has(item.id)} />
+              <ItemCard
+                coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
+                href={selectionMode ? undefined : `/items/${item.id}`}
+                item={item}
+                onOpen={selectionMode ? () => toggle(item.id) : undefined}
+                selected={selectionMode && selected.has(item.id)}
+              />
             </li>
           ))}
         </ul>
