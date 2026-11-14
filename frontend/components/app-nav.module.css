@@ -17,6 +17,34 @@
   border-radius: var(--radius-lg);
 }
 
+.domains {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.domainLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+
+.domainLink:hover {
+  background: var(--color-surface);
+}
+
+.domainActive {
+  font-weight: 600;
+  background: var(--color-surface);
+  border-left-color: var(--color-accent);
+}
+
 .head {
   margin: 0;
   padding: 7px var(--space-3);
@@ -84,6 +112,12 @@
 
 .create:hover {
   filter: brightness(1.08);
+}
+
+.profile {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-1);
+  padding: var(--space-2);
 }
 
 .system {
@@ -165,6 +199,14 @@
 
   .create {
     margin: 0 var(--space-2);
+  }
+
+  .domains {
+    display: none;
+  }
+
+  .profile {
+    display: none;
   }
 
   .systemHead {

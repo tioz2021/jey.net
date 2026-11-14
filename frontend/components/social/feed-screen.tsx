@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
 import { markFeedSeen } from "@/components/feed-badge";
+import { FeedTabs } from "@/components/feed-tabs";
 import type { FeedItem } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -48,6 +49,7 @@ export function FeedScreen() {
 
   return (
     <main>
+      <FeedTabs />
       <PageHeader subtitle={t("feed.subtitle")} title={t("feed.title")} />
       <Card>
         {loading ? (

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { HideRecommendation } from "@/components/hide-recommendation";
+import { FeedTabs } from "@/components/feed-tabs";
 import { ItemCard } from "@/components/items/item-card";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -59,6 +60,7 @@ export function RecommendationsScreen() {
 
   return (
     <main>
+      <FeedTabs />
       <PageHeader subtitle={t("recommendations.subtitle")} title={t("recommendations.title")} />
       <Card title={t("recommendations.tasteTitle")}>
         {genres.length === 0 ? (

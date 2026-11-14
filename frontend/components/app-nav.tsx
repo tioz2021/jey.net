@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 import {
   IconAnime,
   IconBook,
+  IconFeed,
   IconFilm,
   IconGame,
   IconList,
+  IconPeople,
   IconTrash,
   IconTv,
 } from "@/components/icons";
@@ -20,9 +22,18 @@ import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
 import type { TranslationKey } from "@/lib/i18n";
 
+import { UserMenu } from "@/components/user-menu";
+import { useUser } from "@/lib/user-context";
+
 import { FollowingSidebar } from "./following-sidebar";
 import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
+
+const DOMAINS: Array<{ href: string; labelKey: TranslationKey; Icon: typeof IconList }> = [
+  { href: "/items", labelKey: "nav.notebook", Icon: IconList },
+  { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
+  { href: "/people", labelKey: "nav.subscriptions", Icon: IconPeople },
+];
 
 const KINDS: Array<{
   kind: string | null;
@@ -45,6 +56,7 @@ function kindFromLocation(): string | null {
 
 export function AppNav() {
   const { t } = useI18n();
+  const { user } = useUser();
   const pathname = usePathname();
   const params = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
   const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
@@ -99,7 +111,25 @@ export function AppNav() {
 
   return (
     <div className={styles.column}>
-    <aside className={styles.nav} aria-label="Типы записей">
+    <aside className={styles.nav} aria-label={t("nav.notebook")}>
+      <nav className={styles.domains} aria-label={t("nav.notebook")}>
+        {DOMAINS.map(({ href, labelKey, Icon }) => {
+          const active = href === "/items"
+            ? pathname === "/items" || pathname === "/collections" || pathname.startsWith("/items/") || pathname.startsWith("/collections/")
+            : pathname === href || pathname.startsWith(`${href}/`);
+          return (
+            <AppLink
+              aria-current={active ? "page" : undefined}
+              className={`${styles.domainLink} ${active ? styles.domainActive : ""}`}
+              href={href}
+              key={href}
+            >
+              <Icon size={15} />
+              {t(labelKey)}
+            </AppLink>
+          );
+        })}
+      </nav>
       <p className={styles.head}>{t("nav.types")}</p>
       <div className={styles.body}>
         {KINDS.map(({ kind, labelKey, Icon }) => {
@@ -158,6 +188,11 @@ export function AppNav() {
         <span aria-hidden="true">+</span>
         {t("common.add")}
       </AppLink>
+      {user ? (
+        <div className={styles.profile}>
+          <UserMenu user={user} />
+        </div>
+      ) : null}
       <div className={styles.system}>
         <p className={styles.systemHead}>{t("nav.system")}</p>
         <AppLink

@@ -90,7 +90,7 @@ export function SiteHeader() {
               <div className={styles.language}>
                 <LanguageSwitch />
               </div>
-              <UserMenu user={user} />
+              <span className={styles.userSlot}><UserMenu user={user} /></span>
             </>
           ) : (
             <Link className={styles.link} href="/login">

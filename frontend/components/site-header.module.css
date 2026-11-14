@@ -107,3 +107,15 @@
 .navLink {
   transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
 }
+
+@media (width > 1000px) {
+  .nav {
+    display: none;
+  }
+}
+
+@media (width > 1000px) {
+  .userSlot {
+    display: none;
+  }
+}

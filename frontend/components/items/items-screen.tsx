@@ -13,6 +13,7 @@ import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
+import { NotebookTabs } from "@/components/notebook-tabs";
 
 export function ItemsScreen() {
   const i18n = useI18n();
@@ -75,6 +76,7 @@ export function ItemsScreen() {
 
   return (
     <main>
+      <NotebookTabs />
       {slot ? createPortal(<ItemsFilters compact />, slot) : null}
       <PageHeader
         action={

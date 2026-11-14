@@ -93,6 +93,7 @@ export const ru = {
   "theme.dark": "Тёмная тема",
   "quickAdd": "Добавить запись",
   "nav.collections": "Коллекции",
+  "nav.notebook": "Блокнот",
   "nav.items": "Мои записи",
   "nav.tags": "Теги",
   "nav.stats": "Статистика",
