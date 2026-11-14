@@ -128,8 +128,9 @@
 }
 
 .menuLeft {
-  left: 0;
+  left: 50%;
   right: auto;
+  transform: translateX(-50%);
 }
 
 .menuUser {

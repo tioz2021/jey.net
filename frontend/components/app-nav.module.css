@@ -90,7 +90,7 @@
   font-weight: 600;
   text-decoration: none;
   background: var(--color-accent);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
 }
 
 .create:hover {
