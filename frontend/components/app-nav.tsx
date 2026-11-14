@@ -88,8 +88,12 @@ export function AppNav() {
         </nav>
 
         <AppLink className={styles.create} href="/items/new">
-          {t("common.add")}
-          <span aria-hidden="true">+</span>
+          <span className={styles.createLabel}>{t("common.add")}</span>
+          <span aria-hidden="true" className={styles.createIcon}>
+            <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeLinecap="round" strokeWidth="2.2" />
+            </svg>
+          </span>
         </AppLink>
 
         <div className={styles.tools}>
