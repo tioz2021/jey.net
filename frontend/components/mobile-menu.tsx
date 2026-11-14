@@ -18,16 +18,28 @@ import type { TranslationKey } from "@/lib/i18n";
 
 import styles from "./mobile-menu.module.css";
 
-const SECTIONS: Array<{
-  href: string;
+const GROUPS: Array<{
   labelKey: TranslationKey;
-  Icon: typeof IconList;
+  links: Array<{ href: string; labelKey: TranslationKey; Icon: typeof IconList }>;
 }> = [
-  { href: "/items", labelKey: "nav.items", Icon: IconList },
-  { href: "/collections", labelKey: "nav.collections", Icon: IconCollection },
-  { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
-  { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
-  { href: "/people", labelKey: "nav.people", Icon: IconPeople },
+  {
+    labelKey: "nav.notebook",
+    links: [
+      { href: "/items", labelKey: "nav.items", Icon: IconList },
+      { href: "/collections", labelKey: "nav.collections", Icon: IconCollection },
+    ],
+  },
+  {
+    labelKey: "nav.feed",
+    links: [
+      { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
+      { href: "/recommendations", labelKey: "nav.recommendations", Icon: IconSparkles },
+    ],
+  },
+  {
+    labelKey: "nav.subscriptions",
+    links: [{ href: "/people", labelKey: "nav.people", Icon: IconPeople }],
+  },
 ];
 
 /** Compact section menu for tablets and phones. */
@@ -78,30 +90,34 @@ export function MobileMenu() {
           </div>
 
           <nav aria-label={t("nav.menu")} className={styles.sections}>
-            {SECTIONS.map(({ href, labelKey, Icon }) => {
-              const active =
-                pathname === href || pathname.startsWith(`${href}/`);
-
-              return (
-                <Link
-                  aria-current={active ? "page" : undefined}
-                  className={`${styles.link} ${active ? styles.active : ""}`}
-                  href={href}
-                  key={href}
-                  title={
-                    href === "/feed"
-                      ? t("nav.feedHint")
-                      : href === "/recommendations"
-                        ? t("nav.recommendationsHint")
-                        : undefined
-                  }
-                >
-                  <Icon size={16} />
-                  {t(labelKey)}
-                  {href === "/feed" ? <FeedBadge /> : null}
-                </Link>
-              );
-            })}
+            {GROUPS.map((group) => (
+              <div className={styles.group} key={group.labelKey}>
+                <p className={styles.groupLabel}>{t(group.labelKey)}</p>
+                {group.links.map(({ href, labelKey, Icon }) => {
+                  const active =
+                    pathname === href || pathname.startsWith(`${href}/`);
+                  return (
+                    <Link
+                      aria-current={active ? "page" : undefined}
+                      className={`${styles.link} ${active ? styles.active : ""}`}
+                      href={href}
+                      key={href}
+                      title={
+                        href === "/feed"
+                          ? t("nav.feedHint")
+                          : href === "/recommendations"
+                            ? t("nav.recommendationsHint")
+                            : undefined
+                      }
+                    >
+                      <Icon size={16} />
+                      {t(labelKey)}
+                      {href === "/feed" ? <FeedBadge /> : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </div>
       ) : null}
