@@ -8,6 +8,14 @@
  * and an explicit `data-theme` on <html> overrides it.
  */
 
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/InterVariable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light dark;
 
@@ -54,22 +62,22 @@
 
   /* Caption, compact UI, reading text, section and page titles. */
   --text-2xs: 0.6875rem;
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.625rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.5rem;
   --text-2xl: 1.75rem;
 
-  --line-tight: 1.3;
-  --line-normal: 1.55;
+  --line-tight: 1.25;
+  --line-normal: 1.5;
 
   --shadow-sm: 0 1px 2px rgb(16 20 28 / 8%);
   --shadow-md: 0 4px 16px rgb(16 20 28 / 12%);
 
   --font-sans:
-    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   --transition-fast: 120ms ease-in-out;
@@ -178,6 +186,17 @@ body {
   font-size: var(--text-base);
   line-height: var(--line-normal);
   -webkit-font-smoothing: antialiased;
+  font-optical-sizing: auto;
+  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1;
+  letter-spacing: -0.005em;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.018em;
 }
 
 input::placeholder,

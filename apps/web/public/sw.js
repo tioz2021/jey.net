@@ -1,5 +1,5 @@
 /* jey.net offline shell. API responses are never cached: they are private. */
-const CACHE = "jey-shell-v7";
+const CACHE = "jey-shell-v8";
 const OFFLINE = "/offline.html";
 const PRECACHE = [OFFLINE, "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/og.png"];
 
@@ -21,6 +21,7 @@ self.addEventListener("activate", (event) => {
 function cacheable(url) {
   return (
     url.pathname.startsWith("/assets/") ||
+    url.pathname.startsWith("/fonts/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/media/") ||
     url.pathname === "/manifest.webmanifest" ||
