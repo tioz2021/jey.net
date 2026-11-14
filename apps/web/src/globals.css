@@ -705,3 +705,42 @@ button:not(:disabled):active {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
+
+/* Keep every filter control on the same optical grid. */
+.catalogue-filter-row .compact .selectTrigger {
+  height: var(--control-h);
+  min-height: var(--control-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.catalogue-filter-row .compact .desktopSearch label {
+  display: none;
+}
+
+.catalogue-filter-row .selection-toggle {
+  border-radius: var(--radius-md);
+}
+
+.catalogue-filter-row .compact [class*="selectTrigger"] {
+  height: var(--control-h);
+  min-height: var(--control-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.catalogue-filter-row .compact .desktopSearch,
+.catalogue-filter-row .compact .desktopSearch > * {
+  align-self: center;
+}
+
+.catalogue-filter-row [class*="selectTrigger"] {
+  height: var(--control-h);
+  min-height: var(--control-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.catalogue-filter-row .desktopSearch label {
+  display: none;
+}
