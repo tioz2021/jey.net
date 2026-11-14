@@ -98,7 +98,7 @@ export function AppNav() {
 
         {user ? (
           <div className={styles.profile}>
-            <UserMenu user={user} />
+            <UserMenu menuAlign="left" user={user} />
           </div>
         ) : null}
 

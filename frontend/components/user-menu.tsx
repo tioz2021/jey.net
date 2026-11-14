@@ -5,6 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
+import {
+  IconList,
+  IconPeople,
+  IconSettings,
+  IconStats,
+} from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LanguageSwitch } from "@/components/language-switch";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,7 +22,15 @@ import type { User } from "@/lib/types";
 import styles from "./user-menu.module.css";
 import { mediaUrl } from "@/lib/media";
 
-export function UserMenu({ user, compact = false }: { user: User; compact?: boolean }) {
+export function UserMenu({
+  user,
+  compact = false,
+  menuAlign = "right",
+}: {
+  user: User;
+  compact?: boolean;
+  menuAlign?: "left" | "right";
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { setUser } = useUser();
@@ -154,13 +168,26 @@ export function UserMenu({ user, compact = false }: { user: User; compact?: bool
 
       {open ? (
         <div
-          className={`${styles.menu} ${menuUp ? styles.menuUp : ""}`}
+          className={`${styles.menu} ${menuUp ? styles.menuUp : ""} ${menuAlign === "left" ? styles.menuLeft : ""}`}
           id="user-menu"
           onKeyDown={onMenuKeyDown}
           ref={menuRef}
           role="menu"
         >
+          <Link className={styles.menuUser} href={`/u/${user.handle}`}>
+            <Avatar
+              url={user.avatar_key ? mediaUrl(user.avatar_key) : null}
+              name={user.display_name}
+              size={30}
+            />
+            <span className={styles.menuUserText}>
+              <strong>{user.display_name}</strong>
+              <small>{user.role === "user" ? "Trial" : user.role}</small>
+            </span>
+            <span aria-hidden="true" className={styles.menuUserArrow}>›</span>
+          </Link>
           <Link className={styles.item} href={`/u/${user.handle}`} role="menuitem">
+            <IconList size={15} />
             {t("account.myPage")}
           </Link>
           {desktop ? (
@@ -168,14 +195,17 @@ export function UserMenu({ user, compact = false }: { user: User; compact?: bool
               {t("account.webVersion")} ↗
             </a>
           ) : null}
-          <Link className={styles.item} href="/settings" role="menuitem">
-            {t("account.settings")}
-          </Link>
           <Link className={styles.item} href="/dashboard" role="menuitem">
+            <IconStats size={15} />
             {t("account.stats")}
+          </Link>
+          <Link className={styles.item} href="/settings" role="menuitem">
+            <IconSettings size={15} />
+            {t("account.settings")}
           </Link>
           {user.role !== "user" ? (
             <Link className={styles.item} href="/admin" role="menuitem">
+              <IconPeople size={15} />
               {t("account.admin")}
             </Link>
           ) : null}
