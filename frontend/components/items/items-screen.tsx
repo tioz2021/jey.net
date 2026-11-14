@@ -101,6 +101,26 @@ export function ItemsScreen() {
           </button>
         </div>
         <ItemsFilters compact />
+        <button
+          aria-label="Выбрать записи"
+          aria-pressed={selectionMode}
+          className={`selection-toggle ${selectionMode ? "selection-toggle-on" : ""}`}
+          onClick={() => {
+            setSelectionMode((value) => {
+              if (value) setSelected(new Set());
+              return !value;
+            });
+          }}
+          title={selectionMode ? "Выйти из выбора" : "Выбрать записи"}
+          type="button"
+        >
+          <span aria-hidden="true" className="selection-box">
+            {selectionMode && selected.size > 0 ? selected.size : ""}
+          </span>
+          <svg aria-hidden="true" fill="none" height="10" viewBox="0 0 24 24" width="10">
+            <path d="m6 9 6 6 6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+        </button>
       </div>
       {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
       {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (

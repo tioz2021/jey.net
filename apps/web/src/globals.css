@@ -527,3 +527,42 @@ button:not(:disabled):active {
   flex: none;
   opacity: 0.8;
 }
+
+.selection-toggle {
+  display: inline-flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 5px 7px;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.selection-toggle:hover,
+.selection-toggle-on {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.selection-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text);
+  font-size: 10px;
+  line-height: 1;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+
+.selection-toggle-on .selection-box {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
