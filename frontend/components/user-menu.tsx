@@ -12,8 +12,6 @@ import {
   IconStats,
 } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
-import { LanguageSwitch } from "@/components/language-switch";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -214,10 +212,6 @@ export function UserMenu({
               {t("account.admin")}
             </Link>
           ) : null}
-          <div className={styles.settings}>
-            <ThemeToggle />
-            <LanguageSwitch />
-          </div>
           <button
             className={`${styles.item} ${styles.danger}`}
             disabled={pending}

@@ -3,7 +3,9 @@
 import type { ReactNode } from "react";
 
 import { AppNav } from "@/components/app-nav";
+import { LanguageSwitch } from "@/components/language-switch";
 import { SiteHeader } from "@/components/site-header";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import styles from "./app-shell.module.css";
 
@@ -16,7 +18,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       <div className={styles.shell}>
         <AppNav />
-        <div className={styles.content}>{children}</div>
+        <div className={styles.content}>
+          <div className={styles.topControls}>
+            <ThemeToggle />
+            <LanguageSwitch />
+          </div>
+          {children}
+        </div>
       </div>
     </>
   );
