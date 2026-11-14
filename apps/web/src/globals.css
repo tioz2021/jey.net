@@ -598,3 +598,45 @@ button:not(:disabled):active {
   margin-right: auto;
   color: var(--color-text-muted);
 }
+
+/* One toolbar height for controls, inputs and buttons. */
+.catalogue-filter-row {
+  align-items: center;
+}
+
+.catalogue-filter-row .view-switch,
+.catalogue-filter-row .selection-toggle {
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.catalogue-filter-row .view-switch {
+  align-items: stretch;
+}
+
+.catalogue-filter-row .view-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  padding: 0;
+}
+
+.catalogue-filter-row .selection-toggle {
+  min-width: 40px;
+  height: 40px;
+  max-height: 40px;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.catalogue-filter-row .compact :global(input),
+.catalogue-filter-row .compact :global(select),
+.catalogue-filter-row .compact :global(button) {
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.catalogue-filter-row .compact .desktopSearch {
+  align-self: center;
+}

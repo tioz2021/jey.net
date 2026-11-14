@@ -12,7 +12,6 @@ import { describeError } from "@/lib/messages";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
 import { NotebookTabs } from "@/components/notebook-tabs";
-import { AppLink } from "@/lib/navigation";
 import { KindChips } from "@/components/items/kind-chips";
 import { api } from "@/lib/api";
 
@@ -24,7 +23,7 @@ export function ItemsScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [view, setView] = useState<"list" | "grid">("list");
+  const [view, setView] = useState<"list" | "grid">("grid");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
   const [covers, setCovers] = useState<Record<string, string>>({});
@@ -104,9 +103,6 @@ export function ItemsScreen() {
       <NotebookTabs />
       <div className="catalogue-toolbar">
         <KindChips />
-        <AppLink className="catalogue-add" href="/items/new">
-          Добавить запись <span aria-hidden="true">+</span>
-        </AppLink>
       </div>
       <div className="catalogue-filter-row">
         <div className="view-switch" aria-label={t("view.label")}>
@@ -116,7 +112,10 @@ export function ItemsScreen() {
             onClick={() => setView("list")}
             type="button"
           >
-            ☰
+            <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 20 20" width="16">
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="14" x="3" y="3" />
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="14" x="3" y="11" />
+            </svg>
           </button>
           <button
             aria-label={t("view.grid")}
@@ -124,7 +123,12 @@ export function ItemsScreen() {
             onClick={() => setView("grid")}
             type="button"
           >
-            ▦
+            <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 20 20" width="16">
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="3" y="3" />
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="11" y="3" />
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="3" y="11" />
+              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="11" y="11" />
+            </svg>
           </button>
         </div>
         <ItemsFilters compact />
