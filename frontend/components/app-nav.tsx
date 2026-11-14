@@ -1,32 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import {
-  IconAnime,
-  IconBook,
-  IconFeed,
-  IconFilm,
-  IconGame,
-  IconList,
-  IconPeople,
-  IconTrash,
-  IconTv,
-} from "@/components/icons";
-import { api } from "@/lib/api";
-import type { Stats } from "@/lib/types";
-
 import { usePathname } from "next/navigation";
 
+import { DesktopSync } from "@/components/desktop-sync";
+import { FeedBadge } from "@/components/feed-badge";
+import { IconFeed, IconList, IconPeople, IconTrash } from "@/components/icons";
+import { LanguageSwitch } from "@/components/language-switch";
+import { Logo } from "@/components/logo";
+import { NotificationBell } from "@/components/notification-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
+import { useUser } from "@/lib/user-context";
+import { api } from "@/lib/api";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { UserMenu } from "@/components/user-menu";
-import { useUser } from "@/lib/user-context";
-
-import { FollowingSidebar } from "./following-sidebar";
-import { ITEMS_QUERY_EVENT } from "./items/query-context";
 import styles from "./app-nav.module.css";
 
 const DOMAINS: Array<{ href: string; labelKey: TranslationKey; Icon: typeof IconList }> = [
@@ -35,180 +25,99 @@ const DOMAINS: Array<{ href: string; labelKey: TranslationKey; Icon: typeof Icon
   { href: "/people", labelKey: "nav.subscriptions", Icon: IconPeople },
 ];
 
-const KINDS: Array<{
-  kind: string | null;
-  labelKey: TranslationKey;
-  Icon: typeof IconList;
-}> = [
-  { kind: null, labelKey: "nav.all", Icon: IconList },
-  { kind: "movie", labelKey: "nav.movies", Icon: IconFilm },
-  { kind: "tv", labelKey: "nav.series", Icon: IconTv },
-  { kind: "anime", labelKey: "nav.anime", Icon: IconAnime },
-  { kind: "book", labelKey: "nav.books", Icon: IconBook },
-  { kind: "game", labelKey: "nav.games", Icon: IconGame },
-];
-
-const VISIBLE_KINDS = ["movie", "tv", "anime", "book", "game"] as const;
-
-function kindFromLocation(): string | null {
-  return new URLSearchParams(window.location.search).get("kind");
+function domainActive(pathname: string, href: string) {
+  if (href === "/items") {
+    return pathname === "/items" || pathname.startsWith("/items/") || pathname === "/collections" || pathname.startsWith("/collections/");
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AppNav() {
   const { t } = useI18n();
   const { user } = useUser();
   const pathname = usePathname();
-  const params = typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
-  const [activeKind, setActiveKind] = useState<string | null>(params.get("kind"));
-  const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
-  const [countsTick, setCountsTick] = useState(0);
-  const onItems = pathname === "/items";
-
-  useEffect(() => {
-    setActiveKind(params.get("kind"));
-  }, [params]);
-
-  useEffect(() => {
-    const refresh = () => setCountsTick((value) => value + 1);
-    window.addEventListener("jey:sync-complete", refresh);
-    window.addEventListener("jey:item-refreshed", refresh);
-    return () => {
-      window.removeEventListener("jey:sync-complete", refresh);
-      window.removeEventListener("jey:item-refreshed", refresh);
-    };
-  }, []);
+  const [counts, setCounts] = useState<{ notebook: number; subscriptions: number }>({ notebook: 0, subscriptions: 0 });
 
   useEffect(() => {
     let cancelled = false;
+    if (!user) return;
     api.stats
       .get()
-      .then((stats: Stats) => {
-        if (!cancelled) {
-          setCounts(stats.by_kind);
-        }
+      .then((stats) => {
+        if (!cancelled) setCounts((current) => ({ ...current, notebook: stats.total }));
       })
-      .catch(() => {
-        // Counts are decorative; the catalogue must work if stats fail.
-      });
+      .catch(() => {});
+    api.follows
+      .following()
+      .then((response) => {
+        if (!cancelled) setCounts((current) => ({ ...current, subscriptions: response.people.length }));
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [pathname, countsTick]);
-
-  // Filters change the URL without an App Router navigation, so the active
-  // item has to follow our own event as well as back/forward.
-  useEffect(() => {
-    const sync = () => setActiveKind(kindFromLocation());
-
-    window.addEventListener(ITEMS_QUERY_EVENT, sync);
-    window.addEventListener("popstate", sync);
-
-    return () => {
-      window.removeEventListener(ITEMS_QUERY_EVENT, sync);
-      window.removeEventListener("popstate", sync);
-    };
-  }, []);
+  }, [user]);
 
   return (
     <div className={styles.column}>
-    <aside className={styles.nav} aria-label={t("nav.notebook")}>
-      <nav className={styles.domains} aria-label={t("nav.notebook")}>
-        {DOMAINS.map(({ href, labelKey, Icon }) => {
-          const active = href === "/items"
-            ? pathname === "/items" || pathname === "/collections" || pathname.startsWith("/items/") || pathname.startsWith("/collections/")
-            : pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <AppLink
-              aria-current={active ? "page" : undefined}
-              className={`${styles.domainLink} ${active ? styles.domainActive : ""}`}
-              href={href}
-              key={href}
-            >
-              <Icon size={15} />
-              {t(labelKey)}
-            </AppLink>
-          );
-        })}
-      </nav>
-      <p className={styles.head}>{t("nav.types")}</p>
-      <div className={styles.body}>
-        {KINDS.map(({ kind, labelKey, Icon }) => {
-        const active =
-          onItems && (kind === null ? !activeKind : activeKind === kind);
-        const href = kind ? `/items?kind=${kind}` : "/items";
-
-        return (
-          <AppLink
-            aria-current={active ? "page" : undefined}
-            className={`${styles.link} ${active ? styles.active : ""}`}
-            href={href}
-            key={labelKey}
-            onClick={(event) => {
-              // Already on the catalogue: swap the filter in place instead of
-              // navigating, so the page keeps its scroll position.
-              if (!onItems) {
-                return;
-              }
-
-              event.preventDefault();
-
-              const next = new URLSearchParams(window.location.search);
-              if (kind) {
-                next.set("kind", kind);
-              } else {
-                next.delete("kind");
-              }
-
-              const query = next.toString();
-              const base = "/items";
-              window.history.replaceState(
-                null,
-                "",
-                query ? `${base}?${query}` : base,
-              );
-              window.dispatchEvent(new Event(ITEMS_QUERY_EVENT));
-            }}
-          >
-            <Icon size={14} />
-            <span className={styles.label}>{t(labelKey)}</span>
-            <span className={styles.count}>
-              {kind === null
-                ? VISIBLE_KINDS.reduce(
-                    (total, key) => total + (counts[key] ?? 0),
-                    0,
-                  )
-                : (counts[kind] ?? 0)}
-            </span>
-            </AppLink>
-          );
-        })}
-
-      </div>
-      <AppLink className={styles.create} href="/items/new">
-        <span aria-hidden="true">+</span>
-        {t("common.add")}
-      </AppLink>
-      {user ? (
-        <div className={styles.profile}>
-          <UserMenu user={user} />
+      <aside className={styles.nav} aria-label={t("nav.notebook")}>
+        <div className={styles.brandRow}>
+          <AppLink className={styles.brand} href="/items">
+            <Logo size={22} />
+            <span>jey.net</span>
+          </AppLink>
+          {user ? <NotificationBell /> : null}
         </div>
-      ) : null}
-      <div className={styles.system}>
-        <p className={styles.systemHead}>{t("nav.system")}</p>
-        <AppLink
-          aria-current={pathname === "/trash" ? "page" : undefined}
-          className={`${styles.link} ${styles.trashLink} ${
-            pathname === "/trash" ? styles.active : ""
-          }`}
-          href="/trash"
-        >
-          <IconTrash size={14} />
-          {t("nav.trash")}
+
+        <nav className={styles.domains} aria-label={t("nav.menu")}>
+          {DOMAINS.map(({ href, labelKey, Icon }) => {
+            const active = domainActive(pathname, href);
+            return (
+              <AppLink
+                aria-current={active ? "page" : undefined}
+                className={`${styles.domainLink} ${active ? styles.domainActive : ""}`}
+                href={href}
+                key={href}
+              >
+                <Icon size={15} />
+                {t(labelKey)}
+                {href === "/feed" ? <FeedBadge /> : null}
+                {href === "/items" ? <span className={styles.domainCount}>{counts.notebook}</span> : null}
+                {href === "/people" ? <span className={styles.domainCount}>{counts.subscriptions}</span> : null}
+              </AppLink>
+            );
+          })}
+        </nav>
+
+        <AppLink className={styles.create} href="/items/new">
+          <span aria-hidden="true">+</span>
+          {t("common.add")}
         </AppLink>
-      </div>
-    </aside>
-    <div id="items-filter-slot" />
-    <FollowingSidebar />
+
+        <div className={styles.tools}>
+          <DesktopSync withLabel />
+          <ThemeToggle />
+          <LanguageSwitch />
+        </div>
+
+        {user ? (
+          <div className={styles.profile}>
+            <UserMenu user={user} />
+          </div>
+        ) : null}
+
+        <div className={styles.system}>
+          <p className={styles.systemHead}>{t("nav.system")}</p>
+          <AppLink
+            aria-current={pathname === "/trash" ? "page" : undefined}
+            className={`${styles.link} ${pathname === "/trash" ? styles.active : ""}`}
+            href="/trash"
+          >
+            <IconTrash size={14} />
+            {t("nav.trash")}
+          </AppLink>
+        </div>
+      </aside>
     </div>
   );
 }

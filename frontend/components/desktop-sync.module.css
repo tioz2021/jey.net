@@ -5,3 +5,16 @@
 
 .button:disabled svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.labeled {
+  display: inline-flex;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  padding: 7px 10px;
+}
+
+.label {
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}

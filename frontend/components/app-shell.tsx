@@ -11,7 +11,9 @@ import styles from "./app-shell.module.css";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <>
-      <SiteHeader />
+      <div className={styles.desktopHeader}>
+        <SiteHeader />
+      </div>
       <div className={styles.shell}>
         <AppNav />
         <div className={styles.content}>{children}</div>

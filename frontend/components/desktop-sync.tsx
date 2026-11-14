@@ -15,7 +15,7 @@ function tauri(): Invoke | null {
 
 type Report = { pushed: number; pulled: number; conflicts: number; social_conflicts: number; media: number; last_seq: number };
 
-export function DesktopSync() {
+export function DesktopSync({ withLabel = false }: { withLabel?: boolean }) {
   const { notify, notifyError } = useToast();
   const invoke = useRef<Invoke | null>(null);
   const [ready, setReady] = useState(false);
@@ -80,7 +80,7 @@ export function DesktopSync() {
   return (
     <button
       aria-label={label}
-      className={`${styles.button} ${state === "error" ? styles.error : ""}`}
+      className={`${styles.button} ${state === "error" ? styles.error : ""} ${withLabel ? styles.labeled : ""}`}
       disabled={state === "syncing"}
       onClick={() => void run(true)}
       title={detail || label}
@@ -90,6 +90,7 @@ export function DesktopSync() {
         <path d="M20 11a8 8 0 0 0-14.9-3M4 5v5h5M4 13a8 8 0 0 0 14.9 3M20 19v-5h-5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
       </svg>
       <span className={styles.dot} />
+      {withLabel ? <span className={styles.label}>{label}</span> : null}
     </button>
   );
 }
