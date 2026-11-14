@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { AppLink } from "@/lib/navigation";
+import { IconAnime, IconBook, IconFilm, IconGame, IconList, IconTv } from "@/components/icons";
 import { api } from "@/lib/api";
 import { KIND_KEYS } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
 import type { Stats } from "@/lib/types";
 
 const KINDS = [null, "movie", "tv", "anime", "book", "game"] as const;
+const KIND_ICONS = { movie: IconFilm, tv: IconTv, anime: IconAnime, book: IconBook, game: IconGame } as const;
 
 export function KindChips() {
   const { t } = useI18n();
@@ -34,6 +36,7 @@ export function KindChips() {
     <nav aria-label="Категории" className="kind-chips">
       {KINDS.map((kind) => {
         const label = kind ? t(KIND_KEYS[kind]) : t("nav.all");
+        const Icon = kind ? KIND_ICONS[kind] : IconList;
         const count = kind
           ? counts[kind] ?? 0
           : KINDS.filter((entry) => entry !== null).reduce(
@@ -46,6 +49,7 @@ export function KindChips() {
             href={kind ? `/items?kind=${kind}` : "/items"}
             key={kind ?? "all"}
           >
+            <Icon size={14} />
             {label}
             <span>{count}</span>
           </AppLink>

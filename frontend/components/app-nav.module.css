@@ -53,6 +53,12 @@
   border-radius: var(--radius-sm);
 }
 
+.domainLink svg,
+.link svg {
+  flex: none;
+  opacity: 0.8;
+}
+
 .domainLink:hover,
 .link:hover {
   background: var(--color-surface);

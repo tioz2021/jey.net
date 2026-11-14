@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className={styles.shell}>
         <AppNav />
         <div className={styles.content}>
-          {user ? <div className={styles.topProfile}><UserMenu user={user} /></div> : null}
+          {user ? <div className={styles.topProfile}><UserMenu compact user={user} /></div> : null}
           {children}
         </div>
       </div>

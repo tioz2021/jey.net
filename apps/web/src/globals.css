@@ -522,3 +522,8 @@ button:not(:disabled):active {
     align-self: flex-start;
   }
 }
+
+.kind-chips a svg {
+  flex: none;
+  opacity: 0.8;
+}

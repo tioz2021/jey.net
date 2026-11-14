@@ -14,7 +14,7 @@ import type { User } from "@/lib/types";
 import styles from "./user-menu.module.css";
 import { mediaUrl } from "@/lib/media";
 
-export function UserMenu({ user }: { user: User }) {
+export function UserMenu({ user, compact = false }: { user: User; compact?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const { setUser } = useUser();
@@ -111,7 +111,7 @@ export function UserMenu({ user }: { user: User }) {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls="user-menu"
-        className={styles.trigger}
+        className={`${styles.trigger} ${compact ? styles.triggerCompact : ""}`}
         onClick={() => setOpen((value) => !value)}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") {
@@ -127,10 +127,10 @@ export function UserMenu({ user }: { user: User }) {
           name={user.display_name}
           size={34}
         />
-        <span className={styles.name}>{user.display_name}</span>
+        {compact ? null : <span className={styles.name}>{user.display_name}</span>}
         <svg
           aria-hidden="true"
-          className={`${styles.chevron} ${open ? styles.chevronOpen : ""}`}
+          className={`${styles.chevron} ${open ? styles.chevronOpen : ""} ${compact ? styles.chevronHidden : ""}`}
           fill="none"
           height="10"
           viewBox="0 0 24 24"
