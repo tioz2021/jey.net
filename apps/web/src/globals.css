@@ -387,6 +387,7 @@ button:not(:disabled):active {
 
 .notebook-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-5);
   margin: 0 0 var(--space-4);
   border-bottom: 1px solid var(--color-border);

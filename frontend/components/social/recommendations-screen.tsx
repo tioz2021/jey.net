@@ -29,7 +29,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: "frie
   const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
   const [genres, setGenres] = useState<TasteGenre[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<ViewMode>("grid");
+  const [view, setView] = useState<ViewMode>("list");
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
