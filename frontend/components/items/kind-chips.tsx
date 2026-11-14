@@ -13,10 +13,12 @@ import type { Stats } from "@/lib/types";
 const KINDS = [null, "movie", "tv", "anime", "book", "game"] as const;
 const KIND_ICONS = { movie: IconFilm, tv: IconTv, anime: IconAnime, book: IconBook, game: IconGame } as const;
 
+let cachedCounts: Partial<Record<string, number>> | null = null;
+
 export function KindChips() {
   const { t } = useI18n();
   const location = useLocation();
-  const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
+  const [counts, setCounts] = useState<Partial<Record<string, number>>>(cachedCounts ?? {});
   const [trashCount, setTrashCount] = useState(0);
   const active = new URLSearchParams(location.search).get("kind");
 
@@ -25,7 +27,10 @@ export function KindChips() {
     api.stats
       .get()
       .then((stats: Stats) => {
-        if (!cancelled) setCounts(stats.by_kind);
+        if (!cancelled) {
+          cachedCounts = stats.by_kind;
+          setCounts(stats.by_kind);
+        }
       })
       .catch(() => {});
     api.items

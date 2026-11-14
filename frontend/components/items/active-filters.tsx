@@ -39,7 +39,7 @@ function buildChips(
   }
 
   const kind = params.get("kind");
-  if (kind) {
+  if (kind && !compact) {
     chips.push({
       key: "kind",
       label: KIND_KEYS[kind as ItemKind]

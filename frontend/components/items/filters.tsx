@@ -44,7 +44,6 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
 
   const activeCount = [
     "q",
-    "kind",
     "status",
     "month",
   ].filter((key) => searchParams.has(key)).length +
@@ -152,7 +151,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
               onClick={() =>
                 update((params) => {
                   for (const key of [...params.keys()]) {
-                    params.delete(key);
+                    if (key !== "kind") params.delete(key);
                   }
                 })
               }

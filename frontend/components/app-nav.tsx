@@ -6,10 +6,8 @@ import { usePathname } from "next/navigation";
 import { DesktopSync } from "@/components/desktop-sync";
 import { FeedBadge } from "@/components/feed-badge";
 import { IconFeed, IconList, IconPeople } from "@/components/icons";
-import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
 import { NotificationBell } from "@/components/notification-bell";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
@@ -96,8 +94,6 @@ export function AppNav() {
 
         <div className={styles.tools}>
           <DesktopSync withLabel />
-          <ThemeToggle />
-          <LanguageSwitch />
         </div>
 
         {user ? (
