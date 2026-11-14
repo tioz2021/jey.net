@@ -117,9 +117,16 @@
 
 .profile {
   margin-top: auto;
-  padding: 4px;
+  padding: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.profile button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 10px;
   border-radius: var(--radius-full);
 }
 
