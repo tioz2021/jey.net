@@ -7,7 +7,7 @@ export function ItemsRoute() {
   const location = useLocation();
   const search = location.search.replace(/^\?/, "");
   return (
-    <ItemsQueryProvider key={location.key} initialSearch={search}>
+    <ItemsQueryProvider initialSearch={search}>
       <ItemsScreen />
     </ItemsQueryProvider>
   );

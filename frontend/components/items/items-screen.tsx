@@ -103,8 +103,8 @@ export function ItemsScreen() {
         <ItemsFilters compact />
       </div>
       {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
-      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
-        <ul className={view === "grid" ? "items-grid" : "items-list"}>
+      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
+        <ul aria-busy={loading} className={view === "grid" ? "items-grid" : "items-list"} style={{ opacity: loading ? 0.55 : 1, transition: "opacity 120ms ease" }}>
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>
               {selectionMode ? <label style={{ position: "absolute", zIndex: 2, top: 8, left: 8 }}><input checked={selected.has(item.id)} onChange={() => toggle(item.id)} type="checkbox" /></label> : null}
