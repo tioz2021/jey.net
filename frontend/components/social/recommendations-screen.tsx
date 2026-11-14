@@ -23,7 +23,7 @@ import type {
 
 import styles from "./recommendations.module.css";
 
-export function RecommendationsScreen() {
+export function RecommendationsScreen({ variant = "friends" }: { variant?: "friends" | "taste" }) {
   const { t } = useI18n();
   const [items, setItems] = useState<FriendRecommendation[]>([]);
   const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
@@ -59,15 +59,22 @@ export function RecommendationsScreen() {
   const visibleFriends = items.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
   );
+  const showTaste = variant === "taste";
+  const showFriends = variant === "friends";
 
   return (
     <main>
       <FeedTabs />
-      <p className="tabs-subtitle">{t("recommendations.subtitle")}</p>
+      <p className="tabs-subtitle">
+        {showTaste
+          ? t("recommendations.generalSubtitle")
+          : t("recommendations.subtitle")}
+      </p>
       <div className="section-toolbar">
         <ViewSwitch onChange={setView} value={view} />
       </div>
-      <Card title={t("recommendations.tasteTitle")}>
+      {showTaste ? (
+      <Card title={showTaste ? t("recommendations.generalTitle") : t("recommendations.tasteTitle")}>
         {genres.length === 0 ? (
           <p className={styles.empty}>{t("recommendations.tasteEmpty")}</p>
         ) : (
@@ -107,6 +114,8 @@ export function RecommendationsScreen() {
           </>
         )}
       </Card>
+      ) : null}
+      {showFriends ? (
       <Card title={t("recommendations.friendsTitle")}>
         {!loading && visibleFriends.length === 0 ? (
           <EmptyState
@@ -147,7 +156,8 @@ export function RecommendationsScreen() {
             <AppLink href="/feed">{t("recommendations.feedLink")}</AppLink>
           </p>
         ) : null}
-      </Card>
+      </Card>      ) : null}
+
     </main>
   );
 }

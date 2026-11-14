@@ -78,7 +78,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/collections" element={<CollectionsRoute />} />
             <Route path="/collections/:id" element={<CollectionDetailRoute />} />
             <Route path="/feed" element={<FeedScreen />} />
-            <Route path="/recommendations" element={<RecommendationsScreen />} />
+            <Route path="/recommendations" element={<RecommendationsScreen variant="friends" />} />
+            <Route path="/recommendations/all" element={<RecommendationsScreen variant="taste" />} />
             <Route path="/people" element={<PeopleScreen />} />
             <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="/dashboard" element={<DashboardRoute />} />

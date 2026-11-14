@@ -27,6 +27,9 @@ function domainActive(pathname: string, href: string) {
   if (href === "/items") {
     return pathname === "/items" || pathname.startsWith("/items/") || pathname === "/collections" || pathname.startsWith("/collections/");
   }
+  if (href === "/feed") {
+    return pathname === "/feed" || pathname.startsWith("/recommendations");
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
