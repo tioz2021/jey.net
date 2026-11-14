@@ -14,12 +14,13 @@ import { LoadingScreen } from "@/components/loading-screen";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { AppLink } from "@/lib/navigation";
 import { KindChips } from "@/components/items/kind-chips";
+import { api } from "@/lib/api";
 
 export function ItemsScreen() {
   const i18n = useI18n();
   const { t } = i18n;
   const source = useCatalogueSource();
-  const { params } = useItemsQuery();
+  const { params, update } = useItemsQuery();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,6 +33,16 @@ export function ItemsScreen() {
   const status = (params.get("status") as ItemStatus | null) ?? undefined;
   const query = params.get("q") ?? "";
   const sort = (params.get("sort") as Sort | null) ?? undefined;
+  const hasExtraFilters = ["q", "status", "month"].some((key) => params.has(key))
+    || (params.has("sort") && params.get("sort") !== "created_desc");
+
+  function clearExtraFilters() {
+    update((next) => {
+      for (const key of [...next.keys()]) {
+        if (key !== "kind") next.delete(key);
+      }
+    });
+  }
 
   useEffect(() => {
     const refresh = () => setRefreshTick((value) => value + 1);
@@ -63,6 +74,22 @@ export function ItemsScreen() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [kind, status, query, sort, source, refreshTick]);
+
+  async function trashSelected() {
+    if (selected.size === 0 || !window.confirm(`Отправить в корзину: ${selected.size}?`)) return;
+    setLoading(true);
+    try {
+      await Promise.all([...selected].map((id) => api.items.remove(id)));
+      setItems((current) => current.filter((item) => !selected.has(item.id)));
+      setSelected(new Set());
+      setSelectionMode(false);
+      window.dispatchEvent(new Event("jey:item-refreshed"));
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function toggle(id: string) {
     setSelected((current) => {
@@ -122,8 +149,21 @@ export function ItemsScreen() {
           </svg>
         </button>
       </div>
-      {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
-      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
+      {selectionMode ? (
+        <div className="selection-bar">
+          <span>Выбрано: {selected.size}</span>
+          <Button onClick={() => { setSelectionMode(false); setSelected(new Set()); }} size="sm" variant="secondary">Снять выбор</Button>
+          <Button disabled={selected.size === 0} onClick={() => void trashSelected()} size="sm" variant="danger">В корзину</Button>
+        </div>
+      ) : null}
+      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? (
+        <div className="catalogue-empty">
+          <p>{hasExtraFilters ? "По этим условиям ничего не нашлось." : "Записей пока нет."}</p>
+          {hasExtraFilters ? (
+            <Button onClick={clearExtraFilters} size="sm" variant="secondary">Сбросить фильтры</Button>
+          ) : null}
+        </div>
+      ) : (
         <ul aria-busy={loading} className={view === "grid" ? "items-grid" : "items-list"} style={{ opacity: loading ? 0.55 : 1, transition: "opacity 120ms ease" }}>
           {items.map((item) => (
             <li key={item.id} style={{ position: "relative" }}>

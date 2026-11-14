@@ -24,23 +24,30 @@ export function KindChips() {
 
   useEffect(() => {
     let cancelled = false;
-    api.stats
-      .get()
-      .then((stats: Stats) => {
-        if (!cancelled) {
-          cachedCounts = stats.by_kind;
-          setCounts(stats.by_kind);
-        }
-      })
-      .catch(() => {});
-    api.items
-      .list({ only_deleted: true, limit: 100 })
-      .then((response) => {
-        if (!cancelled) setTrashCount(response.items.length);
-      })
-      .catch(() => {});
+    const load = () => {
+      api.stats
+        .get()
+        .then((stats: Stats) => {
+          if (!cancelled) {
+            cachedCounts = stats.by_kind;
+            setCounts(stats.by_kind);
+          }
+        })
+        .catch(() => {});
+      api.items
+        .list({ only_deleted: true, limit: 100 })
+        .then((response) => {
+          if (!cancelled) setTrashCount(response.items.length);
+        })
+        .catch(() => {});
+    };
+    load();
+    window.addEventListener("jey:sync-complete", load);
+    window.addEventListener("jey:item-refreshed", load);
     return () => {
       cancelled = true;
+      window.removeEventListener("jey:sync-complete", load);
+      window.removeEventListener("jey:item-refreshed", load);
     };
   }, []);
 

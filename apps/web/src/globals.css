@@ -566,3 +566,35 @@ button:not(:disabled):active {
   border-color: var(--color-accent);
   color: #fff;
 }
+
+.catalogue-empty {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.catalogue-empty p {
+  margin: 0;
+}
+
+.selection-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 8px 10px;
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.selection-bar span {
+  margin-right: auto;
+  color: var(--color-text-muted);
+}
