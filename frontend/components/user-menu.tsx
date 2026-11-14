@@ -153,7 +153,12 @@ export function UserMenu({
           name={user.display_name}
           size={34}
         />
-        {compact ? null : <span className={styles.name}>{user.display_name}</span>}
+        {compact ? null : (
+          <span className={styles.identity}>
+            <span className={styles.name}>{user.display_name}</span>
+            <span className={styles.role}>{user.role === "user" ? "Trial" : user.role}</span>
+          </span>
+        )}
         <svg
           aria-hidden="true"
           className={`${styles.chevron} ${open ? styles.chevronOpen : ""} ${compact ? styles.chevronHidden : ""}`}

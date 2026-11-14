@@ -77,7 +77,7 @@ export function AppNav() {
                 href={href}
                 key={href}
               >
-                <Icon size={15} />
+                <Icon size={17} />
                 {t(labelKey)}
                 {href === "/feed" ? <FeedBadge /> : null}
                 {href === "/items" ? <span className={styles.domainCount}>{counts.notebook}</span> : null}
@@ -88,8 +88,8 @@ export function AppNav() {
         </nav>
 
         <AppLink className={styles.create} href="/items/new">
-          <span aria-hidden="true">+</span>
           {t("common.add")}
+          <span aria-hidden="true">+</span>
         </AppLink>
 
         <div className={styles.tools}>
