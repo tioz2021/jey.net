@@ -140,7 +140,7 @@
 }
 
 .trigger {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
 }
 
 .panel {
