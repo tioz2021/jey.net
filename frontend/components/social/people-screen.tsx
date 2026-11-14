@@ -153,11 +153,7 @@ export function PeopleScreen() {
           </div>
           {!followingLoading && visibleFollowing.length === 0 ? (
             <EmptyState
-              text={
-                followingQuery
-                  ? t("people.emptyText")
-                  : t("public.followingEmpty")
-              }
+              text={followingQuery ? t("people.emptyText") : undefined}
               title={t("public.followingEmpty")}
             />
           ) : (

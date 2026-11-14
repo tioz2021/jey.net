@@ -13,7 +13,7 @@
 .content {
   position: relative;
   min-width: 0;
-  padding: var(--space-3) 0 0 var(--space-4);
+  padding: 1.25rem 0 0 var(--space-4);
 }
 
 .topControls {
@@ -27,7 +27,7 @@
 
 .topControlsInTabs {
   position: absolute;
-  top: var(--space-3);
+  top: 1.25rem;
   right: var(--space-1);
   z-index: 5;
   min-height: 0;
