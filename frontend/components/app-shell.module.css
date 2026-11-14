@@ -25,6 +25,15 @@
   margin-bottom: var(--space-2);
 }
 
+.topControlsInTabs {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-1);
+  z-index: 5;
+  min-height: 0;
+  margin: 0;
+}
+
 
 @media (width <= 1000px) {
   .desktopHeader {
