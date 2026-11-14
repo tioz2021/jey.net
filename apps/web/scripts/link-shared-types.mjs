@@ -1,4 +1,4 @@
-import { lstatSync, symlinkSync } from "node:fs";
+import { lstatSync, realpathSync, rmSync, symlinkSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +15,21 @@ function pathExists(path) {
     return true;
   } catch {
     return false;
+  }
+}
+
+// A checked-out symlink can point at a path that exists only on the
+// developer's machine. Validate the target, not just the directory entry, and
+// recreate it for the current checkout.
+if (pathExists(frontendModules)) {
+  let pointsAtShared = false;
+  try {
+    pointsAtShared = realpathSync(frontendModules) === realpathSync(sharedModules);
+  } catch {
+    pointsAtShared = false;
+  }
+  if (!pointsAtShared) {
+    rmSync(frontendModules, { recursive: true, force: true });
   }
 }
 
