@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { Avatar } from "@/components/profile/avatar";
@@ -20,11 +20,21 @@ export function UserMenu({ user, compact = false }: { user: User; compact?: bool
   const { setUser } = useUser();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [menuUp, setMenuUp] = useState(false);
   const [pending, setPending] = useState(false);
   const desktop = typeof window !== "undefined" && Boolean((window as unknown as { __TAURI__?: unknown }).__TAURI__);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const trigger = triggerRef.current;
+    const menu = menuRef.current;
+    if (!trigger || !menu) return;
+    const below = window.innerHeight - trigger.getBoundingClientRect().bottom;
+    setMenuUp(below < menu.offsetHeight + 12);
+  }, [open]);
 
   useEffect(() => {
     setOpen(false);
@@ -142,7 +152,7 @@ export function UserMenu({ user, compact = false }: { user: User; compact?: bool
 
       {open ? (
         <div
-          className={styles.menu}
+          className={`${styles.menu} ${menuUp ? styles.menuUp : ""}`}
           id="user-menu"
           onKeyDown={onMenuKeyDown}
           ref={menuRef}

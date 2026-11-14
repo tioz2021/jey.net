@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { AppLink } from "@/lib/navigation";
-import { IconAnime, IconBook, IconFilm, IconGame, IconList, IconTv } from "@/components/icons";
+import { IconAnime, IconBook, IconFilm, IconGame, IconList, IconTrash, IconTv } from "@/components/icons";
 import { api } from "@/lib/api";
 import { KIND_KEYS } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
@@ -17,6 +17,7 @@ export function KindChips() {
   const { t } = useI18n();
   const location = useLocation();
   const [counts, setCounts] = useState<Partial<Record<string, number>>>({});
+  const [trashCount, setTrashCount] = useState(0);
   const active = new URLSearchParams(location.search).get("kind");
 
   useEffect(() => {
@@ -25,6 +26,12 @@ export function KindChips() {
       .get()
       .then((stats: Stats) => {
         if (!cancelled) setCounts(stats.by_kind);
+      })
+      .catch(() => {});
+    api.items
+      .list({ only_deleted: true, limit: 100 })
+      .then((response) => {
+        if (!cancelled) setTrashCount(response.items.length);
       })
       .catch(() => {});
     return () => {
@@ -55,6 +62,11 @@ export function KindChips() {
           </AppLink>
         );
       })}
+      <AppLink href="/trash">
+        <IconTrash size={14} />
+        {t("nav.trash")}
+        <span>{trashCount}</span>
+      </AppLink>
     </nav>
   );
 }

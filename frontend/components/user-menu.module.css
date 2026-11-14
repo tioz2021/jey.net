@@ -105,3 +105,8 @@
 .chevronHidden {
   display: none;
 }
+
+.menuUp {
+  top: auto;
+  bottom: calc(100% + 6px);
+}

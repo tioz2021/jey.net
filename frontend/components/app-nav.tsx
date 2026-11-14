@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { DesktopSync } from "@/components/desktop-sync";
 import { FeedBadge } from "@/components/feed-badge";
-import { IconFeed, IconList, IconPeople, IconTrash } from "@/components/icons";
+import { IconFeed, IconList, IconPeople } from "@/components/icons";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Logo } from "@/components/logo";
 import { NotificationBell } from "@/components/notification-bell";
@@ -106,17 +106,6 @@ export function AppNav() {
           </div>
         ) : null}
 
-        <div className={styles.system}>
-          <p className={styles.systemHead}>{t("nav.system")}</p>
-          <AppLink
-            aria-current={pathname === "/trash" ? "page" : undefined}
-            className={`${styles.link} ${pathname === "/trash" ? styles.active : ""}`}
-            href="/trash"
-          >
-            <IconTrash size={14} />
-            {t("nav.trash")}
-          </AppLink>
-        </div>
       </aside>
     </div>
   );
