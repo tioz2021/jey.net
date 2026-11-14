@@ -773,3 +773,48 @@ button:not(:disabled):active {
 .catalogue-filter-row [class*="desktopSearch"] label {
   display: none;
 }
+
+/* Active-filter chips sit below the control row, never squeeze it. */
+.catalogue-filter-row {
+  height: auto;
+  align-items: flex-start;
+}
+
+.catalogue-filter-row .view-switch,
+.catalogue-filter-row .selection-toggle {
+  align-self: flex-start;
+}
+
+.catalogue-filter-row .compact .chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.catalogue-filter-row .compact .chips:empty {
+  display: none;
+}
+
+.catalogue-filter-row [class*="chips"] {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  width: auto;
+  padding: var(--space-2) 0 0;
+  overflow: visible;
+}
+
+.catalogue-filter-row [class*="chips"] [class*="compact"] {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  overflow: visible;
+}

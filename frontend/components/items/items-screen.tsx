@@ -139,9 +139,6 @@ export function ItemsScreen() {
       {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? (
         <div className="catalogue-empty">
           <p>{hasExtraFilters ? "По этим условиям ничего не нашлось." : "Записей пока нет."}</p>
-          {hasExtraFilters ? (
-            <Button onClick={clearExtraFilters} size="sm" variant="secondary">Сбросить фильтры</Button>
-          ) : null}
         </div>
       ) : (
         <ul aria-busy={loading} className={view === "grid" ? "items-grid" : "items-list"} style={{ opacity: loading ? 0.55 : 1, transition: "opacity 120ms ease" }}>

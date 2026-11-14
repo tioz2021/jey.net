@@ -143,7 +143,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
         </Select>
         </div>
 
-        {hasFilters ? (
+        {hasFilters && !compact ? (
           <div className={styles.foot}>
             <Button
               variant={compact ? "secondary" : "ghost"}
@@ -164,6 +164,21 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
 
       <div className={styles.chips}>
         <ActiveFilters compact={compact} />
+        {compact && hasFilters ? (
+          <Button
+            onClick={() =>
+              update((params) => {
+                for (const key of [...params.keys()]) {
+                  if (key !== "kind") params.delete(key);
+                }
+              })
+            }
+            size="sm"
+            variant="secondary"
+          >
+            {t("filters.reset")}
+          </Button>
+        ) : null}
       </div>
     </section>
   );
