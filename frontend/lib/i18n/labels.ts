@@ -11,6 +11,16 @@ export const KIND_KEYS: Record<ItemKind, TranslationKey> = {
   other: "kind.other",
 };
 
+export const KIND_PLURAL_KEYS: Record<ItemKind, TranslationKey> = {
+  movie: "kind.movies",
+  tv: "kind.tvShows",
+  book: "kind.books",
+  game: "kind.games",
+  anime: "kind.anime",
+  image: "kind.images",
+  other: "kind.other",
+};
+
 export const STATUS_KEYS: Record<ItemStatus, TranslationKey> = {
   planned: "status.planned",
   in_progress: "status.in_progress",
