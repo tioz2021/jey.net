@@ -6,8 +6,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  height: 30px;
-  padding: 0 8px;
+  height: var(--control-h-sm);
+  padding: 0 10px;
   font: inherit;
   font-size: var(--text-xs);
   font-weight: 600;
@@ -76,7 +76,7 @@
 }
 
 .trigger {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-full);
 }
 
 .menu {
