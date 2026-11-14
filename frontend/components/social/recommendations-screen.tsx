@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { HideRecommendation } from "@/components/hide-recommendation";
 import { FeedTabs } from "@/components/feed-tabs";
+import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { ItemCard } from "@/components/items/item-card";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -28,6 +29,7 @@ export function RecommendationsScreen() {
   const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
   const [genres, setGenres] = useState<TasteGenre[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<ViewMode>("grid");
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
@@ -62,6 +64,9 @@ export function RecommendationsScreen() {
     <main>
       <FeedTabs />
       <PageHeader subtitle={t("recommendations.subtitle")} title={t("recommendations.title")} />
+      <div className="section-toolbar">
+        <ViewSwitch onChange={setView} value={view} />
+      </div>
       <Card title={t("recommendations.tasteTitle")}>
         {genres.length === 0 ? (
           <p className={styles.empty}>{t("recommendations.tasteEmpty")}</p>
@@ -75,7 +80,7 @@ export function RecommendationsScreen() {
               ))}
             </ul>
             {visibleTaste.length > 0 ? (
-              <ul className={styles.list}>
+              <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
                 {visibleTaste.map((item) => (
                   <li key={`${item.author_id}-${item.id}`}>
                     <div className={styles.reasonRow}>
@@ -111,7 +116,7 @@ export function RecommendationsScreen() {
             title={t("recommendations.emptyTitle")}
           />
         ) : (
-          <ul className={styles.list}>
+          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
             {visibleFriends.map((item) => (
               <li key={`${item.author_id}-${item.id}`}>
                 <div className={styles.reasonRow}>

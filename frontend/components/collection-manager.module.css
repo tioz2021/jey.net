@@ -78,3 +78,23 @@
     flex-basis: 100%;
   }
 }
+
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}
+
+.grid .item {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.grid .link {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.grid .meta {
+  margin-left: 0;
+  padding-left: 0;
+}

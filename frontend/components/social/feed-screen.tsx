@@ -12,6 +12,7 @@ import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
 import { markFeedSeen } from "@/components/feed-badge";
 import { FeedTabs } from "@/components/feed-tabs";
+import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import type { FeedItem } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -23,6 +24,7 @@ export function FeedScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [view, setView] = useState<ViewMode>("grid");
 
   useEffect(() => {
     let cancelled = false;
@@ -51,6 +53,9 @@ export function FeedScreen() {
     <main>
       <FeedTabs />
       <PageHeader subtitle={t("feed.subtitle")} title={t("feed.title")} />
+      <div className="section-toolbar">
+        <ViewSwitch onChange={setView} value={view} />
+      </div>
       <Card>
         {loading ? (
           <ListSkeleton />
@@ -73,7 +78,7 @@ export function FeedScreen() {
             title={t("feed.emptyTitle")}
           />
         ) : (
-          <ul className={styles.list}>
+          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
             {items.map((item) => (
               <li key={`${item.author_id}-${item.id}`}>
                 <p className={styles.author}>

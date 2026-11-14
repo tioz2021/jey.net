@@ -13,6 +13,7 @@ import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { KindChips } from "@/components/items/kind-chips";
+import { ViewSwitch } from "@/components/view-switch";
 import { api } from "@/lib/api";
 
 export function ItemsScreen() {
@@ -105,32 +106,7 @@ export function ItemsScreen() {
         <KindChips />
       </div>
       <div className="catalogue-filter-row">
-        <div className="view-switch" aria-label={t("view.label")}>
-          <button
-            aria-label={t("view.list")}
-            aria-pressed={view === "list"}
-            onClick={() => setView("list")}
-            type="button"
-          >
-            <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 20 20" width="16">
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="14" x="3" y="3" />
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="14" x="3" y="11" />
-            </svg>
-          </button>
-          <button
-            aria-label={t("view.grid")}
-            aria-pressed={view === "grid"}
-            onClick={() => setView("grid")}
-            type="button"
-          >
-            <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 20 20" width="16">
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="3" y="3" />
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="11" y="3" />
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="3" y="11" />
-              <rect height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5" width="6" x="11" y="11" />
-            </svg>
-          </button>
-        </div>
+        <ViewSwitch onChange={setView} value={view} />
         <ItemsFilters compact />
         <button
           aria-label="Выбрать записи"

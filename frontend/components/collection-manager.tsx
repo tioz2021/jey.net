@@ -9,8 +9,9 @@ import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
 
 import styles from "./collection-manager.module.css";
+import type { ViewMode } from "@/components/view-switch";
 
-export function CollectionManager() {
+export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
   const { t } = useI18n();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [title, setTitle] = useState("");
@@ -85,7 +86,7 @@ export function CollectionManager() {
       {collections.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
       ) : (
-        <ul className={styles.list}>
+        <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
           {collections.map((collection) => (
             <li className={styles.item} key={collection.id}>
               <AppLink className={styles.link} href={`/collections/${collection.id}`}>

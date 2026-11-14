@@ -37,3 +37,13 @@
   justify-content: space-between;
   gap: var(--space-2);
 }
+
+.grid {
+  grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+}
+
+@media (width <= 1000px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

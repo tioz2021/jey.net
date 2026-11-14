@@ -12,11 +12,13 @@ import type { CollectionDetail } from "@/lib/types";
 
 import styles from "./collection-detail-screen.module.css";
 import { LoadingScreen } from "@/components/loading-screen";
+import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 
 export function CollectionDetailScreen({ id }: { id: string }) {
   const { t } = useI18n();
   const [data, setData] = useState<CollectionDetail | null>(null);
   const [error, setError] = useState(false);
+  const [view, setView] = useState<ViewMode>("grid");
 
   useEffect(() => {
     api.collections.detail(id).then(setData).catch(() => setError(true));
@@ -38,10 +40,13 @@ export function CollectionDetailScreen({ id }: { id: string }) {
     <main>
       <AppLink className={styles.back} href="/collections">← {t("collections.title")}</AppLink>
       <PageHeader title={data.collection.title} />
+      <div className="section-toolbar">
+        <ViewSwitch onChange={setView} value={view} />
+      </div>
       {data.items.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
       ) : (
-        <ul className={styles.list}>
+        <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
           {data.items.map((item) => (
             <li key={item.id}>
               <ItemCard
