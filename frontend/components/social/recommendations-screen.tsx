@@ -92,6 +92,8 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: "frie
                   <li key={`${item.author_id}-${item.id}`}>
                     <div className={styles.reasonRow}>
                       <p className={styles.reason}>
+                        <AppLink href={`/u/${item.author_handle}`}>{item.author_name}</AppLink>
+                        {" — "}
                         {t("recommendations.tasteReason", {
                           genres: item.matched_genres.join(", "),
                         })}
@@ -130,13 +132,16 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: "frie
               <li key={`${item.author_id}-${item.id}`}>
                 <div className={styles.reasonRow}>
                   <p className={styles.reason}>
-                    {t("recommendations.reason", {
-                      friends: item.friends.slice(0, 3).join(", "),
-                      rating: item.average_rating,
-                    })}
-                    {item.friend_count > 1 ? (
-                      <span> · {item.friend_count}</span>
-                    ) : null}
+                    {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                      .slice(0, 3)
+                      .map((person, index) => (
+                        <span key={`${person.handle}-${index}`}>
+                          {index > 0 ? ", " : ""}
+                          <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                        </span>
+                      ))}
+                    {" "}
+                    {t("recommendations.rated", { rating: item.average_rating })}
                   </p>
                   <HideRecommendation
                     onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}

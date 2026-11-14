@@ -45,6 +45,7 @@ export const uk = {
   "recommendations.friendsTitle": "Рекомендації друзів",
   "recommendations.emptyTitle": "Поки немає рекомендацій",
   "recommendations.emptyText": "Підпишіться на людей із публічними оцінками.",
+  "recommendations.rated": "оцінили на {rating}/10",
   "recommendations.reason": "{friends} оцінили на {rating}/10",
   "recommendations.feedLink": "Дивитися стрічку",
   "nav.feed": "Стрічка",

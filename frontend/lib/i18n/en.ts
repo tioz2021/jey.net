@@ -45,6 +45,7 @@ export const en = {
   "recommendations.friendsTitle": "Friends picks",
   "recommendations.emptyTitle": "No recommendations yet",
   "recommendations.emptyText": "Follow people with public ratings.",
+  "recommendations.rated": "rated it {rating}/10",
   "recommendations.reason": "{friends} rated it {rating}/10",
   "recommendations.feedLink": "Open feed",
   "nav.feed": "Feed",

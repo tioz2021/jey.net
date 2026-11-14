@@ -44,6 +44,7 @@ export const ru = {
   "recommendations.friendsTitle": "Рекомендации друзей",
   "recommendations.emptyTitle": "Пока нет рекомендаций",
   "recommendations.emptyText": "Подпишитесь на людей с публичными оценками.",
+  "recommendations.rated": "оценили на {rating}/10",
   "recommendations.reason": "{friends} оценили на {rating}/10",
   "recommendations.feedLink": "Смотреть ленту",
   "nav.feed": "Лента",

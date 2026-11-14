@@ -386,6 +386,7 @@ export interface FriendRecommendation extends PublicItem {
   author_id: string;
   author_handle: string;
   friends: string[];
+  friend_people?: Array<{ name: string; handle: string }>;
   friend_count: number;
   average_rating: number;
 }

@@ -367,6 +367,7 @@ pub async fn friends(
             'details', i.details,
             'updated_at', i.updated_at,
             'friends', jsonb_agg(distinct u.display_name),
+            'friend_people', jsonb_agg(distinct jsonb_build_object('name', u.display_name, 'handle', u.handle)),
             'friend_count', count(distinct u.id),
             'average_rating', round(avg(i.rating)::numeric, 1)
          )
