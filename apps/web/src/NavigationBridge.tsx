@@ -18,6 +18,10 @@ export function NavigationBridge() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  useEffect(() => {
     const pending = window.sessionStorage.getItem("jey-after-login");
     if (pending) {
       window.sessionStorage.removeItem("jey-after-login");
