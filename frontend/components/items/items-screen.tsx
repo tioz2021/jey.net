@@ -79,7 +79,6 @@ export function ItemsScreen() {
       <PageHeader
         action={
           <>
-            <Button onClick={() => router.push("/items/new")}>Добавить запись</Button>
             {selectionMode ? (
               <Button onClick={() => { setSelectionMode(false); setSelected(new Set()); }} variant="secondary">Отменить выбор</Button>
             ) : (

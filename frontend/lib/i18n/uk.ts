@@ -99,6 +99,7 @@ export const uk = {
   "nav.stats": "Статистика",
   "nav.settings": "Налаштування",
   "nav.trash": "Кошик",
+  "nav.system": "Система",
   "nav.types": "Типи",
   "nav.all": "Усі записи",
   "nav.movies": "Фільми",

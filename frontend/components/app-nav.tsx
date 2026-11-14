@@ -153,6 +153,13 @@ export function AppNav() {
           );
         })}
 
+      </div>
+      <AppLink className={styles.create} href="/items/new">
+        <span aria-hidden="true">+</span>
+        {t("common.add")}
+      </AppLink>
+      <div className={styles.system}>
+        <p className={styles.systemHead}>{t("nav.system")}</p>
         <AppLink
           aria-current={pathname === "/trash" ? "page" : undefined}
           className={`${styles.link} ${styles.trashLink} ${

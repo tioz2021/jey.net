@@ -15,7 +15,6 @@ import {
   IconSparkles,
 } from "@/components/icons";
 import { NotificationBell } from "@/components/notification-bell";
-import { QuickAdd } from "@/components/quick-add";
 import { DesktopSync } from "@/components/desktop-sync";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useI18n } from "@/lib/locale-context";
@@ -83,7 +82,6 @@ export function SiteHeader() {
           {loading ? null : user ? (
             <>
               <div className={styles.tools}>
-                <QuickAdd />
                 <DesktopSync />
                 <ThemeToggle />
               </div>

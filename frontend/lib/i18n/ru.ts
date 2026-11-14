@@ -98,6 +98,7 @@ export const ru = {
   "nav.stats": "Статистика",
   "nav.settings": "Настройки",
   "nav.trash": "Корзина",
+  "nav.system": "Система",
   "nav.types": "Типы",
   "nav.all": "Все записи",
   "nav.movies": "Фильмы",

@@ -99,6 +99,7 @@ export const en = {
   "nav.stats": "Statistics",
   "nav.settings": "Settings",
   "nav.trash": "Trash",
+  "nav.system": "System",
   "nav.types": "Types",
   "nav.all": "All records",
   "nav.movies": "Films",
