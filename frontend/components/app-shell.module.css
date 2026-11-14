@@ -9,13 +9,13 @@
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 0 var(--space-5) var(--space-10);
+  padding: 0 var(--space-5) var(--space-10) 0;
 }
 
 .content {
   position: relative;
   min-width: 0;
-  padding: var(--space-5) 0 0 var(--space-5);
+  padding: var(--space-5) 0 0 var(--space-4);
 }
 
 
