@@ -8,7 +8,7 @@ import { HideRecommendation } from "@/components/hide-recommendation";
 import { FeedTabs } from "@/components/feed-tabs";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { ItemCard } from "@/components/items/item-card";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import {
@@ -63,7 +63,7 @@ export function RecommendationsScreen() {
   return (
     <main>
       <FeedTabs />
-      <PageHeader subtitle={t("recommendations.subtitle")} title={t("recommendations.title")} />
+      <p className="tabs-subtitle">{t("recommendations.subtitle")}</p>
       <div className="section-toolbar">
         <ViewSwitch onChange={setView} value={view} />
       </div>

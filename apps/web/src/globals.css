@@ -389,22 +389,29 @@ button:not(:disabled):active {
   border-bottom: 1px solid var(--color-border);
 }
 
-.notebook-tabs a {
+.notebook-tabs a,
+.notebook-tabs button {
   padding: 0 0 0.65rem;
   color: var(--color-text-muted);
+  font: inherit;
   font-size: var(--text-xl);
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.025em;
   text-decoration: none;
+  background: none;
+  border: 0;
   border-bottom: 2px solid transparent;
+  cursor: pointer;
 }
 
-.notebook-tabs a:hover {
+.notebook-tabs a:hover,
+.notebook-tabs button:hover {
   color: var(--color-text);
 }
 
-.notebook-tabs a[aria-current="page"] {
+.notebook-tabs a[aria-current="page"],
+.notebook-tabs button[aria-current="page"] {
   color: var(--color-accent);
   font-weight: 400;
   border-bottom-color: var(--color-accent);
@@ -415,7 +422,8 @@ button:not(:disabled):active {
     gap: var(--space-4);
   }
 
-  .notebook-tabs a {
+  .notebook-tabs a,
+  .notebook-tabs button {
     font-size: var(--text-lg);
   }
 }
@@ -678,4 +686,10 @@ button:not(:disabled):active {
   align-items: center;
   justify-content: flex-start;
   margin: -0.25rem 0 var(--space-3);
+}
+
+.tabs-subtitle {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }

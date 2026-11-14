@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { IconBell, IconBellOff } from "@/components/icons";
-import { Button, Card, Input, PageHeader, Select } from "@/components/ui";
+import { Button, Card, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
@@ -124,26 +124,25 @@ export function PeopleScreen() {
 
   return (
     <main>
-      <PageHeader title={t("people.title")} />
-      <div className={styles.tabs}>
+      <nav aria-label={t("people.title")} className="notebook-tabs">
         <button
-          className={tab === "following" ? styles.tabActive : styles.tab}
+          aria-current={tab === "following" ? "page" : undefined}
           onClick={() => setTab("following")}
           type="button"
         >
           {t("people.followingTab")} ({followingPeople.length})
         </button>
         <button
-          className={tab === "search" ? styles.tabActive : styles.tab}
+          aria-current={tab === "search" ? "page" : undefined}
           onClick={() => setTab("search")}
           type="button"
         >
           {t("people.findPeople")}
         </button>
-      </div>
+      </nav>
 
       {tab === "following" ? (
-        <Card title={t("people.followingTitle")}>
+        <Card>
           <div className={styles.followingTools}>
             <Input
               label={t("people.searchFollowing")}
@@ -217,7 +216,7 @@ export function PeopleScreen() {
               <option value="items">{t("people.sortItems")}</option>
             </Select>
           </div>
-          <Card title={t("people.all")}>
+          <Card>
             {!loading && people.length === 0 ? (
               <EmptyState text={t("people.emptyText")} title={t("people.emptyTitle")} />
             ) : (

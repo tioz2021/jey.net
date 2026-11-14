@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { ItemCard } from "@/components/items/item-card";
 import { ListSkeleton } from "@/components/skeletons";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
@@ -52,7 +52,7 @@ export function FeedScreen() {
   return (
     <main>
       <FeedTabs />
-      <PageHeader subtitle={t("feed.subtitle")} title={t("feed.title")} />
+      <p className="tabs-subtitle">{t("feed.subtitle")}</p>
       <div className="section-toolbar">
         <ViewSwitch onChange={setView} value={view} />
       </div>
