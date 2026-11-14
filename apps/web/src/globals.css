@@ -818,3 +818,43 @@ button:not(:disabled):active {
   padding: 0;
   overflow: visible;
 }
+
+.active-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+}
+
+.active-filter-bar [class*="chips"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.active-filter-bar [class*="compact"] {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  width: auto;
+  overflow: visible;
+}
+
+.active-filter-bar [class*="chip"] {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: var(--text-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+}
+
+.active-filter-bar :global(button) {
+  color: var(--color-text-muted);
+}

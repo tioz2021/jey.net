@@ -13,6 +13,7 @@ import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { KindChips } from "@/components/items/kind-chips";
+import { ActiveFilterBar } from "@/components/items/active-filter-bar";
 import { ViewSwitch } from "@/components/view-switch";
 import { api } from "@/lib/api";
 
@@ -107,7 +108,7 @@ export function ItemsScreen() {
       </div>
       <div className="catalogue-filter-row">
         <ViewSwitch onChange={setView} value={view} />
-        <ItemsFilters compact />
+        <ItemsFilters compact showActive={false} />
         <button
           aria-label="Выбрать записи"
           aria-pressed={selectionMode}
@@ -129,6 +130,7 @@ export function ItemsScreen() {
           </svg>
         </button>
       </div>
+      <ActiveFilterBar />
       {selectionMode ? (
         <div className="selection-bar">
           <span>Выбрано: {selected.size}</span>

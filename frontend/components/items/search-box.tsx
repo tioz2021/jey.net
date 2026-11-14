@@ -11,7 +11,7 @@ import styles from "./search-box.module.css";
 
 const DEBOUNCE_MS = 300;
 
-export function SearchBox({ className, hideLabel = false }: { className?: string; hideLabel?: boolean }) {
+export function SearchBox({ className, hideLabel = false, hideClear = false }: { className?: string; hideLabel?: boolean; hideClear?: boolean }) {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
   const urlQuery = params.get("q") ?? "";
@@ -77,7 +77,7 @@ export function SearchBox({ className, hideLabel = false }: { className?: string
         />
       </div>
 
-      {value ? (
+      {value && !hideClear ? (
         <Button variant="ghost" size="sm" onClick={clear}>
           {t("search.clear")}
         </Button>

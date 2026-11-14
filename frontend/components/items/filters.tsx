@@ -22,7 +22,7 @@ const KINDS: ItemKind[] = ["movie", "tv", "book", "game", "anime"];
 const STATUSES = Object.keys(STATUS_KEYS) as ItemStatus[];
 const SORTS = Object.keys(SORT_KEYS) as Sort[];
 
-export function ItemsFilters({ compact = false }: { compact?: boolean }) {
+export function ItemsFilters({ compact = false, showActive = true }: { compact?: boolean; showActive?: boolean }) {
   const { t } = useI18n();
   const { params: searchParams, update } = useItemsQuery();
   const [open, setOpen] = useState(false);
@@ -94,7 +94,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
       )}
 
       <div className={styles.body} id="filters-body">
-        <SearchBox className={styles.desktopSearch} hideLabel={compact} />
+        <SearchBox className={styles.desktopSearch} hideClear={compact} hideLabel={compact} />
 
         <div className={styles.row}>
         {compact ? null : (
@@ -162,6 +162,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
         ) : null}
       </div>
 
+      {showActive ? (
       <div className={styles.chips}>
         <ActiveFilters compact={compact} />
         {compact && hasFilters ? (
@@ -180,6 +181,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
           </Button>
         ) : null}
       </div>
+      ) : null}
     </section>
   );
 }
