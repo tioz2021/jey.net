@@ -12,8 +12,16 @@
 }
 
 .content {
+  position: relative;
   min-width: 0;
   padding: var(--space-5) 0 0 var(--space-5);
+}
+
+.topProfile {
+  position: absolute;
+  top: var(--space-4);
+  right: 0;
+  z-index: 5;
 }
 
 @media (width <= 1000px) {
@@ -28,5 +36,9 @@
 
   .content {
     padding: 0 var(--space-4);
+  }
+
+  .topProfile {
+    display: none;
   }
 }

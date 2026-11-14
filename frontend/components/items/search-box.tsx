@@ -11,7 +11,7 @@ import styles from "./search-box.module.css";
 
 const DEBOUNCE_MS = 300;
 
-export function SearchBox({ className }: { className?: string }) {
+export function SearchBox({ className, hideLabel = false }: { className?: string; hideLabel?: boolean }) {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
   const urlQuery = params.get("q") ?? "";
@@ -69,7 +69,7 @@ export function SearchBox({ className }: { className?: string }) {
     <div className={`${styles.wrapper} ${className ?? ""}`}>
       <div className={styles.field}>
         <Input
-          label={t("search.fieldLabel")}
+          label={hideLabel ? "" : t("search.fieldLabel")}
           type="search"
           placeholder={t("search.fieldPlaceholder")}
           value={value}

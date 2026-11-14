@@ -480,3 +480,45 @@ button:not(:disabled):active {
     grid-template-columns: 1fr;
   }
 }
+
+.catalogue-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.catalogue-add span {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.catalogue-filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.catalogue-filter-row .compact {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (width <= 1000px) {
+  .catalogue-filter-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogue-filter-row .view-switch {
+    align-self: flex-start;
+  }
+}

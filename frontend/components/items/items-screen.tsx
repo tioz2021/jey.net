@@ -12,6 +12,7 @@ import { describeError } from "@/lib/messages";
 import type { Item, ItemKind, ItemStatus, Sort } from "@/lib/types";
 import { LoadingScreen } from "@/components/loading-screen";
 import { NotebookTabs } from "@/components/notebook-tabs";
+import { AppLink } from "@/lib/navigation";
 import { KindChips } from "@/components/items/kind-chips";
 
 export function ItemsScreen() {
@@ -76,33 +77,31 @@ export function ItemsScreen() {
       <NotebookTabs />
       <div className="catalogue-toolbar">
         <KindChips />
-        <div className="catalogue-actions">
-          <div className="view-switch" aria-label={t("view.label")}>
-            <button
-              aria-label={t("view.list")}
-              aria-pressed={view === "list"}
-              onClick={() => setView("list")}
-              type="button"
-            >
-              ☰
-            </button>
-            <button
-              aria-label={t("view.grid")}
-              aria-pressed={view === "grid"}
-              onClick={() => setView("grid")}
-              type="button"
-            >
-              ▦
-            </button>
-          </div>
-          {selectionMode ? (
-            <Button onClick={() => { setSelectionMode(false); setSelected(new Set()); }} variant="secondary">Отменить выбор</Button>
-          ) : (
-            <Button onClick={() => setSelectionMode(true)} variant="secondary">Выбрать записи</Button>
-          )}
-        </div>
+        <AppLink className="catalogue-add" href="/items/new">
+          Добавить запись <span aria-hidden="true">+</span>
+        </AppLink>
       </div>
-      <ItemsFilters compact />
+      <div className="catalogue-filter-row">
+        <div className="view-switch" aria-label={t("view.label")}>
+          <button
+            aria-label={t("view.list")}
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
+            type="button"
+          >
+            ☰
+          </button>
+          <button
+            aria-label={t("view.grid")}
+            aria-pressed={view === "grid"}
+            onClick={() => setView("grid")}
+            type="button"
+          >
+            ▦
+          </button>
+        </div>
+        <ItemsFilters compact />
+      </div>
       {selectionMode ? <p style={{ color: "var(--color-text-muted)" }}>Выбрано: {selected.size}</p> : null}
       {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading ? <LoadingScreen /> : items.length === 0 ? <p>Записей пока нет.</p> : (
         <ul className={view === "grid" ? "items-grid" : "items-list"}>

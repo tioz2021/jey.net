@@ -95,7 +95,7 @@ export function ItemsFilters({ compact = false }: { compact?: boolean }) {
       )}
 
       <div className={styles.body} id="filters-body">
-        <SearchBox className={styles.desktopSearch} />
+        <SearchBox className={styles.desktopSearch} hideLabel={compact} />
 
         <div className={styles.row}>
         {compact ? null : (
