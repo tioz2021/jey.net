@@ -990,7 +990,7 @@ button:not(:disabled):active {
 }
 
 /* Keep the catalogue toolbar on one row on small laptops; only phones stack it. */
-@media (width <= 1000px) and (width > 700px) {
+@media (width <= 1200px) and (width > 700px) {
   .catalogue-filter-row {
     flex-direction: row;
     flex-wrap: wrap;
@@ -1007,7 +1007,7 @@ button:not(:disabled):active {
   }
 }
 
-@media (width <= 1000px) and (width > 700px) {
+@media (width <= 1200px) and (width > 700px) {
   .catalogue-filter-row .compact [class*="selectRoot"] {
     flex: 0 0 10rem;
     width: 10rem;
@@ -1017,7 +1017,7 @@ button:not(:disabled):active {
 }
 
 /* The compact select wrapper owns the width; make its root fill it. */
-@media (width <= 1000px) and (width > 700px) {
+@media (width <= 1200px) and (width > 700px) {
   .catalogue-filter-row .compact .select [class*="selectRoot"] {
     flex: 0 0 10rem;
     width: 10rem;
@@ -1026,11 +1026,19 @@ button:not(:disabled):active {
   }
 }
 
-@media (width <= 1000px) and (width > 700px) {
+@media (width <= 1200px) and (width > 700px) {
   .catalogue-filter-row .compact .select [class*="selectRoot"] {
     flex: 0 0 10rem !important;
     width: 10rem !important;
     min-width: 10rem !important;
     max-width: 10rem !important;
+  }
+}
+
+
+@media (width <= 1200px) and (width > 700px) {
+  .catalogue-filter-row .compact {
+    flex: 1 1 30rem;
+    min-width: 0;
   }
 }

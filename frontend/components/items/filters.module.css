@@ -377,7 +377,7 @@
 }
 
 /* Compact filters stay inline and keep usable sizes until the phone breakpoint. */
-@media (width <= 1000px) and (width > 700px) {
+@media (width <= 1200px) and (width > 700px) {
   .compact .body {
     flex-direction: row;
     align-items: center;
