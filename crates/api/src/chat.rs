@@ -715,3 +715,56 @@ pub async fn unmute(
     }
     Ok(Json(json!({ "muted": false })))
 }
+
+#[derive(Debug, Deserialize)]
+pub struct ChatSettingsPatch {
+    pub message_policy: String,
+}
+
+fn valid_policy(value: &str) -> bool {
+    matches!(value, "all" | "following" | "nobody")
+}
+
+/// `GET /api/v1/chat/settings`
+pub async fn get_settings(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let policy: String = sqlx::query_scalar(
+        "select coalesce(
+            (select message_policy from chat_settings where user_id = $1),
+            'all'
+         )",
+    )
+    .bind(current.user.id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "message_policy": policy })))
+}
+
+/// `PATCH /api/v1/chat/settings`
+pub async fn update_settings(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Json(payload): Json<ChatSettingsPatch>,
+) -> Result<Json<Value>, AppError> {
+    if !valid_policy(&payload.message_policy) {
+        return Err(AppError::validation_field(
+            "message_policy",
+            "message_policy must be all, following or nobody",
+        ));
+    }
+    sqlx::query(
+        "insert into chat_settings (user_id, message_policy)
+         values ($1, $2)
+         on conflict (user_id) do update
+         set message_policy = excluded.message_policy",
+    )
+    .bind(current.user.id)
+    .bind(&payload.message_policy)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(Json(json!({ "message_policy": payload.message_policy })))
+}

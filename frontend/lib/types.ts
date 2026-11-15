@@ -419,7 +419,7 @@ export interface BlockedProfile {
 
 export interface Report {
   id: string;
-  target_type: "item" | "comment" | "profile";
+  target_type: "item" | "comment" | "profile" | "chat_message";
   target_id: string;
   reason: string;
   details: string | null;
@@ -681,6 +681,10 @@ export interface ChatLastMessage {
   sender_id: string;
   body: string;
   created_at: string;
+}
+
+export interface ChatSettings {
+  message_policy: "all" | "following" | "nobody";
 }
 
 export interface ChatMessage {

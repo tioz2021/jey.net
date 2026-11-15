@@ -115,6 +115,16 @@
   font-size: var(--text-2xs);
 }
 
+.report {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.message:hover .report,
+.report:focus-within {
+  opacity: 1;
+}
+
 .failed .bubble {
   border-color: var(--color-danger);
 }

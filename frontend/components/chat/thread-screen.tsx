@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { IconBell, IconBellOff } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
+import { ReportButton } from "@/components/report-button";
 import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/i18n";
@@ -280,6 +281,15 @@ export function ChatThreadScreen() {
                     minute: "2-digit",
                   })}
                 </time>
+                {!own && !message.pending && !message.failed ? (
+                  <div className={styles.report}>
+                    <ReportButton
+                      ownerId={message.sender_id}
+                      targetId={message.id}
+                      targetType="chat_message"
+                    />
+                  </div>
+                ) : null}
               </div>
             );
           })

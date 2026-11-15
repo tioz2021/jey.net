@@ -23,6 +23,7 @@ const TARGET_KEYS: Record<string, TranslationKey> = {
   item: "report.target.item",
   comment: "report.target.comment",
   profile: "report.target.profile",
+  chat_message: "report.target.chat_message",
 };
 
 type Action = "archive" | "resolved" | "dismissed";

@@ -93,6 +93,8 @@ POST   /api/v1/chat/threads/{id}/read
 POST   /api/v1/chat/threads/{id}/mute
 DELETE /api/v1/chat/threads/{id}/mute
 DELETE /api/v1/chat/threads/{id}         -- скрыть у себя
+GET    /api/v1/chat/settings
+PATCH  /api/v1/chat/settings              { message_policy }
 GET    /api/v1/chat/unread
 GET    /api/v1/chat/stream               -- SSE
 ```
@@ -109,6 +111,10 @@ GET    /api/v1/chat/stream               -- SSE
   настройках приватности;
 - чтение истории доступно участникам, отправка дополнительно проверяет
   блокировку и `message_policy`;
+- `message_policy` настраивается через `/chat/settings`;
+- жалоба на сообщение использует существующий `/reports` с
+  `target_type: "chat_message"`; жаловаться может только участник диалога,
+  на своё сообщение — нельзя;
 - `POST /read` обновляет `last_read_at` и убирает unread;
 - `mute` хранится в `chat_members.muted_at` и не влияет на историю;
 - muted-диалоги не учитываются в общем unread badge и title, но остаются

@@ -31,10 +31,13 @@ pub async fn create(
     current: CurrentUser,
     Json(payload): Json<NewReport>,
 ) -> Result<Json<Value>, AppError> {
-    if !matches!(payload.target_type.as_str(), "item" | "comment" | "profile") {
+    if !matches!(
+        payload.target_type.as_str(),
+        "item" | "comment" | "profile" | "chat_message"
+    ) {
         return Err(AppError::validation_field(
             "target_type",
-            "target_type must be item, comment or profile",
+            "target_type must be item, comment, profile or chat_message",
         ));
     }
     if !matches!(
@@ -87,6 +90,17 @@ pub async fn create(
         .fetch_optional(&state.pool)
         .await
         .map_err(AppError::internal)?,
+        "chat_message" => sqlx::query_scalar(
+            "select m.sender_id
+             from chat_messages m
+             join chat_members cm on cm.thread_id = m.thread_id and cm.user_id = $1
+             where m.id = $2 and m.deleted_at is null",
+        )
+        .bind(current.user.id)
+        .bind(payload.target_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(AppError::internal)?,
         _ => None,
     };
     let Some(owner) = owner else {
@@ -132,10 +146,10 @@ pub async fn list(
             'created_at', r.created_at,
             'resolved_at', r.resolved_at,
             'reporter_name', reporter.display_name,
-            'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, '—'),
-            'target_preview', coalesce(i.title, left(c.body, 300), target_user.display_name, '—'),
-            'target_author', coalesce(ia.display_name, ca.display_name, target_user.display_name),
-            'target_author_id', coalesce(ia.id, ca.id, target_user.id),
+            'target_label', coalesce(i.title, left(c.body, 120), target_user.display_name, left(cm.body, 120), '—'),
+            'target_preview', coalesce(i.title, left(c.body, 300), target_user.display_name, left(cm.body, 300), '—'),
+            'target_author', coalesce(ia.display_name, ca.display_name, target_user.display_name, cma.display_name),
+            'target_author_id', coalesce(ia.id, ca.id, target_user.id, cma.id),
             'target_available', case
                 when r.target_type = 'item'
                     then i.id is not null and i.deleted_at is null and not i.public_hidden
@@ -145,6 +159,8 @@ pub async fn list(
                 when r.target_type = 'profile'
                     then target_user.id is not null and target_user.is_public
                          and target_user.deleted_at is null
+                when r.target_type = 'chat_message'
+                    then cm.id is not null and cm.deleted_at is null
                 else false
             end,
             'target_url', case
@@ -167,8 +183,10 @@ pub async fn list(
          left join comments c on r.target_type = 'comment' and c.id = r.target_id
          left join items ci on ci.id = c.item_id
          left join users target_user on r.target_type = 'profile' and target_user.id = r.target_id
+         left join chat_messages cm on r.target_type = 'chat_message' and cm.id = r.target_id
          left join users ia on ia.id = i.user_id
          left join users ca on ca.id = c.user_id
+         left join users cma on cma.id = cm.sender_id
          order by (r.status = 'open') desc, r.created_at desc
          limit 400",
     )
@@ -211,10 +229,11 @@ pub async fn resolve(
                     when r.target_type = 'comment' then c.item_id
                     else null
                 end,
-                coalesce(i.title, left(c.body, 120), tu.display_name, '—')
+                coalesce(i.title, left(c.body, 120), tu.display_name, left(cm.body, 120), '—')
          from reports r
          left join items i on r.target_type = 'item' and i.id = r.target_id
          left join comments c on r.target_type = 'comment' and c.id = r.target_id
+         left join chat_messages cm on r.target_type = 'chat_message' and cm.id = r.target_id
          left join users tu on r.target_type = 'profile' and tu.id = r.target_id
          where r.id = $1",
     )

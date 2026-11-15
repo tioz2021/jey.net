@@ -15,7 +15,7 @@ export function ReportButton({
   targetId,
   ownerId,
 }: {
-  targetType: "item" | "comment" | "profile";
+  targetType: "item" | "comment" | "profile" | "chat_message";
   targetId: string;
   ownerId?: string;
 }) {

@@ -27,6 +27,7 @@ import type {
   Collection,
   CollectionDetail,
   ChatMessage,
+  ChatSettings,
   ChatThread,
   ReactionLiker,
   Item,
@@ -432,7 +433,7 @@ export const publicCollections = {
 
 export const reports = {
   create: (input: {
-    target_type: "item" | "comment" | "profile";
+    target_type: "item" | "comment" | "profile" | "chat_message";
     target_id: string;
     reason: string;
     details?: string;
@@ -504,6 +505,12 @@ export const chat = {
       `/chat/threads/${id}/messages`,
       { method: "POST", body: { body, client_id: clientId } },
     ),
+  settings: () => request<ChatSettings>("/chat/settings"),
+  updateSettings: (messagePolicy: ChatSettings["message_policy"]) =>
+    request<ChatSettings>("/chat/settings", {
+      method: "PATCH",
+      body: { message_policy: messagePolicy },
+    }),
   read: (id: string) =>
     request<{ read: boolean }>(`/chat/threads/${id}/read`, { method: "POST" }),
   mute: (id: string) =>

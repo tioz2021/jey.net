@@ -79,7 +79,7 @@
 | T139 | Веб: экран диалога | `[x]` | Бабблы, отправка, SSE/polling, mobile |
 | T140 | Веб: точки входа в чат | `[x]` | Сайдбар, профиль, unread badge |
 | T141 | Веб: read и уведомления | `[x]` | Read, muted, title/badge |
-| T142 | Чат: приватность и модерация | `[ ]` | Блокировки, жалобы, настройки |
+| T142 | Чат: приватность и модерация | `[x]` | Mute, settings, reports, block checks |
 | T143 | Desktop: кеш и outbox чата | `[ ]` | SQLite, очередь, reconnect |
 | T144 | Desktop: UI чата | `[ ]` | SPA + Tauri bridge |
 | T145 | Чат: тесты | `[ ]` | API, E2E, offline |

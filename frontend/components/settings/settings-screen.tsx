@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { BlockedProfiles } from "@/components/blocked-profiles";
 import { ExportPanel } from "@/components/export-panel";
 import { SettingsForm } from "@/components/forms/settings-form";
+import { ChatPrivacySettings } from "@/components/chat/privacy-settings";
 import { DesktopStorage } from "./desktop-storage";
 import { DesktopAbout } from "./desktop-about";
 import { NotificationSettings } from "@/components/notification-settings";
@@ -33,6 +34,7 @@ export function SettingsScreen() {
       <PageHeader title={t("settings.title")} />
       <div style={{ display: "grid", gap: "var(--space-4)" }}>
         <SettingsForm initialUser={user} />
+        <ChatPrivacySettings />
         <DesktopStorage />
         <DesktopAbout />
         <NotificationSettings />

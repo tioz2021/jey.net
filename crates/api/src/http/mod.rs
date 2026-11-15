@@ -235,6 +235,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/blocks", get(crate::users::follows::blocked))
         .route("/chat/stream", get(crate::chat::stream))
         .route(
+            "/chat/settings",
+            get(crate::chat::get_settings).patch(crate::chat::update_settings),
+        )
+        .route(
             "/chat/threads",
             get(crate::chat::list).post(crate::chat::create),
         )
