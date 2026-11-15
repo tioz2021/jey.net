@@ -47,7 +47,6 @@ export function ChatInboxScreen() {
     <main>
       <header className={styles.heading}>
         <h1>{t("chat.title")}</h1>
-        <p>{t("chat.subtitle")}</p>
       </header>
       <Card>
         {loading ? (
