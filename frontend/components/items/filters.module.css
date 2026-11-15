@@ -401,4 +401,10 @@
     min-width: 10rem;
     max-width: 10rem;
   }
+
+  .compact .select :global([class*="selectRoot"]) {
+    width: 10rem;
+    min-width: 10rem;
+    max-width: 10rem;
+  }
 }
