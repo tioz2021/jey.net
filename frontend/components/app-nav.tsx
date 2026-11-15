@@ -21,6 +21,7 @@ const DOMAINS: Array<{ href: string; labelKey: TranslationKey; Icon: typeof Icon
   { href: "/items", labelKey: "nav.notebook", Icon: IconList },
   { href: "/feed", labelKey: "nav.feed", Icon: IconFeed },
   { href: "/people", labelKey: "nav.subscriptions", Icon: IconPeople },
+  { href: "/messages", labelKey: "nav.messages", Icon: IconMessage },
 ];
 
 function domainActive(pathname: string, href: string) {
@@ -106,20 +107,15 @@ export function AppNav() {
                 {href === "/feed" ? <FeedBadge /> : null}
                 {href === "/items" ? <span className={styles.domainCount}>{counts.notebook}</span> : null}
                 {href === "/people" ? <span className={styles.domainCount}>{counts.subscriptions}</span> : null}
+                {href === "/messages" && chatUnread > 0 ? (
+                  <span className={styles.domainCount}>{chatUnread > 99 ? "99+" : chatUnread}</span>
+                ) : null}
               </AppLink>
             );
           })}
         </nav>
 
-        <AppLink
-          aria-current={pathname === "/messages" || pathname.startsWith("/messages/") ? "page" : undefined}
-          className={`${styles.domainLink} ${pathname === "/messages" || pathname.startsWith("/messages/") ? styles.domainActive : ""}`}
-          href="/messages"
-        >
-          <IconMessage size={17} />
-          {t("nav.messages")}
-          {chatUnread > 0 ? <span className={styles.domainCount}>{chatUnread > 99 ? "99+" : chatUnread}</span> : null}
-        </AppLink>
+
 
         <AppLink className={styles.create} href="/items/new">
           <span className={styles.createLabel}>{t("common.add")}</span>

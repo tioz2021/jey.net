@@ -1,10 +1,10 @@
 .page {
   display: flex;
   flex-direction: column;
-  width: min(100%, 980px);
+  width: min(100%, 1000px);
   height: calc(100vh - 40px);
   min-height: 0;
-  margin: 0 auto;
+  margin: 0;
   padding: 12px 16px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);

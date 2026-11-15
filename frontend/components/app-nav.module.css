@@ -92,7 +92,7 @@
   justify-content: space-between;
   gap: 10px;
   min-height: var(--control-h);
-  margin: var(--space-1) 0 var(--space-3);
+  margin: var(--space-3) 0 var(--space-3);
   padding: 0 14px;
   color: var(--color-on-accent);
   font-size: var(--text-sm);
