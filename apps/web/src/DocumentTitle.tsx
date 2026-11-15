@@ -8,6 +8,7 @@ const titles: Array<[string, string]> = [
   ["/feed", "Лента"],
   ["/recommendations", "Рекомендации"],
   ["/people", "Люди"],
+  ["/messages", "Сообщения"],
   ["/notifications", "Уведомления"],
   ["/dashboard", "Обзор"],
   ["/trash", "Корзина"],

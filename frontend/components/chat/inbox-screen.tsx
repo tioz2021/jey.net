@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { IconBellOff } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/i18n";
 import { useI18n } from "@/lib/locale-context";
@@ -45,7 +45,10 @@ export function ChatInboxScreen() {
 
   return (
     <main>
-      <PageHeader subtitle={t("chat.subtitle")} title={t("chat.title")} />
+      <header className={styles.heading}>
+        <h1>{t("chat.title")}</h1>
+        <p>{t("chat.subtitle")}</p>
+      </header>
       <Card>
         {loading ? (
           <LoadingScreen />
