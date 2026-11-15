@@ -858,3 +858,64 @@ button:not(:disabled):active {
 .active-filter-bar :global(button) {
   color: var(--color-text-muted);
 }
+
+@media (width <= 1200px) {
+  .catalogue-filter-row .compact .desktopSearch {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+
+  .catalogue-filter-row .compact .desktopSearch > *,
+  .catalogue-filter-row .compact .desktopSearch input {
+    min-width: 0;
+  }
+
+  .catalogue-filter-row .compact [class*="selectRoot"] {
+    flex: 0 1 9rem;
+    min-width: 0;
+  }
+
+  .catalogue-filter-row .compact [class*="selectTrigger"] {
+    min-width: 0;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row .desktopSearch {
+    flex: 1 1 8rem;
+    min-width: 0;
+  }
+
+  .catalogue-filter-row .desktopSearch > * {
+    min-width: 0;
+  }
+
+  .catalogue-filter-row [class*="selectRoot"] {
+    flex: 0 1 9rem;
+    min-width: 0;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row [class*="row"] {
+    height: var(--control-h);
+    min-height: 0;
+    align-items: center;
+  }
+
+  .catalogue-filter-row [class*="selectRoot"] {
+    height: var(--control-h);
+    min-height: 0;
+    align-self: center;
+  }
+}
+
+.catalogue-filter-row [class*="field"] {
+  height: var(--control-h);
+  min-height: 0;
+}
+
+.catalogue-filter-row [class*="selectRoot"] {
+  height: var(--control-h);
+  min-height: 0;
+}
