@@ -24,10 +24,28 @@ export function NotificationsScreen() {
     api.notifications
       .list()
       .then((response) => {
-        if (!cancelled) {
-          setItems(response.items);
-          setUnread(response.unread);
-          setOpenedAt(new Date().toISOString());
+        if (cancelled) return;
+        const opened = new Date().toISOString();
+        setItems(response.items);
+        setUnread(response.unread);
+        setOpenedAt(opened);
+        if (response.unread > 0) {
+          // Opening the list is the act of viewing it: clear what is on screen.
+          setItems(response.items.map((item) => ({ ...item, read: true })));
+          setUnread(0);
+          void api.notifications
+            .markAllRead(opened)
+            .then((result) => {
+              if (cancelled) return;
+              setUnread(result.unread);
+              window.dispatchEvent(new Event("jey:notifications-read"));
+            })
+            .catch(() => {
+              if (!cancelled) {
+                setItems(response.items);
+                setUnread(response.unread);
+              }
+            });
         }
       })
       .catch(() => {})
