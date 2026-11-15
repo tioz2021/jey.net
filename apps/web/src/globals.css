@@ -988,3 +988,21 @@ button:not(:disabled):active {
     min-width: 0;
   }
 }
+
+/* Keep the catalogue toolbar on one row on small laptops; only phones stack it. */
+@media (width <= 1000px) and (width > 700px) {
+  .catalogue-filter-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .catalogue-filter-row .compact {
+    flex: 1 1 30rem;
+    min-width: 0;
+  }
+
+  .catalogue-filter-row .selection-toggle {
+    margin-left: auto;
+  }
+}

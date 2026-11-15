@@ -375,3 +375,26 @@
     min-width: 0;
   }
 }
+
+/* Compact filters stay inline until the phone breakpoint. */
+@media (width <= 1000px) and (width > 700px) {
+  .compact .body {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .compact .desktopSearch {
+    flex: 1 1 12rem;
+    min-width: 8rem;
+  }
+
+  .compact .row {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compact .select {
+    min-width: 0;
+  }
+}
