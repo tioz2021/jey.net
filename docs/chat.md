@@ -49,6 +49,7 @@ chat_members
   joined_at timestamptz
   last_read_at timestamptz
   muted_at timestamptz null
+  hidden_at timestamptz null
   primary key (thread_id, user_id)
 
 chat_messages
@@ -63,11 +64,22 @@ chat_messages
   unique (thread_id, client_id)
 ```
 
+```text
+chat_settings
+  user_id uuid pk
+  message_policy text default 'all'   -- all / following / nobody
+  created_at timestamptz
+  updated_at timestamptz
+```
+
+Миграция: `migrations/0062_chat.sql`.
+
 Индексы:
 
 - `chat_members(user_id)`;
 - `chat_messages(thread_id, created_at desc)`;
-- `chat_threads(updated_at desc)`.
+- `chat_threads(updated_at desc)`;
+- `chat_members(user_id, hidden_at, thread_id)`.
 
 ## API
 
