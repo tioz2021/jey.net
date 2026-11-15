@@ -1015,3 +1015,13 @@ button:not(:disabled):active {
     max-width: 10rem;
   }
 }
+
+/* The compact select wrapper owns the width; make its root fill it. */
+@media (width <= 1000px) and (width > 700px) {
+  .catalogue-filter-row .compact .select [class*="selectRoot"] {
+    flex: 0 0 10rem;
+    width: 10rem;
+    min-width: 10rem;
+    max-width: 10rem;
+  }
+}
