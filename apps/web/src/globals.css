@@ -919,3 +919,17 @@ button:not(:disabled):active {
   height: var(--control-h);
   min-height: 0;
 }
+
+@media (width <= 1200px) {
+  .catalogue-filter-row .view-switch {
+    flex: 0 0 auto;
+    width: 78px;
+  }
+
+  .catalogue-filter-row [class*="selectRoot"] {
+    flex: 0 0 9rem;
+    width: 9rem;
+    min-width: 0;
+    max-width: 9rem;
+  }
+}
