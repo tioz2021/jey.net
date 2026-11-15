@@ -108,7 +108,12 @@ export function AppNav() {
                 {href === "/items" ? <span className={styles.domainCount}>{counts.notebook}</span> : null}
                 {href === "/people" ? <span className={styles.domainCount}>{counts.subscriptions}</span> : null}
                 {href === "/messages" && chatUnread > 0 ? (
-                  <span className={styles.domainCount}>{chatUnread > 99 ? "99+" : chatUnread}</span>
+                  <span
+                    aria-label={t("chat.unread", { count: chatUnread })}
+                    className={styles.chatBadge}
+                  >
+                    {chatUnread > 99 ? "99+" : chatUnread}
+                  </span>
                 ) : null}
               </AppLink>
             );

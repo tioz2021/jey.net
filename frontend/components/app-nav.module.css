@@ -73,6 +73,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+.domainLink :global(.feed-badge) {
+  margin-left: auto;
+}
+
+.chatBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  margin-left: auto;
+  padding: 0 4px;
+  color: #fff;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-danger);
+  border-radius: 8px;
+}
+
 .domainActive,
 .active {
   color: var(--color-text);
