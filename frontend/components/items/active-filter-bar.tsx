@@ -8,9 +8,7 @@ import { useItemsQuery } from "./query-context";
 export function ActiveFilterBar() {
   const { t } = useI18n();
   const { params, update } = useItemsQuery();
-  const hasFilters =
-    ["q", "status", "month"].some((key) => params.has(key)) ||
-    (params.has("sort") && params.get("sort") !== "created_desc");
+  const hasFilters = ["q", "status", "month"].some((key) => params.has(key));
 
   if (!hasFilters) return null;
 

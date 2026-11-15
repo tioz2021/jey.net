@@ -42,14 +42,9 @@ export function ItemsFilters({ compact = false, showActive = true }: { compact?:
     ? STATUSES_BY_KIND[selectedKind]
     : STATUSES;
 
-  const activeCount = [
-    "q",
-    "status",
-    "month",
-  ].filter((key) => searchParams.has(key)).length +
-    (searchParams.has("sort") && searchParams.get("sort") !== "created_desc"
-      ? 1
-      : 0);
+  const activeCount = ["q", "status", "month"].filter((key) =>
+    searchParams.has(key),
+  ).length;
   const hasFilters = activeCount > 0;
 
   return (
