@@ -241,6 +241,11 @@ fn api_v1(state: AppState) -> Router<AppState> {
             get(crate::chat::get).delete(crate::chat::hide),
         )
         .route(
+            "/chat/threads/{id}/messages",
+            get(crate::chat::history).post(crate::chat::send),
+        )
+        .route("/chat/threads/{id}/read", post(crate::chat::mark_read))
+        .route(
             "/public/users/{id}/items/{item_id}/comments",
             post(crate::comments::create),
         )

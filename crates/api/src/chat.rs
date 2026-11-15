@@ -294,3 +294,269 @@ pub async fn hide(
     }
     Ok(Json(json!({ "hidden": true })))
 }
+
+#[derive(Debug, Deserialize)]
+pub struct NewMessage {
+    pub body: String,
+    pub client_id: Uuid,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HistoryQuery {
+    pub before: Option<Uuid>,
+    pub limit: Option<i64>,
+}
+
+fn normalize_body(raw: &str) -> Result<String, AppError> {
+    let body = raw.trim();
+    if body.is_empty() {
+        return Err(AppError::validation_field(
+            "body",
+            "message cannot be empty",
+        ));
+    }
+    if body.chars().count() > 4000 {
+        return Err(AppError::validation_field("body", "message is too long"));
+    }
+    if body
+        .chars()
+        .any(|ch| ch.is_control() && ch != '\n' && ch != '\t')
+    {
+        return Err(AppError::validation_field(
+            "body",
+            "message contains unsupported control characters",
+        ));
+    }
+    Ok(body.to_owned())
+}
+
+async fn require_member(pool: &PgPool, thread_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+    let member: bool = sqlx::query_scalar(
+        "select exists(select 1 from chat_members where thread_id = $1 and user_id = $2)",
+    )
+    .bind(thread_id)
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+    .map_err(AppError::internal)?;
+    if member {
+        Ok(())
+    } else {
+        Err(AppError::not_found("conversation"))
+    }
+}
+
+async fn peer_id(pool: &PgPool, thread_id: Uuid, viewer: Uuid) -> Result<Uuid, AppError> {
+    sqlx::query_scalar(
+        "select user_id from chat_members
+         where thread_id = $1 and user_id <> $2
+         limit 1",
+    )
+    .bind(thread_id)
+    .bind(viewer)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("conversation"))
+}
+
+async fn message_payload(
+    pool: &PgPool,
+    thread_id: Uuid,
+    message_id: Uuid,
+) -> Result<Value, AppError> {
+    sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', m.id,
+            'thread_id', m.thread_id,
+            'sender_id', m.sender_id,
+            'body', m.body,
+            'client_id', m.client_id,
+            'created_at', m.created_at
+        )
+        from chat_messages m
+        where m.id = $1 and m.thread_id = $2 and m.deleted_at is null",
+    )
+    .bind(message_id)
+    .bind(thread_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)?
+    .ok_or_else(|| AppError::not_found("message"))
+}
+
+/// `POST /api/v1/chat/threads/{id}/messages`
+pub async fn send(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+    Json(payload): Json<NewMessage>,
+) -> Result<Json<Value>, AppError> {
+    require_member(&state.pool, thread_id, current.user.id).await?;
+    let target = peer_id(&state.pool, thread_id, current.user.id).await?;
+    can_start(&state, current.user.id, target).await?;
+    let body = normalize_body(&payload.body)?;
+
+    let mut tx = state.pool.begin().await.map_err(AppError::internal)?;
+    let inserted: Option<Uuid> = sqlx::query_scalar(
+        "insert into chat_messages (thread_id, sender_id, body, client_id)
+         values ($1, $2, $3, $4)
+         on conflict (thread_id, client_id) do nothing
+         returning id",
+    )
+    .bind(thread_id)
+    .bind(current.user.id)
+    .bind(&body)
+    .bind(payload.client_id)
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(AppError::internal)?;
+
+    let message_id = match inserted {
+        Some(id) => {
+            sqlx::query("update chat_threads set updated_at = now() where id = $1")
+                .bind(thread_id)
+                .execute(&mut *tx)
+                .await
+                .map_err(AppError::internal)?;
+            // A new message brings a hidden conversation back for both sides.
+            sqlx::query(
+                "update chat_members set hidden_at = null, last_read_at = case
+                    when user_id = $2 then now() else last_read_at end
+                 where thread_id = $1",
+            )
+            .bind(thread_id)
+            .bind(current.user.id)
+            .execute(&mut *tx)
+            .await
+            .map_err(AppError::internal)?;
+            id
+        }
+        None => {
+            let (id, stored): (Uuid, String) = sqlx::query_as(
+                "select id, body from chat_messages
+                 where thread_id = $1 and client_id = $2",
+            )
+            .bind(thread_id)
+            .bind(payload.client_id)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(AppError::internal)?;
+            if stored != body {
+                return Err(AppError::conflict(
+                    "client_id was already used for another message",
+                ));
+            }
+            id
+        }
+    };
+    tx.commit().await.map_err(AppError::internal)?;
+
+    let message = message_payload(&state.pool, thread_id, message_id).await?;
+    Ok(Json(json!({
+        "message": message,
+        "created": inserted.is_some()
+    })))
+}
+
+/// `GET /api/v1/chat/threads/{id}/messages?before=&limit=`
+pub async fn history(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+    axum::extract::Query(query): axum::extract::Query<HistoryQuery>,
+) -> Result<Json<Value>, AppError> {
+    require_member(&state.pool, thread_id, current.user.id).await?;
+    let limit = query.limit.unwrap_or(50).clamp(1, 100);
+
+    let messages: Vec<Value> = if let Some(before) = query.before {
+        let cursor: Option<(chrono::DateTime<chrono::Utc>, Uuid)> = sqlx::query_as(
+            "select created_at, id from chat_messages
+             where id = $1 and thread_id = $2 and deleted_at is null",
+        )
+        .bind(before)
+        .bind(thread_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        let Some((created_at, id)) = cursor else {
+            return Err(AppError::validation_field("before", "unknown message"));
+        };
+        sqlx::query_scalar(
+            "select jsonb_build_object(
+                'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
+                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at
+             )
+             from chat_messages m
+             where m.thread_id = $1 and m.deleted_at is null
+               and (m.created_at, m.id) < ($2, $3)
+             order by m.created_at desc, m.id desc
+             limit $4",
+        )
+        .bind(thread_id)
+        .bind(created_at)
+        .bind(id)
+        .bind(limit + 1)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?
+    } else {
+        sqlx::query_scalar(
+            "select jsonb_build_object(
+                'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
+                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at
+             )
+             from chat_messages m
+             where m.thread_id = $1 and m.deleted_at is null
+             order by m.created_at desc, m.id desc
+             limit $2",
+        )
+        .bind(thread_id)
+        .bind(limit + 1)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?
+    };
+
+    let mut messages = messages;
+    let has_more = messages.len() > limit as usize;
+    if has_more {
+        messages.truncate(limit as usize);
+    }
+    let next_before = if has_more {
+        messages
+            .last()
+            .and_then(|value| value.get("id")?.as_str())
+            .map(str::to_owned)
+    } else {
+        None
+    };
+    messages.reverse();
+    Ok(Json(json!({
+        "messages": messages,
+        "next_before": next_before
+    })))
+}
+
+/// `POST /api/v1/chat/threads/{id}/read`
+pub async fn mark_read(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let changed = sqlx::query(
+        "update chat_members set last_read_at = now(), hidden_at = null
+         where thread_id = $1 and user_id = $2",
+    )
+    .bind(thread_id)
+    .bind(current.user.id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected();
+
+    if changed == 0 {
+        return Err(AppError::not_found("conversation"));
+    }
+    Ok(Json(json!({ "read": true })))
+}
