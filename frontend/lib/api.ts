@@ -476,6 +476,10 @@ export const notifications = {
       method: "PATCH",
       body: patch,
     }),
+  markRead: (id: string) =>
+    request<{ ok: boolean }>(`/notifications/${encodeURIComponent(id)}/read`, {
+      method: "POST",
+    }),
   markAllRead: (before?: string) =>
     request<{ unread: number }>("/notifications/read", {
       method: "POST",

@@ -24,28 +24,10 @@ export function NotificationsScreen() {
     api.notifications
       .list()
       .then((response) => {
-        if (cancelled) return;
-        const opened = new Date().toISOString();
-        setItems(response.items);
-        setUnread(response.unread);
-        setOpenedAt(opened);
-        if (response.unread > 0) {
-          // Opening the list is the act of viewing it: clear what is on screen.
-          setItems(response.items.map((item) => ({ ...item, read: true })));
-          setUnread(0);
-          void api.notifications
-            .markAllRead(opened)
-            .then((result) => {
-              if (cancelled) return;
-              setUnread(result.unread);
-              window.dispatchEvent(new Event("jey:notifications-read"));
-            })
-            .catch(() => {
-              if (!cancelled) {
-                setItems(response.items);
-                setUnread(response.unread);
-              }
-            });
+        if (!cancelled) {
+          setItems(response.items);
+          setUnread(response.unread);
+          setOpenedAt(new Date().toISOString());
         }
       })
       .catch(() => {})
@@ -54,6 +36,25 @@ export function NotificationsScreen() {
       cancelled = true;
     };
   }, []);
+
+  async function markOneRead(item: NotificationItem) {
+    if (item.read) return;
+    setItems((current) =>
+      current.map((entry) => entry.id === item.id ? { ...entry, read: true } : entry),
+    );
+    setUnread((current) => Math.max(0, current - 1));
+    window.dispatchEvent(new Event("jey:notifications-read"));
+    try {
+      await api.notifications.markRead(item.id);
+      window.dispatchEvent(new Event("jey:notifications-read"));
+    } catch {
+      setItems((current) =>
+        current.map((entry) => entry.id === item.id ? { ...entry, read: false } : entry),
+      );
+      setUnread((current) => current + 1);
+      window.dispatchEvent(new Event("jey:notifications-read"));
+    }
+  }
 
   async function markAllRead() {
     setMarking(true);
@@ -97,7 +98,11 @@ export function NotificationsScreen() {
               const isReaction = item.kind === "reaction";
               const isReport = item.kind === "report";
               return (
-              <li className={`${styles.item} ${item.read ? "" : styles.unread}`} key={item.id}>
+              <li
+                className={`${styles.item} ${item.read ? "" : styles.unread}`}
+                key={item.id}
+                onClick={() => void markOneRead(item)}
+              >
                 <AppLink href={`/u/${item.actor_id}`}>
                   {item.actor_avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element -- local avatar
