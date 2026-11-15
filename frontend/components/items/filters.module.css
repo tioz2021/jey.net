@@ -396,7 +396,9 @@
   }
 
   .compact .select {
-    min-width: 9rem;
-    width: auto;
+    flex: 0 0 10rem;
+    width: 10rem;
+    min-width: 10rem;
+    max-width: 10rem;
   }
 }
