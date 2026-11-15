@@ -233,6 +233,14 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/feed", get(crate::users::follows::feed))
         .route("/blocks", get(crate::users::follows::blocked))
         .route(
+            "/chat/threads",
+            get(crate::chat::list).post(crate::chat::create),
+        )
+        .route(
+            "/chat/threads/{id}",
+            get(crate::chat::get).delete(crate::chat::hide),
+        )
+        .route(
             "/public/users/{id}/items/{item_id}/comments",
             post(crate::comments::create),
         )

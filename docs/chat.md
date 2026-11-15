@@ -86,6 +86,7 @@ chat_settings
 ```text
 GET    /api/v1/chat/threads
 POST   /api/v1/chat/threads              { user_id }
+GET    /api/v1/chat/threads/{id}
 GET    /api/v1/chat/threads/{id}/messages?before=&limit=
 POST   /api/v1/chat/threads/{id}/messages { body, client_id }
 POST   /api/v1/chat/threads/{id}/read

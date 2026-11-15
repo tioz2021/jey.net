@@ -28,21 +28,18 @@ async fn chat_tables_enforce_direct_key_membership_and_idempotency() {
     let bob = user(&pool, "Chat Bob").await;
     let key = format!("{alice}:{bob}");
 
-    let thread_id: Uuid = sqlx::query_scalar(
-        "insert into chat_threads (direct_key) values ($1) returning id",
-    )
-    .bind(&key)
-    .fetch_one(&pool)
-    .await
-    .expect("insert thread");
+    let thread_id: Uuid =
+        sqlx::query_scalar("insert into chat_threads (direct_key) values ($1) returning id")
+            .bind(&key)
+            .fetch_one(&pool)
+            .await
+            .expect("insert thread");
 
     // A direct pair cannot produce a second thread.
-    let duplicate = sqlx::query(
-        "insert into chat_threads (direct_key) values ($1)",
-    )
-    .bind(&key)
-    .execute(&pool)
-    .await;
+    let duplicate = sqlx::query("insert into chat_threads (direct_key) values ($1)")
+        .bind(&key)
+        .execute(&pool)
+        .await;
     assert!(duplicate.is_err(), "direct_key must be unique");
 
     for user_id in [alice, bob] {
@@ -77,7 +74,10 @@ async fn chat_tables_enforce_direct_key_membership_and_idempotency() {
     .bind(client_id)
     .execute(&pool)
     .await;
-    assert!(duplicate_message.is_err(), "client_id must be idempotent per thread");
+    assert!(
+        duplicate_message.is_err(),
+        "client_id must be idempotent per thread"
+    );
 
     let non_member = user(&pool, "Chat Stranger").await;
     let non_member_message = sqlx::query(
@@ -90,7 +90,10 @@ async fn chat_tables_enforce_direct_key_membership_and_idempotency() {
     .bind(Uuid::new_v4())
     .execute(&pool)
     .await;
-    assert!(non_member_message.is_err(), "sender must be a thread member");
+    assert!(
+        non_member_message.is_err(),
+        "sender must be a thread member"
+    );
 
     let empty = sqlx::query(
         "insert into chat_messages (thread_id, sender_id, body, client_id)

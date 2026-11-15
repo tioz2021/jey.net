@@ -8,6 +8,7 @@ pub mod anime;
 pub mod audit;
 pub mod auth;
 pub mod books;
+pub mod chat;
 pub mod collections;
 pub mod comments;
 pub mod config;
