@@ -5,16 +5,19 @@
 }
 
 .heading h1 {
-  margin: 0;
+  display: inline-block;
+  margin: 0 0 -1px;
+  padding: 0 0 0.65rem;
   color: var(--color-text);
   font-size: var(--text-xl);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.025em;
+  border-bottom: 2px solid var(--color-accent);
 }
 
 .heading p {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
