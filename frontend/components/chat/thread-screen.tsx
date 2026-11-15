@@ -230,15 +230,21 @@ export function ChatThreadScreen() {
     <main className={styles.page}>
       <header className={styles.header}>
         <AppLink className={styles.backLink} href="/messages">←</AppLink>
-        <Avatar
-          name={thread.peer.display_name}
-          size={36}
-          url={thread.peer.avatar_key ? mediaUrl(thread.peer.avatar_key) : null}
-        />
-        <div className={styles.identity}>
-          <strong>{thread.peer.display_name}</strong>
-          <span>@{thread.peer.handle}</span>
-        </div>
+        <AppLink
+          className={styles.peer}
+          href={`/u/${thread.peer.handle}`}
+          title={thread.peer.display_name}
+        >
+          <Avatar
+            name={thread.peer.display_name}
+            size={36}
+            url={thread.peer.avatar_key ? mediaUrl(thread.peer.avatar_key) : null}
+          />
+          <span className={styles.identity}>
+            <strong>{thread.peer.display_name}</strong>
+            <span>@{thread.peer.handle}</span>
+          </span>
+        </AppLink>
         <button
           aria-label={thread.muted ? t("chat.unmute") : t("chat.muted")}
           aria-pressed={thread.muted}

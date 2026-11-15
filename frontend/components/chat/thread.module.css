@@ -39,6 +39,20 @@
   background: var(--color-surface);
 }
 
+.peer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+
+.peer:hover strong {
+  text-decoration: underline;
+}
+
 .identity {
   display: grid;
   min-width: 0;
