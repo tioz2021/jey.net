@@ -26,7 +26,10 @@ export function ChatInboxScreen() {
     api.chat
       .threads()
       .then((response) => {
-        if (!cancelled) setThreads(response.threads);
+        if (!cancelled) {
+          setThreads(response.threads);
+          window.dispatchEvent(new Event("jey:chat-updated"));
+        }
       })
       .catch(() => {
         if (!cancelled) setError(true);

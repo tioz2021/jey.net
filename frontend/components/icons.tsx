@@ -11,6 +11,7 @@ import {
   Image,
   LayoutGrid,
   List,
+  MessageCircle,
   type LucideIcon,
   Rss,
   SlidersHorizontal,
@@ -63,6 +64,7 @@ export const IconTag = makeIcon(Tag, "IconTag");
 export const IconStats = makeIcon(BarChart3, "IconStats");
 export const IconSettings = makeIcon(SlidersHorizontal, "IconSettings");
 export const IconTrash = makeIcon(Trash2, "IconTrash");
+export const IconMessage = makeIcon(MessageCircle, "IconMessage");
 
 export function IconHeartFilled({ size = 16, ...rest }: IconProps) {
   return (

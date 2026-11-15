@@ -116,6 +116,8 @@ export const en = {
   "theme.dark": "Dark theme",
   "quickAdd": "Add a record",
   "nav.collections": "Collections",
+  "nav.messages": "Messages",
+  "chat.write": "Message",
   "nav.notebook": "Notebook",
   "nav.items": "My records",
   "nav.tags": "Tags",

@@ -65,6 +65,7 @@ export function ChatThreadScreen() {
       setNextBefore(messageResponse.next_before);
       if (threadResponse.thread.unread > 0) {
         await api.chat.read(id).catch(() => {});
+        window.dispatchEvent(new Event("jey:chat-updated"));
       }
       setError(false);
     } catch {
@@ -173,6 +174,7 @@ export function ChatThreadScreen() {
           message.client_id === clientId ? response.message : message,
         ),
       );
+      window.dispatchEvent(new Event("jey:chat-updated"));
     } catch {
       setMessages((current) =>
         current.map((message) =>

@@ -484,6 +484,11 @@ export const notifications = {
 
 export const chat = {
   threads: () => request<{ threads: ChatThread[] }>("/chat/threads"),
+  create: (userId: string) =>
+    request<{ thread: ChatThread; created: boolean }>("/chat/threads", {
+      method: "POST",
+      body: { user_id: userId },
+    }),
   thread: (id: string) => request<{ thread: ChatThread }>(`/chat/threads/${id}`),
   messages: (id: string, options: { before?: string; limit?: number } = {}) => {
     const params = new URLSearchParams();

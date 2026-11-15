@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { DesktopSync } from "@/components/desktop-sync";
 import { FeedBadge } from "@/components/feed-badge";
-import { IconFeed, IconList, IconPeople } from "@/components/icons";
+import { IconFeed, IconList, IconMessage, IconPeople } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { NotificationBell } from "@/components/notification-bell";
 import { UserMenu } from "@/components/user-menu";
@@ -38,10 +38,14 @@ export function AppNav() {
   const { user } = useUser();
   const pathname = usePathname();
   const [counts, setCounts] = useState<{ notebook: number; subscriptions: number }>({ notebook: 0, subscriptions: 0 });
+  const [chatUnread, setChatUnread] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    if (!user) return;
+    if (!user) {
+      setChatUnread(0);
+      return;
+    }
     api.stats
       .get()
       .then((stats) => {
@@ -54,10 +58,23 @@ export function AppNav() {
         if (!cancelled) setCounts((current) => ({ ...current, subscriptions: response.people.length }));
       })
       .catch(() => {});
+    const refreshChat = () => {
+      api.chat
+        .threads()
+        .then((response) => {
+          if (!cancelled) {
+            setChatUnread(response.threads.reduce((sum, thread) => sum + thread.unread, 0));
+          }
+        })
+        .catch(() => {});
+    };
+    refreshChat();
+    window.addEventListener("jey:chat-updated", refreshChat);
     return () => {
       cancelled = true;
+      window.removeEventListener("jey:chat-updated", refreshChat);
     };
-  }, [user]);
+  }, [user, pathname]);
 
   return (
     <div className={styles.column}>
@@ -89,6 +106,16 @@ export function AppNav() {
             );
           })}
         </nav>
+
+        <AppLink
+          aria-current={pathname === "/messages" || pathname.startsWith("/messages/") ? "page" : undefined}
+          className={`${styles.domainLink} ${pathname === "/messages" || pathname.startsWith("/messages/") ? styles.domainActive : ""}`}
+          href="/messages"
+        >
+          <IconMessage size={17} />
+          {t("nav.messages")}
+          {chatUnread > 0 ? <span className={styles.domainCount}>{chatUnread > 99 ? "99+" : chatUnread}</span> : null}
+        </AppLink>
 
         <AppLink className={styles.create} href="/items/new">
           <span className={styles.createLabel}>{t("common.add")}</span>

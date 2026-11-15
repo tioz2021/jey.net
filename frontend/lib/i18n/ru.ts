@@ -115,6 +115,8 @@ export const ru = {
   "theme.dark": "Тёмная тема",
   "quickAdd": "Добавить запись",
   "nav.collections": "Коллекции",
+  "nav.messages": "Сообщения",
+  "chat.write": "Написать",
   "nav.notebook": "Блокнот",
   "nav.items": "Мои записи",
   "nav.tags": "Теги",

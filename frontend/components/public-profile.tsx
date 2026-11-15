@@ -7,6 +7,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ItemCard } from "@/components/items/item-card";
 
 import { useI18n } from "@/lib/locale-context";
+import { useAppRouter } from "@/lib/navigation";
 import { useUser } from "@/lib/user-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui";
@@ -47,11 +48,13 @@ export function PublicProfileView({
 }) {
   const { t, date } = useI18n();
   const { user } = useUser();
+  const router = useAppRouter();
   const [followed, setFollowed] = useState(false);
   const [followers, setFollowers] = useState<number | null>(null);
   const [followBusy, setFollowBusy] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
 
   useEffect(() => {
     if (!user || user.id === profile.id) return;
@@ -82,6 +85,18 @@ export function PublicProfileView({
       if (state.blocked) setFollowed(false);
     } finally {
       setBlockBusy(false);
+    }
+  }
+
+  async function startChat() {
+    if (!user || user.id === profile.id || blocked) return;
+    setChatBusy(true);
+    try {
+      const response = await api.chat.create(profile.id);
+      router.push(`/messages/${response.thread.id}`);
+      window.dispatchEvent(new Event("jey:chat-updated"));
+    } finally {
+      setChatBusy(false);
     }
   }
 
@@ -225,6 +240,16 @@ export function PublicProfileView({
                       variant={followed ? "secondary" : "primary"}
                     >
                       {followed ? t("public.following") : t("public.follow")}
+                    </Button>
+                  ) : null}
+                  {!blocked ? (
+                    <Button
+                      loading={chatBusy}
+                      onClick={() => void startChat()}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      {t("chat.write")}
                     </Button>
                   ) : null}
                   <Button
