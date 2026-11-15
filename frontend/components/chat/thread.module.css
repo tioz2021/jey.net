@@ -1,8 +1,14 @@
 .page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 20px);
+  width: min(100%, 980px);
+  height: calc(100vh - 40px);
   min-height: 0;
+  margin: 0 auto;
+  padding: 12px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .header {
@@ -11,6 +17,10 @@
   gap: 10px;
   padding: 0 0 var(--space-3);
   border-bottom: 1px solid var(--color-border);
+}
+
+.messages {
+  padding: var(--space-4) var(--space-2);
 }
 
 .backLink {
@@ -179,8 +189,16 @@
 
 @media (width <= 700px) {
   .page {
+    width: 100%;
     height: calc(100dvh - 48px);
     min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .messages {
+    padding: var(--space-4) 0;
   }
 
   .message {
