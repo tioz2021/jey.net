@@ -1025,3 +1025,12 @@ button:not(:disabled):active {
     max-width: 10rem;
   }
 }
+
+@media (width <= 1000px) and (width > 700px) {
+  .catalogue-filter-row .compact .select [class*="selectRoot"] {
+    flex: 0 0 10rem !important;
+    width: 10rem !important;
+    min-width: 10rem !important;
+    max-width: 10rem !important;
+  }
+}
