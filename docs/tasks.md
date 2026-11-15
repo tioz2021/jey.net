@@ -73,7 +73,8 @@
 | T134 | Чат: схема БД и миграции | `[x]` | 0062: threads, members, messages, settings + test |
 | T135 | Чат: API диалогов | `[x]` | Создать, список, get, скрыть + тесты |
 | T136 | Чат: API сообщений | `[x]` | Отправка, история, read, идемпотентность |
-| T137 | Чат: realtime | `[ ]` | SSE + polling fallback |
+| T137 | Чат: realtime | `[x]` | SSE, keep-alive, resync; polling fallback в T139 |
+| T137.1 | Чат: мультиинстанс-доставка | `[–]` | PostgreSQL LISTEN/NOTIFY |
 | T138 | Веб: инбокс чата | `[ ]` | `/messages`, unread |
 | T139 | Веб: экран диалога | `[ ]` | Бабблы, отправка, mobile |
 | T140 | Веб: точки входа в чат | `[ ]` | Профиль, сайдбар, badge |

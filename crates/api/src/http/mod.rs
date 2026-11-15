@@ -67,6 +67,7 @@ pub struct AppState {
     pub anime: Arc<crate::anime::AnimeClient>,
     pub books: Arc<crate::books::BookClient>,
     pub recommendations: Arc<crate::recommendations::RecommendationCache>,
+    pub chat: Arc<crate::chat::ChatEvents>,
 }
 
 /// Builds the full application router.
@@ -232,6 +233,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route("/me/password", post(change_password))
         .route("/feed", get(crate::users::follows::feed))
         .route("/blocks", get(crate::users::follows::blocked))
+        .route("/chat/stream", get(crate::chat::stream))
         .route(
             "/chat/threads",
             get(crate::chat::list).post(crate::chat::create),

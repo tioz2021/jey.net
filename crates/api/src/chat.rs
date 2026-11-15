@@ -6,9 +6,10 @@
 
 use axum::Json;
 use axum::extract::{Path, State};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -18,6 +19,64 @@ use crate::http::AppState;
 #[derive(Debug, Deserialize)]
 pub struct NewThread {
     pub user_id: Uuid,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ChatEvent {
+    pub kind: String,
+    pub thread_id: Uuid,
+    pub recipients: Vec<Uuid>,
+    pub message: Option<Value>,
+    pub read_by: Option<Uuid>,
+}
+
+#[derive(Serialize)]
+struct ChatEventWire<'a> {
+    kind: &'a str,
+    thread_id: Uuid,
+    message: &'a Option<Value>,
+    read_by: Option<Uuid>,
+}
+
+impl ChatEvent {
+    fn sse(&self) -> axum::response::sse::Event {
+        let wire = ChatEventWire {
+            kind: &self.kind,
+            thread_id: self.thread_id,
+            message: &self.message,
+            read_by: self.read_by,
+        };
+        let data = serde_json::to_string(&wire).unwrap_or_else(|_| "{}".to_owned());
+        axum::response::sse::Event::default()
+            .event(self.kind.clone())
+            .data(data)
+    }
+}
+
+#[derive(Clone)]
+pub struct ChatEvents {
+    tx: broadcast::Sender<ChatEvent>,
+}
+
+impl ChatEvents {
+    pub fn new() -> Self {
+        let (tx, _) = broadcast::channel(256);
+        Self { tx }
+    }
+
+    pub fn subscribe(&self) -> broadcast::Receiver<ChatEvent> {
+        self.tx.subscribe()
+    }
+
+    pub fn publish(&self, event: ChatEvent) {
+        let _ = self.tx.send(event);
+    }
+}
+
+impl Default for ChatEvents {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 fn direct_key(a: Uuid, b: Uuid) -> String {
@@ -148,6 +207,41 @@ async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<
     .await
     .map_err(AppError::internal)?
     .ok_or_else(|| AppError::not_found("conversation"))
+}
+
+/// `GET /api/v1/chat/stream` — SSE stream of events for the current account.
+pub async fn stream(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> axum::response::sse::Sse<
+    impl futures_util::Stream<Item = Result<axum::response::sse::Event, std::convert::Infallible>>,
+> {
+    use std::convert::Infallible;
+    use tokio::sync::broadcast::error::RecvError;
+
+    let mut rx = state.chat.subscribe();
+    let user_id = current.user.id;
+    let stream = async_stream::stream! {
+        loop {
+            match rx.recv().await {
+                Ok(event) if event.recipients.contains(&user_id) => {
+                    yield Ok::<_, Infallible>(event.sse());
+                }
+                Ok(_) => {}
+                Err(RecvError::Lagged(_)) => {
+                    yield Ok(axum::response::sse::Event::default()
+                        .event("resync")
+                        .data("{}"));
+                }
+                Err(RecvError::Closed) => break,
+            }
+        }
+    };
+    axum::response::sse::Sse::new(stream).keep_alive(
+        axum::response::sse::KeepAlive::new()
+            .interval(std::time::Duration::from_secs(15))
+            .text("keep-alive"),
+    )
 }
 
 /// `GET /api/v1/chat/threads` — visible conversations of the current account.
@@ -453,6 +547,13 @@ pub async fn send(
     tx.commit().await.map_err(AppError::internal)?;
 
     let message = message_payload(&state.pool, thread_id, message_id).await?;
+    state.chat.publish(ChatEvent {
+        kind: "message.created".to_owned(),
+        thread_id,
+        recipients: vec![current.user.id, target],
+        message: Some(message.clone()),
+        read_by: None,
+    });
     Ok(Json(json!({
         "message": message,
         "created": inserted.is_some()
@@ -558,5 +659,13 @@ pub async fn mark_read(
     if changed == 0 {
         return Err(AppError::not_found("conversation"));
     }
+    let target = peer_id(&state.pool, thread_id, current.user.id).await?;
+    state.chat.publish(ChatEvent {
+        kind: "message.read".to_owned(),
+        thread_id,
+        recipients: vec![current.user.id, target],
+        message: None,
+        read_by: Some(current.user.id),
+    });
     Ok(Json(json!({ "read": true })))
 }

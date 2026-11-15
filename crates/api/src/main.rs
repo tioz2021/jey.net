@@ -136,6 +136,7 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         anime,
         books,
         recommendations,
+        chat: Arc::new(jey_api::chat::ChatEvents::new()),
         config: Arc::new(config),
     };
 
