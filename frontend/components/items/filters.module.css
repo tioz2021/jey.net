@@ -376,7 +376,7 @@
   }
 }
 
-/* Compact filters stay inline until the phone breakpoint. */
+/* Compact filters stay inline and keep usable sizes until the phone breakpoint. */
 @media (width <= 1000px) and (width > 700px) {
   .compact .body {
     flex-direction: row;
@@ -384,17 +384,19 @@
   }
 
   .compact .desktopSearch {
-    flex: 1 1 12rem;
-    min-width: 8rem;
+    flex: 1 1 18rem;
+    min-width: 9rem;
   }
 
   .compact .row {
-    display: grid;
+    display: flex;
     flex: 0 0 auto;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: none;
+    gap: var(--space-2);
   }
 
   .compact .select {
-    min-width: 0;
+    min-width: 9rem;
+    width: auto;
   }
 }
