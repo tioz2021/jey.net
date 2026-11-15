@@ -144,6 +144,27 @@ async fn direct_threads_are_idempotent_and_private() {
         1
     );
 
+    let muted = alice
+        .post_with_cookie(
+            &format!("/api/v1/chat/threads/{thread_id}/mute"),
+            json!({}),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(muted.status, 200, "body: {}", muted.body);
+    let muted_list = alice.get("/api/v1/chat/threads", Some(&alice_cookie)).await;
+    assert_eq!(muted_list.body["threads"][0]["muted"], true);
+    let unmuted = alice
+        .delete(
+            &format!("/api/v1/chat/threads/{thread_id}/mute"),
+            json!({}),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(unmuted.status, 200, "body: {}", unmuted.body);
+    let unmuted_list = alice.get("/api/v1/chat/threads", Some(&alice_cookie)).await;
+    assert_eq!(unmuted_list.body["threads"][0]["muted"], false);
+
     // "nobody" is enforced before an existing thread is returned.
     sqlx::query(
         "insert into chat_settings (user_id, message_policy) values ($1, 'nobody')

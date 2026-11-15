@@ -700,4 +700,5 @@ export interface ChatThread {
   peer: ChatPeer;
   last_message: ChatLastMessage | null;
   unread: number;
+  muted: boolean;
 }

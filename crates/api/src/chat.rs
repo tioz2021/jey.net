@@ -166,6 +166,7 @@ async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<
             'kind', t.kind,
             'created_at', t.created_at,
             'updated_at', t.updated_at,
+            'muted', cm.muted_at is not null,
             'peer', jsonb_build_object(
                 'id', peer.id,
                 'handle', peer.handle,
@@ -255,6 +256,7 @@ pub async fn list(
             'kind', t.kind,
             'created_at', t.created_at,
             'updated_at', t.updated_at,
+            'muted', cm.muted_at is not null,
             'peer', jsonb_build_object(
                 'id', peer.id,
                 'handle', peer.handle,
@@ -668,4 +670,48 @@ pub async fn mark_read(
         read_by: Some(current.user.id),
     });
     Ok(Json(json!({ "read": true })))
+}
+
+/// `POST /api/v1/chat/threads/{id}/mute`
+pub async fn mute(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let changed = sqlx::query(
+        "update chat_members set muted_at = now()
+         where thread_id = $1 and user_id = $2",
+    )
+    .bind(thread_id)
+    .bind(current.user.id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected();
+    if changed == 0 {
+        return Err(AppError::not_found("conversation"));
+    }
+    Ok(Json(json!({ "muted": true })))
+}
+
+/// `DELETE /api/v1/chat/threads/{id}/mute`
+pub async fn unmute(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let changed = sqlx::query(
+        "update chat_members set muted_at = null
+         where thread_id = $1 and user_id = $2",
+    )
+    .bind(thread_id)
+    .bind(current.user.id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected();
+    if changed == 0 {
+        return Err(AppError::not_found("conversation"));
+    }
+    Ok(Json(json!({ "muted": false })))
 }

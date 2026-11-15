@@ -91,6 +91,7 @@ GET    /api/v1/chat/threads/{id}/messages?before=&limit=
 POST   /api/v1/chat/threads/{id}/messages { body, client_id }
 POST   /api/v1/chat/threads/{id}/read
 POST   /api/v1/chat/threads/{id}/mute
+DELETE /api/v1/chat/threads/{id}/mute
 DELETE /api/v1/chat/threads/{id}         -- скрыть у себя
 GET    /api/v1/chat/unread
 GET    /api/v1/chat/stream               -- SSE
@@ -109,6 +110,9 @@ GET    /api/v1/chat/stream               -- SSE
 - чтение истории доступно участникам, отправка дополнительно проверяет
   блокировку и `message_policy`;
 - `POST /read` обновляет `last_read_at` и убирает unread;
+- `mute` хранится в `chat_members.muted_at` и не влияет на историю;
+- muted-диалоги не учитываются в общем unread badge и title, но остаются
+  с unread в инбоксе;
 - чтение и отправка проверяют членство в диалоге.
 
 ## Реальное время

@@ -248,6 +248,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         )
         .route("/chat/threads/{id}/read", post(crate::chat::mark_read))
         .route(
+            "/chat/threads/{id}/mute",
+            post(crate::chat::mute).delete(crate::chat::unmute),
+        )
+        .route(
             "/public/users/{id}/items/{item_id}/comments",
             post(crate::comments::create),
         )

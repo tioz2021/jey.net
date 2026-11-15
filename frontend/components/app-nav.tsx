@@ -63,7 +63,11 @@ export function AppNav() {
         .threads()
         .then((response) => {
           if (!cancelled) {
-            setChatUnread(response.threads.reduce((sum, thread) => sum + thread.unread, 0));
+            setChatUnread(
+              response.threads
+                .filter((thread) => !thread.muted)
+                .reduce((sum, thread) => sum + thread.unread, 0),
+            );
           }
         })
         .catch(() => {});

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
+import { IconBellOff } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Badge, Card, PageHeader } from "@/components/ui";
@@ -85,6 +86,7 @@ export function ChatInboxScreen() {
                       <span className={styles.head}>
                         <strong>{thread.peer.display_name}</strong>
                         <span className={styles.handle}>@{thread.peer.handle}</span>
+                        {thread.muted ? <IconBellOff size={13} /> : null}
                       </span>
                       <span className={styles.preview}>{preview}</span>
                     </span>

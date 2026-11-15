@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import { IconBell, IconBellOff } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Button, Card } from "@/components/ui";
@@ -47,6 +48,19 @@ export function ChatThreadScreen() {
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sseHealthy = useRef(false);
+
+  async function toggleMute() {
+    if (!thread) return;
+    try {
+      const response = thread.muted
+        ? await api.chat.unmute(id)
+        : await api.chat.mute(id);
+      setThread((current) => current ? { ...current, muted: response.muted } : current);
+      window.dispatchEvent(new Event("jey:chat-updated"));
+    } catch {
+      // Keep the current state; the next open retries.
+    }
+  }
 
   async function loadThread(showLoading = false) {
     if (showLoading) setLoading(true);
@@ -224,6 +238,16 @@ export function ChatThreadScreen() {
           <strong>{thread.peer.display_name}</strong>
           <span>@{thread.peer.handle}</span>
         </div>
+        <button
+          aria-label={thread.muted ? t("chat.unmute") : t("chat.muted")}
+          aria-pressed={thread.muted}
+          className={styles.mute}
+          onClick={() => void toggleMute()}
+          title={thread.muted ? t("chat.unmute") : t("chat.muted")}
+          type="button"
+        >
+          {thread.muted ? <IconBellOff size={16} /> : <IconBell size={16} />}
+        </button>
       </header>
 
       <div className={styles.messages}>

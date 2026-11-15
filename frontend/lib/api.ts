@@ -506,6 +506,10 @@ export const chat = {
     ),
   read: (id: string) =>
     request<{ read: boolean }>(`/chat/threads/${id}/read`, { method: "POST" }),
+  mute: (id: string) =>
+    request<{ muted: boolean }>(`/chat/threads/${id}/mute`, { method: "POST" }),
+  unmute: (id: string) =>
+    request<{ muted: boolean }>(`/chat/threads/${id}/mute`, { method: "DELETE" }),
 };
 
 export const feed = {

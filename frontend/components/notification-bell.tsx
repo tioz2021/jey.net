@@ -103,14 +103,20 @@ export function NotificationBell() {
     async function load() {
       try {
         const response = await api.notifications.list();
+        const chat = await api.chat.threads().catch(() => null);
         if (cancelled) return;
         if (previousUnread !== null && response.unread > previousUnread) {
           void playNotificationSound();
         }
         previousUnread = response.unread;
         setUnread(response.unread);
+        const chatUnread = chat
+          ? chat.threads
+              .filter((thread) => !thread.muted)
+              .reduce((sum, thread) => sum + thread.unread, 0)
+          : 0;
         updateFavicon(response.unread);
-        showTitle(response.unread);
+        showTitle(response.unread + chatUnread);
       } catch {
         // Keep the last known count; the next poll will retry.
       } finally {
@@ -127,11 +133,13 @@ export function NotificationBell() {
       }
     };
     const onRead = () => void load();
+    const onChatUpdated = () => void load();
     const onWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === "jey:notification") void load();
     };
     void load();
     window.addEventListener("jey:notifications-read", onRead);
+    window.addEventListener("jey:chat-updated", onChatUpdated);
     window.addEventListener("focus", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pointerdown", unlockNotificationSound, { once: true });
@@ -144,6 +152,7 @@ export function NotificationBell() {
       document.title = baseTitle;
       updateFavicon(0);
       window.removeEventListener("jey:notifications-read", onRead);
+      window.removeEventListener("jey:chat-updated", onChatUpdated);
       window.removeEventListener("focus", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pointerdown", unlockNotificationSound);
