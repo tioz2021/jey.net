@@ -667,3 +667,28 @@ export interface UploadResponse {
   upload: Upload;
 }
 
+
+
+export interface ChatPeer {
+  id: string;
+  handle: string;
+  display_name: string;
+  avatar_key: string | null;
+}
+
+export interface ChatLastMessage {
+  id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}
+
+export interface ChatThread {
+  id: string;
+  kind: "direct";
+  created_at: string;
+  updated_at: string;
+  peer: ChatPeer;
+  last_message: ChatLastMessage | null;
+  unread: number;
+}

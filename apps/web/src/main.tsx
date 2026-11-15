@@ -38,6 +38,7 @@ import { FeedScreen } from "@/components/social/feed-screen";
 import { RecommendationsScreen } from "@/components/social/recommendations-screen";
 import { PeopleScreen } from "@/components/social/people-screen";
 import { NotificationsScreen } from "@/components/social/notifications-screen";
+import { ChatInboxScreen } from "@/components/chat/inbox-screen";
 import { DashboardRoute } from "./screens/DashboardRoute";
 import { TrashRoute } from "./screens/TrashRoute";
 import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
@@ -81,6 +82,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/recommendations" element={<RecommendationsScreen variant="friends" />} />
             <Route path="/recommendations/all" element={<RecommendationsScreen variant="taste" />} />
             <Route path="/people" element={<PeopleScreen />} />
+            <Route path="/messages" element={<ChatInboxScreen />} />
             <Route path="/notifications" element={<NotificationsScreen />} />
             <Route path="/dashboard" element={<DashboardRoute />} />
             <Route path="/trash" element={<TrashRoute />} />

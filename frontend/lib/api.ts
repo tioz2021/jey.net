@@ -26,6 +26,7 @@ import type {
   Comment,
   Collection,
   CollectionDetail,
+  ChatThread,
   ReactionLiker,
   Item,
   ItemFilters,
@@ -480,6 +481,10 @@ export const notifications = {
     }),
 };
 
+export const chat = {
+  threads: () => request<{ threads: ChatThread[] }>("/chat/threads"),
+};
+
 export const feed = {
   get: () => request<{ items: FeedItem[] }>("/feed"),
 };
@@ -693,6 +698,6 @@ export const social = {
     }),
 };
 
-export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, chat, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };
