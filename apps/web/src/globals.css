@@ -933,3 +933,58 @@ button:not(:disabled):active {
     max-width: 9rem;
   }
 }
+
+@media (width <= 1200px) {
+  .catalogue-filter-row .selection-toggle {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row .compact [class*="body"],
+  .catalogue-filter-row .compact [class*="row"] {
+    gap: var(--space-2);
+  }
+
+  .catalogue-filter-row .compact [class*="row"] {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row [class*="compact"] [class*="body"],
+  .catalogue-filter-row [class*="compact"] [class*="row"] {
+    gap: var(--space-2);
+  }
+
+  .catalogue-filter-row [class*="compact"] [class*="row"] {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row [class*="row"] {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-start;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row [class*="select_vm"] {
+    flex: 0 0 9rem;
+    width: 9rem;
+    min-width: 0;
+    max-width: 9rem;
+  }
+}
+
+@media (width <= 1200px) {
+  .catalogue-filter-row [class*="compact"] {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
