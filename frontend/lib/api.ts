@@ -26,6 +26,7 @@ import type {
   Comment,
   Collection,
   CollectionDetail,
+  ChatMessage,
   ChatThread,
   ReactionLiker,
   Item,
@@ -483,6 +484,23 @@ export const notifications = {
 
 export const chat = {
   threads: () => request<{ threads: ChatThread[] }>("/chat/threads"),
+  thread: (id: string) => request<{ thread: ChatThread }>(`/chat/threads/${id}`),
+  messages: (id: string, options: { before?: string; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (options.before) params.set("before", options.before);
+    if (options.limit) params.set("limit", String(options.limit));
+    const query = params.toString();
+    return request<{ messages: ChatMessage[]; next_before: string | null }>(
+      `/chat/threads/${id}/messages${query ? `?${query}` : ""}`,
+    );
+  },
+  send: (id: string, body: string, clientId: string) =>
+    request<{ message: ChatMessage; created: boolean }>(
+      `/chat/threads/${id}/messages`,
+      { method: "POST", body: { body, client_id: clientId } },
+    ),
+  read: (id: string) =>
+    request<{ read: boolean }>(`/chat/threads/${id}/read`, { method: "POST" }),
 };
 
 export const feed = {

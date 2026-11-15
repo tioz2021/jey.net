@@ -683,6 +683,15 @@ export interface ChatLastMessage {
   created_at: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  body: string;
+  client_id: string;
+  created_at: string;
+}
+
 export interface ChatThread {
   id: string;
   kind: "direct";
