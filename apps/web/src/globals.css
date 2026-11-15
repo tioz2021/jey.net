@@ -1042,3 +1042,9 @@ button:not(:disabled):active {
     min-width: 0;
   }
 }
+
+/* A select root sits in a vertical field: flex-basis must not become its height. */
+.catalogue-filter-row [class*="selectRoot"] {
+  flex: 0 0 auto;
+  height: var(--control-h);
+}
