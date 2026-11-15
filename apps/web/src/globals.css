@@ -1006,3 +1006,12 @@ button:not(:disabled):active {
     margin-left: auto;
   }
 }
+
+@media (width <= 1000px) and (width > 700px) {
+  .catalogue-filter-row .compact [class*="selectRoot"] {
+    flex: 0 0 10rem;
+    width: 10rem;
+    min-width: 10rem;
+    max-width: 10rem;
+  }
+}
