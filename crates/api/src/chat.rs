@@ -440,8 +440,9 @@ pub async fn hide(
 
 #[derive(Debug, Deserialize)]
 pub struct NewMessage {
-    pub body: String,
+    pub body: Option<String>,
     pub client_id: Uuid,
+    pub encrypted: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -472,6 +473,76 @@ fn normalize_body(raw: &str) -> Result<String, AppError> {
         ));
     }
     Ok(body.to_owned())
+}
+
+fn validate_encrypted(value: &Value) -> Result<(), AppError> {
+    let version = value.get("version").and_then(Value::as_i64);
+    if version != Some(1) {
+        return Err(AppError::validation_field(
+            "encrypted",
+            "unsupported version",
+        ));
+    }
+    let envelopes = value
+        .get("envelopes")
+        .and_then(Value::as_array)
+        .ok_or_else(|| AppError::validation_field("encrypted", "envelopes are required"))?;
+    if envelopes.is_empty() || envelopes.len() > 50 {
+        return Err(AppError::validation_field(
+            "encrypted",
+            "invalid envelope count",
+        ));
+    }
+    for envelope in envelopes {
+        let device_id = envelope
+            .get("device_id")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        Uuid::parse_str(device_id)
+            .map_err(|_| AppError::validation_field("encrypted", "invalid device id"))?;
+        if envelope.get("version").and_then(Value::as_i64) != Some(1) {
+            return Err(AppError::validation_field(
+                "encrypted",
+                "invalid envelope version",
+            ));
+        }
+        for field in ["ephemeral_public", "salt", "nonce", "ciphertext"] {
+            let raw = envelope.get(field).and_then(Value::as_str).unwrap_or("");
+            if raw.is_empty() || raw.len() > 8192 {
+                return Err(AppError::validation_field(
+                    "encrypted",
+                    "invalid envelope field",
+                ));
+            }
+        }
+    }
+    if serde_json::to_string(value)
+        .map(|raw| raw.len())
+        .unwrap_or(0)
+        > 64 * 1024
+    {
+        return Err(AppError::validation_field(
+            "encrypted",
+            "envelope is too large",
+        ));
+    }
+    Ok(())
+}
+
+fn encrypted_or_body(
+    body: Option<String>,
+    encrypted: Option<Value>,
+) -> Result<(String, Option<Value>, Option<i32>), AppError> {
+    match encrypted {
+        Some(value) => {
+            validate_encrypted(&value)?;
+            Ok(("[encrypted]".to_owned(), Some(value), Some(1)))
+        }
+        None => {
+            let body = normalize_body(body.as_deref().unwrap_or(""))?;
+            Ok((body, None, None))
+        }
+    }
 }
 
 async fn require_member(pool: &PgPool, thread_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
@@ -518,6 +589,8 @@ async fn message_payload(
             'client_id', m.client_id,
             'created_at', m.created_at,
             'edited_at', m.edited_at,
+            'encrypted', m.encrypted,
+            'encryption_version', m.encryption_version,
             'reactions', (
                 select coalesce(jsonb_agg(jsonb_build_object(
                     'emoji', grouped.emoji,
@@ -555,12 +628,14 @@ pub async fn send(
     require_member(&state.pool, thread_id, current.user.id).await?;
     let target = peer_id(&state.pool, thread_id, current.user.id).await?;
     can_start(&state, current.user.id, target).await?;
-    let body = normalize_body(&payload.body)?;
+    let (body, encrypted, encryption_version) =
+        encrypted_or_body(payload.body.clone(), payload.encrypted.clone())?;
 
     let mut tx = state.pool.begin().await.map_err(AppError::internal)?;
     let inserted: Option<Uuid> = sqlx::query_scalar(
-        "insert into chat_messages (thread_id, sender_id, body, client_id)
-         values ($1, $2, $3, $4)
+        "insert into chat_messages
+            (thread_id, sender_id, body, client_id, encrypted, encryption_version)
+         values ($1, $2, $3, $4, $5, $6)
          on conflict (thread_id, client_id) do nothing
          returning id",
     )
@@ -568,6 +643,8 @@ pub async fn send(
     .bind(current.user.id)
     .bind(&body)
     .bind(payload.client_id)
+    .bind(&encrypted)
+    .bind(encryption_version)
     .fetch_optional(&mut *tx)
     .await
     .map_err(AppError::internal)?;
@@ -593,8 +670,8 @@ pub async fn send(
             id
         }
         None => {
-            let (id, stored): (Uuid, String) = sqlx::query_as(
-                "select id, body from chat_messages
+            let (id, stored, stored_encrypted): (Uuid, String, Option<Value>) = sqlx::query_as(
+                "select id, body, encrypted from chat_messages
                  where thread_id = $1 and client_id = $2",
             )
             .bind(thread_id)
@@ -602,7 +679,7 @@ pub async fn send(
             .fetch_one(&mut *tx)
             .await
             .map_err(AppError::internal)?;
-            if stored != body {
+            if stored != body || stored_encrypted != encrypted {
                 return Err(AppError::conflict(
                     "client_id was already used for another message",
                 ));
@@ -636,7 +713,8 @@ pub async fn send(
 
 #[derive(Debug, Deserialize)]
 pub struct EditMessage {
-    pub body: String,
+    pub body: Option<String>,
+    pub encrypted: Option<Value>,
 }
 
 /// `PATCH /api/v1/chat/threads/{id}/messages/{message_id}`
@@ -647,12 +725,16 @@ pub async fn edit(
     Json(payload): Json<EditMessage>,
 ) -> Result<Json<Value>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
-    let body = normalize_body(&payload.body)?;
+    let (body, encrypted, encryption_version) =
+        encrypted_or_body(payload.body.clone(), payload.encrypted.clone())?;
     let changed = sqlx::query(
-        "update chat_messages set body = $1, edited_at = now()
-         where id = $2 and thread_id = $3 and sender_id = $4 and deleted_at is null",
+        "update chat_messages set body = $1, encrypted = $2,
+            encryption_version = $3, edited_at = now()
+         where id = $4 and thread_id = $5 and sender_id = $6 and deleted_at is null",
     )
     .bind(&body)
+    .bind(&encrypted)
+    .bind(encryption_version)
     .bind(message_id)
     .bind(thread_id)
     .bind(current.user.id)
@@ -829,7 +911,8 @@ pub async fn history(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
                 'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
-                'edited_at', m.edited_at,
+                'edited_at', m.edited_at, 'encrypted', m.encrypted,
+                'encryption_version', m.encryption_version,
                 'reactions', (
                     select coalesce(jsonb_agg(jsonb_build_object(
                         'emoji', grouped.emoji,
@@ -866,7 +949,8 @@ pub async fn history(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
                 'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
-                'edited_at', m.edited_at,
+                'edited_at', m.edited_at, 'encrypted', m.encrypted,
+                'encryption_version', m.encryption_version,
                 'reactions', (
                     select coalesce(jsonb_agg(jsonb_build_object(
                         'emoji', grouped.emoji,

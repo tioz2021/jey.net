@@ -696,6 +696,20 @@ export interface ChatSettings {
   message_policy: "all" | "following" | "nobody";
 }
 
+export interface ChatEnvelope {
+  device_id: string;
+  version: number;
+  ephemeral_public: string;
+  salt: string;
+  nonce: string;
+  ciphertext: string;
+}
+
+export interface ChatEncryptedMessage {
+  version: number;
+  envelopes: ChatEnvelope[];
+}
+
 export interface ChatReaction {
   emoji: string;
   count: number;
@@ -711,6 +725,8 @@ export interface ChatMessage {
   created_at: string;
   edited_at?: string | null;
   reactions?: ChatReaction[];
+  encrypted?: ChatEncryptedMessage | null;
+  encryption_version?: number | null;
 }
 
 export interface ChatThread {

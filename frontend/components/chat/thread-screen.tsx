@@ -15,6 +15,13 @@ import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
 import { mediaUrl } from "@/lib/media";
 import { useUser } from "@/lib/user-context";
+import {
+  decryptForDevice,
+  encryptToDevices,
+  type ChatIdentity,
+  type DevicePublicKey,
+} from "@/lib/chat-crypto";
+import { loadIdentity, saveIdentity } from "@/lib/chat-identity";
 import type { ChatMessage, ChatThread } from "@/lib/types";
 
 import styles from "./thread.module.css";
@@ -79,6 +86,58 @@ export function ChatThreadScreen() {
   const searchActiveRef = useRef(false);
   const searchRequest = useRef(0);
   const sseHealthy = useRef(false);
+  const identityRef = useRef<ChatIdentity | null>(null);
+  const peerDevicesRef = useRef<DevicePublicKey[]>([]);
+  const canEncryptRef = useRef(false);
+  const [e2eReady, setE2eReady] = useState(false);
+
+  async function prepareCrypto(peerId: string) {
+    try {
+      const identity = await loadIdentity();
+      identityRef.current = identity;
+      if (!identity) {
+        peerDevicesRef.current = [];
+        setE2eReady(false);
+        return;
+      }
+      await api.chat
+        .registerDevice({
+          device_id: identity.device_id,
+          public_key: identity.public_key,
+          name: "Browser",
+        })
+        .catch(() => {});
+      const [own, peer] = await Promise.all([
+        api.chat.devices().catch(() => ({ devices: [] })),
+        api.chat.userDevices(peerId).catch(() => ({ devices: [] })),
+      ]);
+      const recipients: DevicePublicKey[] = [
+        ...peer.devices.map((device) => ({ device_id: device.device_id, public_key: device.public_key })),
+        ...own.devices.map((device) => ({ device_id: device.device_id, public_key: device.public_key })),
+        { device_id: identity.device_id, public_key: identity.public_key },
+      ];
+      peerDevicesRef.current = [...new Map(recipients.map((device) => [device.device_id, device])).values()];
+      canEncryptRef.current = peer.devices.length > 0;
+      setE2eReady(peer.devices.length > 0);
+    } catch {
+      identityRef.current = null;
+      peerDevicesRef.current = [];
+      canEncryptRef.current = false;
+      setE2eReady(false);
+    }
+  }
+
+  async function decodeMessage(message: ChatMessage): Promise<PendingMessage> {
+    if (!message.encrypted) return message;
+    const identity = identityRef.current;
+    if (!identity) return { ...message, body: t("chat.encrypted") };
+    const plaintext = await decryptForDevice(identity, message.encrypted, id, message.client_id);
+    return { ...message, body: plaintext ?? t("chat.encrypted") };
+  }
+
+  async function decodeMessages(messages: ChatMessage[]): Promise<PendingMessage[]> {
+    return Promise.all(messages.map(decodeMessage));
+  }
 
   async function toggleMute() {
     if (!thread) return;
@@ -100,8 +159,18 @@ export function ChatThreadScreen() {
       return;
     }
     try {
-      const response = await api.chat.edit(id, message.id, body);
-      setMessages((current) => mergeMessages(current, [response.message]));
+      const identity = identityRef.current;
+      const encrypted = identity && canEncryptRef.current
+        ? await encryptToDevices(identity, peerDevicesRef.current, body, id, message.client_id)
+        : undefined;
+      const response = await api.chat.edit(
+        id,
+        message.id,
+        encrypted ? null : body,
+        encrypted,
+      );
+      const decoded = await decodeMessage(response.message);
+      setMessages((current) => mergeMessages(current, [decoded]));
       setEditingId(null);
       setEditText("");
     } catch {
@@ -113,7 +182,8 @@ export function ChatThreadScreen() {
     if (!message.id || message.id.startsWith("pending-")) return;
     try {
       const response = await api.chat.react(id, message.id, emoji);
-      setMessages((current) => mergeMessages(current, [response.message]));
+      const decoded = await decodeMessage(response.message);
+      setMessages((current) => mergeMessages(current, [decoded]));
     } catch {
       // A later poll will recover the server state.
     }
@@ -135,9 +205,18 @@ export function ChatThreadScreen() {
     }
     const request = ++searchRequest.current;
     try {
+      if (identityRef.current) {
+        if (request !== searchRequest.current) return;
+        const needle = query.toLocaleLowerCase(locale);
+        setMessages((current) => current.filter((message) => message.body.toLocaleLowerCase(locale).includes(needle)));
+        searchActiveRef.current = true;
+        setSearchActive(true);
+        setEditingId(null);
+        return;
+      }
       const response = await api.chat.messages(id, { q: query, limit: 50 });
       if (request !== searchRequest.current) return;
-      setMessages(response.messages);
+      setMessages(await decodeMessages(response.messages));
       setNextBefore(response.next_before);
       searchActiveRef.current = true;
       setSearchActive(true);
@@ -202,10 +281,12 @@ export function ChatThreadScreen() {
         api.chat.messages(id, { limit: 50 }),
       ]);
       setThread(threadResponse.thread);
+      await prepareCrypto(threadResponse.thread.peer.id);
+      const decoded = await decodeMessages(messageResponse.messages);
       setMessages((current) =>
         mergeMessages(
           current.filter((message) => message.pending || message.failed),
-          messageResponse.messages,
+          decoded,
         ),
       );
       setNextBefore(messageResponse.next_before);
@@ -244,7 +325,9 @@ export function ChatThreadScreen() {
           message?: ChatMessage;
         };
         if (payload.thread_id !== id || !payload.message) return;
-        setMessages((current) => mergeMessages(current, [payload.message!]));
+        void decodeMessage(payload.message).then((decoded) => {
+          setMessages((current) => mergeMessages(current, [decoded]));
+        });
         if (document.visibilityState === "visible") {
           void api.chat.read(id).catch(() => {});
         }
@@ -259,7 +342,9 @@ export function ChatThreadScreen() {
           message?: ChatMessage;
         };
         if (payload.thread_id !== id || !payload.message) return;
-        setMessages((current) => mergeMessages(current, [payload.message!]));
+        void decodeMessage(payload.message).then((decoded) => {
+          setMessages((current) => mergeMessages(current, [decoded]));
+        });
       } catch {
         // Malformed events are ignored; polling remains the fallback.
       }
@@ -301,8 +386,9 @@ export function ChatThreadScreen() {
       if (sseHealthy.current || searchActive || document.visibilityState !== "visible") return;
       api.chat
         .messages(id, { limit: 50 })
-        .then((response) => {
-          setMessages((current) => mergeMessages(current, response.messages));
+        .then(async (response) => {
+          const decoded = await decodeMessages(response.messages);
+          setMessages((current) => mergeMessages(current, decoded));
           setNextBefore(response.next_before);
         })
         .catch(() => {});
@@ -348,7 +434,8 @@ export function ChatThreadScreen() {
         limit: 50,
         q: searchActive ? search.trim() : undefined,
       });
-      setMessages((current) => mergeMessages(current, response.messages));
+      const decoded = await decodeMessages(response.messages);
+      setMessages((current) => mergeMessages(current, decoded));
       setNextBefore(response.next_before);
     } catch {
       // Keep the current page; the next open can retry.
@@ -375,11 +462,21 @@ export function ChatThreadScreen() {
     setText("");
     setSending(true);
     try {
-      const response = await api.chat.send(id, body, clientId);
+      const identity = identityRef.current;
+      const encrypted = identity && canEncryptRef.current
+        ? await encryptToDevices(identity, peerDevicesRef.current, body, id, clientId)
+        : undefined;
+      const response = await api.chat.send(
+        id,
+        encrypted ? null : body,
+        clientId,
+        encrypted,
+      );
+      const decoded = await decodeMessage(response.message);
       setMessages((current) =>
         mergeMessages(
           current.filter((message) => message.client_id !== clientId),
-          [response.message],
+          [decoded],
         ),
       );
       window.dispatchEvent(new Event("jey:chat-updated"));
@@ -438,6 +535,9 @@ export function ChatThreadScreen() {
             <span>@{thread.peer.handle}</span>
           </span>
         </AppLink>
+        <span className={`${styles.cryptoStatus} ${e2eReady ? styles.cryptoOn : ""}`}>
+          {e2eReady ? "🔒 E2E" : <AppLink href="/settings">{t("chat.e2eOff")}</AppLink>}
+        </span>
         <button
           aria-label={thread.muted ? t("chat.unmute") : t("chat.muted")}
           aria-pressed={thread.muted}

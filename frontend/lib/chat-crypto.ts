@@ -188,12 +188,18 @@ export async function decryptForDevice(
   threadId: string,
   clientId: string,
 ): Promise<string | null> {
-  const envelope = message.envelopes.find((entry) => entry.device_id === identity.device_id)
-    ?? message.envelopes[0];
-  if (!envelope) return null;
-  try {
-    return await decryptEnvelope(identity, envelope, threadId, clientId);
-  } catch {
-    return null;
+  // A recovered identity keeps the same key but gets a new device_id, so
+  // try every envelope rather than trusting device routing metadata.
+  const ordered = [
+    ...message.envelopes.filter((entry) => entry.device_id === identity.device_id),
+    ...message.envelopes.filter((entry) => entry.device_id !== identity.device_id),
+  ];
+  for (const envelope of ordered) {
+    try {
+      return await decryptEnvelope(identity, envelope, threadId, clientId);
+    } catch {
+      // Try the next envelope.
+    }
   }
+  return null;
 }

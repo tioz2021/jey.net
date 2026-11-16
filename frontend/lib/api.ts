@@ -27,6 +27,7 @@ import type {
   Collection,
   CollectionDetail,
   ChatDevice,
+  ChatEncryptedMessage,
   ChatMessage,
   ChatSettings,
   ChatThread,
@@ -516,10 +517,20 @@ export const chat = {
       `/chat/threads/${id}/messages${query ? `?${query}` : ""}`,
     );
   },
-  send: (id: string, body: string, clientId: string) =>
+  send: (
+    id: string,
+    body: string | null,
+    clientId: string,
+    encrypted?: ChatEncryptedMessage,
+  ) =>
     request<{ message: ChatMessage; created: boolean }>(
       `/chat/threads/${id}/messages`,
-      { method: "POST", body: { body, client_id: clientId } },
+      {
+        method: "POST",
+        body: encrypted
+          ? { client_id: clientId, encrypted }
+          : { body, client_id: clientId },
+      },
     ),
   settings: () => request<ChatSettings>("/chat/settings"),
   updateSettings: (messagePolicy: ChatSettings["message_policy"]) =>
@@ -527,10 +538,15 @@ export const chat = {
       method: "PATCH",
       body: { message_policy: messagePolicy },
     }),
-  edit: (id: string, messageId: string, body: string) =>
+  edit: (
+    id: string,
+    messageId: string,
+    body: string | null,
+    encrypted?: ChatEncryptedMessage,
+  ) =>
     request<{ message: ChatMessage }>(
       `/chat/threads/${id}/messages/${messageId}`,
-      { method: "PATCH", body: { body } },
+      { method: "PATCH", body: encrypted ? { encrypted } : { body } },
     ),
   react: (id: string, messageId: string, emoji: string) =>
     request<{ message: ChatMessage; reacted: boolean; count: number }>(

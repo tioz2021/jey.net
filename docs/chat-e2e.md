@@ -95,9 +95,26 @@ DELETE /chat/devices/{device_id}         отозвать своё устрой�
 | T150.1 | Архитектура и threat model | этот документ, конверт, recovery |
 | T150.2 | Реестр устройств | ✅ миграция `0065_chat_devices`, API, тесты |
 | T150.3 | Web crypto | ✅ X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
-| T150.4 | Отправка и история | encrypted envelope, edit, client search |
+| T150.4 | Отправка и история | ✅ encrypted envelope, edit, client search |
 | T150.5 | Desktop | bridge, offline-кеш конвертов |
 | T150.6 | Тесты и релиз | crypto vectors, multi-device, recovery, tag |
+
+## T150.4 — encrypted messages
+
+Сделано:
+
+- `chat_messages.encrypted` (jsonb) и `encryption_version`;
+- сервер принимает только opaque-конверты и не требует plaintext;
+- `POST /messages` и `PATCH /messages/{id}` принимают `encrypted`;
+- история и SSE возвращают конверты;
+- web расшифровывает историю, SSE, polling и ответы edit;
+- реакции/edit пересобирают конверты;
+- поиск по зашифрованным сообщениям — локальный, по уже загруженным;
+- если у собеседника нет device key, чат показывает `E2E не настроено` и работает
+  в legacy-режиме.
+
+Ограничение: desktop T150.5 ещё не умеет хранить encrypted-конверты в
+локальном кеше.
 
 ## T150.3 — web crypto
 
