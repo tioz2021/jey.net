@@ -433,12 +433,8 @@ export function TierDetailScreen() {
               <div className={`${styles.tierLabel} ${styles[`tier${tier}`]}`}>{tier}</div>
               <div className={styles.tierItems}>
                 {(() => {
-                  const sourceIndex = items.findIndex((entry) => entry.id === dragged);
-                  let insertIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
-                  if (insertIndex >= 0 && sourceIndex >= 0 && sourceIndex < insertIndex) insertIndex -= 1;
-                  const visible = previewing && dropTarget?.tier === tier
-                    ? items.filter((entry) => entry.id !== dragged)
-                    : items;
+                  const insertIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
+                  const visible = items;
                   return (
                     <>
                       {visible.map((item, index) => (
