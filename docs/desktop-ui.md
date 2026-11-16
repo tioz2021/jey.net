@@ -1,164 +1,61 @@
-# Desktop UI: архитектура
+# Desktop UI
 
-Статус: T119, T121 и T122 реализованы, 7 ноября 2026.
+Статус: актуально для 0.6.0.
 
 ## Главное
 
-Desktop-клиент не должен быть вторым независимым фронтендом на одном
-`index.html`. Он должен переиспользовать дизайн-систему и компоненты веба,
-но иметь собственную точку сборки, независимую от Next.js-сервера.
+Web и desktop используют **один SPA**:
 
 ```text
-frontend/                 общие компоненты, стили, типы, i18n
-        +
-apps/desktop/             Vite + React SPA
-        +
-crates/desktop/           SQLite, sync, Tauri commands
+apps/web/                  React 19 + Vite SPA (production)
+frontend/                  общие компоненты, API, i18n, crypto
+crates/desktop/            Tauri 2, SQLite, commands, offline outbox
 ```
 
-## Текущее состояние
+`crates/desktop/tauri.conf.json` указывает:
 
-`apps/desktop` — Vite + React SPA. Экран повторяет структуру веба:
-верхняя панель, типы, фильтры, `PageHeader` «Мои записи», карточки и модалки.
-Используются общий `ItemCard`, `Button`, `Input`, `Select`, `PageHeader`,
-дизайн-токены и i18n из `frontend/`. Старый
-`crates/desktop/ui/index.html` удалён в T119.
-
-## Почему не текущий Next.js напрямую
-
-Next.js-приложение:
-
-- использует Server Components;
-- ходит в API через серверный `backendFetch`;
-- зависит от cookie-сессии и middleware;
-- требует Node-сервер в standalone-режиме;
-- имеет динамические серверные страницы.
-
-Tauri не запускает Node. Загружать `https://j3ynet.site` в окно нельзя:
-это снова привязывает приложение к VPS и ломает офлайн-инвариант.
-
-Static export Next.js тоже не подходит: придётся переписать серверные
-страницы на клиентские и решить авторизацию заново.
-
-## Рекомендуемая структура
-
-```text
-frontend/
-  components/ui/          общие примитивы
-  components/items/       карточки, фильтры, формы
-  lib/types.ts
-  lib/i18n/
-  app/globals.css         токены и базовая типографика
-
-apps/desktop/
-  index.html
-  vite.config.ts
-  src/
-    main.tsx
-    router.tsx
-    data/http-source.ts
-    data/tauri-source.ts
-    screens/
-    components/           только desktop-специфичное
+```json
+"frontendDist": "../../apps/web/dist"
 ```
 
-Tauri `frontendDist` указывает на `apps/desktop/dist`. Проверка типов:
-`cd apps/desktop && npx tsc --noEmit`.
+Отдельного release-фронтенда больше нет. `apps/desktop` остаётся legacy
+песочницей и не участвует в `scripts/desktop-build.sh`.
 
-## Что переиспользуется
+## Сборка
 
-- `ItemCard` и карточная сетка;
-- фильтры;
-- формы;
-- иконки;
-- CSS-переменные;
-- типографика;
-- i18n;
-- типы `Item`, `NewItem`, `ItemPatch`.
-
-## Что не переиспользуется напрямую
-
-- Next.js Server Components;
-- `next/link`, `next/image` внутри серверных страниц;
-- `backendFetch`;
-- middleware;
-- серверные страницы и route handlers.
-
-Их заменяют:
-
-- React Router;
-- Tauri `invoke`;
-- локальный источник данных;
-- фоновый sync-воркер.
-
-## Слой данных
-
-Общий интерфейс:
-
-```text
-ItemSource
-  list(query)
-  get(id)
-  create(newItem)
-  update(id, patch)
-  delete(id)
+```bash
+bash scripts/desktop-build.sh --bundles appimage,deb
 ```
 
-Две реализации:
+Скрипт:
 
-- `HttpItemSource` — веб, `/api/v1`;
-- `TauriItemSource` — desktop, `invoke` в Rust/SQLite.
+1. собирает `apps/web`;
+2. запускает `cargo-tauri build --features tauri`;
+3. кладёт AppImage/deb в `target/release/bundle/`.
 
-UI не должен знать, где физически лежат данные.
+## Данные
 
-## Авторизация и доступ
+- каталог: SQLite через `local_list_items`, `local_create_item`, ...;
+- sync: `/sync/*` + outbox;
+- чат: `local_chat_*`, encrypted SQLite cache и outbox;
+- ключи E2E: IndexedDB WebView, server хранит только public device keys.
 
-- первый вход — онлайн, пишет локальный grant;
-- дальше офлайн-открытие не требует сервера;
-- серверная сессия нужна для sync, но не для чтения локальной библиотеки;
-- сейчас session token лежит в `session.json` с правами 0600;
-- keyring — отдельное усиление перед публичным релизом.
+## Bridge
+
+`apps/web/src/desktop-bridge.ts` подменяет `fetch` для Tauri:
+
+- `/me`, `/items`, `/collections`, `/chat/*`;
+- неизвестные офлайн-запросы получают `503 offline_unsupported`;
+- SSE остаётся сетевым; при недоступности клиент переходит на polling.
 
 ## Медиа
 
-- обложки и файлы кэшируются локально;
-- UI использует локальный путь через Tauri asset protocol;
-- при отсутствии файла показывает placeholder;
-- полная синхронизация медиа — T109/T110.
+Медиа кешируется локально; `mediaUrl` в Tauri указывает на сервер, а
+`local_cover_data` отдаёт локальную копию, если она есть.
 
-## Синхронизация
+## Ограничения
 
-- UI пишет в SQLite;
-- запись попадает в `outbox`;
-- sync-воркер отправляет `push` и забирает `pull`;
-- конфликты показываются отдельным экраном «Расхождения»;
-- кнопка Sync и баннер — T102.
-
-## Инвариант
-
-> Потеря сервера не должна блокировать доступ к локальной библиотеке.
-
-Desktop UI обязан запускаться и показывать локальные записи без сети.
-Сетевые запросы не блокируют старт.
-
-## Порядок работ
-
-1. T117 — локальный экспорт и бэкап.
-2. T118 — приёмка «сервер выключен навсегда».
-3. T119 — вынести desktop UI на Vite и общие компоненты.
-4. T102 — Sync и уведомления в новом UI.
-5. T103 — автосинхронизация веба.
-6. T109/T110 — медиа.
-
-`index.html` уже удалён; Tauri загружает `apps/desktop/dist`.
-
-## Критерий готовности T119
-
-- отдельный `apps/desktop` на Vite;
-- собирается в статику;
-- Tauri загружает `dist`;
-- используется общая дизайн-система;
-- нет копии CSS и разметки из веба;
-- карточки и формы совпадают с вебом;
-- `ItemSource` выбирается по среде;
-- приложение работает без сервера.
+- первый вход требует сети;
+- E2E recovery-фраза должна быть сохранена пользователем;
+- multi-device E2E проверяется отдельно (T150.6);
+- forward secrecy в MVP нет.

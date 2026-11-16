@@ -11,8 +11,8 @@
    приложение работает без интернета и без сервера.
 2. **Сервер — хаб, а не хозяин.** Он хранит копию, присваивает порядковые
    номера изменениям и раздаёт их другим устройствам.
-3. **Веб — полноценный клиент.** В браузере можно всё то же, что в десктопе,
-   но веб работает только онлайн.
+3. **Веб — полноценный клиент.** Веб-клиент — React SPA; в браузере доступны
+   каталог, социальные функции и чат. Веб работает онлайн; PWA даёт offline-shell.
 4. **Один домен на всех.** Десктоп и сервер используют общий крейт `jey-core`,
    поэтому правила не расходятся.
 5. **Конфликты решаются по записи**, а не по всей базе: записи независимы,
@@ -22,27 +22,27 @@
 
 ```
 ┌──────────────────────────┐         ┌──────────────────────────┐
-│  Десктоп (Tauri)         │         │  Браузер                 │
-│  Rust + SQLite           │         │  Next.js                 │
-│  работает офлайн         │         │  только онлайн           │
+│  Desktop (Tauri 2)       │         │  Browser / PWA           │
+│  SPA + SQLite + Rust     │         │  React SPA               │
+│  офлайн-каталог и чат    │         │  онлайн + offline shell  │
 └────────────┬─────────────┘         └────────────┬─────────────┘
-             │  /sync/push, /sync/pull            │  /api/v1/*
-             │  /sync/status                      │
+             │  /api/v1/* + /sync/*              │  /api/v1/*
+             │  SSE /chat/stream                 │  SSE /chat/stream
              ▼                                    ▼
         ┌─────────────────────────────────────────────┐
         │  Caddy (TLS, статика, прокси)               │
         └───────────────────┬─────────────────────────┘
                             ▼
         ┌─────────────────────────────────────────────┐
-        │  jey-api (axum)                             │
-        │  домен из jey-core, синхронизация, auth     │
+        │  jey-api (axum, Rust)                       │
+        │  каталог, social, chat, auth, sync, SSE     │
         └───┬───────────────────────────┬─────────────┘
             ▼                           ▼
-     ┌─────────────┐             ┌─────────────┐
-     │ PostgreSQL  │             │ диск VPS    │
-     │ (реплика +  │             │ (медиа)     │
-     │  журнал)    │             └─────────────┘
-     └─────────────┘
+     ┌─────────────────────┐     ┌─────────────┐
+     │ PostgreSQL           │     │ диск VPS    │
+     │ данные, sync, chat   │     │ медиа       │
+     │ LISTEN/NOTIFY        │     └─────────────┘
+     └─────────────────────┘
 ```
 
 ## 3. Компоненты
@@ -50,9 +50,10 @@
 | Компонент | Ответственность |
 |---|---|
 | `jey-core` | доменные типы, валидация, правила слияния; не знает про HTTP и БД |
-| `jey-api` | HTTP, аутентификация, синхронизация, доступ к PostgreSQL |
-| `desktop` | Tauri-оболочка, локальная SQLite, офлайн-операции, кнопка Sync |
-| `frontend` | веб-клиент: те же экраны, что и в десктопе |
+| `jey-api` | HTTP, auth, social, chat, sync, SSE, PostgreSQL |
+| `jey-desktop` | Tauri-оболочка, SQLite-кеш, offline outbox, команды для web SPA |
+| `apps/web` | React SPA; production static build, desktop frontendDist |
+| `frontend` | общие компоненты, API-клиент, i18n, chat/E2E crypto |
 | PostgreSQL | серверная копия данных и журнал изменений |
 | SQLite | локальная база устройства |
 | Caddy | TLS, статика, прокси |
@@ -64,12 +65,16 @@
 Cargo.toml              воркспейс
 crates/
   core/                 jey-core: домен, репозиторные трейты, sync
-  api/                  jey-api: axum, sqlx, Postgres
-  desktop/              Tauri + SQLite (этап M8)
-frontend/               Next.js
+  api/                  jey-api: axum, sqlx, PostgreSQL
+  desktop/              Tauri 2 + SQLite + offline outbox
+  repo-contract/        контрактные тесты репозиториев
+apps/
+  web/                  React 19 + Vite SPA
+  desktop/              legacy UI-песочница; release грузит apps/web/dist
+frontend/               общие компоненты и API-клиент
 migrations/             серверные миграции (sqlx)
 docs/                   документация
-scripts/                db.sh, check.sh
+scripts/                check.sh, deploy.sh, desktop-build.sh
 ```
 
 Правило: домен не знает про HTTP. Обработчики превращают запрос в вызов
@@ -103,9 +108,31 @@ scripts/                db.sh, check.sh
 Индексы: `(user_id, created_at desc)`, `(user_id, kind)`, `(user_id, status)`,
 `(user_id, sync_seq)`, GIN и `pg_trgm` для поиска.
 
-### tags, item_tags
+### collections, collection_items
 
-Теги принадлежат пользователю и синхронизируются так же, как записи.
+Пользовательские коллекции и позиции записей. Видимость `private/public`,
+публичные коллекции доступны по `/u/{handle}/collection/{slug}`.
+
+### social
+
+- `follows`, `follow_notifications` — подписки;
+- `blocks` — блокировки;
+- `notifications` — in-app уведомления;
+- `reports` — жалобы на item/comment/profile/chat_message;
+- `item_likes`/`comment_reactions` — реакции и лайки;
+- `comments` — комментарии и ответы.
+
+Теги удалены миграциями `0019_wipe_tags` и `0020_drop_tags`; их больше нет
+в API и UI.
+
+### chat
+
+- `chat_threads`, `chat_members`, `chat_messages` — direct 1:1;
+- `chat_settings` — `all/following/nobody`;
+- `chat_reactions` — реакции на сообщения;
+- `chat_devices` — публичные X25519-ключи устройств;
+- `chat_messages.encrypted jsonb`, `encryption_version` — E2E-конверты;
+- `chat_members.muted_at`, `hidden_at`, `last_read_at`.
 
 ### conflicts
 
@@ -134,6 +161,10 @@ scripts/                db.sh, check.sh
 - `GET /sync/status` — дешёвая проверка «есть ли новое»;
 - конфликты решаются по `updated_at`, проигравшая версия сохраняется;
 - удаление — надгробие, а не физическое удаление.
+
+Чат не входит в sync-протокол: сообщения живут на сервере, клиент получает
+историю через `/chat`, realtime — SSE. Desktop хранит encrypted-конверты и
+outbox отдельно от каталога.
 
 ## 7. Жизненный цикл запроса
 
@@ -164,6 +195,10 @@ scripts/                db.sh, check.sh
 - **XSS**: React экранирует по умолчанию; `dangerouslySetInnerHTML` запрещён.
 - **Файлы**: проверка MIME по содержимому, лимиты, перекодирование изображений.
 - **Заголовки**: CSP, HSTS, `X-Content-Type-Options`, `Referrer-Policy`.
+- **Чат**: membership checks, блокировки, `message_policy`, лимит тела и
+  opaque E2E-конверты. Private keys не попадают на сервер.
+- **E2E**: X25519 + HKDF-SHA256 + AES-256-GCM; recovery-фраза BIP39;
+  forward secrecy в MVP нет, сервер видит метаданные.
 
 ## 9. Масштабирование и деградация
 
@@ -175,6 +210,8 @@ scripts/                db.sh, check.sh
 4. Вертикальный апгрейд VPS.
 5. Отдельная машина под PostgreSQL.
 6. Несколько инстансов API (сессии в БД, API stateless).
+7. Realtime-чат между инстансами уже идёт через PostgreSQL `LISTEN/NOTIFY`;
+   при большом fan-out — отдельный pub/sub (Redis/NATS).
 
 Деградация:
 
@@ -196,13 +233,14 @@ scripts/                db.sh, check.sh
 | Общий крейт `core` | две реализации | правила не расходятся между клиентом и сервером |
 | LWW по записи | CRDT | проще, для личных записей достаточно |
 | Надгробия | жёсткое удаление | иначе записи воскресают при синхронизации |
-| Веб без офлайна | PWA | офлайн-сценарий закрывает десктоп |
+| Web SPA | Next.js SSR | один статический клиент для web и Tauri |
+| SSE + LISTEN/NOTIFY | WebSocket + Redis | нет лишней инфраструктуры; Postgres уже есть |
+| E2E MVP X25519 | Double Ratchet | быстрее и проще проверить; FS — следующий этап |
 
 ## 11. Ограничения текущей среды
 
 Разработка идёт на Fedora 44:
 
-- нет `sudo` и Docker — база локально установлена пакетом, контейнеры не
-  используются;
-- Rust 1.99.1 через rustup, Node.js 22;
-- сервер и десктоп собираются одним воркспейсом.
+- Rust edition 2024, toolchain через rustup; Node.js 22;
+- PostgreSQL, API и static SPA разворачиваются systemd/Caddy без Docker;
+- сервер, Tauri и SPA собираются из одного репозитория.

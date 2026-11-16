@@ -1,8 +1,11 @@
 # ROADMAP — jey.net
 
-План работ: сквозная нумерация `T01`–`T115`; веб-релиз 0.2.0 вышел. План desktop 0.3 — в [ROADMAP-0.3.md](ROADMAP-0.3.md).
-Стек: Rust (edition 2024) + axum + sqlx + PostgreSQL, фронтенд Next.js + TypeScript.
-Ветка разработки: `main`. Деплой: VPS + Caddy + systemd.
+Актуальная версия — **0.6.0** (чат с E2E, social, web/desktop shared SPA).
+Исторические планы: 0.3 — [ROADMAP-0.3.md](ROADMAP-0.3.md); текущие задачи и
+статусы — [docs/tasks.md](docs/tasks.md), [docs/done.md](docs/done.md).
+
+Стек: Rust (edition 2024) + axum + sqlx + PostgreSQL; React 19 + Vite SPA;
+Tauri 2 + SQLite. Ветка разработки: `main`. Деплой: VPS + Caddy + systemd.
 
 ---
 
@@ -52,7 +55,9 @@
 | **L · Локализация** | L01–L08 | RU/UK/EN: интерфейс, переключатель, данные TMDB, юридические тексты |
 | **M8 · Десктоп и синхронизация 0.3** | T92–T115 | Пять этапов в [ROADMAP-0.3.md](ROADMAP-0.3.md) |
 
-**Текущий статус:** веб-релиз **0.2.0** вышел 6 ноября 2026. T01–T90, D01–D17, F01–F08, L01–L08, B103–B124 приняты. Следующий крупный этап — **M8 · desktop 0.3.0**, начиная с M8.1.
+**Текущий статус:** выпущен **0.6.0**. Завершены MVP, social, desktop-синхронизация,
+чат 0.5 и E2E 0.6. Актуальные задачи — в [docs/tasks.md](docs/tasks.md);
+этот файл хранит историческую нумерацию T01–T115.
 
 ---
 

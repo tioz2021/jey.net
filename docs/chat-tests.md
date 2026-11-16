@@ -23,6 +23,15 @@ cargo test --test chat_schema --test chat_threads --test chat_messages \
 - T150.4: opaque envelope send/edit/history test;
 - T150.5: encrypted desktop outbox survives restart, plaintext не сохраняется.
 
+## Web crypto
+
+```bash
+cd apps/web
+npm test
+```
+
+Покрыто: recovery, multi-device, decrypt after recovery, AAD/ciphertext tamper.
+
 ## Desktop / offline
 
 ```bash

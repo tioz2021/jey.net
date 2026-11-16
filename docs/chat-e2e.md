@@ -97,7 +97,19 @@ DELETE /chat/devices/{device_id}         отозвать своё устрой�
 | T150.3 | Web crypto | ✅ X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
 | T150.4 | Отправка и история | ✅ encrypted envelope, edit, client search, live E2E test |
 | T150.5 | Desktop | ✅ bridge, offline-кеш конвертов, device cache |
-| T150.6 | Тесты и релиз | crypto vectors, multi-device, recovery, tag |
+| T150.6 | Тесты и релиз | ✅ crypto tests, multi-device, recovery, 0.6.0 |
+
+## T150.6 — тесты и релиз
+
+- Vitest crypto suite (`apps/web npm test`):
+  - 24 слова и одинаковая публичная производная;
+  - multi-device decrypt;
+  - восстановление старой истории после recovery;
+  - подмена AAD/ciphertext;
+  - отказ при пустом списке устройств.
+- API tests `chat_devices`, `chat_encrypted`.
+- Desktop tests `chat_offline` (plaintext и encrypted outbox).
+- Релиз `0.6.0`.
 
 ## T150.5 — desktop
 

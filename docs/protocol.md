@@ -223,7 +223,6 @@ Desktop-код одноразовый, живёт 2 минуты, привяза
     "genres": ["ужасы", "триллер"]
   },
   "details_fetched_at": "2026-11-03T16:40:00Z",
-  "tags": ["sci-fi", "nolan"],
   "revision": 3,
   "sync_seq": 1042,
   "created_at": "2026-11-02T11:00:00Z",
@@ -240,7 +239,6 @@ Desktop-код одноразовый, живёт 2 минуты, привяза
   "year": 2014,
   "status": "done",
   "rating": 9,
-  "tags": ["sci-fi"]
 }
 ```
 
@@ -251,17 +249,22 @@ Desktop-код одноразовый, живёт 2 минуты, привяза
 - `year` — 1800..2100, необязателен;
 - `rating` — 1..10, необязателен;
 - `review` — до 20 000 символов;
-- `tags` — до 20 штук, каждый 1..40 символов, нормализуются в нижний регистр;
 - `source_url` — только `http`/`https`, до 2048 символов.
 
-### 5.4 Теги
+Теги удалены из API миграциями `0019`/`0020`.
+
+### 5.4 Социальное
 
 | Метод | Путь | Описание |
 |---|---|---|
-| GET | `/tags` | список тегов пользователя с количеством записей |
-| PATCH | `/tags/{id}` | переименовать тег (имя уникально без учёта регистра) |
-| POST | `/tags/{id}/merge` | слить в тег `{"into_id": "..."}` |
-| DELETE | `/tags/{id}` | удалить тег (отвязать от записей) |
+| GET | `/feed` | лента подписок |
+| GET | `/follows/following` | подписки |
+| POST/DELETE | `/users/{id}/follow` | подписка |
+| POST/DELETE | `/users/{id}/block` | блокировка |
+| GET | `/notifications` | уведомления |
+| GET/POST | `/public/items/{id}/reactions` | реакции |
+| GET/POST | `/public/users/{id}/items/{item_id}/comments` | комментарии |
+| GET/POST | `/reports` | жалобы |
 
 ### 5.5 Загрузка файлов
 
@@ -399,6 +402,44 @@ Desktop-код одноразовый, живёт 2 минуты, привяза
 
 Видимость: `private` или `public`. Публичная коллекция отдаёт только публичные
 записи и не делает приватную запись видимой.
+
+### 5.11 Чат
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/chat/threads` | инбокс |
+| POST | `/chat/threads` | direct-диалог |
+| GET | `/chat/threads/{id}` | диалог |
+| GET | `/chat/threads/{id}/messages?before=&limit=&q=` | история |
+| POST | `/chat/threads/{id}/messages` | `{body, client_id}` или `{client_id, encrypted}` |
+| PATCH | `/chat/threads/{id}/messages/{message_id}` | edit |
+| POST | `/chat/threads/{id}/messages/{message_id}/reactions` | `{emoji}` |
+| POST | `/chat/threads/{id}/typing` | typing |
+| POST | `/chat/threads/{id}/read` | read |
+| POST/DELETE | `/chat/threads/{id}/mute` | mute |
+| GET | `/chat/stream` | SSE |
+| GET/POST | `/chat/devices` | device public keys |
+| GET | `/chat/users/{id}/devices` | peer keys |
+| DELETE | `/chat/devices/{device_id}` | revoke |
+| GET/PATCH | `/chat/settings` | `message_policy` |
+
+Encrypted envelope:
+
+```json
+{
+  "version": 1,
+  "envelopes": [{
+    "device_id": "uuid",
+    "version": 1,
+    "ephemeral_public": "base64",
+    "salt": "base64",
+    "nonce": "base64",
+    "ciphertext": "base64"
+  }]
+}
+```
+
+Сервер не расшифровывает; для encrypted-сообщений `body` = `"[encrypted]"`.
 
 ## 6. Лимиты запросов
 

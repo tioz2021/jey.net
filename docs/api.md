@@ -31,7 +31,7 @@ curl -sS -c jar.txt -X POST "$BASE/auth/register" \
 # 2. Создание записи
 curl -sS -b jar.txt -X POST "$BASE/items" \
   -H 'Content-Type: application/json' -H "Origin: $ORIGIN" \
-  -d '{"kind":"movie","title":"Interstellar","status":"done","rating":9,"tags":["sci-fi"]}'
+  -d '{"kind":"movie","title":"Interstellar","status":"done","rating":9}' 
 
 # 3. Список
 curl -sS -b jar.txt "$BASE/items?limit=20"
@@ -142,21 +142,54 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | POST | `/items/{id}/cover` | обложка из загрузки |
 | DELETE | `/items/{id}/cover` | убрать обложку |
 
-Параметры списка: `kind`, `status`, `tag`, `q`, `year_from`, `year_to`,
+Параметры списка: `kind`, `status`, `q`, `year_from`, `year_to`,
 `rating_min`, `rating_max`, `month` (`YYYY-MM`, месяц добавления), `sort`,
-`include_deleted`, `limit`, `cursor`.
+`include_deleted`, `limit`, `cursor`. Теги удалены из API.
 
-### Теги, статистика, экспорт
+### Статистика и экспорт
 
 | Метод | Путь | Назначение |
 |---|---|---|
-| GET | `/tags` | теги с количеством записей |
-| PATCH | `/tags/{id}` | переименовать тег (`{"name": "..."}`) |
-| POST | `/tags/{id}/merge` | слить в тег `{"into_id": "..."}` |
-| DELETE | `/tags/{id}` | удалить тег |
 | GET | `/stats` | агрегаты для дашборда |
 | GET | `/export?format=json\|csv` | экспорт всех записей |
 | POST | `/import` | импорт JSON-экспорта |
+
+### Социальное
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET | `/feed` | лента подписок |
+| GET | `/follows/following` | подписки |
+| POST/DELETE | `/users/{id}/follow` | подписаться/отписаться |
+| POST/DELETE | `/users/{id}/block` | блокировка |
+| GET | `/notifications` | in-app уведомления |
+| POST | `/notifications/read` | отметить просмотренные |
+| GET/POST | `/public/items/{id}/reactions` | реакции на запись |
+| GET/POST | `/public/users/{id}/items/{item_id}/comments` | комментарии |
+| GET/POST | `/reports` | жалобы и админ-очередь |
+
+### Чат
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET | `/chat/threads` | инбокс |
+| POST | `/chat/threads` | найти/создать direct-диалог |
+| GET | `/chat/threads/{id}` | диалог |
+| GET | `/chat/threads/{id}/messages?before=&limit=&q=` | история |
+| POST | `/chat/threads/{id}/messages` | текст или encrypted-envelope |
+| PATCH | `/chat/threads/{id}/messages/{message_id}` | edit |
+| POST | `/chat/threads/{id}/messages/{message_id}/reactions` | реакция |
+| POST | `/chat/threads/{id}/typing` | typing |
+| POST | `/chat/threads/{id}/read` | прочитано |
+| POST/DELETE | `/chat/threads/{id}/mute` | mute |
+| GET | `/chat/stream` | SSE |
+| GET/POST | `/chat/devices` | публичные ключи устройств |
+| GET | `/chat/users/{id}/devices` | ключи собеседника |
+| DELETE | `/chat/devices/{device_id}` | отозвать устройство |
+| GET/PATCH | `/chat/settings` | `message_policy` |
+
+Encrypted-сообщения содержат `encryption_version: 1` и
+`encrypted.envelopes`; plaintext в БД для них не хранится.
 
 ### Медиа
 
@@ -234,7 +267,6 @@ curl -sS -b jar.txt -X POST "$BASE/uploads" -H "Origin: $ORIGIN" \
       "genres": ["ужасы", "триллер"]
     },
     "details_fetched_at": "2026-11-03T16:40:00Z",
-    "tags": ["sci-fi"],
     "revision": 1,
     "sync_seq": 0,
     "created_at": "2026-11-02T20:22:24.734Z",
@@ -248,7 +280,7 @@ curl -sS -b jar.txt -X POST "$BASE/uploads" -H "Origin: $ORIGIN" \
 
 ```json
 {
-  "items": [ { "id": "f8a48cc7-…", "title": "Interstellar", "status": "done", "tags": ["sci-fi"] } ],
+  "items": [ { "id": "f8a48cc7-…", "title": "Interstellar", "status": "done" } ],
   "next_cursor": null
 }
 ```

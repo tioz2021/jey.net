@@ -59,12 +59,13 @@ Desktop UI использует общую SPA из `apps/web` и общие к�
 - команда `app_version`;
 - общий `jey-desktop` crate без GUI-зависимостей;
 - GUI включается только feature `tauri`;
-- собранные `AppImage`, `.deb` и `.rpm`;
+- собранные `AppImage`, `.deb`;
 - AppImage запускается без запущенного сервера;
 - локальный grant `access.json` в app data;
 - `local_access_status` не делает сетевых запросов;
 - локальная SQLite `jey.db` в app data;
-- миграции, WAL, `sync_state`, `outbox`, `conflicts`;
+- миграции каталога и чата (включая encrypted-конверты), WAL,
+  `sync_state`, `outbox`, `conflicts`;
 - `local_db_status` показывает путь, версию схемы и размеры очередей;
 - `local_list_items`, `local_create_item`, `local_update_item`,
   `local_delete_item` — офлайн-библиотека;
@@ -73,6 +74,8 @@ Desktop UI использует общую SPA из `apps/web` и общие к�
 - `local_sign_out` — забыть устройство и сессию;
 - обе команды входа сохраняют сессионный токен в `session.json` (0600);
 - изменения попадают в `outbox` и помечаются «ожидает синхронизации»;
+- чат: `local_chat_*`, encrypted outbox, кеш public device keys;
+- E2E private key в IndexedDB WebView, recovery-фраза в настройках;
 - `local_export_json` — JSON всей библиотеки в `exports/`;
 - `local_backup` — консистентная копия `jey.db` и `media/` в `backups/`;
 - экспорт и бэкап не требуют сервера.
@@ -159,7 +162,7 @@ bash scripts/desktop-run.sh
 AppImage:
 
 ```bash
-./target/release/bundle/appimage/jey.net_0.3.19_amd64.AppImage
+./target/release/bundle/appimage/jey.net_0.6.0_amd64.AppImage
 ```
 
 Для разработки с пересборкой:
@@ -197,7 +200,15 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
-## Решения 0.3
+## 0.6.0
+
+- shared SPA `apps/web` — единственный UI web и desktop;
+- chat API + SSE + PostgreSQL `LISTEN/NOTIFY`;
+- E2E X25519/HKDF/AES-GCM в web; desktop кеширует конверты;
+- offline outbox для encrypted-сообщений;
+- версия desktop `0.6.0`.
+
+## Исторические решения 0.3
 
 - Windows и Linux с первого релиза.
 - Локальный клиент — основа; сервер — хаб и арбитр.
