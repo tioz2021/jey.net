@@ -112,7 +112,7 @@ export function ItemDetailScreen({
           <div className={styles.railPanel}>
             <div className={styles.actions}>
               {item.external_source === "tmdb" || item.external_source === "openlibrary" ? <RefreshMovieButton itemId={item.id} /> : null}
-              <ItemActions itemId={item.id} title={displayTitle} />
+              <ItemActions item={item} />
             </div>
             <dl className={styles.facts}>
               <div className={styles.fact}><dt>{t("item.status")}</dt><dd><Badge tone={STATUS_TONES[item.status]}>{t(statusKey(item.kind, item.status))}</Badge></dd></div>

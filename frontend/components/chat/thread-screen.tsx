@@ -21,8 +21,9 @@ import {
   type ChatIdentity,
   type DevicePublicKey,
 } from "@/lib/chat-crypto";
+import { decodeItemShare } from "@/lib/chat-share";
 import { loadIdentity, saveIdentity } from "@/lib/chat-identity";
-import type { ChatMessage, ChatThread } from "@/lib/types";
+import type { ChatMessage, ChatSharedItem, ChatThread } from "@/lib/types";
 
 import styles from "./thread.module.css";
 
@@ -58,6 +59,30 @@ function mergeMessages(current: ChatMessage[], incoming: ChatMessage[]) {
     const right = new Date(b.created_at).getTime();
     return left - right;
   });
+}
+
+function SharedItemCard({ item }: { item: ChatSharedItem }) {
+  const { t } = useI18n();
+  const content = (
+    <>
+      {item.cover_key ? (
+        <img alt="" className={styles.sharedCover} src={mediaUrl(item.cover_key)} />
+      ) : (
+        <span className={styles.sharedPlaceholder} aria-hidden="true">↗</span>
+      )}
+      <span className={styles.sharedText}>
+        <small>{t("share.title")}</small>
+        <strong>{item.title}</strong>
+        <span>{[item.year, item.rating ? `${item.rating}/10` : null].filter(Boolean).join(" · ")}</span>
+      </span>
+      {item.url ? <span className={styles.sharedOpen}>{t("share.open")} ↗</span> : null}
+    </>
+  );
+  return item.url ? (
+    <AppLink className={styles.sharedCard} href={item.url}>{content}</AppLink>
+  ) : (
+    <div className={styles.sharedCard}>{content}</div>
+  );
 }
 
 export function ChatThreadScreen() {
@@ -127,12 +152,19 @@ export function ChatThreadScreen() {
     }
   }
 
+  function withSharedItem(message: PendingMessage, text: string): PendingMessage {
+    const share = decodeItemShare(text);
+    return share
+      ? { ...message, body: share.text, shared_item: share.item }
+      : { ...message, body: text, shared_item: null };
+  }
+
   async function decodeMessage(message: ChatMessage): Promise<PendingMessage> {
-    if (!message.encrypted) return message;
+    if (!message.encrypted) return withSharedItem(message, message.body);
     const identity = identityRef.current;
     if (!identity) return { ...message, body: t("chat.encrypted") };
     const plaintext = await decryptForDevice(identity, message.encrypted, id, message.client_id);
-    return { ...message, body: plaintext ?? t("chat.encrypted") };
+    return withSharedItem(message, plaintext ?? t("chat.encrypted"));
   }
 
   async function decodeMessages(messages: ChatMessage[]): Promise<PendingMessage[]> {
@@ -611,7 +643,7 @@ export function ChatThreadScreen() {
                     className={styles.bubble}
                     onContextMenu={(event) => openMenu(event, message)}
                   >
-                    {message.body}
+                    {message.shared_item ? <SharedItemCard item={message.shared_item} /> : message.body}
                     {message.failed ? (
                       <button className={styles.retry} onClick={() => retryFailed(message)} type="button">
                         {t("chat.retry")}

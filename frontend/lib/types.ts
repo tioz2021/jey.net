@@ -716,6 +716,16 @@ export interface ChatReaction {
   user_ids: string[];
 }
 
+export interface ChatSharedItem {
+  id: string;
+  kind: string;
+  title: string;
+  year: number | null;
+  rating: number | null;
+  cover_key: string | null;
+  url: string | null;
+}
+
 export interface ChatMessage {
   id: string;
   thread_id: string;
@@ -727,6 +737,7 @@ export interface ChatMessage {
   reactions?: ChatReaction[];
   encrypted?: ChatEncryptedMessage | null;
   encryption_version?: number | null;
+  shared_item?: ChatSharedItem | null;
 }
 
 export interface ChatThread {
