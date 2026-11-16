@@ -68,6 +68,45 @@
   gap: var(--space-3);
 }
 
+.categoryField {
+  display: grid;
+  gap: 6px;
+}
+
+.categoryLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.categoryOption {
+  padding: 7px 9px;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.categoryOption:hover {
+  border-color: var(--color-accent);
+}
+
+.categoryActive {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+
 .empty {
   margin: 0;
   color: var(--color-text-muted);

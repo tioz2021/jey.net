@@ -95,12 +95,30 @@ export function TierListsScreen() {
       >
         <form className={styles.form} onSubmit={create}>
           <Input autoFocus label={t("tiers.name")} maxLength={80} onChange={(event) => setTitle(event.target.value)} required value={title} />
-          <Select label={t("tiers.kind")} onChange={(event) => setKind(event.target.value as TierListKind)} value={kind}>
-            <option value="all">{t("tiers.allKinds")}</option>
-            {(["movie", "tv", "anime", "book", "game", "image", "other"] as TierListKind[]).map((entry) => (
-              <option key={entry} value={entry}>{t(KIND_PLURAL_KEYS[entry as Exclude<TierListKind, "all">])}</option>
-            ))}
-          </Select>
+          <div className={styles.categoryField}>
+            <span className={styles.categoryLabel}>{t("tiers.kind")}</span>
+            <div aria-label={t("tiers.kind")} className={styles.categoryGrid} role="group">
+              <button
+                aria-pressed={kind === "all"}
+                className={`${styles.categoryOption} ${kind === "all" ? styles.categoryActive : ""}`}
+                onClick={() => setKind("all")}
+                type="button"
+              >
+                {t("tiers.allKinds")}
+              </button>
+              {(["movie", "tv", "anime", "book", "game", "image", "other"] as TierListKind[]).map((entry) => (
+                <button
+                  aria-pressed={kind === entry}
+                  className={`${styles.categoryOption} ${kind === entry ? styles.categoryActive : ""}`}
+                  key={entry}
+                  onClick={() => setKind(entry)}
+                  type="button"
+                >
+                  {t(KIND_PLURAL_KEYS[entry as Exclude<TierListKind, "all">])}
+                </button>
+              ))}
+            </div>
+          </div>
           <Select label={t("tiers.visibility")} onChange={(event) => setVisibility(event.target.value as "private" | "public")} value={visibility}>
             <option value="private">{t("tiers.private")}</option>
             <option value="public">{t("tiers.public")}</option>
