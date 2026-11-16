@@ -683,6 +683,15 @@ export interface ChatLastMessage {
   created_at: string;
 }
 
+export interface ChatDevice {
+  device_id: string;
+  public_key: string;
+  algorithm: "x25519";
+  name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ChatSettings {
   message_policy: "all" | "following" | "nobody";
 }

@@ -45,8 +45,12 @@
 AAD:
 
 ```text
-thread_id | client_id | recipient_device_id | version
+thread_id | client_id | version
 ```
+
+`device_id` остаётся в конверте для маршрутизации, но не входит в AAD: это
+позволяет расшифровать старые конверты после восстановления ключа на новом
+устройстве.
 
 Сервер проверяет только форму/размеры конверта. Он не знает ключей и не
 может прочитать `body`.
@@ -90,10 +94,25 @@ DELETE /chat/devices/{device_id}         отозвать своё устрой�
 |---|---|---|
 | T150.1 | Архитектура и threat model | этот документ, конверт, recovery |
 | T150.2 | Реестр устройств | ✅ миграция `0065_chat_devices`, API, тесты |
-| T150.3 | Web crypto | X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
+| T150.3 | Web crypto | ✅ X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
 | T150.4 | Отправка и история | encrypted envelope, edit, client search |
 | T150.5 | Desktop | bridge, offline-кеш конвертов |
 | T150.6 | Тесты и релиз | crypto vectors, multi-device, recovery, tag |
+
+## T150.3 — web crypto
+
+Сделано:
+
+- X25519 + HKDF-SHA256 + AES-256-GCM;
+- 24-словная BIP39 recovery-фраза;
+- приватный ключ в IndexedDB, не в localStorage и не на сервере;
+- конверт на каждое устройство;
+- настройки: создать ключ, показать фразу один раз, восстановить, отозвать;
+- self-test шифрования при создании/восстановлении;
+- отпечаток публичного ключа.
+
+Проверено изолированно: 24 слова, одинаковый public key после recovery,
+encrypt/decrypt конверта.
 
 ## T150.2 — реестр устройств
 

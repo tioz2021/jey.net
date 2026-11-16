@@ -18,7 +18,8 @@ cargo test --test chat_schema --test chat_threads --test chat_messages \
 - жалоба на сообщение и очередь модерации;
 - 40 сообщений, повтор `client_id`, отсутствие пересечения страниц;
 - доставка события между двумя `ChatEvents` через PostgreSQL `LISTEN/NOTIFY`;
-- T149: редактирование, реакции, поиск и typing.
+- T149: редактирование, реакции, поиск и typing;
+- T150.3: isolated crypto self-test (24 слова, recovery public key, encrypt/decrypt).
 
 ## Desktop / offline
 

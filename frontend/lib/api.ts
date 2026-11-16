@@ -26,6 +26,7 @@ import type {
   Comment,
   Collection,
   CollectionDetail,
+  ChatDevice,
   ChatMessage,
   ChatSettings,
   ChatThread,
@@ -489,6 +490,13 @@ export const notifications = {
 
 export const chat = {
   threads: () => request<{ threads: ChatThread[] }>("/chat/threads"),
+  devices: () => request<{ devices: ChatDevice[] }>("/chat/devices"),
+  userDevices: (userId: string) =>
+    request<{ devices: ChatDevice[] }>(`/chat/users/${userId}/devices`),
+  registerDevice: (input: { device_id: string; public_key: string; name?: string }) =>
+    request<{ registered: boolean }>("/chat/devices", { method: "POST", body: input }),
+  revokeDevice: (deviceId: string) =>
+    request<{ revoked: boolean }>(`/chat/devices/${deviceId}`, { method: "DELETE" }),
   create: (userId: string) =>
     request<{ thread: ChatThread; created: boolean }>("/chat/threads", {
       method: "POST",
