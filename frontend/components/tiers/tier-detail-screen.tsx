@@ -40,6 +40,7 @@ export function TierDetailScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [movingItem, setMovingItem] = useState<TierListItem | null>(null);
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
+  const dropTargetRef = useRef<{ tier: TierName; index: number } | null>(null);
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
   const suppressTileClick = useRef(false);
@@ -187,6 +188,7 @@ export function TierDetailScreen() {
     const state = pointerDrag.current;
     if (state) state.ghost.remove();
     pointerDrag.current = null;
+    dropTargetRef.current = null;
     if (pointerFrame.current !== null) {
       window.cancelAnimationFrame(pointerFrame.current);
       pointerFrame.current = null;
@@ -251,9 +253,11 @@ export function TierDetailScreen() {
         const target = pointerTarget(x, y);
         if (target && "pool" in target) {
           setOverPool(true);
+          dropTargetRef.current = null;
           setDropTarget(null);
         } else if (target) {
           setOverPool(false);
+          dropTargetRef.current = target;
           setDropTarget((previous) =>
             previous?.tier === target.tier && previous.index === target.index
               ? previous
@@ -261,6 +265,7 @@ export function TierDetailScreen() {
           );
         } else {
           setOverPool(false);
+          dropTargetRef.current = null;
           setDropTarget(null);
         }
         const edge = 72;
@@ -274,7 +279,7 @@ export function TierDetailScreen() {
       if (current?.active) {
         suppressPoolClick.current = true;
         suppressTileClick.current = true;
-        const target = pointerTarget(upEvent.clientX, upEvent.clientY);
+        const target = dropTargetRef.current ?? pointerTarget(upEvent.clientX, upEvent.clientY);
         if (target && "pool" in target) {
           if ("tier" in current.item) void remove(current.item);
         } else if (target) {
