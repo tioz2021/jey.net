@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { ListSkeleton } from "@/components/skeletons";
 import { AppLink } from "@/lib/navigation";
-import { Badge, Button, Card, Dialog, Input, PageHeader, Select } from "@/components/ui";
+import { Badge, Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
@@ -55,10 +55,9 @@ export function TierListsScreen() {
   return (
     <main>
       <NotebookTabs />
-      <PageHeader
-        action={<Button onClick={() => setCreating(true)} size="sm">{t("tiers.create")}</Button>}
-        title={t("tiers.title")}
-      />
+      <div className={styles.toolbar}>
+        <Button onClick={() => setCreating(true)} size="sm">{t("tiers.create")}</Button>
+      </div>
       {loading ? <Card><ListSkeleton /></Card> : error ? (
         <Card><p className={styles.empty}>{t("error.requestFailed")}</p></Card>
       ) : lists.length === 0 ? (

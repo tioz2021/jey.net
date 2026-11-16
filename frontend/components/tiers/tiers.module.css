@@ -1,3 +1,9 @@
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-3);
+}
+
 .lists {
   display: grid;
   gap: var(--space-2);
