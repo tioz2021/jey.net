@@ -59,9 +59,6 @@ export function TierDetailScreen() {
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const previewing = Boolean(dragged && dropTarget);
-  const previewItem = previewing
-    ? data?.items.find((entry) => entry.id === dragged) ?? catalogue.find((entry) => entry.id === dragged)
-    : null;
   const available = catalogue.filter((item) =>
     !used.has(item.id) &&
     (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind) &&
@@ -367,16 +364,11 @@ export function TierDetailScreen() {
                   const visible = previewing && dropTarget?.tier === tier
                     ? items.filter((entry) => entry.id !== dragged)
                     : items;
-                  const preview = insertIndex >= 0 ? previewItem : null;
                   return (
                     <>
                       {visible.map((item, index) => (
                         <Fragment key={item.id}>
-                          {preview && insertIndex === index ? (
-                            <div className={styles.dropPreview} title={preview.title}>
-                              {preview.cover_key ? <img alt="" draggable={false} src={mediaUrl(preview.cover_key)} /> : <span className={styles.tierPlaceholder}>{preview.title.slice(0, 1)}</span>}
-                            </div>
-                          ) : null}
+                          {insertIndex === index ? <span className={styles.dropGap} /> : null}
                           <div
                             className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
@@ -393,11 +385,7 @@ export function TierDetailScreen() {
                           </div>
                         </Fragment>
                       ))}
-                      {preview && insertIndex === visible.length ? (
-                        <div className={styles.dropPreview} title={preview.title}>
-                          {preview.cover_key ? <img alt="" draggable={false} src={mediaUrl(preview.cover_key)} /> : <span className={styles.tierPlaceholder}>{preview.title.slice(0, 1)}</span>}
-                        </div>
-                      ) : null}
+                      {insertIndex === visible.length ? <span className={styles.dropGap} /> : null}
                     </>
                   );
                 })()}
