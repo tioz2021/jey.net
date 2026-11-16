@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { ItemCard } from "@/components/items/item-card";
 import { RemoveFromCollection } from "@/components/remove-from-collection";
 import { AppLink } from "@/lib/navigation";
-import { Card, PageHeader } from "@/components/ui";
+import { NotebookTabs } from "@/components/notebook-tabs";
+import { Badge, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { CollectionDetail } from "@/lib/types";
@@ -28,8 +29,9 @@ export function CollectionDetailScreen({ id }: { id: string }) {
   if (error) {
     return (
       <main>
+        <NotebookTabs />
         <Card title={t("collections.loadError")}>
-          <AppLink href="/collections">← {t("collections.title")}</AppLink>
+          <AppLink href="/collections">{t("collections.title")}</AppLink>
         </Card>
       </main>
     );
@@ -39,8 +41,17 @@ export function CollectionDetailScreen({ id }: { id: string }) {
 
   return (
     <main>
-      <AppLink className={styles.back} href="/collections">← {t("collections.title")}</AppLink>
-      <PageHeader title={data.collection.title} />
+      <NotebookTabs />
+      <header className={styles.header}>
+        <div className={styles.titleLine}>
+          <h1>{data.collection.title}</h1>
+          <Badge tone={data.collection.visibility === "public" ? "success" : "neutral"}>
+            {data.collection.visibility === "public"
+              ? t("collections.public")
+              : t("collections.private")}
+          </Badge>
+        </div>
+      </header>
       <div className="section-toolbar">
         <ViewSwitch
           onChange={(value) => {

@@ -1,4 +1,26 @@
-.back { display: inline-block; margin-bottom: 0.5rem; font-size: var(--text-sm); }
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.titleLine h1 {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--text-xl);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .list { display: grid; gap: 0.75rem; padding: 0; margin: 0.75rem 0; list-style: none; }
 .empty { color: var(--color-text-muted); }
 
