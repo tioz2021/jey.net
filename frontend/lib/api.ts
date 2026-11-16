@@ -38,6 +38,9 @@ import type {
   ItemPatch,
   ItemResponse,
   NewItem,
+  TierListDetail,
+  TierList,
+  TierName,
   Stats,
   TvSeasonResponse,
   BookDetailsResponse,
@@ -489,6 +492,38 @@ export const notifications = {
     }),
 };
 
+export const tierLists = {
+  list: () => request<{ tier_lists: TierList[] }>("/tier-lists"),
+  create: (input: { title: string; visibility?: "private" | "public" }) =>
+    request<{ id: string; title: string; slug: string; visibility: string }>(
+      "/tier-lists",
+      { method: "POST", body: input },
+    ),
+  detail: (id: string) =>
+    request<TierListDetail>(`/tier-lists/${encodeURIComponent(id)}`),
+  update: (id: string, input: { title: string; visibility: "private" | "public" }) =>
+    request<{ ok: boolean }>(`/tier-lists/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: input,
+    }),
+  remove: (id: string) =>
+    request<void>(`/tier-lists/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  place: (id: string, itemId: string, tier: TierName, position = 0) =>
+    request<{ ok: boolean; tier: string }>(
+      `/tier-lists/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`,
+      { method: "PUT", body: { tier, position } },
+    ),
+  removeItem: (id: string, itemId: string) =>
+    request<void>(
+      `/tier-lists/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`,
+      { method: "DELETE" },
+    ),
+  public: (userId: string, slug: string) =>
+    request<TierListDetail>(
+      `/public/users/${encodeURIComponent(userId)}/tier-lists/${encodeURIComponent(slug)}`,
+    ),
+};
+
 export const chat = {
   threads: () => request<{ threads: ChatThread[] }>("/chat/threads"),
   devices: () => request<{ devices: ChatDevice[] }>("/chat/devices"),
@@ -776,6 +811,6 @@ export const social = {
     }),
 };
 
-export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, chat, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, chat, tierLists, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

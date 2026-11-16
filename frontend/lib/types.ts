@@ -233,6 +233,28 @@ export interface NewItem {
 /** Partial update: absent fields are left untouched by the server. */
 export type ItemPatch = Partial<NewItem>;
 
+export interface TierList {
+  id: string;
+  title: string;
+  slug: string;
+  visibility: "private" | "public";
+  created_at: string;
+  updated_at: string;
+  item_count: number;
+}
+
+export type TierName = "S" | "A" | "B" | "C" | "D";
+
+export interface TierListItem extends Item {
+  tier: TierName;
+  position: number;
+}
+
+export interface TierListDetail {
+  tier_list: TierList & { handle?: string };
+  items: TierListItem[];
+}
+
 export interface Collection {
   id: string;
   title: string;

@@ -300,6 +300,17 @@ impl TestClient {
         .await
     }
 
+    pub async fn put(&self, path: &str, body: Value, cookie: &str) -> TestResponse {
+        self.send(
+            Method::PUT,
+            path,
+            Some(body),
+            Some(cookie),
+            Some("http://localhost:3000"),
+        )
+        .await
+    }
+
     pub async fn patch(&self, path: &str, body: Value, cookie: &str) -> TestResponse {
         self.send(
             Method::PATCH,

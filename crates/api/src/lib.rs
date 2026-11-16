@@ -34,6 +34,7 @@ pub mod sync_social;
 pub mod sync_status;
 pub mod system;
 pub mod telemetry;
+pub mod tier_lists;
 pub mod users;
 
 pub mod push;

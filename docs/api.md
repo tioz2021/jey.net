@@ -168,6 +168,18 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET/POST | `/public/users/{id}/items/{item_id}/comments` | комментарии |
 | GET/POST | `/reports` | жалобы и админ-очередь |
 
+### Тир-листы
+
+| Метод | Путь | Назначение |
+|---|---|---|
+| GET/POST | `/tier-lists` | список/создание |
+| GET/PATCH/DELETE | `/tier-lists/{id}` | детали/изменение/удаление |
+| PUT/DELETE | `/tier-lists/{id}/items/{item_id}` | положить/убрать запись |
+| GET | `/public/users/{id}/tier-lists/{slug}` | публичная страница |
+
+Полосы фиксированы: `S`, `A`, `B`, `C`, `D`. Публичная выдача скрывает
+записи с `public_hidden`, не-`done` и удалённые.
+
 ### Чат
 
 | Метод | Путь | Назначение |

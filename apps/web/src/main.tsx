@@ -38,6 +38,9 @@ import { FeedScreen } from "@/components/social/feed-screen";
 import { RecommendationsScreen } from "@/components/social/recommendations-screen";
 import { PeopleScreen } from "@/components/social/people-screen";
 import { NotificationsScreen } from "@/components/social/notifications-screen";
+import { TierListsScreen } from "@/components/tiers/tier-lists-screen";
+import { TierDetailScreen } from "@/components/tiers/tier-detail-screen";
+import { PublicTierScreen } from "@/components/tiers/public-tier-screen";
 import { ChatInboxScreen } from "@/components/chat/inbox-screen";
 import { ChatThreadScreen } from "@/components/chat/thread-screen";
 import { DashboardRoute } from "./screens/DashboardRoute";
@@ -67,6 +70,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/u/:id/collection/:slug" element={<PublicShell><PublicCollectionRoute /></PublicShell>} />
           <Route path="/u/:id/item/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/u/:id/cart/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
+          <Route path="/u/:id/tier/:slug" element={<PublicShell><PublicTierScreen /></PublicShell>} />
           <Route path="/u/:id/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />
           <Route path="/offline" element={<OfflineScreen />} />
           <Route path="/login" element={<AuthShell><LoginScreen /></AuthShell>} />
@@ -78,6 +82,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />
             <Route path="/collections" element={<CollectionsRoute />} />
+            <Route path="/tiers" element={<TierListsScreen />} />
+            <Route path="/tiers/:id" element={<TierDetailScreen />} />
             <Route path="/collections/:id" element={<CollectionDetailRoute />} />
             <Route path="/feed" element={<FeedScreen />} />
             <Route path="/recommendations" element={<RecommendationsScreen variant="friends" />} />

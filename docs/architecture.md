@@ -108,6 +108,12 @@ scripts/                check.sh, deploy.sh, desktop-build.sh
 Индексы: `(user_id, created_at desc)`, `(user_id, kind)`, `(user_id, status)`,
 `(user_id, sync_seq)`, GIN и `pg_trgm` для поиска.
 
+### tier_lists, tier_list_items
+
+Тир-листы S–D: пользователь раскладывает свои записи по фиксированным
+полосам. `visibility private/public`; публичная выдача фильтрует закрытые и
+незавершённые записи. Позиция хранится в `tier_list_items.position`.
+
 ### collections, collection_items
 
 Пользовательские коллекции и позиции записей. Видимость `private/public`,

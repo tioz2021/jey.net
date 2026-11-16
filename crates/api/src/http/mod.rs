@@ -179,6 +179,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/users/{id}/collections/{slug}",
             get(crate::collections::public_detail),
         )
+        .route(
+            "/public/users/{id}/tier-lists/{slug}",
+            get(crate::tier_lists::public_detail),
+        )
         .route("/public/cart/{slug}", get(crate::users::public::by_slug))
         .route(
             "/public/users/{id}/items/by-slug/{slug}",
@@ -297,6 +301,21 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route(
             "/collections",
             get(crate::collections::list).post(crate::collections::create),
+        )
+        .route(
+            "/tier-lists",
+            get(crate::tier_lists::list).post(crate::tier_lists::create),
+        )
+        .route(
+            "/tier-lists/{id}",
+            get(crate::tier_lists::detail)
+                .patch(crate::tier_lists::update)
+                .delete(crate::tier_lists::remove),
+        )
+        .route(
+            "/tier-lists/{id}/items/{item_id}",
+            axum::routing::put(crate::tier_lists::place_item)
+                .delete(crate::tier_lists::remove_item),
         )
         .route("/devices", post(crate::devices::register))
         .route(
