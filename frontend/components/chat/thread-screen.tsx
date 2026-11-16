@@ -48,7 +48,7 @@ export function ChatThreadScreen() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sseHealthy = useRef(false);
 
@@ -151,7 +151,8 @@ export function ChatThreadScreen() {
   }, [id]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
+    const box = messagesRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
   }, [messages.length]);
 
   async function loadOlder() {
@@ -260,7 +261,7 @@ export function ChatThreadScreen() {
         </button>
       </header>
 
-      <div className={styles.messages}>
+      <div className={styles.messages} ref={messagesRef}>
         {nextBefore ? (
           <Button className={styles.older} onClick={() => void loadOlder()} size="sm" variant="ghost">
             {t("chat.loadOlder")}
@@ -303,7 +304,7 @@ export function ChatThreadScreen() {
             );
           })
         )}
-        <div ref={endRef} />
+
       </div>
 
       <form
