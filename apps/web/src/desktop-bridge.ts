@@ -185,6 +185,49 @@ export function installDesktopBridge() {
         return new Response(null, { status: 204 });
       }
     }
+    // Chat uses the Tauri cache/outbox directly in the desktop release.
+    if (path === "/api/v1/chat/threads" && method === "GET") {
+      return json(await api.invoke("local_chat_threads"));
+    }
+    if (path === "/api/v1/chat/unread" && method === "GET") {
+      return json(await api.invoke("local_chat_unread"));
+    }
+    const chatMessages = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)\/messages$/);
+    if (chatMessages) {
+      const threadId = chatMessages[1];
+      if (method === "GET") {
+        const before = url.searchParams.get("before");
+        const limit = Number(url.searchParams.get("limit") ?? "50");
+        return json(await api.invoke("local_chat_messages", {
+          threadId,
+          before,
+          limit: Number.isFinite(limit) ? limit : 50,
+        }));
+      }
+      if (method === "POST") {
+        return json(await api.invoke("local_chat_send", {
+          threadId,
+          body: body?.body,
+          clientId: body?.client_id,
+        }));
+      }
+    }
+    const chatRead = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)\/read$/);
+    if (chatRead && method === "POST") {
+      return json(await api.invoke("local_chat_read", { threadId: chatRead[1] }));
+    }
+    const chatMute = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)\/mute$/);
+    if (chatMute && (method === "POST" || method === "DELETE")) {
+      return json(await api.invoke("local_chat_mute", {
+        threadId: chatMute[1],
+        muted: method === "POST",
+      }));
+    }
+    const chatThread = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)$/);
+    if (chatThread && method === "GET") {
+      return json(await api.invoke("local_chat_thread", { threadId: chatThread[1] }));
+    }
+
     try { return await remote(method, path, body); }
     catch { return json({ error: { code: "offline_unsupported", message: "Раздел пока недоступен офлайн" } }, 503); }
   };
