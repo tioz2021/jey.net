@@ -722,6 +722,7 @@ export interface ChatSharedItem {
   title: string;
   year: number | null;
   rating: number | null;
+  review: string | null;
   cover_key: string | null;
   url: string | null;
 }

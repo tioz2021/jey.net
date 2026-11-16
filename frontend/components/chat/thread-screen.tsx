@@ -74,12 +74,20 @@ function SharedItemCard({ item }: { item: ChatSharedItem }) {
         <small>{t("share.title")}</small>
         <strong>{item.title}</strong>
         <span>{[item.year, item.rating ? `${item.rating}/10` : null].filter(Boolean).join(" · ")}</span>
+        {item.review ? <span className={styles.sharedReview}>{item.review}</span> : null}
       </span>
       {item.url ? <span className={styles.sharedOpen}>{t("share.open")} ↗</span> : null}
     </>
   );
   return item.url ? (
-    <AppLink className={styles.sharedCard} href={item.url}>{content}</AppLink>
+    <a
+      className={styles.sharedCard}
+      href={item.url}
+      rel="noreferrer noopener"
+      target="_blank"
+    >
+      {content}
+    </a>
   ) : (
     <div className={styles.sharedCard}>{content}</div>
   );

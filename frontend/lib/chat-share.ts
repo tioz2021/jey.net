@@ -8,6 +8,7 @@ export type SharedItem = {
   title: string;
   year: number | null;
   rating: number | null;
+  review: string | null;
   cover_key: string | null;
   url: string | null;
 };
@@ -23,6 +24,8 @@ export function encodeItemShare(item: Item, handle: string | undefined, isPublic
     title: item.title,
     year: item.year,
     rating: item.rating,
+    // Keep the legacy plaintext fallback under the 4000-char message limit.
+    review: item.review ? item.review.slice(0, 1200) : null,
     cover_key: item.cover_key,
     url: link,
   };
