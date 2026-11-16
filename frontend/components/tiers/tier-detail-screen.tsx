@@ -71,6 +71,9 @@ export function TierDetailScreen() {
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const previewing = Boolean(dragged && dropTarget);
+  const previewItem = previewing
+    ? data?.items.find((entry) => entry.id === dragged) ?? catalogue.find((entry) => entry.id === dragged)
+    : null;
   const available = catalogue.filter((item) =>
     !used.has(item.id) &&
     (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind) &&
@@ -439,7 +442,11 @@ export function TierDetailScreen() {
                     <>
                       {visible.map((item, index) => (
                         <Fragment key={item.id}>
-                          {insertIndex === index ? <span className={styles.dropGap} /> : null}
+                          {previewItem && insertIndex === index ? (
+                            <div className={styles.dropPreview} title={previewItem.title}>
+                              {previewItem.cover_key ? <img alt="" draggable={false} src={mediaUrl(previewItem.cover_key)} /> : <span className={styles.tierPlaceholder}>{previewItem.title.slice(0, 1)}</span>}
+                            </div>
+                          ) : null}
                           <div
                             className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
@@ -454,7 +461,11 @@ export function TierDetailScreen() {
                           </div>
                         </Fragment>
                       ))}
-                      {insertIndex === visible.length ? <span className={styles.dropGap} /> : null}
+                      {previewItem && insertIndex === visible.length ? (
+                        <div className={styles.dropPreview} title={previewItem.title}>
+                          {previewItem.cover_key ? <img alt="" draggable={false} src={mediaUrl(previewItem.cover_key)} /> : <span className={styles.tierPlaceholder}>{previewItem.title.slice(0, 1)}</span>}
+                        </div>
+                      ) : null}
                     </>
                   );
                 })()}
