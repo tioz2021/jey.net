@@ -205,12 +205,16 @@ export function installDesktopBridge() {
         }));
       }
       if (method === "POST") {
-        return json(await api.invoke("local_chat_send", {
-          threadId,
-          body: body?.body ?? null,
-          clientId: body?.client_id,
-          encrypted: body?.encrypted ?? null,
-        }));
+        try {
+          return json(await api.invoke("local_chat_send", {
+            threadId,
+            body: body?.body ?? null,
+            clientId: body?.client_id,
+            encrypted: body?.encrypted ?? null,
+          }));
+        } catch {
+          return remote(method, path, body);
+        }
       }
     }
     const chatUserDevices = path.match(/^\/api\/v1\/chat\/users\/([^/]+)\/devices$/);
@@ -232,7 +236,11 @@ export function installDesktopBridge() {
     }
     const chatThread = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)$/);
     if (chatThread && method === "GET") {
-      return json(await api.invoke("local_chat_thread", { threadId: chatThread[1] }));
+      try {
+        return json(await api.invoke("local_chat_thread", { threadId: chatThread[1] }));
+      } catch {
+        return remote(method, path);
+      }
     }
 
     try { return await remote(method, path, body); }
