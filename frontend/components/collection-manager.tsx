@@ -29,6 +29,16 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
 
   useEffect(load, [t]);
 
+  useEffect(() => {
+    const focus = () => {
+      const input = document.querySelector<HTMLInputElement>("[data-collection-create] input");
+      input?.scrollIntoView({ behavior: "smooth", block: "center" });
+      input?.focus();
+    };
+    window.addEventListener("jey:create-collection", focus);
+    return () => window.removeEventListener("jey:create-collection", focus);
+  }, []);
+
   async function create() {
     if (!title.trim()) return;
     setBusy(true);
@@ -60,7 +70,7 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.create}>
+      <div className={styles.create} data-collection-create>
         <Input
           label={t("collections.newTitle")}
           onChange={(event) => setTitle(event.target.value)}

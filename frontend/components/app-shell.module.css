@@ -25,6 +25,29 @@
   margin-bottom: var(--space-2);
 }
 
+.contextCreate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none;
+  background: var(--color-accent);
+  border: 0;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.contextCreate:hover {
+  filter: brightness(1.06);
+}
+
 .topControlsInTabs {
   position: absolute;
   top: 1.25rem;

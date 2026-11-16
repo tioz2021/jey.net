@@ -36,6 +36,12 @@ export function TierListsScreen() {
 
   useEffect(load, []);
 
+  useEffect(() => {
+    const open = () => setCreating(true);
+    window.addEventListener("jey:create-tier", open);
+    return () => window.removeEventListener("jey:create-tier", open);
+  }, []);
+
   async function create(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim()) return;

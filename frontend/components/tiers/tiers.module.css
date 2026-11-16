@@ -1,7 +1,13 @@
 .toolbar {
-  display: flex;
+  display: none;
   justify-content: flex-end;
   margin-bottom: var(--space-3);
+}
+
+@media (width <= 1000px) {
+  .toolbar {
+    display: flex;
+  }
 }
 
 .lists {

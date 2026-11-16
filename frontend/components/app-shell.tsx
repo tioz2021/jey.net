@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 import { AppNav } from "@/components/app-nav";
+import { AppLink } from "@/lib/navigation";
+import { useI18n } from "@/lib/locale-context";
 import { LanguageSwitch } from "@/components/language-switch";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -12,6 +14,45 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import styles from "./app-shell.module.css";
 
 /** Shared authenticated shell for Next and the Vite SPA. */
+function ContextCreate() {
+  const { pathname } = useLocation();
+  const { t } = useI18n();
+  if (pathname === "/items" || pathname.startsWith("/items/")) {
+    return (
+      <AppLink aria-label={t("common.add")} className={styles.contextCreate} href="/items/new" title={t("common.add")}>
+        +
+      </AppLink>
+    );
+  }
+  if (pathname === "/collections") {
+    return (
+      <button
+        aria-label={t("collections.create")}
+        className={styles.contextCreate}
+        onClick={() => window.dispatchEvent(new Event("jey:create-collection"))}
+        title={t("collections.create")}
+        type="button"
+      >
+        +
+      </button>
+    );
+  }
+  if (pathname === "/tiers") {
+    return (
+      <button
+        aria-label={t("tiers.create")}
+        className={styles.contextCreate}
+        onClick={() => window.dispatchEvent(new Event("jey:create-tier"))}
+        title={t("tiers.create")}
+        type="button"
+      >
+        +
+      </button>
+    );
+  }
+  return null;
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const controlsInTabs = pathname === "/items" || pathname === "/collections" || pathname === "/feed" || pathname.startsWith("/recommendations") || pathname === "/people" || pathname.startsWith("/collections/") || pathname.startsWith("/tiers") || pathname === "/messages";
@@ -26,6 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className={`${styles.topControls} ${controlsInTabs ? styles.topControlsInTabs : ""}`}>
             <ThemeToggle />
             <LanguageSwitch />
+            <ContextCreate />
           </div>
           {children}
         </div>
