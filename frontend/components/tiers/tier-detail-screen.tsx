@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { EmptyState } from "@/components/empty-state";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { LoadingScreen } from "@/components/loading-screen";
 import { AppLink } from "@/lib/navigation";
-import { Button, Card, Dialog, Input, Select, Badge } from "@/components/ui";
+import { Button, Card, Select, Badge } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
@@ -20,7 +19,7 @@ import type { Item, TierListDetail, TierListItem, TierName } from "@/lib/types";
 
 import styles from "./tiers.module.css";
 
-const TIERS: TierName[] = ["S", "A", "B", "C", "D"];
+const TIERS: TierName[] = ["S", "A", "B", "C", "D", "E", "F"];
 
 export function TierDetailScreen() {
   const { id = "" } = useParams();
@@ -31,12 +30,9 @@ export function TierDetailScreen() {
   const source = useCatalogueSource();
   const [data, setData] = useState<TierListDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [addOpen, setAddOpen] = useState(false);
-  const [addTier, setAddTier] = useState<TierName>("S");
   const [catalogue, setCatalogue] = useState<Item[]>([]);
-  const [query, setQuery] = useState("");
+  const [poolTier, setPoolTier] = useState<TierName>("S");
   const [dragged, setDragged] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     api.tierLists
@@ -47,15 +43,13 @@ export function TierDetailScreen() {
   }, [id]);
 
   useEffect(() => {
-    if (!addOpen) return;
     void source.list({ limit: 100 }).then((response) => setCatalogue(response.items));
-  }, [addOpen, source]);
+  }, [source]);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const available = catalogue.filter((item) =>
     !used.has(item.id) &&
-    (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind) &&
-    item.title.toLowerCase().includes(query.toLowerCase()),
+    (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind),
   );
 
   function setItems(items: TierListItem[]) {
@@ -72,19 +66,16 @@ export function TierDetailScreen() {
     }
   }
 
-  async function add(item: Item) {
-    setBusy(true);
+  async function add(item: Item, tier: TierName = poolTier) {
     try {
-      await api.tierLists.place(id, item.id, addTier, (data?.items ?? []).filter((entry) => entry.tier === addTier).length);
+      const position = (data?.items ?? []).filter((entry) => entry.tier === tier).length;
+      await api.tierLists.place(id, item.id, tier, position);
       setData((current) => current ? {
         ...current,
-        items: [...current.items, { ...item, tier: addTier, position: (current.items ?? []).filter((entry) => entry.tier === addTier).length }],
+        items: [...current.items, { ...item, tier, position }],
       } : current);
-      setAddOpen(false);
     } catch (cause) {
       notifyError(cause);
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -164,8 +155,12 @@ export function TierDetailScreen() {
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
-                const item = data.items.find((entry) => entry.id === dragged);
-                if (item) void move(item, tier);
+                const placed = data.items.find((entry) => entry.id === dragged);
+                if (placed) void move(placed, tier);
+                else {
+                  const item = catalogue.find((entry) => entry.id === dragged);
+                  if (item) void add(item, tier);
+                }
                 setDragged(null);
               }}
             >
@@ -185,44 +180,44 @@ export function TierDetailScreen() {
                     <button aria-label={t("common.delete")} onClick={() => void remove(item)} type="button">×</button>
                   </div>
                 ))}
-                <button
-                  className={styles.addItem}
-                  onClick={() => { setAddTier(tier); setAddOpen(true); }}
-                  type="button"
-                >
-                  + {t("tiers.add")}
-                </button>
+
               </div>
             </section>
           );
         })}
       </div>
 
-      <Dialog
-        footer={<Button onClick={() => setAddOpen(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>}
-        onClose={() => setAddOpen(false)}
-        open={addOpen}
-        title={t("tiers.add")}
-      >
-        <div className={styles.picker}>
-          <Select label={t("tiers.tier")} onChange={(event) => setAddTier(event.target.value as TierName)} value={addTier}>
+      <footer className={styles.pool}>
+        <div className={styles.poolHead}>
+          <strong>{t("tiers.pool")}</strong>
+          <span>{t("tiers.poolHint")}</span>
+          <Select
+            hideLabel
+            label={t("tiers.tier")}
+            onChange={(event) => setPoolTier(event.target.value as TierName)}
+            value={poolTier}
+          >
             {TIERS.map((tier) => <option key={tier} value={tier}>{tier}</option>)}
           </Select>
-          <Input label={t("tiers.search")} onChange={(event) => setQuery(event.target.value)} placeholder={t("tiers.search")} value={query} />
-          <ul className={styles.pickerList}>
-            {available.map((item) => (
-              <li key={item.id}>
-                <button disabled={busy} onClick={() => void add(item)} type="button">
-                  {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : null}
-                  <span>{item.title}</span>
-                  <span>+</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          {available.length === 0 ? <EmptyState text={t("tiers.noItems")} title={t("tiers.noItems")} /> : null}
         </div>
-      </Dialog>
+        <div className={styles.poolItems}>
+          {available.map((item) => (
+            <button
+              className={styles.poolItem}
+              draggable
+              key={item.id}
+              onClick={() => void add(item)}
+              onDragEnd={() => setDragged(null)}
+              onDragStart={() => setDragged(item.id)}
+              title={`${item.title} → ${poolTier}`}
+              type="button"
+            >
+              {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span>{item.title.slice(0, 1)}</span>}
+            </button>
+          ))}
+          {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
+        </div>
+      </footer>
     </main>
   );
 }

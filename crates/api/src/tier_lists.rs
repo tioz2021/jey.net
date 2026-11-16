@@ -12,7 +12,7 @@ use crate::http::AppState;
 use crate::items::repo;
 use crate::items::view::ItemView;
 
-const TIERS: [&str; 5] = ["S", "A", "B", "C", "D"];
+const TIERS: [&str; 7] = ["S", "A", "B", "C", "D", "E", "F"];
 const KINDS: [&str; 8] = [
     "all", "movie", "tv", "anime", "book", "game", "image", "other",
 ];
@@ -69,7 +69,7 @@ fn tier(raw: &str) -> Result<&'static str, AppError> {
         .iter()
         .copied()
         .find(|tier| *tier == value)
-        .ok_or_else(|| AppError::validation_field("tier", "tier must be S, A, B, C or D"))
+        .ok_or_else(|| AppError::validation_field("tier", "tier must be S, A, B, C, D, E or F"))
 }
 
 async fn owned(pool: &sqlx::PgPool, user_id: Uuid, id: Uuid) -> Result<(), AppError> {

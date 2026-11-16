@@ -101,6 +101,8 @@ export const uk = {
   "tiers.title": "Тір-листи",
   "tiers.new": "Новий тір-лист",
   "tiers.name": "Назва",
+  "tiers.pool": "Пул записів",
+  "tiers.poolHint": "Перетягніть обкладинку в смугу або натисніть, щоб додати у вибраний тір.",
   "tiers.kind": "Категорія",
   "tiers.allKinds": "Усі категорії",
   "tiers.visibility": "Видимість",

@@ -13,7 +13,7 @@ import type { TierListDetail, TierName } from "@/lib/types";
 
 import styles from "./tiers.module.css";
 
-const TIERS: TierName[] = ["S", "A", "B", "C", "D"];
+const TIERS: TierName[] = ["S", "A", "B", "C", "D", "E", "F"];
 
 export function PublicTierScreen() {
   const { id = "", slug = "" } = useParams();

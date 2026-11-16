@@ -246,7 +246,7 @@ export interface TierList {
   item_count: number;
 }
 
-export type TierName = "S" | "A" | "B" | "C" | "D";
+export type TierName = "S" | "A" | "B" | "C" | "D" | "E" | "F";
 
 export interface TierListItem extends Item {
   tier: TierName;
