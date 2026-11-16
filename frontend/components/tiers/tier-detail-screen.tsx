@@ -36,6 +36,7 @@ export function TierDetailScreen() {
   const [dragged, setDragged] = useState<string | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
@@ -185,10 +186,10 @@ export function TierDetailScreen() {
   }
 
   async function destroy() {
-    if (!window.confirm(t("tiers.deleteConfirm"))) return;
     try {
       await api.tierLists.remove(id);
       notify({ tone: "success", title: t("tiers.deleted"), text: "", requestId: null });
+      setConfirmDelete(false);
       router.push("/tiers");
     } catch (cause) {
       notifyError(cause);
@@ -252,7 +253,7 @@ export function TierDetailScreen() {
           <button
             aria-label={t("common.delete")}
             className={`${styles.iconAction} ${styles.dangerAction}`}
-            onClick={() => void destroy()}
+            onClick={() => setConfirmDelete(true)}
             title={t("common.delete")}
             type="button"
           >
@@ -386,6 +387,20 @@ export function TierDetailScreen() {
           {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
         </div>
       </footer>
+
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setConfirmDelete(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>
+            <Button onClick={() => void destroy()} size="sm" variant="danger">{t("common.delete")}</Button>
+          </>
+        }
+        onClose={() => setConfirmDelete(false)}
+        open={confirmDelete}
+        title={t("tiers.deleteConfirm")}
+      >
+        <p>{t("tiers.deleteText")}</p>
+      </Dialog>
 
       <Dialog
         footer={<Button onClick={() => setRenaming(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>}

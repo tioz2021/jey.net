@@ -124,6 +124,7 @@ export const en = {
   "tiers.tier": "Tier",
   "tiers.search": "Search",
   "tiers.noItems": "Nothing found",
+  "tiers.deleteText": "The tier list and its item placements will be deleted. The records themselves remain.",
   "tiers.deleteConfirm": "Delete tier list?",
   "tiers.deleted": "Tier list deleted",
   "tiers.notFound": "Tier list not found",

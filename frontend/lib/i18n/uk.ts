@@ -124,6 +124,7 @@ export const uk = {
   "tiers.tier": "Тір",
   "tiers.search": "Пошук",
   "tiers.noItems": "Нічого не знайдено",
+  "tiers.deleteText": "Тір-лист і його зв’язки із записами буде видалено. Самі записи залишаться.",
   "tiers.deleteConfirm": "Видалити тір-лист?",
   "tiers.deleted": "Тір-лист видалено",
   "tiers.notFound": "Тір-лист не знайдено",

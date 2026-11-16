@@ -123,6 +123,7 @@ export const ru = {
   "tiers.tier": "Тир",
   "tiers.search": "Поиск",
   "tiers.noItems": "Ничего не найдено",
+  "tiers.deleteText": "Тир-лист и его связи с записями будут удалены. Сами записи останутся.",
   "tiers.deleteConfirm": "Удалить тир-лист?",
   "tiers.deleted": "Тир-лист удалён",
   "tiers.notFound": "Тир-лист не найден",

@@ -29,6 +29,7 @@ export function TierListsScreen() {
   const [error, setError] = useState(false);
   const [view, setView] = useState<ViewMode>(() => readViewPreference("jey:view:tiers"));
   const [filter, setFilter] = useState<"all" | "auto" | "custom">("all");
+  const [pendingDelete, setPendingDelete] = useState<TierList | null>(null);
 
   function load() {
     setLoading(true);
@@ -82,9 +83,9 @@ export function TierListsScreen() {
   }
 
   async function destroy(list: TierList) {
-    if (!window.confirm(t("tiers.deleteConfirm"))) return;
     try {
       await api.tierLists.remove(list.id);
+      setPendingDelete(null);
       load();
     } catch {
       setError(true);
@@ -155,7 +156,7 @@ export function TierListsScreen() {
                 <button
                   aria-label={t("common.delete")}
                   className={`${styles.action} ${styles.danger}`}
-                  onClick={() => void destroy(list)}
+                  onClick={() => setPendingDelete(list)}
                   title={t("common.delete")}
                   type="button"
                 >
@@ -166,6 +167,20 @@ export function TierListsScreen() {
           ))}
         </ul>
       )}
+
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setPendingDelete(null)} size="sm" variant="secondary">{t("common.cancel")}</Button>
+            <Button onClick={() => { if (pendingDelete) void destroy(pendingDelete); }} size="sm" variant="danger">{t("common.delete")}</Button>
+          </>
+        }
+        onClose={() => setPendingDelete(null)}
+        open={pendingDelete !== null}
+        title={t("tiers.deleteConfirm")}
+      >
+        <p>{t("tiers.deleteText")}</p>
+      </Dialog>
 
       <Dialog
         footer={<Button onClick={() => setCreating(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>}
