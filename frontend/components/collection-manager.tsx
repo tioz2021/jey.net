@@ -4,6 +4,7 @@ import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { Button, Dialog, Input } from "@/components/ui";
+import { RowsSkeleton } from "@/components/skeletons";
 import { IconCollection, IconGlobe, IconLock, IconTrash } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
@@ -21,12 +22,15 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   function load() {
+    setLoading(true);
     api.collections
       .list()
       .then((response) => setCollections(response.collections))
-      .catch(() => setError(t("collections.loadError")));
+      .catch(() => setError(t("collections.loadError")))
+      .finally(() => setLoading(false));
   }
 
   useEffect(load, [t]);
@@ -73,7 +77,9 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
         <Button onClick={() => setCreating(true)} size="sm">{t("collections.create")}</Button>
       </div>
       {error ? <p className={styles.error}>{error}</p> : null}
-      {collections.length === 0 ? (
+      {loading ? (
+        <div className={styles.skeleton}><RowsSkeleton count={5} /></div>
+      ) : collections.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
       ) : (
         <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>

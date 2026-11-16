@@ -159,6 +159,11 @@
   color: var(--color-danger, #dc2626);
 }
 
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .empty,
 .error {
   margin: 0;
