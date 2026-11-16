@@ -83,7 +83,7 @@
 | T143 | Desktop: кеш и outbox чата | `[x]` | SQLite 0005, очередь, reconnect |
 | T144 | Desktop: UI чата | `[x]` | Панель чата, Tauri-команды, offline |
 | T145 | Чат: тесты | `[x]` | API, load, offline, manual web E2E |
-| T146 | Чат: релиз | `[ ]` | Веб → desktop → тег |
+| T146 | Чат: релиз | `[x]` | v0.5.0: веб/API, AppImage/deb, тег |
 | T147 | Чат: группы | `[–]` | После MVP |
 | T148 | Чат: вложения | `[–]` | После MVP |
 | T149 | Чат: реакции/поиск/typing | `[–]` | После MVP |
