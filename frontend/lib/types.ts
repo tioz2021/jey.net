@@ -687,6 +687,12 @@ export interface ChatSettings {
   message_policy: "all" | "following" | "nobody";
 }
 
+export interface ChatReaction {
+  emoji: string;
+  count: number;
+  user_ids: string[];
+}
+
 export interface ChatMessage {
   id: string;
   thread_id: string;
@@ -694,6 +700,8 @@ export interface ChatMessage {
   body: string;
   client_id: string;
   created_at: string;
+  edited_at?: string | null;
+  reactions?: ChatReaction[];
 }
 
 export interface ChatThread {

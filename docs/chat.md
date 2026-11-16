@@ -87,8 +87,11 @@ chat_settings
 GET    /api/v1/chat/threads
 POST   /api/v1/chat/threads              { user_id }
 GET    /api/v1/chat/threads/{id}
-GET    /api/v1/chat/threads/{id}/messages?before=&limit=
+GET    /api/v1/chat/threads/{id}/messages?before=&limit=&q=
 POST   /api/v1/chat/threads/{id}/messages { body, client_id }
+PATCH  /api/v1/chat/threads/{id}/messages/{message_id} { body }
+POST   /api/v1/chat/threads/{id}/messages/{message_id}/reactions { emoji }
+POST   /api/v1/chat/threads/{id}/typing
 POST   /api/v1/chat/threads/{id}/read
 POST   /api/v1/chat/threads/{id}/mute
 DELETE /api/v1/chat/threads/{id}/mute
@@ -119,6 +122,11 @@ GET    /api/v1/chat/stream               -- SSE
 - `mute` хранится в `chat_members.muted_at` и не влияет на историю;
 - muted-диалоги не учитываются в общем unread badge и title, но остаются
   с unread в инбоксе;
+- поиск `q` фильтрует историю по телу сообщения;
+- редактировать сообщение может только автор; ответ содержит `edited_at`;
+- реакции хранятся в `chat_reactions` и приходят в `message.reactions`;
+- typing не хранится в БД: это SSE-событие `typing`;
+- новые события: `message.updated`, `typing`;
 - чтение и отправка проверяют членство в диалоге.
 
 ## Реальное время

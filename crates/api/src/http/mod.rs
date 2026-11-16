@@ -14,7 +14,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{delete, get, post};
+use axum::routing::{delete, get, patch, post};
 use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
@@ -251,6 +251,15 @@ fn api_v1(state: AppState) -> Router<AppState> {
             get(crate::chat::history).post(crate::chat::send),
         )
         .route("/chat/threads/{id}/read", post(crate::chat::mark_read))
+        .route("/chat/threads/{id}/typing", post(crate::chat::typing))
+        .route(
+            "/chat/threads/{id}/messages/{message_id}",
+            patch(crate::chat::edit),
+        )
+        .route(
+            "/chat/threads/{id}/messages/{message_id}/reactions",
+            post(crate::chat::toggle_reaction),
+        )
         .route(
             "/chat/threads/{id}/mute",
             post(crate::chat::mute).delete(crate::chat::unmute),

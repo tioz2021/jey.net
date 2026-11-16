@@ -227,3 +227,143 @@
     background: var(--color-page);
   }
 }
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.searchRow input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.searchRow input:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.editForm {
+  display: grid;
+  width: min(100%, 38rem);
+  gap: 6px;
+}
+
+.editForm textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--color-text);
+  resize: vertical;
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.editForm > div {
+  display: flex;
+  gap: 6px;
+}
+
+.reactionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+}
+
+.reaction,
+.reactionPicker button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 22px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.reactionMine {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.reactionPicker {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.reactionPicker button {
+  min-width: 26px;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.message:hover .reactionPicker,
+.message:focus-within .reactionPicker,
+.reactionPicker:hover {
+  opacity: 1;
+}
+
+.messageActions {
+  display: flex;
+  gap: 8px;
+  min-height: 16px;
+  margin-top: 1px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.message:hover .messageActions,
+.message:focus-within .messageActions {
+  opacity: 1;
+}
+
+.action {
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.action:hover {
+  color: var(--color-link);
+}
+
+.typing {
+  margin: 0;
+  padding: 2px 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+@media (width <= 700px) {
+  .reactionPicker,
+  .messageActions {
+    opacity: 0.65;
+  }
+}

@@ -29,6 +29,7 @@ pub struct ChatEvent {
     pub recipients: Vec<Uuid>,
     pub message: Option<Value>,
     pub read_by: Option<Uuid>,
+    pub typing_by: Option<Uuid>,
     #[serde(default)]
     pub origin: Uuid,
 }
@@ -39,6 +40,7 @@ struct ChatEventWire<'a> {
     thread_id: Uuid,
     message: &'a Option<Value>,
     read_by: Option<Uuid>,
+    typing_by: Option<Uuid>,
 }
 
 impl ChatEvent {
@@ -48,6 +50,7 @@ impl ChatEvent {
             thread_id: self.thread_id,
             message: &self.message,
             read_by: self.read_by,
+            typing_by: self.typing_by,
         };
         let data = serde_json::to_string(&wire).unwrap_or_else(|_| "{}".to_owned());
         axum::response::sse::Event::default()
@@ -445,6 +448,7 @@ pub struct NewMessage {
 pub struct HistoryQuery {
     pub before: Option<Uuid>,
     pub limit: Option<i64>,
+    pub q: Option<String>,
 }
 
 fn normalize_body(raw: &str) -> Result<String, AppError> {
@@ -512,7 +516,23 @@ async fn message_payload(
             'sender_id', m.sender_id,
             'body', m.body,
             'client_id', m.client_id,
-            'created_at', m.created_at
+            'created_at', m.created_at,
+            'edited_at', m.edited_at,
+            'reactions', (
+                select coalesce(jsonb_agg(jsonb_build_object(
+                    'emoji', grouped.emoji,
+                    'count', grouped.count,
+                    'user_ids', grouped.user_ids
+                ) order by grouped.first_at), '[]'::jsonb)
+                from (
+                    select emoji, count(*) as count,
+                           jsonb_agg(user_id) as user_ids,
+                           min(created_at) as first_at
+                    from chat_reactions
+                    where message_id = m.id
+                    group by emoji
+                ) grouped
+            )
         )
         from chat_messages m
         where m.id = $1 and m.thread_id = $2 and m.deleted_at is null",
@@ -603,6 +623,7 @@ pub async fn send(
                 recipients: vec![current.user.id, target],
                 message: Some(message.clone()),
                 read_by: None,
+                typing_by: None,
                 origin: Uuid::nil(),
             },
         )
@@ -611,6 +632,166 @@ pub async fn send(
         "message": message,
         "created": inserted.is_some()
     })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EditMessage {
+    pub body: String,
+}
+
+/// `PATCH /api/v1/chat/threads/{id}/messages/{message_id}`
+pub async fn edit(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path((thread_id, message_id)): Path<(Uuid, Uuid)>,
+    Json(payload): Json<EditMessage>,
+) -> Result<Json<Value>, AppError> {
+    require_member(&state.pool, thread_id, current.user.id).await?;
+    let body = normalize_body(&payload.body)?;
+    let changed = sqlx::query(
+        "update chat_messages set body = $1, edited_at = now()
+         where id = $2 and thread_id = $3 and sender_id = $4 and deleted_at is null",
+    )
+    .bind(&body)
+    .bind(message_id)
+    .bind(thread_id)
+    .bind(current.user.id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected();
+    if changed == 0 {
+        return Err(AppError::not_found("message"));
+    }
+    let target = peer_id(&state.pool, thread_id, current.user.id).await?;
+    let message = message_payload(&state.pool, thread_id, message_id).await?;
+    state
+        .chat
+        .publish(
+            &state.pool,
+            ChatEvent {
+                kind: "message.updated".to_owned(),
+                thread_id,
+                recipients: vec![current.user.id, target],
+                message: Some(message.clone()),
+                read_by: None,
+                typing_by: None,
+                origin: Uuid::nil(),
+            },
+        )
+        .await;
+    Ok(Json(json!({ "message": message })))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReactionBody {
+    pub emoji: String,
+}
+
+/// `POST /api/v1/chat/threads/{id}/messages/{message_id}/reactions`
+pub async fn toggle_reaction(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path((thread_id, message_id)): Path<(Uuid, Uuid)>,
+    Json(payload): Json<ReactionBody>,
+) -> Result<Json<Value>, AppError> {
+    require_member(&state.pool, thread_id, current.user.id).await?;
+    let emoji = payload.emoji.trim();
+    if emoji.is_empty() || emoji.chars().count() > 16 {
+        return Err(AppError::validation_field(
+            "emoji",
+            "emoji must be 1..16 characters",
+        ));
+    }
+    let exists: bool = sqlx::query_scalar(
+        "select exists(select 1 from chat_messages
+         where id = $1 and thread_id = $2 and deleted_at is null)",
+    )
+    .bind(message_id)
+    .bind(thread_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    if !exists {
+        return Err(AppError::not_found("message"));
+    }
+    let removed = sqlx::query(
+        "delete from chat_reactions where message_id = $1 and user_id = $2 and emoji = $3",
+    )
+    .bind(message_id)
+    .bind(current.user.id)
+    .bind(emoji)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?
+    .rows_affected()
+        > 0;
+    if !removed {
+        sqlx::query(
+            "insert into chat_reactions (message_id, user_id, emoji) values ($1, $2, $3)
+             on conflict (message_id, user_id, emoji) do nothing",
+        )
+        .bind(message_id)
+        .bind(current.user.id)
+        .bind(emoji)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    }
+    let count: i64 = sqlx::query_scalar(
+        "select count(*) from chat_reactions where message_id = $1 and emoji = $2",
+    )
+    .bind(message_id)
+    .bind(emoji)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let target = peer_id(&state.pool, thread_id, current.user.id).await?;
+    let message = message_payload(&state.pool, thread_id, message_id).await?;
+    state
+        .chat
+        .publish(
+            &state.pool,
+            ChatEvent {
+                kind: "message.updated".to_owned(),
+                thread_id,
+                recipients: vec![current.user.id, target],
+                message: Some(message.clone()),
+                read_by: None,
+                typing_by: None,
+                origin: Uuid::nil(),
+            },
+        )
+        .await;
+    Ok(Json(
+        json!({ "message": message, "reacted": !removed, "count": count }),
+    ))
+}
+
+/// `POST /api/v1/chat/threads/{id}/typing`
+pub async fn typing(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(thread_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    require_member(&state.pool, thread_id, current.user.id).await?;
+    let target = peer_id(&state.pool, thread_id, current.user.id).await?;
+    state
+        .chat
+        .publish(
+            &state.pool,
+            ChatEvent {
+                kind: "typing".to_owned(),
+                thread_id,
+                recipients: vec![current.user.id, target],
+                message: None,
+                read_by: None,
+                typing_by: Some(current.user.id),
+                origin: Uuid::nil(),
+            },
+        )
+        .await;
+    Ok(Json(json!({ "typing": true })))
 }
 
 /// `GET /api/v1/chat/threads/{id}/messages?before=&limit=`
@@ -622,6 +803,14 @@ pub async fn history(
 ) -> Result<Json<Value>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
     let limit = query.limit.unwrap_or(50).clamp(1, 100);
+    let search = query
+        .q
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    if search.is_some_and(|value| value.chars().count() > 200) {
+        return Err(AppError::validation_field("q", "search is too long"));
+    }
 
     let messages: Vec<Value> = if let Some(before) = query.before {
         let cursor: Option<(chrono::DateTime<chrono::Utc>, Uuid)> = sqlx::query_as(
@@ -639,17 +828,35 @@ pub async fn history(
         sqlx::query_scalar(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
-                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at
+                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
+                'edited_at', m.edited_at,
+                'reactions', (
+                    select coalesce(jsonb_agg(jsonb_build_object(
+                        'emoji', grouped.emoji,
+                        'count', grouped.count,
+                        'user_ids', grouped.user_ids
+                    ) order by grouped.first_at), '[]'::jsonb)
+                    from (
+                        select emoji, count(*) as count,
+                               jsonb_agg(user_id) as user_ids,
+                               min(created_at) as first_at
+                        from chat_reactions
+                        where message_id = m.id
+                        group by emoji
+                    ) grouped
+                )
              )
              from chat_messages m
              where m.thread_id = $1 and m.deleted_at is null
                and (m.created_at, m.id) < ($2, $3)
+               and ($4 = '' or m.body ilike '%' || $4 || '%')
              order by m.created_at desc, m.id desc
-             limit $4",
+             limit $5",
         )
         .bind(thread_id)
         .bind(created_at)
         .bind(id)
+        .bind(search.unwrap_or(""))
         .bind(limit + 1)
         .fetch_all(&state.pool)
         .await
@@ -658,14 +865,32 @@ pub async fn history(
         sqlx::query_scalar(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
-                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at
+                'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
+                'edited_at', m.edited_at,
+                'reactions', (
+                    select coalesce(jsonb_agg(jsonb_build_object(
+                        'emoji', grouped.emoji,
+                        'count', grouped.count,
+                        'user_ids', grouped.user_ids
+                    ) order by grouped.first_at), '[]'::jsonb)
+                    from (
+                        select emoji, count(*) as count,
+                               jsonb_agg(user_id) as user_ids,
+                               min(created_at) as first_at
+                        from chat_reactions
+                        where message_id = m.id
+                        group by emoji
+                    ) grouped
+                )
              )
              from chat_messages m
              where m.thread_id = $1 and m.deleted_at is null
+               and ($2 = '' or m.body ilike '%' || $2 || '%')
              order by m.created_at desc, m.id desc
-             limit $2",
+             limit $3",
         )
         .bind(thread_id)
+        .bind(search.unwrap_or(""))
         .bind(limit + 1)
         .fetch_all(&state.pool)
         .await
@@ -723,6 +948,7 @@ pub async fn mark_read(
                 recipients: vec![current.user.id, target],
                 message: None,
                 read_by: Some(current.user.id),
+                typing_by: None,
                 origin: Uuid::nil(),
             },
         )

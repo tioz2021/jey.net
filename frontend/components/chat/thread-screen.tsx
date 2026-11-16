@@ -20,6 +20,8 @@ import styles from "./thread.module.css";
 
 type PendingMessage = ChatMessage & { pending?: boolean; failed?: boolean };
 
+const REACTION_EMOJIS = ["❤️", "👍", "😂"];
+
 function messageKey(message: ChatMessage) {
   // The optimistic copy and the server copy share a client_id; prefer it so
   // an SSE event can replace the pending bubble instead of adding a duplicate.
@@ -48,8 +50,15 @@ export function ChatThreadScreen() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [searchActive, setSearchActive] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [peerTyping, setPeerTyping] = useState(false);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const typingSentAt = useRef(0);
+  const typingTimer = useRef<number | null>(null);
   const sseHealthy = useRef(false);
 
   async function toggleMute() {
@@ -63,6 +72,69 @@ export function ChatThreadScreen() {
     } catch {
       // Keep the current state; the next open retries.
     }
+  }
+
+  async function saveEdit(message: ChatMessage) {
+    const body = editText.trim();
+    if (!body || body === message.body) {
+      setEditingId(null);
+      return;
+    }
+    try {
+      const response = await api.chat.edit(id, message.id, body);
+      setMessages((current) => mergeMessages(current, [response.message]));
+      setEditingId(null);
+      setEditText("");
+    } catch {
+      // Keep the editor open so the draft is not lost.
+    }
+  }
+
+  async function toggleReaction(message: ChatMessage, emoji: string) {
+    if (!message.id || message.id.startsWith("pending-")) return;
+    try {
+      const response = await api.chat.react(id, message.id, emoji);
+      setMessages((current) => mergeMessages(current, [response.message]));
+    } catch {
+      // A later poll will recover the server state.
+    }
+  }
+
+  async function runSearch(event?: React.FormEvent) {
+    event?.preventDefault();
+    const query = search.trim();
+    if (!query) {
+      setSearchActive(false);
+      await loadThread(false);
+      return;
+    }
+    try {
+      const response = await api.chat.messages(id, { q: query, limit: 50 });
+      setMessages(response.messages);
+      setNextBefore(response.next_before);
+      setSearchActive(true);
+      setEditingId(null);
+    } catch {
+      setError(true);
+    }
+  }
+
+  async function clearSearch() {
+    setSearch("");
+    setSearchActive(false);
+    await loadThread(false);
+  }
+
+  function notifyTyping() {
+    const now = Date.now();
+    if (now - typingSentAt.current < 2000) return;
+    typingSentAt.current = now;
+    void api.chat.typing(id).catch(() => {});
+  }
+
+  function startEdit(message: ChatMessage) {
+    setEditingId(message.id);
+    setEditText(message.body);
   }
 
   async function loadThread(showLoading = false) {
@@ -123,13 +195,44 @@ export function ChatThreadScreen() {
         // Malformed events are ignored; polling remains the fallback.
       }
     };
+    const onUpdated = (event: MessageEvent<string>) => {
+      try {
+        const payload = JSON.parse(event.data) as {
+          thread_id: string;
+          message?: ChatMessage;
+        };
+        if (payload.thread_id !== id || !payload.message) return;
+        setMessages((current) => mergeMessages(current, [payload.message!]));
+      } catch {
+        // Malformed events are ignored; polling remains the fallback.
+      }
+    };
+    const onTyping = (event: MessageEvent<string>) => {
+      try {
+        const payload = JSON.parse(event.data) as {
+          thread_id: string;
+          typing_by?: string;
+        };
+        if (payload.thread_id !== id || !payload.typing_by || payload.typing_by === user?.id) return;
+        setPeerTyping(true);
+        if (typingTimer.current) window.clearTimeout(typingTimer.current);
+        typingTimer.current = window.setTimeout(() => setPeerTyping(false), 3000);
+      } catch {
+        // Ignore malformed typing events.
+      }
+    };
     const onResync = () => void loadThread(false);
     source.addEventListener("message.created", onCreated);
+    source.addEventListener("message.updated", onUpdated);
+    source.addEventListener("typing", onTyping);
     source.addEventListener("resync", onResync);
     return () => {
       source.removeEventListener("message.created", onCreated);
+      source.removeEventListener("message.updated", onUpdated);
+      source.removeEventListener("typing", onTyping);
       source.removeEventListener("resync", onResync);
       source.close();
+      if (typingTimer.current) window.clearTimeout(typingTimer.current);
       sseHealthy.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,7 +241,7 @@ export function ChatThreadScreen() {
   useEffect(() => {
     if (!id) return;
     const timer = window.setInterval(() => {
-      if (sseHealthy.current || document.visibilityState !== "visible") return;
+      if (sseHealthy.current || searchActive || document.visibilityState !== "visible") return;
       api.chat
         .messages(id, { limit: 50 })
         .then((response) => {
@@ -148,7 +251,7 @@ export function ChatThreadScreen() {
         .catch(() => {});
     }, 5000);
     return () => window.clearInterval(timer);
-  }, [id]);
+  }, [id, searchActive]);
 
   useEffect(() => {
     const box = messagesRef.current;
@@ -158,7 +261,11 @@ export function ChatThreadScreen() {
   async function loadOlder() {
     if (!nextBefore) return;
     try {
-      const response = await api.chat.messages(id, { before: nextBefore, limit: 50 });
+      const response = await api.chat.messages(id, {
+        before: nextBefore,
+        limit: 50,
+        q: searchActive ? search.trim() : undefined,
+      });
       setMessages((current) => mergeMessages(current, response.messages));
       setNextBefore(response.next_before);
     } catch {
@@ -261,6 +368,22 @@ export function ChatThreadScreen() {
         </button>
       </header>
 
+      <form className={styles.searchRow} onSubmit={(event) => void runSearch(event)}>
+        <input
+          aria-label={t("chat.searchPlaceholder")}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={t("chat.searchPlaceholder")}
+          type="search"
+          value={search}
+        />
+        <Button size="sm" type="submit">{t("chat.search")}</Button>
+        {searchActive ? (
+          <Button onClick={() => void clearSearch()} size="sm" type="button" variant="secondary">
+            {t("chat.clearSearch")}
+          </Button>
+        ) : null}
+      </form>
+
       <div className={styles.messages} ref={messagesRef}>
         {nextBefore ? (
           <Button className={styles.older} onClick={() => void loadOlder()} size="sm" variant="ghost">
@@ -268,7 +391,9 @@ export function ChatThreadScreen() {
           </Button>
         ) : null}
         {messages.length === 0 ? (
-          <p className={styles.empty}>{t("chat.emptyThread")}</p>
+          <p className={styles.empty}>
+            {searchActive ? t("chat.searchEmpty") : t("chat.emptyThread")}
+          </p>
         ) : (
           messages.map((message) => {
             const own = message.sender_id === ownId;
@@ -277,27 +402,85 @@ export function ChatThreadScreen() {
                 className={`${styles.message} ${own ? styles.own : ""} ${message.failed ? styles.failed : ""}`}
                 key={messageKey(message)}
               >
-                <div className={styles.bubble}>
-                  {message.body}
-                  {message.failed ? (
-                    <button className={styles.retry} onClick={() => retryFailed(message)} type="button">
-                      {t("chat.retry")}
-                    </button>
-                  ) : null}
-                </div>
+                {editingId === message.id ? (
+                  <form
+                    className={styles.editForm}
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void saveEdit(message);
+                    }}
+                  >
+                    <textarea
+                      aria-label={t("chat.edit")}
+                      autoFocus
+                      onChange={(event) => setEditText(event.target.value)}
+                      rows={3}
+                      value={editText}
+                    />
+                    <div>
+                      <Button disabled={!editText.trim()} size="sm" type="submit">{t("chat.saveEdit")}</Button>
+                      <Button onClick={() => setEditingId(null)} size="sm" type="button" variant="secondary">
+                        {t("chat.cancelEdit")}
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className={styles.bubble}>
+                    {message.body}
+                    {message.failed ? (
+                      <button className={styles.retry} onClick={() => retryFailed(message)} type="button">
+                        {t("chat.retry")}
+                      </button>
+                    ) : null}
+                  </div>
+                )}
                 <time dateTime={message.created_at}>
                   {message.pending ? t("chat.sending") : formatDate(locale, message.created_at, {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
+                  {message.edited_at ? ` · ${t("chat.edited")}` : ""}
                 </time>
-                {!own && !message.pending && !message.failed ? (
-                  <div className={styles.report}>
-                    <ReportButton
-                      ownerId={message.sender_id}
-                      targetId={message.id}
-                      targetType="chat_message"
-                    />
+                <div className={styles.reactionRow}>
+                  {(message.reactions ?? []).map((reaction) => (
+                    <button
+                      className={`${styles.reaction} ${reaction.user_ids.includes(ownId ?? "") ? styles.reactionMine : ""}`}
+                      key={reaction.emoji}
+                      onClick={() => void toggleReaction(message, reaction.emoji)}
+                      title={t("chat.react")}
+                      type="button"
+                    >
+                      {reaction.emoji} {reaction.count}
+                    </button>
+                  ))}
+                  {!message.pending && !message.failed ? (
+                    <span className={styles.reactionPicker}>
+                      {REACTION_EMOJIS.map((emoji) => (
+                        <button
+                          aria-label={`${t("chat.react")} ${emoji}`}
+                          key={emoji}
+                          onClick={() => void toggleReaction(message, emoji)}
+                          type="button"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </span>
+                  ) : null}
+                </div>
+                {!message.pending && !message.failed ? (
+                  <div className={styles.messageActions}>
+                    {own ? (
+                      <button className={styles.action} onClick={() => startEdit(message)} type="button">
+                        {t("chat.edit")}
+                      </button>
+                    ) : (
+                      <ReportButton
+                        ownerId={message.sender_id}
+                        targetId={message.id}
+                        targetType="chat_message"
+                      />
+                    )}
                   </div>
                 ) : null}
               </div>
@@ -306,6 +489,10 @@ export function ChatThreadScreen() {
         )}
 
       </div>
+
+      {peerTyping ? (
+        <p className={styles.typing}>{thread.peer.display_name} {t("chat.typing")}</p>
+      ) : null}
 
       <form
         className={styles.composer}
@@ -316,7 +503,10 @@ export function ChatThreadScreen() {
       >
         <textarea
           aria-label={t("chat.placeholder")}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setText(event.target.value);
+            if (event.target.value.trim()) notifyTyping();
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();

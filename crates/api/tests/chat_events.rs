@@ -30,6 +30,7 @@ async fn notification_crosses_instances_and_is_not_duplicated_locally() {
                 recipients: vec![Uuid::new_v4()],
                 message: Some(serde_json::json!({ "body": "cross-instance" })),
                 read_by: None,
+                typing_by: None,
                 origin: Uuid::nil(),
             },
         )

@@ -495,10 +495,14 @@ export const chat = {
       body: { user_id: userId },
     }),
   thread: (id: string) => request<{ thread: ChatThread }>(`/chat/threads/${id}`),
-  messages: (id: string, options: { before?: string; limit?: number } = {}) => {
+  messages: (
+    id: string,
+    options: { before?: string; limit?: number; q?: string } = {},
+  ) => {
     const params = new URLSearchParams();
     if (options.before) params.set("before", options.before);
     if (options.limit) params.set("limit", String(options.limit));
+    if (options.q) params.set("q", options.q);
     const query = params.toString();
     return request<{ messages: ChatMessage[]; next_before: string | null }>(
       `/chat/threads/${id}/messages${query ? `?${query}` : ""}`,
@@ -515,6 +519,18 @@ export const chat = {
       method: "PATCH",
       body: { message_policy: messagePolicy },
     }),
+  edit: (id: string, messageId: string, body: string) =>
+    request<{ message: ChatMessage }>(
+      `/chat/threads/${id}/messages/${messageId}`,
+      { method: "PATCH", body: { body } },
+    ),
+  react: (id: string, messageId: string, emoji: string) =>
+    request<{ message: ChatMessage; reacted: boolean; count: number }>(
+      `/chat/threads/${id}/messages/${messageId}/reactions`,
+      { method: "POST", body: { emoji } },
+    ),
+  typing: (id: string) =>
+    request<{ typing: boolean }>(`/chat/threads/${id}/typing`, { method: "POST" }),
   read: (id: string) =>
     request<{ read: boolean }>(`/chat/threads/${id}/read`, { method: "POST" }),
   mute: (id: string) =>

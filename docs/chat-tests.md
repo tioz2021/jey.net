@@ -17,7 +17,8 @@ cargo test --test chat_schema --test chat_threads --test chat_messages \
 - mute;
 - жалоба на сообщение и очередь модерации;
 - 40 сообщений, повтор `client_id`, отсутствие пересечения страниц;
-- доставка события между двумя `ChatEvents` через PostgreSQL `LISTEN/NOTIFY`.
+- доставка события между двумя `ChatEvents` через PostgreSQL `LISTEN/NOTIFY`;
+- T149: редактирование, реакции, поиск и typing.
 
 ## Desktop / offline
 
