@@ -157,15 +157,17 @@ export function TierListsScreen() {
                 >
                   {list.visibility === "public" ? <IconLock size={16} /> : <IconGlobe size={16} />}
                 </button>
-                <button
-                  aria-label={t("common.delete")}
-                  className={`${styles.action} ${styles.danger}`}
-                  onClick={() => setPendingDelete(list)}
-                  title={t("common.delete")}
-                  type="button"
-                >
-                  <IconTrash size={16} />
-                </button>
+                {!list.auto ? (
+                  <button
+                    aria-label={t("common.delete")}
+                    className={`${styles.action} ${styles.danger}`}
+                    onClick={() => setPendingDelete(list)}
+                    title={t("common.delete")}
+                    type="button"
+                  >
+                    <IconTrash size={16} />
+                  </button>
+                ) : null}
               </span>
             </li>
           ))}

@@ -167,6 +167,14 @@ async fn automatic_category_lists_follow_ratings() {
         .find(|list| list["auto"] == true && list["kind"] == "book")
         .unwrap();
     assert_ne!(movie_list["id"], book_list["id"]);
+    let auto_delete = client
+        .delete(
+            &format!("/api/v1/tier-lists/{}", movie_list["id"].as_str().unwrap()),
+            json!({}),
+            &cookie,
+        )
+        .await;
+    assert_eq!(auto_delete.status, 400, "body: {}", auto_delete.body);
 
     let detail = client
         .get(

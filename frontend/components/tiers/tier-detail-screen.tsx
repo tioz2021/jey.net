@@ -262,15 +262,17 @@ export function TierDetailScreen() {
           >
             {data.tier_list.visibility === "public" ? <IconLock size={16} /> : <IconGlobe size={16} />}
           </button>
-          <button
-            aria-label={t("common.delete")}
-            className={`${styles.iconAction} ${styles.dangerAction}`}
-            onClick={() => setConfirmDelete(true)}
-            title={t("common.delete")}
-            type="button"
-          >
-            <IconTrash size={16} />
-          </button>
+          {!data.tier_list.auto ? (
+            <button
+              aria-label={t("common.delete")}
+              className={`${styles.iconAction} ${styles.dangerAction}`}
+              onClick={() => setConfirmDelete(true)}
+              title={t("common.delete")}
+              type="button"
+            >
+              <IconTrash size={16} />
+            </button>
+          ) : null}
         </div>
       </header>
 

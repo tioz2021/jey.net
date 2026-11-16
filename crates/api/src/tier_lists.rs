@@ -469,6 +469,16 @@ pub async fn remove(
     Path(id): Path<Uuid>,
 ) -> Result<axum::http::StatusCode, AppError> {
     owned(&state.pool, current.user.id, id).await?;
+    let auto: bool = sqlx::query_scalar("select auto from tier_lists where id = $1")
+        .bind(id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    if auto {
+        return Err(AppError::validation(
+            "automatic tier lists cannot be deleted; change item ratings instead",
+        ));
+    }
     sqlx::query("delete from tier_lists where id = $1 and user_id = $2")
         .bind(id)
         .bind(current.user.id)
