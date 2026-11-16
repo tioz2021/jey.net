@@ -390,11 +390,10 @@
 
 .dropGap {
   flex: none;
-  width: 8px;
+  width: 3px;
   height: var(--tier-tile-height);
-  background: var(--color-accent);
+  background: color-mix(in srgb, var(--color-text) 38%, transparent);
   border-radius: var(--radius-full);
-  box-shadow: 0 0 0 3px var(--color-accent-soft);
   animation: drop-gap-in 90ms var(--ease-out);
 }
 
