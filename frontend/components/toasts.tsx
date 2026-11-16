@@ -27,6 +27,7 @@ interface Toast {
   title: string;
   text: string;
   requestId: string | null;
+  tag?: string;
   action?: ToastAction;
 }
 
@@ -52,7 +53,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const notify = useCallback(
     (toast: Omit<Toast, "id">) => {
       const id = nextId.current++;
-      setToasts((current) => [...current, { ...toast, id }].slice(-MAX_TOASTS));
+      setToasts((current) => [
+        ...current.filter((item) => !toast.tag || item.tag !== toast.tag),
+        { ...toast, id },
+      ].slice(-MAX_TOASTS));
       window.setTimeout(() => dismiss(id), AUTO_HIDE_MS);
     },
     [dismiss],

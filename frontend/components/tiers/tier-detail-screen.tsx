@@ -119,6 +119,7 @@ export function TierDetailScreen() {
           title: t("tiers.ratingChanged", { rating: changedRating }),
           text: "",
           requestId: null,
+          tag: "tier-rating",
           action: {
             label: t("common.undo"),
             onClick: () => void undoRating(item.id, previousRating),
@@ -148,24 +149,9 @@ export function TierDetailScreen() {
     suppressTileClick.current = true;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", itemId);
-    const source = event.currentTarget as HTMLElement;
-    const rect = source.getBoundingClientRect();
-    const ghost = source.cloneNode(true) as HTMLElement;
-    ghost.style.cssText = [
-      "position:fixed",
-      "top:-1000px",
-      "left:-1000px",
-      `width:${rect.width}px`,
-      `height:${rect.height}px`,
-      "opacity:.95",
-      "pointer-events:none",
-      "transform:rotate(2deg)",
-      "box-shadow:0 10px 28px rgb(0 0 0 / 22%)",
-      "border-radius:8px",
-    ].join(";");
-    document.body.appendChild(ghost);
-    event.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2);
-    window.setTimeout(() => ghost.remove(), 0);
+    const blank = new Image();
+    blank.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+    event.dataTransfer.setDragImage(blank, 0, 0);
     setDropTarget(null);
     setDragged(itemId);
   }
