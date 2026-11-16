@@ -107,8 +107,9 @@ export function TierDetailScreen() {
       .filter((entry) => entry.tier === tier)
       .sort((a, b) => a.position - b.position)
       .findIndex((entry) => entry.id === item.id);
-    let index = Math.max(0, Math.min(targetIndex, current.length));
+    let index = targetIndex;
     if (sourceIndex >= 0 && sourceIndex < index) index -= 1;
+    index = Math.max(0, Math.min(index, current.length));
     const ordered = [
       ...current.slice(0, index),
       { ...item, tier, position: index },
