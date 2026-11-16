@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { useLocation } from "react-router-dom";
 
@@ -10,6 +10,8 @@ import { useI18n } from "@/lib/locale-context";
 import { LanguageSwitch } from "@/components/language-switch";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { api } from "@/lib/api";
+import { getPageCache, setPageCache } from "@/lib/page-cache";
 
 import styles from "./app-shell.module.css";
 
@@ -55,6 +57,19 @@ function ContextCreate() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (!getPageCache("collections")) {
+      void api.collections.list()
+        .then((response) => setPageCache("collections", response.collections))
+        .catch(() => {});
+    }
+    if (!getPageCache("tier-lists")) {
+      void api.tierLists.list()
+        .then((response) => setPageCache("tier-lists", response.tier_lists))
+        .catch(() => {});
+    }
+  }, []);
   const controlsInTabs = pathname === "/items" || pathname === "/collections" || pathname === "/feed" || pathname.startsWith("/recommendations") || pathname === "/people" || pathname.startsWith("/collections/") || pathname.startsWith("/tiers") || pathname === "/messages";
   return (
     <>
