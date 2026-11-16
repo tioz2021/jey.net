@@ -57,27 +57,37 @@ export function TierDetailScreen() {
     setData((current) => current ? { ...current, items } : current);
   }
 
-  async function move(item: TierListItem, tier: TierName) {
-    const position = (data?.items ?? []).filter((entry) => entry.tier === tier && entry.id !== item.id).length;
-    setItems((data?.items ?? []).map((entry) => entry.id === item.id ? { ...entry, tier, position } : entry));
+  async function placeInTier(item: Item | TierListItem, tier: TierName, targetIndex: number) {
+    if (!data) return;
+    const current = data.items
+      .filter((entry) => entry.tier === tier && entry.id !== item.id)
+      .sort((a, b) => a.position - b.position);
+    const sourceIndex = data.items
+      .filter((entry) => entry.tier === tier)
+      .sort((a, b) => a.position - b.position)
+      .findIndex((entry) => entry.id === item.id);
+    let index = Math.max(0, Math.min(targetIndex, current.length));
+    if (sourceIndex >= 0 && sourceIndex < index) index -= 1;
+    const ordered = [
+      ...current.slice(0, index),
+      { ...item, tier, position: index },
+      ...current.slice(index),
+    ].map((entry, position) => ({ ...entry, position }));
+    setData({
+      ...data,
+      items: [...data.items.filter((entry) => entry.tier !== tier), ...ordered],
+    });
     try {
-      await api.tierLists.place(id, item.id, tier, position);
+      await Promise.all(
+        ordered.map((entry, position) => api.tierLists.place(id, entry.id, tier, position)),
+      );
     } catch (cause) {
       notifyError(cause);
     }
   }
 
   async function add(item: Item, tier: TierName = poolTier) {
-    try {
-      const position = (data?.items ?? []).filter((entry) => entry.tier === tier).length;
-      await api.tierLists.place(id, item.id, tier, position);
-      setData((current) => current ? {
-        ...current,
-        items: [...current.items, { ...item, tier, position }],
-      } : current);
-    } catch (cause) {
-      notifyError(cause);
-    }
+    await placeInTier(item, tier, Number.MAX_SAFE_INTEGER);
   }
 
   function startDrag(itemId: string) {
@@ -170,12 +180,12 @@ export function TierDetailScreen() {
               onDrop={(event) => {
                 event.preventDefault();
                 dropped.current = true;
+                const target = data.items
+                  .filter((entry) => entry.tier === tier)
+                  .sort((a, b) => a.position - b.position).length;
                 const placed = data.items.find((entry) => entry.id === dragged);
-                if (placed) void move(placed, tier);
-                else {
-                  const item = catalogue.find((entry) => entry.id === dragged);
-                  if (item) void add(item, tier);
-                }
+                const item = placed ?? catalogue.find((entry) => entry.id === dragged);
+                if (item) void placeInTier(item, tier, target);
                 setDragged(null);
               }}
             >
@@ -187,7 +197,18 @@ export function TierDetailScreen() {
                     draggable
                     key={item.id}
                     onDragEnd={finishDrag}
+                    onDragOver={(event) => event.preventDefault()}
                     onDragStart={() => startDrag(item.id)}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      dropped.current = true;
+                      const targetIndex = items.findIndex((entry) => entry.id === item.id);
+                      const placed = data.items.find((entry) => entry.id === dragged);
+                      const source = placed ?? catalogue.find((entry) => entry.id === dragged);
+                      if (source) void placeInTier(source, tier, targetIndex);
+                      setDragged(null);
+                    }}
                     title={item.title}
                   >
                     {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
