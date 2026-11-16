@@ -167,17 +167,28 @@ async fn auto_list_for_kind(
         slug = format!("auto-{kind}-{suffix}");
     }
 
-    sqlx::query_scalar(
+    let inserted: Option<Uuid> = sqlx::query_scalar(
         "insert into tier_lists (user_id, title, slug, visibility, kind, auto)
-         values ($1, $2, $3, 'private', $4, true) returning id",
+         values ($1, $2, $3, 'private', $4, true)
+         on conflict (user_id, kind) where auto do nothing
+         returning id",
     )
     .bind(user_id)
     .bind(format!("Авто: {kind}"))
     .bind(&slug)
     .bind(kind)
-    .fetch_one(pool)
+    .fetch_optional(pool)
     .await
-    .map_err(AppError::internal)
+    .map_err(AppError::internal)?;
+    if let Some(id) = inserted {
+        return Ok(id);
+    }
+    sqlx::query_scalar("select id from tier_lists where user_id = $1 and kind = $2 and auto")
+        .bind(user_id)
+        .bind(kind)
+        .fetch_one(pool)
+        .await
+        .map_err(AppError::internal)
 }
 
 /// Fill missing auto-list rows from the user's rated items.
@@ -539,6 +550,16 @@ pub async fn remove_item(
     Path((id, item_id)): Path<(Uuid, Uuid)>,
 ) -> Result<axum::http::StatusCode, AppError> {
     owned(&state.pool, current.user.id, id).await?;
+    let auto: bool = sqlx::query_scalar("select auto from tier_lists where id = $1")
+        .bind(id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    if auto {
+        return Err(AppError::validation(
+            "automatic tier list items cannot be removed; change the item rating instead",
+        ));
+    }
     sqlx::query("delete from tier_list_items where tier_list_id = $1 and item_id = $2")
         .bind(id)
         .bind(item_id)

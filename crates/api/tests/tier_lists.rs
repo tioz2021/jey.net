@@ -194,6 +194,17 @@ async fn automatic_category_lists_follow_ratings() {
     assert_eq!(tier_of(top), Some(json!("S")));
     assert_eq!(tier_of(mid), Some(json!("C")));
     assert_eq!(tier_of(low), Some(json!("F")));
+    let remove_auto = client
+        .delete(
+            &format!(
+                "/api/v1/tier-lists/{}/items/{low}",
+                movie_list["id"].as_str().unwrap()
+            ),
+            json!({}),
+            &cookie,
+        )
+        .await;
+    assert_eq!(remove_auto.status, 400, "body: {}", remove_auto.body);
 
     let moved = client
         .patch(

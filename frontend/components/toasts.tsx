@@ -16,12 +16,18 @@ import styles from "./toasts.module.css";
 
 export type ToastTone = "error" | "success" | "info";
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: number;
   tone: ToastTone;
   title: string;
   text: string;
   requestId: string | null;
+  action?: ToastAction;
 }
 
 interface ToastContextValue {
@@ -115,6 +121,19 @@ function ToastItem({
       <div className={styles.body}>
         <p className={styles.title}>{toast.title}</p>
         <p className={styles.text}>{toast.text}</p>
+
+        {toast.action ? (
+          <button
+            className={styles.action}
+            onClick={() => {
+              toast.action?.onClick();
+              onDismiss();
+            }}
+            type="button"
+          >
+            {toast.action.label}
+          </button>
+        ) : null}
 
         {toast.requestId ? (
           <p className={styles.meta}>

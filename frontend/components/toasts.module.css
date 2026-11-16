@@ -81,6 +81,22 @@
   text-decoration: underline;
 }
 
+.action {
+  margin-top: var(--space-2);
+  padding: 0;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.action:hover {
+  text-decoration: underline;
+}
+
 .close {
   flex: 0 0 auto;
   padding: 0 var(--space-1);

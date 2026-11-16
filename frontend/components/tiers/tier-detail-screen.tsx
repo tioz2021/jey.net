@@ -38,9 +38,11 @@ export function TierDetailScreen() {
   const [renaming, setRenaming] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [movingItem, setMovingItem] = useState<TierListItem | null>(null);
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
+  const suppressTileClick = useRef(false);
 
   useEffect(() => {
     api.tierLists
@@ -73,10 +75,13 @@ export function TierDetailScreen() {
     if (!data) return;
     const autoRating = data.tier_list.auto ? ratingForTier(tier) : null;
     const previousTier = "tier" in item ? item.tier : null;
+    const previousRating = item.rating;
+    let changedRating: number | null = null;
     if (autoRating !== null && previousTier !== tier && item.rating !== autoRating) {
       try {
         await api.items.update(item.id, { rating: autoRating });
         item = { ...item, rating: autoRating };
+        changedRating = autoRating;
       } catch (cause) {
         notifyError(cause);
         return;
@@ -107,6 +112,27 @@ export function TierDetailScreen() {
       await Promise.all(
         ordered.map((entry, position) => api.tierLists.place(id, entry.id, tier, position)),
       );
+      if (changedRating !== null && previousRating !== null && previousRating !== changedRating) {
+        notify({
+          tone: "info",
+          title: t("tiers.ratingChanged", { rating: changedRating }),
+          text: "",
+          requestId: null,
+          action: {
+            label: t("common.undo"),
+            onClick: () => void undoRating(item.id, previousRating),
+          },
+        });
+      }
+    } catch (cause) {
+      notifyError(cause);
+    }
+  }
+
+  async function undoRating(itemId: string, rating: number) {
+    try {
+      await api.items.update(itemId, { rating });
+      setData(await api.tierLists.detail(id));
     } catch (cause) {
       notifyError(cause);
     }
@@ -118,6 +144,7 @@ export function TierDetailScreen() {
 
   function startDrag(event: React.DragEvent, itemId: string) {
     suppressPoolClick.current = true;
+    suppressTileClick.current = true;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", itemId);
     const blank = new Image();
@@ -159,10 +186,17 @@ export function TierDetailScreen() {
     setDragged(null);
     setDropTarget(null);
     setOverPool(false);
-    window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
+    window.setTimeout(() => {
+      suppressPoolClick.current = false;
+      suppressTileClick.current = false;
+    }, 150);
   }
 
   async function remove(item: TierListItem) {
+    if (data?.tier_list.auto) {
+      notify({ tone: "info", title: t("tiers.autoManaged"), text: "", requestId: null });
+      return;
+    }
     try {
       await api.tierLists.removeItem(id, item.id);
       setItems((data?.items ?? []).filter((entry) => entry.id !== item.id));
@@ -328,6 +362,10 @@ export function TierDetailScreen() {
                             className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
                             draggable
+                            onClick={() => {
+                              if (suppressTileClick.current) return;
+                              setMovingItem(item);
+                            }}
                             onDragEnd={finishDrag}
                             onDragStart={(event) => startDrag(event, item.id)}
                             title={item.title}
@@ -401,6 +439,34 @@ export function TierDetailScreen() {
           {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
         </div>
       </footer>
+
+      <Dialog
+        footer={<Button onClick={() => setMovingItem(null)} size="sm" variant="secondary">{t("common.cancel")}</Button>}
+        onClose={() => setMovingItem(null)}
+        open={movingItem !== null}
+        title={t("tiers.moveTitle")}
+      >
+        <div className={styles.moveDialog}>
+          {movingItem ? <p>{movingItem.title}</p> : null}
+          <div className={styles.moveGrid}>
+            {TIERS.map((tier) => (
+              <button
+                className={`${styles.moveOption} ${styles[`tier${tier}`]}`}
+                key={tier}
+                onClick={() => {
+                  const item = movingItem;
+                  setMovingItem(null);
+                  if (item) void placeInTier(item, tier, data.items.filter((entry) => entry.tier === tier).length);
+                }}
+                type="button"
+              >
+                {tier}
+              </button>
+            ))}
+          </div>
+          {data.tier_list.auto ? <p className={styles.moveHint}>{t("tiers.autoMoveHint")}</p> : null}
+        </div>
+      </Dialog>
 
       <Dialog
         footer={

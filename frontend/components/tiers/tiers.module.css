@@ -283,6 +283,44 @@
   color: var(--color-danger, #dc2626);
 }
 
+.moveDialog {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.moveDialog p {
+  margin: 0;
+}
+
+.moveGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.moveOption {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0;
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.moveOption:hover {
+  filter: brightness(1.08);
+}
+
+.moveHint {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
 .tiers {
   display: grid;
   gap: var(--space-2);
