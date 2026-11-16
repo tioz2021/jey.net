@@ -75,7 +75,10 @@ export function TierDetailScreen() {
     ].map((entry, position) => ({ ...entry, position }));
     setData({
       ...data,
-      items: [...data.items.filter((entry) => entry.tier !== tier), ...ordered],
+      items: [
+        ...data.items.filter((entry) => entry.tier !== tier && entry.id !== item.id),
+        ...ordered,
+      ],
     });
     try {
       await Promise.all(
