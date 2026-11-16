@@ -578,7 +578,14 @@ export function ChatThreadScreen() {
       </form>
 
       {menu ? (
-        <div className={styles.menuBackdrop} onClick={() => setMenu(null)} onContextMenu={(event) => event.preventDefault()}>
+        <div
+          className={styles.menuBackdrop}
+          onClick={() => setMenu(null)}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            setMenu(null);
+          }}
+        >
           <div
             className={styles.contextMenu}
             onClick={(event) => event.stopPropagation()}
