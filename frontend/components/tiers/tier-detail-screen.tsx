@@ -43,6 +43,7 @@ export function TierDetailScreen() {
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
   const suppressTileClick = useRef(false);
+  const dropFrame = useRef<number | null>(null);
 
   useEffect(() => {
     api.tierLists
@@ -147,9 +148,24 @@ export function TierDetailScreen() {
     suppressTileClick.current = true;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", itemId);
-    const blank = new Image();
-    blank.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
-    event.dataTransfer.setDragImage(blank, 0, 0);
+    const source = event.currentTarget as HTMLElement;
+    const rect = source.getBoundingClientRect();
+    const ghost = source.cloneNode(true) as HTMLElement;
+    ghost.style.cssText = [
+      "position:fixed",
+      "top:-1000px",
+      "left:-1000px",
+      `width:${rect.width}px`,
+      `height:${rect.height}px`,
+      "opacity:.95",
+      "pointer-events:none",
+      "transform:rotate(2deg)",
+      "box-shadow:0 10px 28px rgb(0 0 0 / 22%)",
+      "border-radius:8px",
+    ].join(";");
+    document.body.appendChild(ghost);
+    event.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2);
+    window.setTimeout(() => ghost.remove(), 0);
     setDropTarget(null);
     setDragged(itemId);
   }
@@ -167,22 +183,35 @@ export function TierDetailScreen() {
   }
 
   function updateDropTarget(event: React.DragEvent, tier: TierName) {
-    const tiles = Array.from(
-      event.currentTarget.querySelectorAll<HTMLElement>("[data-tier-tile]"),
-    );
-    let index = 0;
-    for (const tile of tiles) {
-      const rect = tile.getBoundingClientRect();
-      if (event.clientX > rect.left + rect.width / 2) index += 1;
-    }
-    setDropTarget({ tier, index });
+    const row = event.currentTarget as HTMLElement;
+    const x = event.clientX;
+    const y = event.clientY;
+    if (dropFrame.current !== null) return;
+    dropFrame.current = window.requestAnimationFrame(() => {
+      dropFrame.current = null;
+      const tiles = Array.from(row.querySelectorAll<HTMLElement>("[data-tier-tile]"));
+      let index = 0;
+      for (const tile of tiles) {
+        const rect = tile.getBoundingClientRect();
+        if (x > rect.left + rect.width / 2) index += 1;
+      }
+      setDropTarget((previous) =>
+        previous?.tier === tier && previous.index === index
+          ? previous
+          : { tier, index },
+      );
 
-    const edge = 72;
-    if (event.clientY < edge) window.scrollBy({ top: -12 });
-    else if (event.clientY > window.innerHeight - edge) window.scrollBy({ top: 12 });
+      const edge = 72;
+      if (y < edge) window.scrollBy({ top: -12 });
+      else if (y > window.innerHeight - edge) window.scrollBy({ top: 12 });
+    });
   }
 
   function finishDrag() {
+    if (dropFrame.current !== null) {
+      window.cancelAnimationFrame(dropFrame.current);
+      dropFrame.current = null;
+    }
     setDragged(null);
     setDropTarget(null);
     setOverPool(false);
@@ -320,6 +349,10 @@ export function TierDetailScreen() {
               key={tier}
               onDragLeave={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                  if (dropFrame.current !== null) {
+                    window.cancelAnimationFrame(dropFrame.current);
+                    dropFrame.current = null;
+                  }
                   setDropTarget(null);
                 }
               }}
@@ -329,9 +362,7 @@ export function TierDetailScreen() {
               }}
               onDrop={(event) => {
                 event.preventDefault();
-                const target = dropTarget?.tier === tier
-                  ? dropTarget.index
-                  : getDropIndex(event, tier);
+                const target = getDropIndex(event, tier);
                 const placed = data.items.find((entry) => entry.id === dragged);
                 const item = placed ?? catalogue.find((entry) => entry.id === dragged);
                 if (item && dragged) void placeInTier(item, tier, target);

@@ -333,11 +333,14 @@
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
   gap: var(--space-2);
-  min-height: 76px;
+  min-height: calc(var(--tier-tile-height) + 2 * var(--space-2));
   padding: var(--space-2);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .tierLabel {
