@@ -11,6 +11,7 @@ import { Badge, Button, Card, Dialog, Input } from "@/components/ui";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import { api } from "@/lib/api";
+import { getPageCache, setPageCache } from "@/lib/page-cache";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
 import type { TierList, TierListKind } from "@/lib/types";
@@ -19,8 +20,8 @@ import styles from "./tiers.module.css";
 
 export function TierListsScreen() {
   const { t, date } = useI18n();
-  const [lists, setLists] = useState<TierList[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lists, setLists] = useState<TierList[]>(() => getPageCache<TierList[]>("tier-lists") ?? []);
+  const [loading, setLoading] = useState(() => getPageCache<TierList[]>("tier-lists") === undefined);
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<"private" | "public">("private");
@@ -32,11 +33,14 @@ export function TierListsScreen() {
   const [pendingDelete, setPendingDelete] = useState<TierList | null>(null);
 
   function load() {
-    setLoading(true);
+    if (!getPageCache<TierList[]>("tier-lists")) setLoading(true);
     setError(false);
     api.tierLists
       .list()
-      .then((response) => setLists(response.tier_lists))
+      .then((response) => {
+        setLists(response.tier_lists);
+        setPageCache("tier-lists", response.tier_lists);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }

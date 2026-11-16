@@ -7,6 +7,7 @@ import { Button, Dialog, Input } from "@/components/ui";
 import { RowsSkeleton } from "@/components/skeletons";
 import { IconCollection, IconGlobe, IconLock, IconTrash } from "@/components/icons";
 import { api } from "@/lib/api";
+import { getPageCache, setPageCache } from "@/lib/page-cache";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
 
@@ -15,20 +16,23 @@ import type { ViewMode } from "@/components/view-switch";
 
 export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
   const { t } = useI18n();
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<Collection[]>(() => getPageCache<Collection[]>("collections") ?? []);
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [pendingDelete, setPendingDelete] = useState<Collection | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getPageCache<Collection[]>("collections") === undefined);
 
   function load() {
-    setLoading(true);
+    if (!getPageCache<Collection[]>("collections")) setLoading(true);
     api.collections
       .list()
-      .then((response) => setCollections(response.collections))
+      .then((response) => {
+        setCollections(response.collections);
+        setPageCache("collections", response.collections);
+      })
       .catch(() => setError(t("collections.loadError")))
       .finally(() => setLoading(false));
   }

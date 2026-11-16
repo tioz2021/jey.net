@@ -16,24 +16,27 @@ import { KindChips } from "@/components/items/kind-chips";
 import { ActiveFilterBar } from "@/components/items/active-filter-bar";
 import { ViewSwitch } from "@/components/view-switch";
 import { api } from "@/lib/api";
+import { getPageCache, setPageCache } from "@/lib/page-cache";
 
 export function ItemsScreen() {
   const i18n = useI18n();
   const { t } = i18n;
   const source = useCatalogueSource();
   const { params, update } = useItemsQuery();
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [view, setView] = useState<"list" | "grid">("grid");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [covers, setCovers] = useState<Record<string, string>>({});
-  const [refreshTick, setRefreshTick] = useState(0);
   const kind = (params.get("kind") as ItemKind | null) ?? undefined;
   const status = (params.get("status") as ItemStatus | null) ?? undefined;
   const query = params.get("q") ?? "";
   const sort = (params.get("sort") as Sort | null) ?? undefined;
+  const cacheKey = `items:${kind ?? ""}:${status ?? ""}:${query}:${sort ?? ""}`;
+  const coversKey = `${cacheKey}:covers`;
+  const [items, setItems] = useState<Item[]>(() => getPageCache<Item[]>(cacheKey) ?? []);
+  const [loading, setLoading] = useState(() => getPageCache<Item[]>(cacheKey) === undefined);
+  const [error, setError] = useState("");
+  const [view, setView] = useState<"list" | "grid">("grid");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [covers, setCovers] = useState<Record<string, string>>(() => getPageCache<Record<string, string>>(coversKey) ?? {});
+  const [refreshTick, setRefreshTick] = useState(0);
   const hasExtraFilters = ["q", "status", "month"].some((key) => params.has(key))
     || (params.has("sort") && params.get("sort") !== "created_desc");
 
@@ -56,11 +59,20 @@ export function ItemsScreen() {
   }, []);
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const cached = getPageCache<Item[]>(cacheKey);
+    if (cached) {
+      setItems(cached);
+      setLoading(false);
+      setCovers(getPageCache<Record<string, string>>(coversKey) ?? {});
+    } else {
+      setItems([]);
+      setLoading(true);
+    }
     source.list({ kind, status, q: query || undefined, sort, limit: 100 })
       .then(async (response) => {
         if (cancelled) return;
         setItems(response.items);
+        setPageCache(cacheKey, response.items);
         if (source.coverData) {
           const loaded: Record<string, string> = {};
           await Promise.all(response.items.map(async (item) => {
@@ -68,20 +80,27 @@ export function ItemsScreen() {
             const data = await source.coverData?.(item.cover_key);
             if (data) loaded[item.cover_key] = data;
           }));
-          if (!cancelled) setCovers(loaded);
+          if (!cancelled) {
+            setCovers(loaded);
+            setPageCache(coversKey, loaded);
+          }
         }
       })
       .catch((cause) => { if (!cancelled) setError(describeError(cause, i18n).text); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [kind, status, query, sort, source, refreshTick]);
+  }, [cacheKey, coversKey, kind, status, query, sort, source, refreshTick]);
 
   async function trashSelected() {
     if (selected.size === 0 || !window.confirm(`Отправить в корзину: ${selected.size}?`)) return;
     setLoading(true);
     try {
       await Promise.all([...selected].map((id) => api.items.remove(id)));
-      setItems((current) => current.filter((item) => !selected.has(item.id)));
+      setItems((current) => {
+        const next = current.filter((item) => !selected.has(item.id));
+        setPageCache(cacheKey, next);
+        return next;
+      });
       setSelected(new Set());
       setSelectionMode(false);
       window.dispatchEvent(new Event("jey:item-refreshed"));
