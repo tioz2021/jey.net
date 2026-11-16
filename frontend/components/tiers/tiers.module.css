@@ -204,6 +204,23 @@
   cursor: grab;
 }
 
+.dropGap {
+  flex: none;
+  width: 72px;
+  height: 96px;
+  background: var(--color-accent-soft);
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-md);
+  animation: drop-gap-in 120ms var(--ease-out);
+}
+
+@keyframes drop-gap-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
 .tierItem:active {
   cursor: grabbing;
 }

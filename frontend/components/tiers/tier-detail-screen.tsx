@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { NotebookTabs } from "@/components/notebook-tabs";
@@ -33,6 +33,7 @@ export function TierDetailScreen() {
   const [catalogue, setCatalogue] = useState<Item[]>([]);
   const [poolTier, setPoolTier] = useState<TierName>("S");
   const [dragged, setDragged] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
   const dropped = useRef(false);
 
   useEffect(() => {
@@ -95,7 +96,20 @@ export function TierDetailScreen() {
 
   function startDrag(itemId: string) {
     dropped.current = false;
+    setDropTarget(null);
     setDragged(itemId);
+  }
+
+  function updateDropTarget(event: React.DragEvent, tier: TierName) {
+    const tiles = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>("[data-tier-tile]"),
+    );
+    let index = 0;
+    for (const tile of tiles) {
+      const rect = tile.getBoundingClientRect();
+      if (event.clientX > rect.left + rect.width / 2) index += 1;
+    }
+    setDropTarget({ tier, index });
   }
 
   function finishDrag() {
@@ -104,6 +118,7 @@ export function TierDetailScreen() {
       if (placed) void remove(placed);
     }
     setDragged(null);
+    setDropTarget(null);
   }
 
   async function remove(item: TierListItem) {
@@ -179,44 +194,55 @@ export function TierDetailScreen() {
             <section
               className={styles.tierRow}
               key={tier}
-              onDragOver={(event) => event.preventDefault()}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                  setDropTarget(null);
+                }
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                updateDropTarget(event, tier);
+              }}
               onDrop={(event) => {
                 event.preventDefault();
                 dropped.current = true;
-                const target = data.items
-                  .filter((entry) => entry.tier === tier)
-                  .sort((a, b) => a.position - b.position).length;
+                const target = dropTarget?.tier === tier
+                  ? dropTarget.index
+                  : data.items.filter((entry) => entry.tier === tier).length;
                 const placed = data.items.find((entry) => entry.id === dragged);
                 const item = placed ?? catalogue.find((entry) => entry.id === dragged);
                 if (item) void placeInTier(item, tier, target);
                 setDragged(null);
+                setDropTarget(null);
               }}
             >
               <div className={`${styles.tierLabel} ${styles[`tier${tier}`]}`}>{tier}</div>
               <div className={styles.tierItems}>
-                {items.map((item) => (
-                  <div
-                    className={styles.tierItem}
-                    draggable
-                    key={item.id}
-                    onDragEnd={finishDrag}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDragStart={() => startDrag(item.id)}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      dropped.current = true;
-                      const targetIndex = items.findIndex((entry) => entry.id === item.id);
-                      const placed = data.items.find((entry) => entry.id === dragged);
-                      const source = placed ?? catalogue.find((entry) => entry.id === dragged);
-                      if (source) void placeInTier(source, tier, targetIndex);
-                      setDragged(null);
-                    }}
-                    title={item.title}
-                  >
-                    {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
-                  </div>
-                ))}
+                {(() => {
+                  const sourceIndex = items.findIndex((entry) => entry.id === dragged);
+                  let gapIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
+                  if (gapIndex >= 0 && sourceIndex >= 0 && sourceIndex < gapIndex) gapIndex -= 1;
+                  return (
+                    <>
+                      {items.map((item, index) => (
+                        <Fragment key={item.id}>
+                          {gapIndex === index ? <span className={styles.dropGap} /> : null}
+                          <div
+                            className={styles.tierItem}
+                            data-tier-tile
+                            draggable
+                            onDragEnd={finishDrag}
+                            onDragStart={() => startDrag(item.id)}
+                            title={item.title}
+                          >
+                            {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
+                          </div>
+                        </Fragment>
+                      ))}
+                      {gapIndex === items.length ? <span className={styles.dropGap} /> : null}
+                    </>
+                  );
+                })()}
 
               </div>
             </section>
@@ -246,6 +272,7 @@ export function TierDetailScreen() {
             const placed = data.items.find((entry) => entry.id === dragged);
             if (placed) void remove(placed);
             setDragged(null);
+            setDropTarget(null);
           }}
         >
           {available.map((item) => (
