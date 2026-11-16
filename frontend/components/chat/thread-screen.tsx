@@ -21,7 +21,20 @@ import styles from "./thread.module.css";
 
 type PendingMessage = ChatMessage & { pending?: boolean; failed?: boolean };
 
-const REACTION_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🔥", "🎉", "🙏"];
+const REACTION_EMOJIS = [
+  "❤️",
+  "👍",
+  "😂",
+  "😮",
+  "😢",
+  "🔥",
+  "🎉",
+  "🙏",
+  "👎",
+  "💩",
+  "🤮",
+  "😡",
+];
 
 function messageKey(message: ChatMessage) {
   // The optimistic copy and the server copy share a client_id; prefer it so
