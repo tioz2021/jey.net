@@ -221,6 +221,16 @@
   }
 }
 
+.dragging {
+  opacity: 0.35;
+}
+
+.poolOver {
+  outline: 2px dashed var(--color-accent);
+  outline-offset: 4px;
+  background: var(--color-accent-soft);
+}
+
 .tierItem:active {
   cursor: grabbing;
 }

@@ -34,7 +34,10 @@ export function TierDetailScreen() {
   const [poolTier, setPoolTier] = useState<TierName>("S");
   const [dragged, setDragged] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
+  const [overPool, setOverPool] = useState(false);
   const dropped = useRef(false);
+  const canceled = useRef(false);
+  const suppressPoolClick = useRef(false);
 
   useEffect(() => {
     api.tierLists
@@ -47,6 +50,14 @@ export function TierDetailScreen() {
   useEffect(() => {
     void source.list({ limit: 100 }).then((response) => setCatalogue(response.items));
   }, [source]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && dragged) canceled.current = true;
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dragged]);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const available = catalogue.filter((item) =>
@@ -94,10 +105,26 @@ export function TierDetailScreen() {
     await placeInTier(item, tier, Number.MAX_SAFE_INTEGER);
   }
 
-  function startDrag(itemId: string) {
+  function startDrag(event: React.DragEvent, itemId: string) {
     dropped.current = false;
+    canceled.current = false;
+    suppressPoolClick.current = true;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", itemId);
     setDropTarget(null);
     setDragged(itemId);
+  }
+
+  function getDropIndex(event: React.DragEvent, tier: TierName): number {
+    const row = event.currentTarget.closest<HTMLElement>(`[data-tier-row="${tier}"]`);
+    if (!row) return 0;
+    const tiles = Array.from(row.querySelectorAll<HTMLElement>("[data-tier-tile]"));
+    let index = 0;
+    for (const tile of tiles) {
+      const rect = tile.getBoundingClientRect();
+      if (event.clientX > rect.left + rect.width / 2) index += 1;
+    }
+    return index;
   }
 
   function updateDropTarget(event: React.DragEvent, tier: TierName) {
@@ -113,12 +140,14 @@ export function TierDetailScreen() {
   }
 
   function finishDrag() {
-    if (!dropped.current) {
+    if (!dropped.current && !canceled.current) {
       const placed = data?.items.find((entry) => entry.id === dragged);
       if (placed) void remove(placed);
     }
     setDragged(null);
     setDropTarget(null);
+    setOverPool(false);
+    window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
   }
 
   async function remove(item: TierListItem) {
@@ -193,6 +222,7 @@ export function TierDetailScreen() {
           return (
             <section
               className={styles.tierRow}
+              data-tier-row={tier}
               key={tier}
               onDragLeave={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget as Node)) {
@@ -208,12 +238,14 @@ export function TierDetailScreen() {
                 dropped.current = true;
                 const target = dropTarget?.tier === tier
                   ? dropTarget.index
-                  : data.items.filter((entry) => entry.tier === tier).length;
+                  : getDropIndex(event, tier);
                 const placed = data.items.find((entry) => entry.id === dragged);
                 const item = placed ?? catalogue.find((entry) => entry.id === dragged);
-                if (item) void placeInTier(item, tier, target);
+                if (item && dragged) void placeInTier(item, tier, target);
                 setDragged(null);
                 setDropTarget(null);
+                setOverPool(false);
+                window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
               }}
             >
               <div className={`${styles.tierLabel} ${styles[`tier${tier}`]}`}>{tier}</div>
@@ -228,14 +260,14 @@ export function TierDetailScreen() {
                         <Fragment key={item.id}>
                           {gapIndex === index ? <span className={styles.dropGap} /> : null}
                           <div
-                            className={styles.tierItem}
+                            className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
                             draggable
                             onDragEnd={finishDrag}
-                            onDragStart={() => startDrag(item.id)}
+                            onDragStart={(event) => startDrag(event, item.id)}
                             title={item.title}
                           >
-                            {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
+                            {item.cover_key ? <img alt="" draggable={false} src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
                           </div>
                         </Fragment>
                       ))}
@@ -264,8 +296,12 @@ export function TierDetailScreen() {
           </Select>
         </div>
         <div
-          className={styles.poolItems}
-          onDragOver={(event) => event.preventDefault()}
+          className={`${styles.poolItems} ${overPool ? styles.poolOver : ""}`}
+          onDragLeave={() => setOverPool(false)}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setOverPool(true);
+          }}
           onDrop={(event) => {
             event.preventDefault();
             dropped.current = true;
@@ -273,6 +309,8 @@ export function TierDetailScreen() {
             if (placed) void remove(placed);
             setDragged(null);
             setDropTarget(null);
+            setOverPool(false);
+            window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
           }}
         >
           {available.map((item) => (
@@ -280,13 +318,16 @@ export function TierDetailScreen() {
               className={styles.poolItem}
               draggable
               key={item.id}
-              onClick={() => void add(item)}
+              onClick={() => {
+                if (suppressPoolClick.current) return;
+                void add(item);
+              }}
               onDragEnd={finishDrag}
-              onDragStart={() => startDrag(item.id)}
+              onDragStart={(event) => startDrag(event, item.id)}
               title={`${item.title} → ${poolTier}`}
               type="button"
             >
-              {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span>{item.title.slice(0, 1)}</span>}
+              {item.cover_key ? <img alt="" draggable={false} src={mediaUrl(item.cover_key)} /> : <span>{item.title.slice(0, 1)}</span>}
             </button>
           ))}
           {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
