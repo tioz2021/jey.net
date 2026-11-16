@@ -142,8 +142,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 48px;
-  height: 64px;
+  width: 72px;
+  height: 96px;
   padding: 0;
   overflow: hidden;
   color: var(--color-text-muted);
@@ -245,6 +245,16 @@
 }
 
 @media (width <= 600px) {
+  .tierItem {
+    width: 60px;
+    height: 80px;
+  }
+
+  .poolItem {
+    width: 68px;
+    height: 90px;
+  }
+
   .detailHead {
     flex-wrap: wrap;
   }
@@ -299,7 +309,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  min-height: 68px;
+  min-height: 108px;
   overflow-x: auto;
 }
 
@@ -307,8 +317,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 54px;
-  height: 72px;
+  width: 81px;
+  height: 108px;
   padding: 0;
   overflow: hidden;
   color: var(--color-text-muted);
