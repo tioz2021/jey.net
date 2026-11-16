@@ -47,5 +47,9 @@ pub async fn update_item(
         .await?
         .ok_or_else(|| AppError::not_found("item not found"))?;
 
+    if existing.rating != updated.rating || existing.kind != updated.kind {
+        crate::tier_lists::sync_auto_item(&state.pool, current.user.id, id).await?;
+    }
+
     Ok(Json(json!({ "item": ItemView::from(updated) })))
 }

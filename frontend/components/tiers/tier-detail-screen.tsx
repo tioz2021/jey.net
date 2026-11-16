@@ -186,7 +186,8 @@ export function TierDetailScreen() {
       <NotebookTabs />
       <header className={styles.detailHead}>
         <div>
-          <h1>{data.tier_list.title}</h1>
+          <h1>{data.tier_list.auto ? t(KIND_PLURAL_KEYS[data.tier_list.kind as Exclude<typeof data.tier_list.kind, "all">]) : data.tier_list.title}</h1>
+          {data.tier_list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
           <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
             {data.tier_list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
           </Badge>

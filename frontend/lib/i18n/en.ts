@@ -101,6 +101,7 @@ export const en = {
   "tiers.title": "Tier lists",
   "tiers.new": "New tier list",
   "tiers.name": "Title",
+  "tiers.auto": "Auto",
   "tiers.pool": "Record pool",
   "tiers.dropToRemove": "Drop here to remove from the tier list",
   "tiers.poolHint": "Drag a cover into a tier or click to add it to the selected tier.",

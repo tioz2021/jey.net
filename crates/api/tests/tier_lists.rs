@@ -129,3 +129,110 @@ async fn tier_lists_are_private_until_published_and_hide_private_items() {
     alice.cleanup(&alice_email).await;
     bob.cleanup(&bob_email).await;
 }
+
+#[tokio::test]
+async fn automatic_category_lists_follow_ratings() {
+    let (client, email, cookie, _) = account("Auto Tier").await;
+
+    async fn rated(client: &TestClient, cookie: &str, kind: &str, title: &str, rating: u8) -> Uuid {
+        let response = client
+            .post_with_cookie(
+                "/api/v1/items",
+                json!({ "kind": kind, "title": title, "status": "done", "rating": rating }),
+                cookie,
+            )
+            .await;
+        assert_eq!(response.status, 201, "body: {}", response.body);
+        response.body["item"]["id"]
+            .as_str()
+            .unwrap()
+            .parse()
+            .unwrap()
+    }
+
+    let top = rated(&client, &cookie, "movie", "Auto top", 10).await;
+    let mid = rated(&client, &cookie, "movie", "Auto mid", 5).await;
+    let low = rated(&client, &cookie, "movie", "Auto low", 1).await;
+    let book = rated(&client, &cookie, "book", "Auto book", 10).await;
+
+    let lists = client.get("/api/v1/tier-lists", Some(&cookie)).await;
+    assert_eq!(lists.status, 200, "body: {}", lists.body);
+    let all = lists.body["tier_lists"].as_array().unwrap();
+    let movie_list = all
+        .iter()
+        .find(|list| list["auto"] == true && list["kind"] == "movie")
+        .unwrap();
+    let book_list = all
+        .iter()
+        .find(|list| list["auto"] == true && list["kind"] == "book")
+        .unwrap();
+    assert_ne!(movie_list["id"], book_list["id"]);
+
+    let detail = client
+        .get(
+            &format!("/api/v1/tier-lists/{}", movie_list["id"].as_str().unwrap()),
+            Some(&cookie),
+        )
+        .await;
+    assert_eq!(detail.status, 200, "body: {}", detail.body);
+    let items = detail.body["items"].as_array().unwrap();
+    assert_eq!(items.len(), 3);
+    let tier_of = |id: Uuid| {
+        items
+            .iter()
+            .find(|item| item["id"] == id.to_string())
+            .map(|item| item["tier"].clone())
+    };
+    assert_eq!(tier_of(top), Some(json!("S")));
+    assert_eq!(tier_of(mid), Some(json!("C")));
+    assert_eq!(tier_of(low), Some(json!("F")));
+
+    let moved = client
+        .patch(
+            &format!("/api/v1/items/{top}"),
+            json!({ "rating": 2 }),
+            &cookie,
+        )
+        .await;
+    assert_eq!(moved.status, 200, "body: {}", moved.body);
+    let detail = client
+        .get(
+            &format!("/api/v1/tier-lists/{}", movie_list["id"].as_str().unwrap()),
+            Some(&cookie),
+        )
+        .await;
+    let tier = detail.body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["id"] == top.to_string())
+        .map(|item| item["tier"].clone());
+    assert_eq!(tier, Some(json!("E")));
+
+    let deleted = client
+        .delete(&format!("/api/v1/items/{low}"), json!({}), &cookie)
+        .await;
+    assert_eq!(deleted.status, 204, "body: {}", deleted.body);
+    let detail = client
+        .get(
+            &format!("/api/v1/tier-lists/{}", movie_list["id"].as_str().unwrap()),
+            Some(&cookie),
+        )
+        .await;
+    assert!(
+        detail.body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| item["id"] != low.to_string())
+    );
+    assert!(
+        detail.body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["id"] != book.to_string())
+    );
+
+    client.cleanup(&email).await;
+}

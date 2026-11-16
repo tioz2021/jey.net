@@ -240,6 +240,7 @@ export interface TierList {
   title: string;
   slug: string;
   kind: TierListKind;
+  auto: boolean;
   visibility: "private" | "public";
   created_at: string;
   updated_at: string;

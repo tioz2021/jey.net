@@ -120,10 +120,190 @@ async fn slug_for(pool: &sqlx::PgPool, user_id: Uuid, title: &str) -> Result<Str
     Err(AppError::conflict("could not allocate tier list slug"))
 }
 
+fn auto_tier(rating: i16) -> &'static str {
+    match rating {
+        9..=10 => "S",
+        8 => "A",
+        6..=7 => "B",
+        4..=5 => "C",
+        3 => "D",
+        2 => "E",
+        _ => "F",
+    }
+}
+
+async fn auto_list_for_kind(
+    pool: &sqlx::PgPool,
+    user_id: Uuid,
+    kind: &str,
+) -> Result<Uuid, AppError> {
+    if let Some(id) = sqlx::query_scalar::<_, Uuid>(
+        "select id from tier_lists where user_id = $1 and kind = $2 and auto",
+    )
+    .bind(user_id)
+    .bind(kind)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)?
+    {
+        return Ok(id);
+    }
+
+    let mut slug = format!("auto-{kind}");
+    let mut suffix = 0;
+    loop {
+        let taken: bool = sqlx::query_scalar(
+            "select exists(select 1 from tier_lists where user_id = $1 and slug = $2)",
+        )
+        .bind(user_id)
+        .bind(&slug)
+        .fetch_one(pool)
+        .await
+        .map_err(AppError::internal)?;
+        if !taken {
+            break;
+        }
+        suffix += 1;
+        slug = format!("auto-{kind}-{suffix}");
+    }
+
+    sqlx::query_scalar(
+        "insert into tier_lists (user_id, title, slug, visibility, kind, auto)
+         values ($1, $2, $3, 'private', $4, true) returning id",
+    )
+    .bind(user_id)
+    .bind(format!("Авто: {kind}"))
+    .bind(&slug)
+    .bind(kind)
+    .fetch_one(pool)
+    .await
+    .map_err(AppError::internal)
+}
+
+/// Fill missing auto-list rows from the user's rated items.
+pub async fn ensure_auto_lists(pool: &sqlx::PgPool, user_id: Uuid) -> Result<(), AppError> {
+    for kind in ["movie", "tv", "anime", "book", "game", "image", "other"] {
+        let has_rated: bool = sqlx::query_scalar(
+            "select exists(
+                select 1 from items
+                where user_id = $1 and kind = $2 and deleted_at is null
+                  and rating is not null and rating between 1 and 10
+            )",
+        )
+        .bind(user_id)
+        .bind(kind)
+        .fetch_one(pool)
+        .await
+        .map_err(AppError::internal)?;
+        if !has_rated {
+            continue;
+        }
+        let list_id = auto_list_for_kind(pool, user_id, kind).await?;
+        sqlx::query(
+            "delete from tier_list_items ti
+             using items i
+             where ti.tier_list_id = $1 and ti.item_id = i.id
+               and (i.deleted_at is not null or i.rating is null
+                    or i.kind <> $2 or i.rating < 1 or i.rating > 10)",
+        )
+        .bind(list_id)
+        .bind(kind)
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+        sqlx::query(
+            "insert into tier_list_items (tier_list_id, item_id, tier, position)
+             select $1, i.id,
+                    case
+                        when i.rating >= 9 then 'S'
+                        when i.rating = 8 then 'A'
+                        when i.rating >= 6 then 'B'
+                        when i.rating >= 4 then 'C'
+                        when i.rating = 3 then 'D'
+                        when i.rating = 2 then 'E'
+                        else 'F'
+                    end,
+                    row_number() over (order by i.rating desc, i.created_at) - 1
+             from items i
+             where i.user_id = $2 and i.kind = $3 and i.deleted_at is null
+               and i.rating is not null and i.rating between 1 and 10
+               and not exists (
+                   select 1 from tier_list_items ti
+                   where ti.tier_list_id = $1 and ti.item_id = i.id
+               )
+             on conflict do nothing",
+        )
+        .bind(list_id)
+        .bind(user_id)
+        .bind(kind)
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+    }
+    Ok(())
+}
+
+/// Move one item into/out of its automatic category list.
+pub async fn sync_auto_item(
+    pool: &sqlx::PgPool,
+    user_id: Uuid,
+    item_id: Uuid,
+) -> Result<(), AppError> {
+    let row: Option<(String, Option<i16>, bool)> = sqlx::query_as(
+        "select kind, rating, deleted_at is not null from items where id = $1 and user_id = $2",
+    )
+    .bind(item_id)
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::internal)?;
+    let Some((kind, rating, deleted)) = row else {
+        return Ok(());
+    };
+    if deleted || !(1..=10).contains(&rating.unwrap_or(0)) {
+        sqlx::query(
+            "delete from tier_list_items
+             where item_id = $1 and tier_list_id in (
+                 select id from tier_lists where user_id = $2 and auto
+             )",
+        )
+        .bind(item_id)
+        .bind(user_id)
+        .execute(pool)
+        .await
+        .map_err(AppError::internal)?;
+        return Ok(());
+    }
+    let list_id = auto_list_for_kind(pool, user_id, &kind).await?;
+    sqlx::query(
+        "delete from tier_list_items
+         where item_id = $1 and tier_list_id in (
+             select id from tier_lists where user_id = $2 and auto
+         )",
+    )
+    .bind(item_id)
+    .bind(user_id)
+    .execute(pool)
+    .await
+    .map_err(AppError::internal)?;
+    sqlx::query(
+        "insert into tier_list_items (tier_list_id, item_id, tier, position)
+         values ($1, $2, $3, 0)
+         on conflict (tier_list_id, item_id) do update set tier = excluded.tier",
+    )
+    .bind(list_id)
+    .bind(item_id)
+    .bind(auto_tier(rating.unwrap_or(1)))
+    .execute(pool)
+    .await
+    .map_err(AppError::internal)?;
+    Ok(())
+}
+
 async fn list_json(pool: &sqlx::PgPool, id: Uuid) -> Result<Value, AppError> {
     sqlx::query_scalar(
         "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind,
+            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind, 'auto', t.auto,
             'visibility', t.visibility, 'created_at', t.created_at,
             'updated_at', t.updated_at, 'handle', u.handle,
             'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)
@@ -204,7 +384,7 @@ pub async fn list(
 ) -> Result<Json<Value>, AppError> {
     let rows: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind,
+            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind, 'auto', t.auto,
             'visibility', t.visibility, 'created_at', t.created_at,
             'updated_at', t.updated_at,
             'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)

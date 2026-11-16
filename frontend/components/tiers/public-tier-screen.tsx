@@ -7,6 +7,7 @@ import { LoadingScreen } from "@/components/loading-screen";
 import { Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
 import { AppLink } from "@/lib/navigation";
 import { mediaUrl } from "@/lib/media";
 import type { TierListDetail, TierName } from "@/lib/types";
@@ -30,7 +31,7 @@ export function PublicTierScreen() {
 
   return (
     <main className={styles.publicPage}>
-      <PageHeader title={data.tier_list.title} />
+      <PageHeader title={data.tier_list.auto ? t(KIND_PLURAL_KEYS[data.tier_list.kind as Exclude<typeof data.tier_list.kind, "all">]) : data.tier_list.title} />
       <p className={styles.publicBy}>{data.tier_list.handle ? `@${data.tier_list.handle}` : ""}</p>
       <div className={styles.tiers}>
         {TIERS.map((tier) => {

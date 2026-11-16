@@ -40,6 +40,7 @@ pub async fn create_item(
         &new_item,
     )
     .await?;
+    crate::tier_lists::sync_auto_item(&state.pool, current.user.id, item.id).await?;
 
     crate::analytics::record(
         &state.pool,

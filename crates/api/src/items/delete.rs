@@ -28,6 +28,7 @@ pub async fn delete_item(
     if !deleted {
         return Err(AppError::not_found("item not found"));
     }
+    crate::tier_lists::sync_auto_item(&state.pool, current.user.id, id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -78,6 +79,7 @@ pub async fn restore_item(
     let item = repo::get(&state.pool, current.user.id, id)
         .await?
         .ok_or_else(|| AppError::not_found("item not found"))?;
+    crate::tier_lists::sync_auto_item(&state.pool, current.user.id, id).await?;
 
     Ok(Json(json!({ "item": ItemView::from(item) })))
 }
