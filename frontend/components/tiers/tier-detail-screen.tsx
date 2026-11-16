@@ -46,6 +46,7 @@ export function TierDetailScreen() {
   const suppressTileClick = useRef(false);
   const pointerFrame = useRef<number | null>(null);
   const pointerCleanup = useRef<(() => void) | null>(null);
+  const tileCenters = useRef<Record<string, number[]>>({});
   const pointerDrag = useRef<{
     item: Item | TierListItem;
     ghost: HTMLElement;
@@ -172,10 +173,10 @@ export function TierDetailScreen() {
       if (x < rect.left - 24 || x > rect.right + 24) continue;
       const distance = y < rect.top ? rect.top - y : y > rect.bottom ? y - rect.bottom : 0;
       if (distance > 32) continue;
+      const centers = tileCenters.current[row.dataset.tierRow ?? ""] ?? [];
       let index = 0;
-      for (const tile of row.querySelectorAll<HTMLElement>("[data-tier-tile]")) {
-        const tileRect = tile.getBoundingClientRect();
-        if (x > tileRect.left + tileRect.width / 2) index += 1;
+      for (const center of centers) {
+        if (x > center) index += 1;
       }
       if (!nearest || distance < nearest.distance) {
         nearest = { tier: row.dataset.tierRow as TierName, index, distance };
@@ -189,6 +190,7 @@ export function TierDetailScreen() {
     if (state) state.ghost.remove();
     pointerDrag.current = null;
     dropTargetRef.current = null;
+    tileCenters.current = {};
     if (pointerFrame.current !== null) {
       window.cancelAnimationFrame(pointerFrame.current);
       pointerFrame.current = null;
@@ -218,6 +220,16 @@ export function TierDetailScreen() {
       "transform:translate3d(0,0,0) rotate(2deg)",
     ].join(";");
     document.body.appendChild(ghost);
+    tileCenters.current = {};
+    for (const row of document.querySelectorAll<HTMLElement>("[data-tier-row]")) {
+      const tier = row.dataset.tierRow ?? "";
+      tileCenters.current[tier] = Array.from(
+        row.querySelectorAll<HTMLElement>("[data-tier-tile]"),
+      ).map((tile) => {
+        const tileRect = tile.getBoundingClientRect();
+        return tileRect.left + tileRect.width / 2;
+      });
+    }
     const state = {
       item,
       ghost,
