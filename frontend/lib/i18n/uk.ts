@@ -101,6 +101,8 @@ export const uk = {
   "tiers.title": "Тір-листи",
   "tiers.new": "Новий тір-лист",
   "tiers.name": "Назва",
+  "tiers.kind": "Категорія",
+  "tiers.allKinds": "Усі категорії",
   "tiers.visibility": "Видимість",
   "tiers.private": "Особистий",
   "tiers.public": "Публічний",

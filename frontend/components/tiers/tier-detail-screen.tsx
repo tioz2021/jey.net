@@ -11,6 +11,7 @@ import { Button, Card, Dialog, Input, Select, Badge } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
+import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
 import { useAppRouter } from "@/lib/navigation";
 import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
@@ -51,7 +52,11 @@ export function TierDetailScreen() {
   }, [addOpen, source]);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
-  const available = catalogue.filter((item) => !used.has(item.id) && item.title.toLowerCase().includes(query.toLowerCase()));
+  const available = catalogue.filter((item) =>
+    !used.has(item.id) &&
+    (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind) &&
+    item.title.toLowerCase().includes(query.toLowerCase()),
+  );
 
   function setItems(items: TierListItem[]) {
     setData((current) => current ? { ...current, items } : current);
@@ -95,7 +100,7 @@ export function TierDetailScreen() {
   async function setVisibility(visibility: "private" | "public") {
     if (!data) return;
     try {
-      await api.tierLists.update(id, { title: data.tier_list.title, visibility });
+      await api.tierLists.update(id, { title: data.tier_list.title, visibility, kind: data.tier_list.kind });
       setData({ ...data, tier_list: { ...data.tier_list, visibility } });
     } catch (cause) {
       notifyError(cause);
@@ -127,6 +132,9 @@ export function TierDetailScreen() {
           <h1>{data.tier_list.title}</h1>
           <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
             {data.tier_list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
+          </Badge>
+          <Badge tone="neutral">
+            {data.tier_list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[data.tier_list.kind])}
           </Badge>
         </div>
         <div className={styles.detailActions}>

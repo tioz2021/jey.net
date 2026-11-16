@@ -375,7 +375,7 @@ export const collections = {
     request<{ collections: Collection[] }>(
       `/collections/for-item/${encodeURIComponent(itemId)}`,
     ),
-  create: (input: { title: string; visibility?: "private" | "public" }) =>
+  create: (input: { title: string; visibility?: "private" | "public"; kind?: string }) =>
     request<{ id: string; title: string; slug: string }>("/collections", {
       method: "POST",
       body: input,
@@ -494,14 +494,14 @@ export const notifications = {
 
 export const tierLists = {
   list: () => request<{ tier_lists: TierList[] }>("/tier-lists"),
-  create: (input: { title: string; visibility?: "private" | "public" }) =>
-    request<{ id: string; title: string; slug: string; visibility: string }>(
+  create: (input: { title: string; visibility?: "private" | "public"; kind?: string }) =>
+    request<{ id: string; title: string; slug: string; visibility: string; kind: string }>(
       "/tier-lists",
       { method: "POST", body: input },
     ),
   detail: (id: string) =>
     request<TierListDetail>(`/tier-lists/${encodeURIComponent(id)}`),
-  update: (id: string, input: { title: string; visibility: "private" | "public" }) =>
+  update: (id: string, input: { title: string; visibility: "private" | "public"; kind?: string }) =>
     request<{ ok: boolean }>(`/tier-lists/${encodeURIComponent(id)}`, {
       method: "PATCH",
       body: input,

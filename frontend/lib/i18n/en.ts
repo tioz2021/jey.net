@@ -101,6 +101,8 @@ export const en = {
   "tiers.title": "Tier lists",
   "tiers.new": "New tier list",
   "tiers.name": "Title",
+  "tiers.kind": "Category",
+  "tiers.allKinds": "All categories",
   "tiers.visibility": "Visibility",
   "tiers.private": "Private",
   "tiers.public": "Public",

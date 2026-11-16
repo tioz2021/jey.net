@@ -100,6 +100,8 @@ export const ru = {
   "tiers.title": "Тир-листы",
   "tiers.new": "Новый тир-лист",
   "tiers.name": "Название",
+  "tiers.kind": "Категория",
+  "tiers.allKinds": "Все категории",
   "tiers.visibility": "Видимость",
   "tiers.private": "Личный",
   "tiers.public": "Публичный",

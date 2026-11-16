@@ -172,12 +172,14 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 
 | Метод | Путь | Назначение |
 |---|---|---|
-| GET/POST | `/tier-lists` | список/создание |
+| GET/POST | `/tier-lists` | список/создание (`title`, `visibility`, `kind`) |
 | GET/PATCH/DELETE | `/tier-lists/{id}` | детали/изменение/удаление |
 | PUT/DELETE | `/tier-lists/{id}/items/{item_id}` | положить/убрать запись |
 | GET | `/public/users/{id}/tier-lists/{slug}` | публичная страница |
 
-Полосы фиксированы: `S`, `A`, `B`, `C`, `D`. Публичная выдача скрывает
+Полосы фиксированы: `S`, `A`, `B`, `C`, `D`. `kind` — `all` или
+`movie/tv/anime/book/game/image/other`; список с категорией принимает только
+записи этой категории. Публичная выдача скрывает
 записи с `public_hidden`, не-`done` и удалённые.
 
 ### Чат

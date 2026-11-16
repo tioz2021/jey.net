@@ -233,10 +233,13 @@ export interface NewItem {
 /** Partial update: absent fields are left untouched by the server. */
 export type ItemPatch = Partial<NewItem>;
 
+export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
+
 export interface TierList {
   id: string;
   title: string;
   slug: string;
+  kind: TierListKind;
   visibility: "private" | "public";
   created_at: string;
   updated_at: string;

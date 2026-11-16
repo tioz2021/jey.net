@@ -49,11 +49,19 @@ async fn tier_lists_are_private_until_published_and_hide_private_items() {
     let (bob, bob_email, bob_cookie, _) = account("Tier Bob").await;
     let visible = item(&alice, &alice_cookie, "Visible tier item", false).await;
     let hidden = item(&alice, &alice_cookie, "Hidden tier item", true).await;
+    let book = alice
+        .post_with_cookie(
+            "/api/v1/items",
+            json!({ "kind": "book", "title": "Book outside category", "status": "done" }),
+            &alice_cookie,
+        )
+        .await;
+    let book_id = book.body["item"]["id"].as_str().unwrap();
 
     let created = alice
         .post_with_cookie(
             "/api/v1/tier-lists",
-            json!({ "title": "Лучшее", "visibility": "public" }),
+            json!({ "title": "Лучшее", "visibility": "public", "kind": "movie" }),
             &alice_cookie,
         )
         .await;
@@ -77,6 +85,14 @@ async fn tier_lists_are_private_until_published_and_hide_private_items() {
         )
         .await;
     assert_eq!(second.status, 200, "body: {}", second.body);
+    let wrong_kind = alice
+        .put(
+            &format!("/api/v1/tier-lists/{id}/items/{book_id}"),
+            json!({ "tier": "B", "position": 0 }),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(wrong_kind.status, 400, "body: {}", wrong_kind.body);
 
     let owner = alice
         .get(&format!("/api/v1/tier-lists/{id}"), Some(&alice_cookie))
@@ -97,7 +113,7 @@ async fn tier_lists_are_private_until_published_and_hide_private_items() {
     let private = alice
         .patch(
             &format!("/api/v1/tier-lists/{id}"),
-            json!({ "title": "Лучшее", "visibility": "private" }),
+            json!({ "title": "Лучшее", "visibility": "private", "kind": "movie" }),
             &alice_cookie,
         )
         .await;

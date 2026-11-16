@@ -13,12 +13,17 @@ use crate::items::repo;
 use crate::items::view::ItemView;
 
 const TIERS: [&str; 5] = ["S", "A", "B", "C", "D"];
+const KINDS: [&str; 8] = [
+    "all", "movie", "tv", "anime", "book", "game", "image", "other",
+];
 
 #[derive(Debug, Deserialize)]
 pub struct TierListInput {
     pub title: String,
     #[serde(default)]
     pub visibility: Option<String>,
+    #[serde(default)]
+    pub kind: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,6 +42,15 @@ fn title(raw: &str) -> Result<String, AppError> {
         ));
     }
     Ok(title.to_owned())
+}
+
+fn kind(raw: Option<&str>) -> Result<&str, AppError> {
+    let value = raw.unwrap_or("all");
+    KINDS
+        .iter()
+        .copied()
+        .find(|kind| *kind == value)
+        .ok_or_else(|| AppError::validation_field("kind", "unknown catalogue kind"))
 }
 
 fn visibility(raw: Option<&str>) -> Result<&str, AppError> {
@@ -109,7 +123,7 @@ async fn slug_for(pool: &sqlx::PgPool, user_id: Uuid, title: &str) -> Result<Str
 async fn list_json(pool: &sqlx::PgPool, id: Uuid) -> Result<Value, AppError> {
     sqlx::query_scalar(
         "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug,
+            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind,
             'visibility', t.visibility, 'created_at', t.created_at,
             'updated_at', t.updated_at, 'handle', u.handle,
             'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)
@@ -159,8 +173,10 @@ async fn public_items(
         "select ti.item_id, ti.tier, ti.position
          from tier_list_items ti
          join items i on i.id = ti.item_id
+         join tier_lists tl on tl.id = ti.tier_list_id
          where ti.tier_list_id = $1 and i.deleted_at is null
            and i.status = 'done' and i.public_hidden = false
+           and (tl.kind = 'all' or i.kind = tl.kind)
          order by ti.tier, ti.position, ti.created_at",
     )
     .bind(list_id)
@@ -188,7 +204,7 @@ pub async fn list(
 ) -> Result<Json<Value>, AppError> {
     let rows: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug,
+            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind,
             'visibility', t.visibility, 'created_at', t.created_at,
             'updated_at', t.updated_at,
             'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)
@@ -209,21 +225,25 @@ pub async fn create(
 ) -> Result<(axum::http::StatusCode, Json<Value>), AppError> {
     let title = title(&input.title)?;
     let visible = visibility(input.visibility.as_deref())?;
+    let kind = kind(input.kind.as_deref())?;
     let slug = slug_for(&state.pool, current.user.id, &title).await?;
     let id: Uuid = sqlx::query_scalar(
-        "insert into tier_lists (user_id, title, slug, visibility)
-         values ($1, $2, $3, $4) returning id",
+        "insert into tier_lists (user_id, title, slug, visibility, kind)
+         values ($1, $2, $3, $4, $5) returning id",
     )
     .bind(current.user.id)
     .bind(&title)
     .bind(&slug)
     .bind(visible)
+    .bind(kind)
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
     Ok((
         axum::http::StatusCode::CREATED,
-        Json(json!({ "id": id, "title": title, "slug": slug, "visibility": visible })),
+        Json(
+            json!({ "id": id, "title": title, "slug": slug, "visibility": visible, "kind": kind }),
+        ),
     ))
 }
 
@@ -249,11 +269,13 @@ pub async fn update(
     owned(&state.pool, current.user.id, id).await?;
     let title = title(&input.title)?;
     let visible = visibility(input.visibility.as_deref())?;
-    sqlx::query("update tier_lists set title = $3, visibility = $4, updated_at = now() where id = $1 and user_id = $2")
+    let kind = kind(input.kind.as_deref())?;
+    sqlx::query("update tier_lists set title = $3, visibility = $4, kind = $5, updated_at = now() where id = $1 and user_id = $2")
         .bind(id)
         .bind(current.user.id)
         .bind(title)
         .bind(visible)
+        .bind(kind)
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
@@ -284,9 +306,20 @@ pub async fn place_item(
     Json(input): Json<TierItemInput>,
 ) -> Result<Json<Value>, AppError> {
     owned(&state.pool, current.user.id, id).await?;
-    repo::get(&state.pool, current.user.id, item_id)
+    let item = repo::get(&state.pool, current.user.id, item_id)
         .await?
         .ok_or_else(|| AppError::not_found("item"))?;
+    let list_kind: String = sqlx::query_scalar("select kind from tier_lists where id = $1")
+        .bind(id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    if list_kind != "all" && item.kind.as_str() != list_kind {
+        return Err(AppError::validation_field(
+            "kind",
+            "item kind does not match tier list kind",
+        ));
+    }
     let tier = tier(&input.tier)?;
     let position = input.position.unwrap_or(0);
     sqlx::query(
