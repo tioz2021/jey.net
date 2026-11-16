@@ -127,7 +127,7 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
         <form className={styles.form} onSubmit={(event) => { event.preventDefault(); void create(); }}>
           <Input
             autoFocus
-            label={t("collections.newTitle")}
+            label={t("collections.name")}
             maxLength={80}
             onChange={(event) => setTitle(event.target.value)}
             placeholder={t("collections.newPlaceholder")}
