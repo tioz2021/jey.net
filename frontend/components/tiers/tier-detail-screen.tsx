@@ -378,7 +378,9 @@ export function TierDetailScreen() {
                   const sourceIndex = items.findIndex((entry) => entry.id === dragged);
                   let insertIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
                   if (insertIndex >= 0 && sourceIndex >= 0 && sourceIndex < insertIndex) insertIndex -= 1;
-                  const visible = previewing ? items.filter((entry) => entry.id !== dragged) : items;
+                  const visible = previewing && dropTarget?.tier === tier
+                    ? items.filter((entry) => entry.id !== dragged)
+                    : items;
                   const preview = insertIndex >= 0 ? previewItem : null;
                   return (
                     <>
