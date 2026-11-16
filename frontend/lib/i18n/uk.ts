@@ -99,6 +99,7 @@ export const uk = {
   "share.privateNote": "Посилання відкриється лише для публічного завершеного запису.",
   "nav.tiers": "Тір-листи",
   "tiers.title": "Тір-листи",
+  "tiers.rename": "Перейменувати",
   "tiers.new": "Новий тір-лист",
   "tiers.name": "Назва",
   "tiers.all": "Усі",

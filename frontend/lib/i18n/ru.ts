@@ -98,6 +98,7 @@ export const ru = {
   "share.privateNote": "Ссылка откроется только для публичной завершённой записи.",
   "nav.tiers": "Тир-листы",
   "tiers.title": "Тир-листы",
+  "tiers.rename": "Переименовать",
   "tiers.new": "Новый тир-лист",
   "tiers.name": "Название",
   "tiers.all": "Все",

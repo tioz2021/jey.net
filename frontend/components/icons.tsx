@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   List,
   MessageCircle,
+  Pencil,
   type LucideIcon,
   Rss,
   SlidersHorizontal,
@@ -56,6 +57,7 @@ export const IconFeed = makeIcon(Rss, "IconFeed");
 export const IconCollection = makeIcon(Folder, "IconCollection");
 export const IconGlobe = makeIcon(Globe, "IconGlobe");
 export const IconLock = makeIcon(Lock, "IconLock");
+export const IconPencil = makeIcon(Pencil, "IconPencil");
 export const IconList = makeIcon(List, "IconList");
 export const IconFilm = makeIcon(Film, "IconFilm");
 export const IconTv = makeIcon(Tv, "IconTv");

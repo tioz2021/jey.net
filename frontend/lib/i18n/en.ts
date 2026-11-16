@@ -99,6 +99,7 @@ export const en = {
   "share.privateNote": "The link works only for a public completed record.",
   "nav.tiers": "Tier lists",
   "tiers.title": "Tier lists",
+  "tiers.rename": "Rename",
   "tiers.new": "New tier list",
   "tiers.name": "Title",
   "tiers.all": "All",

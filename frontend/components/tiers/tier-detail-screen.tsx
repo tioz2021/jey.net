@@ -5,8 +5,9 @@ import { useParams } from "react-router-dom";
 
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { LoadingScreen } from "@/components/loading-screen";
+import { IconPencil } from "@/components/icons";
 import { AppLink } from "@/lib/navigation";
-import { Button, Card, Select, Badge } from "@/components/ui";
+import { Badge, Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
@@ -33,6 +34,8 @@ export function TierDetailScreen() {
   const [catalogue, setCatalogue] = useState<Item[]>([]);
   const [poolTier, setPoolTier] = useState<TierName>("S");
   const [dragged, setDragged] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [renameTitle, setRenameTitle] = useState("");
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
@@ -165,6 +168,22 @@ export function TierDetailScreen() {
     }
   }
 
+  async function rename(event: React.FormEvent) {
+    event.preventDefault();
+    if (!data || !renameTitle.trim()) return;
+    try {
+      await api.tierLists.update(id, {
+        title: renameTitle.trim(),
+        visibility: data.tier_list.visibility,
+        kind: data.tier_list.kind,
+      });
+      setData({ ...data, tier_list: { ...data.tier_list, title: renameTitle.trim() } });
+      setRenaming(false);
+    } catch (cause) {
+      notifyError(cause);
+    }
+  }
+
   async function destroy() {
     if (!window.confirm(t("tiers.deleteConfirm"))) return;
     try {
@@ -187,6 +206,17 @@ export function TierDetailScreen() {
       <header className={styles.detailHead}>
         <div>
           <h1>{data.tier_list.auto ? t(KIND_PLURAL_KEYS[data.tier_list.kind as Exclude<typeof data.tier_list.kind, "all">]) : data.tier_list.title}</h1>
+          {!data.tier_list.auto ? (
+            <button
+              aria-label={t("tiers.rename")}
+              className={styles.titleEdit}
+              onClick={() => { setRenameTitle(data.tier_list.title); setRenaming(true); }}
+              title={t("tiers.rename")}
+              type="button"
+            >
+              <IconPencil size={15} />
+            </button>
+          ) : null}
           {data.tier_list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
           <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
             {data.tier_list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
@@ -337,6 +367,18 @@ export function TierDetailScreen() {
           {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
         </div>
       </footer>
+
+      <Dialog
+        footer={<Button onClick={() => setRenaming(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>}
+        onClose={() => setRenaming(false)}
+        open={renaming}
+        title={t("tiers.rename")}
+      >
+        <form className={styles.form} onSubmit={rename}>
+          <Input autoFocus label={t("tiers.name")} maxLength={80} onChange={(event) => setRenameTitle(event.target.value)} required value={renameTitle} />
+          <Button disabled={!renameTitle.trim()} type="submit">{t("common.save")}</Button>
+        </form>
+      </Dialog>
     </main>
   );
 }
