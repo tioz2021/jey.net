@@ -1035,6 +1035,7 @@ export const en = {
   'collections.all': 'All collections',
   'collections.emptySidebar': 'No collections yet',
   'collections.empty': 'Nothing here yet. Add records from their pages.',
+  'collections.name': 'Name',
   'collections.newTitle': 'New collection',
   'collections.newPlaceholder': 'For example, “Watch in 2026”',
   'collections.create': 'Create',

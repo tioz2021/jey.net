@@ -1034,6 +1034,7 @@ export const ru = {
   'collections.all': 'Все коллекции',
   'collections.emptySidebar': 'Пока нет коллекций',
   'collections.empty': 'Здесь пока пусто. Добавьте записи из карточки.',
+  'collections.name': 'Название',
   'collections.newTitle': 'Новая коллекция',
   'collections.newPlaceholder': 'Например, «Посмотреть в 2026»',
   'collections.create': 'Создать',

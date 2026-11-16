@@ -1035,6 +1035,7 @@ export const uk = {
   'collections.all': 'Усі колекції',
   'collections.emptySidebar': 'Колекцій поки немає',
   'collections.empty': 'Тут поки порожньо. Додайте записи з картки.',
+  'collections.name': 'Назва',
   'collections.newTitle': 'Нова колекція',
   'collections.newPlaceholder': 'Наприклад, «Подивитися у 2026»',
   'collections.create': 'Створити',
