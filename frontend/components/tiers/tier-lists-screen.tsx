@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
+import { IconGlobe, IconList, IconLock, IconTrash } from "@/components/icons";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { ListSkeleton } from "@/components/skeletons";
 import { AppLink } from "@/lib/navigation";
 import { Badge, Button, Card, Dialog, Input } from "@/components/ui";
+import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
@@ -24,9 +26,12 @@ export function TierListsScreen() {
   const [kind, setKind] = useState<TierListKind>("all");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [view, setView] = useState<ViewMode>("list");
+  const [filter, setFilter] = useState<"all" | "auto" | "custom">("all");
 
   function load() {
     setLoading(true);
+    setError(false);
     api.tierLists
       .list()
       .then((response) => setLists(response.tier_lists))
@@ -58,31 +63,98 @@ export function TierListsScreen() {
     }
   }
 
+  const visible = lists.filter((list) =>
+    filter === "all" || (filter === "auto" ? list.auto : !list.auto),
+  );
+
+  async function toggleVisibility(list: TierList) {
+    try {
+      await api.tierLists.update(list.id, {
+        title: list.title,
+        visibility: list.visibility === "public" ? "private" : "public",
+        kind: list.kind,
+      });
+      load();
+    } catch {
+      setError(true);
+    }
+  }
+
+  async function destroy(list: TierList) {
+    if (!window.confirm(t("tiers.deleteConfirm"))) return;
+    try {
+      await api.tierLists.remove(list.id);
+      load();
+    } catch {
+      setError(true);
+    }
+  }
+
   return (
     <main>
       <NotebookTabs />
-      <div className={styles.toolbar}>
-        <Button onClick={() => setCreating(true)} size="sm">{t("tiers.create")}</Button>
+      <div className={styles.listToolbar}>
+        <ViewSwitch onChange={setView} value={view} />
+        <div aria-label={t("tiers.filter")} className={styles.filterSwitch} role="group">
+          {(["all", "auto", "custom"] as const).map((value) => (
+            <button
+              aria-pressed={filter === value}
+              className={`${styles.filterOption} ${filter === value ? styles.filterActive : ""}`}
+              key={value}
+              onClick={() => setFilter(value)}
+              type="button"
+            >
+              {value === "all" ? t("tiers.all") : value === "auto" ? t("tiers.autoOnly") : t("tiers.customOnly")}
+            </button>
+          ))}
+        </div>
+        <div className={styles.toolbar}>
+          <Button onClick={() => setCreating(true)} size="sm">{t("tiers.create")}</Button>
+        </div>
       </div>
       {loading ? <Card><ListSkeleton /></Card> : error ? (
         <Card><p className={styles.empty}>{t("error.requestFailed")}</p></Card>
       ) : lists.length === 0 ? (
         <Card><EmptyState text={t("tiers.emptyText")} title={t("tiers.emptyTitle")} /></Card>
+      ) : visible.length === 0 ? (
+        <Card><p className={styles.empty}>{t("tiers.emptyFiltered")}</p></Card>
       ) : (
-        <ul className={styles.lists}>
-          {lists.map((list) => (
-            <li key={list.id}>
-              <AppLink className={styles.listCard} href={`/tiers/${list.id}`}>
-                <span className={styles.listMark}>S</span>
+        <ul className={`${styles.lists} ${view === "grid" ? styles.grid : ""}`}>
+          {visible.map((list) => (
+            <li className={styles.listCard} key={list.id}>
+              <AppLink className={styles.listLink} href={`/tiers/${list.id}`}>
+                <span className={styles.listIcon}><IconList size={18} /></span>
                 <span className={styles.listBody}>
                   <strong>{list.auto ? t(KIND_PLURAL_KEYS[list.kind as Exclude<typeof list.kind, "all">]) : list.title}</strong>
-                  <span>{list.auto ? "" : `${list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[list.kind])} · `}{t("tiers.items", { count: list.item_count })} · {date(list.updated_at, { dateStyle: "medium" })}</span>
+                  <span className={styles.listMeta}>
+                    <span className={list.visibility === "public" ? styles.publicText : ""}>
+                      {list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
+                    </span>
+                    <span>{t("tiers.items", { count: list.item_count })}</span>
+                  </span>
                 </span>
                 {list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
-                <Badge tone={list.visibility === "public" ? "success" : "neutral"}>
-                  {list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
-                </Badge>
               </AppLink>
+              <span className={styles.listActions}>
+                <button
+                  aria-label={list.visibility === "public" ? t("tiers.private") : t("tiers.public")}
+                  className={styles.action}
+                  onClick={() => void toggleVisibility(list)}
+                  title={list.visibility === "public" ? t("tiers.private") : t("tiers.public")}
+                  type="button"
+                >
+                  {list.visibility === "public" ? <IconLock size={16} /> : <IconGlobe size={16} />}
+                </button>
+                <button
+                  aria-label={t("common.delete")}
+                  className={`${styles.action} ${styles.danger}`}
+                  onClick={() => void destroy(list)}
+                  title={t("common.delete")}
+                  type="button"
+                >
+                  <IconTrash size={16} />
+                </button>
+              </span>
             </li>
           ))}
         </ul>
