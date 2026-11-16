@@ -50,9 +50,14 @@ export function TierDetailScreen() {
   }, [source]);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
+  const previewing = Boolean(dragged && dropTarget);
+  const previewItem = previewing
+    ? data?.items.find((entry) => entry.id === dragged) ?? catalogue.find((entry) => entry.id === dragged)
+    : null;
   const available = catalogue.filter((item) =>
     !used.has(item.id) &&
-    (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind),
+    (data?.tier_list.kind === "all" || item.kind === data?.tier_list.kind) &&
+    !(previewing && item.id === dragged),
   );
 
   function setItems(items: TierListItem[]) {
@@ -99,23 +104,9 @@ export function TierDetailScreen() {
     suppressPoolClick.current = true;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", itemId);
-    const source = event.currentTarget as HTMLElement;
-    const rect = source.getBoundingClientRect();
-    const ghost = source.cloneNode(true) as HTMLElement;
-    ghost.style.cssText = [
-      "position:fixed",
-      "top:-1000px",
-      "left:-1000px",
-      `width:${rect.width}px`,
-      `height:${rect.height}px`,
-      "opacity:.9",
-      "pointer-events:none",
-      "transform:rotate(2deg)",
-      "box-shadow:0 12px 30px rgb(0 0 0 / 24%)",
-    ].join(";");
-    document.body.appendChild(ghost);
-    event.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2);
-    window.setTimeout(() => ghost.remove(), 0);
+    const blank = new Image();
+    blank.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+    event.dataTransfer.setDragImage(blank, 0, 0);
     setDropTarget(null);
     setDragged(itemId);
   }
@@ -256,13 +247,19 @@ export function TierDetailScreen() {
               <div className={styles.tierItems}>
                 {(() => {
                   const sourceIndex = items.findIndex((entry) => entry.id === dragged);
-                  let gapIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
-                  if (gapIndex >= 0 && sourceIndex >= 0 && sourceIndex < gapIndex) gapIndex -= 1;
+                  let insertIndex = dropTarget?.tier === tier ? dropTarget.index : -1;
+                  if (insertIndex >= 0 && sourceIndex >= 0 && sourceIndex < insertIndex) insertIndex -= 1;
+                  const visible = previewing ? items.filter((entry) => entry.id !== dragged) : items;
+                  const preview = insertIndex >= 0 ? previewItem : null;
                   return (
                     <>
-                      {items.map((item, index) => (
+                      {visible.map((item, index) => (
                         <Fragment key={item.id}>
-                          {gapIndex === index ? <span className={styles.dropGap} /> : null}
+                          {preview && insertIndex === index ? (
+                            <div className={styles.dropPreview} title={preview.title}>
+                              {preview.cover_key ? <img alt="" draggable={false} src={mediaUrl(preview.cover_key)} /> : <span className={styles.tierPlaceholder}>{preview.title.slice(0, 1)}</span>}
+                            </div>
+                          ) : null}
                           <div
                             className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
@@ -275,7 +272,11 @@ export function TierDetailScreen() {
                           </div>
                         </Fragment>
                       ))}
-                      {gapIndex === items.length ? <span className={styles.dropGap} /> : null}
+                      {preview && insertIndex === visible.length ? (
+                        <div className={styles.dropPreview} title={preview.title}>
+                          {preview.cover_key ? <img alt="" draggable={false} src={mediaUrl(preview.cover_key)} /> : <span className={styles.tierPlaceholder}>{preview.title.slice(0, 1)}</span>}
+                        </div>
+                      ) : null}
                     </>
                   );
                 })()}
