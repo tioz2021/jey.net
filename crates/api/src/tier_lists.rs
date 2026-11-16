@@ -122,11 +122,11 @@ async fn slug_for(pool: &sqlx::PgPool, user_id: Uuid, title: &str) -> Result<Str
 
 fn auto_tier(rating: i16) -> &'static str {
     match rating {
-        9..=10 => "S",
-        8 => "A",
-        6..=7 => "B",
-        4..=5 => "C",
-        3 => "D",
+        10 => "S",
+        9 => "A",
+        7..=8 => "B",
+        5..=6 => "C",
+        3..=4 => "D",
         2 => "E",
         _ => "F",
     }
@@ -215,11 +215,11 @@ pub async fn ensure_auto_lists(pool: &sqlx::PgPool, user_id: Uuid) -> Result<(),
             "insert into tier_list_items (tier_list_id, item_id, tier, position)
              select $1, i.id,
                     case
-                        when i.rating >= 9 then 'S'
-                        when i.rating = 8 then 'A'
-                        when i.rating >= 6 then 'B'
-                        when i.rating >= 4 then 'C'
-                        when i.rating = 3 then 'D'
+                        when i.rating = 10 then 'S'
+                        when i.rating = 9 then 'A'
+                        when i.rating between 7 and 8 then 'B'
+                        when i.rating between 5 and 6 then 'C'
+                        when i.rating between 3 and 4 then 'D'
                         when i.rating = 2 then 'E'
                         else 'F'
                     end,
