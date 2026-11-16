@@ -43,7 +43,17 @@ export function TierDetailScreen() {
   const [overPool, setOverPool] = useState(false);
   const suppressPoolClick = useRef(false);
   const suppressTileClick = useRef(false);
-  const dropFrame = useRef<number | null>(null);
+  const pointerFrame = useRef<number | null>(null);
+  const pointerCleanup = useRef<(() => void) | null>(null);
+  const pointerDrag = useRef<{
+    item: Item | TierListItem;
+    ghost: HTMLElement;
+    width: number;
+    height: number;
+    startX: number;
+    startY: number;
+    active: boolean;
+  } | null>(null);
 
   useEffect(() => {
     api.tierLists
@@ -56,6 +66,8 @@ export function TierDetailScreen() {
   useEffect(() => {
     void source.list({ limit: 100 }).then((response) => setCatalogue(response.items));
   }, [source]);
+
+  useEffect(() => () => pointerCleanup.current?.(), []);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const previewing = Boolean(dragged && dropTarget);
@@ -141,67 +153,154 @@ export function TierDetailScreen() {
     await placeInTier(item, tier, Number.MAX_SAFE_INTEGER);
   }
 
-  function startDrag(event: React.DragEvent, itemId: string) {
-    suppressPoolClick.current = true;
-    suppressTileClick.current = true;
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", itemId);
-    const blank = new Image();
-    blank.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
-    event.dataTransfer.setDragImage(blank, 0, 0);
-    setDropTarget(null);
-    setDragged(itemId);
-  }
-
-  function getDropIndex(event: React.DragEvent, tier: TierName): number {
-    const row = event.currentTarget.closest<HTMLElement>(`[data-tier-row="${tier}"]`);
-    if (!row) return 0;
-    const tiles = Array.from(row.querySelectorAll<HTMLElement>("[data-tier-tile]"));
-    let index = 0;
-    for (const tile of tiles) {
-      const rect = tile.getBoundingClientRect();
-      if (event.clientX > rect.left + rect.width / 2) index += 1;
-    }
-    return index;
-  }
-
-  function updateDropTarget(event: React.DragEvent, tier: TierName) {
-    const row = event.currentTarget as HTMLElement;
-    const x = event.clientX;
-    const y = event.clientY;
-    if (dropFrame.current !== null) return;
-    dropFrame.current = window.requestAnimationFrame(() => {
-      dropFrame.current = null;
-      const tiles = Array.from(row.querySelectorAll<HTMLElement>("[data-tier-tile]"));
-      let index = 0;
-      for (const tile of tiles) {
-        const rect = tile.getBoundingClientRect();
-        if (x > rect.left + rect.width / 2) index += 1;
+  function pointerTarget(x: number, y: number): { tier: TierName; index: number } | { pool: true } | null {
+    const pool = document.querySelector<HTMLElement>("[data-tier-pool]");
+    if (pool) {
+      const rect = pool.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return { pool: true };
       }
-      setDropTarget((previous) =>
-        previous?.tier === tier && previous.index === index
-          ? previous
-          : { tier, index },
-      );
-
-      const edge = 72;
-      if (y < edge) window.scrollBy({ top: -12 });
-      else if (y > window.innerHeight - edge) window.scrollBy({ top: 12 });
-    });
+    }
+    for (const row of document.querySelectorAll<HTMLElement>("[data-tier-row]")) {
+      const rect = row.getBoundingClientRect();
+      if (y < rect.top || y > rect.bottom || x < rect.left || x > rect.right) continue;
+      let index = 0;
+      for (const tile of row.querySelectorAll<HTMLElement>("[data-tier-tile]")) {
+        const tileRect = tile.getBoundingClientRect();
+        if (x > tileRect.left + tileRect.width / 2) index += 1;
+      }
+      return { tier: row.dataset.tierRow as TierName, index };
+    }
+    return null;
   }
 
-  function finishDrag() {
-    if (dropFrame.current !== null) {
-      window.cancelAnimationFrame(dropFrame.current);
-      dropFrame.current = null;
+  function cleanupPointer() {
+    const state = pointerDrag.current;
+    if (state) state.ghost.remove();
+    pointerDrag.current = null;
+    if (pointerFrame.current !== null) {
+      window.cancelAnimationFrame(pointerFrame.current);
+      pointerFrame.current = null;
     }
-    setDragged(null);
-    setDropTarget(null);
-    setOverPool(false);
-    window.setTimeout(() => {
-      suppressPoolClick.current = false;
-      suppressTileClick.current = false;
-    }, 150);
+    pointerCleanup.current?.();
+    pointerCleanup.current = null;
+    document.body.style.userSelect = "";
+    document.body.style.cursor = "";
+  }
+
+  function beginPointerDrag(event: React.PointerEvent, item: Item | TierListItem) {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    const source = event.currentTarget as HTMLElement;
+    const rect = source.getBoundingClientRect();
+    const ghost = source.cloneNode(true) as HTMLElement;
+    ghost.style.cssText = [
+      "position:fixed",
+      "left:0",
+      "top:0",
+      `width:${rect.width}px`,
+      `height:${rect.height}px`,
+      "z-index:9999",
+      "pointer-events:none",
+      "opacity:0",
+      "border-radius:8px",
+      "box-shadow:0 14px 34px rgb(0 0 0 / 28%)",
+      "transform:translate3d(0,0,0) rotate(2deg)",
+    ].join(";");
+    document.body.appendChild(ghost);
+    const state = {
+      item,
+      ghost,
+      width: rect.width,
+      height: rect.height,
+      startX: event.clientX,
+      startY: event.clientY,
+      active: false,
+    };
+    pointerDrag.current = state;
+
+    const move = (moveEvent: PointerEvent) => {
+      const current = pointerDrag.current;
+      if (!current) return;
+      const dx = moveEvent.clientX - current.startX;
+      const dy = moveEvent.clientY - current.startY;
+      if (!current.active) {
+        if (Math.hypot(dx, dy) < 5) return;
+        current.active = true;
+        setDragged(current.item.id);
+        current.ghost.style.opacity = "0.95";
+        document.body.style.userSelect = "none";
+        document.body.style.cursor = "grabbing";
+      }
+      moveEvent.preventDefault();
+      current.ghost.style.transform = `translate3d(${moveEvent.clientX - current.width / 2}px, ${moveEvent.clientY - current.height / 2}px, 0) rotate(2deg)`;
+
+      if (pointerFrame.current !== null) return;
+      const x = moveEvent.clientX;
+      const y = moveEvent.clientY;
+      pointerFrame.current = window.requestAnimationFrame(() => {
+        pointerFrame.current = null;
+        const target = pointerTarget(x, y);
+        if (target && "pool" in target) {
+          setOverPool(true);
+          setDropTarget(null);
+        } else if (target) {
+          setOverPool(false);
+          setDropTarget((previous) =>
+            previous?.tier === target.tier && previous.index === target.index
+              ? previous
+              : target,
+          );
+        } else {
+          setOverPool(false);
+          setDropTarget(null);
+        }
+        const edge = 72;
+        if (y < edge) window.scrollBy({ top: -14 });
+        else if (y > window.innerHeight - edge) window.scrollBy({ top: 14 });
+      });
+    };
+
+    const finish = (upEvent: PointerEvent) => {
+      const current = pointerDrag.current;
+      if (current?.active) {
+        suppressPoolClick.current = true;
+        suppressTileClick.current = true;
+        const target = pointerTarget(upEvent.clientX, upEvent.clientY);
+        if (target && "pool" in target) {
+          if ("tier" in current.item) void remove(current.item);
+        } else if (target) {
+          void placeInTier(current.item, target.tier, target.index);
+        }
+        window.setTimeout(() => {
+          suppressPoolClick.current = false;
+          suppressTileClick.current = false;
+        }, 180);
+      }
+      cleanupPointer();
+      setDragged(null);
+      setDropTarget(null);
+      setOverPool(false);
+    };
+
+    const cancel = () => {
+      cleanupPointer();
+      setDragged(null);
+      setDropTarget(null);
+      setOverPool(false);
+    };
+    const key = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === "Escape") cancel();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", finish, { once: true });
+    window.addEventListener("pointercancel", cancel, { once: true });
+    window.addEventListener("keydown", key);
+    pointerCleanup.current = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("keydown", key);
+    };
   }
 
   async function remove(item: TierListItem) {
@@ -330,30 +429,6 @@ export function TierDetailScreen() {
               className={`${styles.tierRow} ${dropTarget?.tier === tier ? styles.rowOver : ""}`}
               data-tier-row={tier}
               key={tier}
-              onDragLeave={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-                  if (dropFrame.current !== null) {
-                    window.cancelAnimationFrame(dropFrame.current);
-                    dropFrame.current = null;
-                  }
-                  setDropTarget(null);
-                }
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                updateDropTarget(event, tier);
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                const target = getDropIndex(event, tier);
-                const placed = data.items.find((entry) => entry.id === dragged);
-                const item = placed ?? catalogue.find((entry) => entry.id === dragged);
-                if (item && dragged) void placeInTier(item, tier, target);
-                setDragged(null);
-                setDropTarget(null);
-                setOverPool(false);
-                window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
-              }}
             >
               <div className={`${styles.tierLabel} ${styles[`tier${tier}`]}`}>{tier}</div>
               <div className={styles.tierItems}>
@@ -372,13 +447,11 @@ export function TierDetailScreen() {
                           <div
                             className={`${styles.tierItem} ${dragged === item.id ? styles.dragging : ""}`}
                             data-tier-tile
-                            draggable
                             onClick={() => {
                               if (suppressTileClick.current) return;
                               setMovingItem(item);
                             }}
-                            onDragEnd={finishDrag}
-                            onDragStart={(event) => startDrag(event, item.id)}
+                            onPointerDown={(event) => beginPointerDrag(event, item)}
                             title={item.title}
                           >
                             {item.cover_key ? <img alt="" draggable={false} src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
@@ -411,32 +484,17 @@ export function TierDetailScreen() {
         </div>
         <div
           className={`${styles.poolItems} ${overPool ? styles.poolOver : ""}`}
-          onDragLeave={() => setOverPool(false)}
-          onDragOver={(event) => {
-            event.preventDefault();
-            setOverPool(true);
-          }}
-          onDrop={(event) => {
-            event.preventDefault();
-            const placed = data.items.find((entry) => entry.id === dragged);
-            if (placed) void remove(placed);
-            setDragged(null);
-            setDropTarget(null);
-            setOverPool(false);
-            window.setTimeout(() => { suppressPoolClick.current = false; }, 150);
-          }}
+          data-tier-pool
         >
           {available.map((item) => (
             <button
-              className={styles.poolItem}
-              draggable
+              className={`${styles.poolItem} ${dragged === item.id ? styles.dragging : ""}`}
               key={item.id}
               onClick={() => {
                 if (suppressPoolClick.current) return;
                 void add(item);
               }}
-              onDragEnd={finishDrag}
-              onDragStart={(event) => startDrag(event, item.id)}
+              onPointerDown={(event) => beginPointerDrag(event, item)}
               title={`${item.title} → ${poolTier}`}
               type="button"
             >
