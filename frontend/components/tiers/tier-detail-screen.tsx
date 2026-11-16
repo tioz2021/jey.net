@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { LoadingScreen } from "@/components/loading-screen";
-import { IconPencil } from "@/components/icons";
+import { IconGlobe, IconLock, IconPencil, IconTrash } from "@/components/icons";
 import { AppLink } from "@/lib/navigation";
 import { Badge, Button, Card, Dialog, Input, Select } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -204,41 +204,60 @@ export function TierDetailScreen() {
     <main>
       <NotebookTabs />
       <header className={styles.detailHead}>
-        <div>
-          <h1>{data.tier_list.auto ? t(KIND_PLURAL_KEYS[data.tier_list.kind as Exclude<typeof data.tier_list.kind, "all">]) : data.tier_list.title}</h1>
-          {!data.tier_list.auto ? (
-            <button
-              aria-label={t("tiers.rename")}
-              className={styles.titleEdit}
-              onClick={() => { setRenameTitle(data.tier_list.title); setRenaming(true); }}
-              title={t("tiers.rename")}
-              type="button"
-            >
-              <IconPencil size={15} />
-            </button>
-          ) : null}
-          {data.tier_list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
-          <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
-            {data.tier_list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
-          </Badge>
-          <Badge tone="neutral">
-            {data.tier_list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[data.tier_list.kind])}
-          </Badge>
+        <div className={styles.detailTitle}>
+          <div className={styles.titleLine}>
+            <h1>{data.tier_list.auto ? t(KIND_PLURAL_KEYS[data.tier_list.kind as Exclude<typeof data.tier_list.kind, "all">]) : data.tier_list.title}</h1>
+            {!data.tier_list.auto ? (
+              <button
+                aria-label={t("tiers.rename")}
+                className={styles.titleEdit}
+                onClick={() => { setRenameTitle(data.tier_list.title); setRenaming(true); }}
+                title={t("tiers.rename")}
+                type="button"
+              >
+                <IconPencil size={15} />
+              </button>
+            ) : null}
+          </div>
+          <div className={styles.badges}>
+            {data.tier_list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
+            <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
+              {data.tier_list.visibility === "public" ? t("tiers.public") : t("tiers.private")}
+            </Badge>
+            <Badge tone="neutral">
+              {data.tier_list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[data.tier_list.kind])}
+            </Badge>
+          </div>
         </div>
         <div className={styles.detailActions}>
           {data.tier_list.visibility === "public" && publicHref ? (
-            <AppLink className={styles.publicLink} href={publicHref}>{t("tiers.openPublic")} ↗</AppLink>
+            <AppLink
+              aria-label={t("tiers.openPublic")}
+              className={styles.iconAction}
+              href={publicHref}
+              title={t("tiers.openPublic")}
+            >
+              <IconGlobe size={16} />
+            </AppLink>
           ) : null}
-          <Select
-            hideLabel
-            label={t("tiers.visibility")}
-            onChange={(event) => void setVisibility(event.target.value as "private" | "public")}
-            value={data.tier_list.visibility}
+          <button
+            aria-label={data.tier_list.visibility === "public" ? t("tiers.private") : t("tiers.public")}
+            className={styles.iconAction}
+            onClick={() => void setVisibility(data.tier_list.visibility === "public" ? "private" : "public")}
+            title={data.tier_list.visibility === "public" ? t("tiers.private") : t("tiers.public")}
+            type="button"
           >
-            <option value="private">{t("tiers.private")}</option>
-            <option value="public">{t("tiers.public")}</option>
-          </Select>
-          <Button onClick={() => void destroy()} size="sm" variant="secondary">{t("common.delete")}</Button>
+            {data.tier_list.visibility === "public" ? <IconLock size={16} /> : <IconGlobe size={16} />}
+          </button>
+          <button
+            aria-label={t("common.delete")}
+            className={`${styles.iconAction} ${styles.dangerAction}`}
+            onClick={() => void destroy()}
+            title={t("common.delete")}
+            type="button"
+          >
+            <IconTrash size={16} />
+          </button>
         </div>
       </header>
 

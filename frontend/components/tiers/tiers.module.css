@@ -202,15 +202,22 @@
 
 .detailHead {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
-.detailHead > div:nth-child(2) {
+.detailTitle {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.titleLine {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 4px;
   min-width: 0;
 }
 
@@ -219,11 +226,19 @@
   margin: 0;
   font-size: var(--text-xl);
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .titleEdit {
   display: grid;
   place-items: center;
+  flex: none;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -241,14 +256,31 @@
 
 .detailActions {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-2);
-  margin-left: auto;
+  gap: 4px;
 }
 
-.publicLink {
-  color: var(--color-link);
-  font-size: var(--text-sm);
+.iconAction {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.iconAction:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.dangerAction:hover {
+  color: var(--color-danger, #dc2626);
 }
 
 .tiers {
