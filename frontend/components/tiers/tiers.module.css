@@ -307,15 +307,24 @@
   place-items: center;
   color: #fff;
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 18%);
   border-radius: var(--radius-md);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 24%),
+    0 2px 8px rgb(0 0 0 / 10%);
 }
 
-.tierS { background: #dc2626; }
-.tierA { background: #ea580c; }
-.tierB { background: #ca8a04; }
-.tierC { background: #15803d; }
-.tierD { background: #2563eb; }
+.tierS { background: linear-gradient(135deg, #ff6b6b, #dc2626); }
+.tierA { background: linear-gradient(135deg, #fb923c, #ea580c); }
+.tierB {
+  color: #422006;
+  text-shadow: none;
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+}
+.tierC { background: linear-gradient(135deg, #34d399, #059669); }
+.tierD { background: linear-gradient(135deg, #38bdf8, #0284c7); }
 
 .tierItems {
   display: flex;
@@ -509,8 +518,8 @@
   }
 }
 
-.tierE { background: #7c3aed; }
-.tierF { background: #db2777; }
+.tierE { background: linear-gradient(135deg, #a78bfa, #6d28d9); }
+.tierF { background: linear-gradient(135deg, #fb7185, #be123c); }
 
 .pool {
   position: sticky;
