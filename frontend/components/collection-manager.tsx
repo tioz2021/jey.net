@@ -3,7 +3,7 @@
 import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
-import { Button, Dialog, Input, Select } from "@/components/ui";
+import { Button, Dialog, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
@@ -17,6 +17,7 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<"private" | "public">("private");
   const [pendingDelete, setPendingDelete] = useState<Collection | null>(null);
+  const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,13 +31,9 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
   useEffect(load, [t]);
 
   useEffect(() => {
-    const focus = () => {
-      const input = document.querySelector<HTMLInputElement>("[data-collection-create] input");
-      input?.scrollIntoView({ behavior: "smooth", block: "center" });
-      input?.focus();
-    };
-    window.addEventListener("jey:create-collection", focus);
-    return () => window.removeEventListener("jey:create-collection", focus);
+    const open = () => setCreating(true);
+    window.addEventListener("jey:create-collection", open);
+    return () => window.removeEventListener("jey:create-collection", open);
   }, []);
 
   async function create() {
@@ -46,6 +43,7 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
     try {
       await api.collections.create({ title: title.trim(), visibility });
       setTitle("");
+      setCreating(false);
       load();
       window.dispatchEvent(new Event("jey:collections-changed"));
     } catch {
@@ -70,27 +68,8 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.create} data-collection-create>
-        <Input
-          label={t("collections.newTitle")}
-          onChange={(event) => setTitle(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") void create();
-          }}
-          placeholder={t("collections.newPlaceholder")}
-          value={title}
-        />
-        <Select
-          label={t("collections.visibility")}
-          onChange={(event) => setVisibility(event.target.value as "private" | "public")}
-          value={visibility}
-        >
-          <option value="private">{t("collections.private")}</option>
-          <option value="public">{t("collections.public")}</option>
-        </Select>
-        <Button disabled={busy || !title.trim()} onClick={() => void create()}>
-          {t("collections.create")}
-        </Button>
+      <div className={styles.mobileCreate}>
+        <Button onClick={() => setCreating(true)} size="sm">{t("collections.create")}</Button>
       </div>
       {error ? <p className={styles.error}>{error}</p> : null}
       {collections.length === 0 ? (
@@ -138,6 +117,48 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
           ))}
         </ul>
       )}
+
+      <Dialog
+        footer={<Button onClick={() => setCreating(false)} size="sm" variant="secondary">{t("common.cancel")}</Button>}
+        onClose={() => setCreating(false)}
+        open={creating}
+        title={t("collections.newTitle")}
+      >
+        <form className={styles.form} onSubmit={(event) => { event.preventDefault(); void create(); }}>
+          <Input
+            autoFocus
+            label={t("collections.newTitle")}
+            maxLength={80}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder={t("collections.newPlaceholder")}
+            required
+            value={title}
+          />
+          <div className={styles.visibilityField}>
+            <span className={styles.visibilityLabel}>{t("collections.visibility")}</span>
+            <div aria-label={t("collections.visibility")} className={styles.visibilityGrid} role="group">
+              <button
+                aria-pressed={visibility === "private"}
+                className={`${styles.visibilityOption} ${visibility === "private" ? styles.visibilityActive : ""}`}
+                onClick={() => setVisibility("private")}
+                type="button"
+              >
+                {t("collections.private")}
+              </button>
+              <button
+                aria-pressed={visibility === "public"}
+                className={`${styles.visibilityOption} ${visibility === "public" ? styles.visibilityActive : ""}`}
+                onClick={() => setVisibility("public")}
+                type="button"
+              >
+                {t("collections.public")}
+              </button>
+            </div>
+          </div>
+          {error ? <p className={styles.error}>{error}</p> : null}
+          <Button disabled={busy || !title.trim()} type="submit">{t("collections.create")}</Button>
+        </form>
+      </Dialog>
 
       <Dialog
         footer={

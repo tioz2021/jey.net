@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { NotebookTabs } from "@/components/notebook-tabs";
 import { ListSkeleton } from "@/components/skeletons";
 import { AppLink } from "@/lib/navigation";
-import { Badge, Button, Card, Dialog, Input, Select } from "@/components/ui";
+import { Badge, Button, Card, Dialog, Input } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
@@ -119,10 +119,27 @@ export function TierListsScreen() {
               ))}
             </div>
           </div>
-          <Select label={t("tiers.visibility")} onChange={(event) => setVisibility(event.target.value as "private" | "public")} value={visibility}>
-            <option value="private">{t("tiers.private")}</option>
-            <option value="public">{t("tiers.public")}</option>
-          </Select>
+          <div className={styles.categoryField}>
+            <span className={styles.categoryLabel}>{t("tiers.visibility")}</span>
+            <div aria-label={t("tiers.visibility")} className={styles.categoryGrid} role="group">
+              <button
+                aria-pressed={visibility === "private"}
+                className={`${styles.categoryOption} ${visibility === "private" ? styles.categoryActive : ""}`}
+                onClick={() => setVisibility("private")}
+                type="button"
+              >
+                {t("tiers.private")}
+              </button>
+              <button
+                aria-pressed={visibility === "public"}
+                className={`${styles.categoryOption} ${visibility === "public" ? styles.categoryActive : ""}`}
+                onClick={() => setVisibility("public")}
+                type="button"
+              >
+                {t("tiers.public")}
+              </button>
+            </div>
+          </div>
           <Button disabled={busy || !title.trim()} type="submit">{t("tiers.create")}</Button>
         </form>
       </Dialog>
