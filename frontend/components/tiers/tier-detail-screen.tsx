@@ -12,6 +12,7 @@ import { api } from "@/lib/api";
 import { useCatalogueSource } from "@/lib/data-source";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
+import { ratingForTier } from "@/lib/tier-rating";
 import { useAppRouter } from "@/lib/navigation";
 import { useToast } from "@/components/toasts";
 import { useUser } from "@/lib/user-context";
@@ -70,6 +71,17 @@ export function TierDetailScreen() {
 
   async function placeInTier(item: Item | TierListItem, tier: TierName, targetIndex: number) {
     if (!data) return;
+    const autoRating = data.tier_list.auto ? ratingForTier(tier) : null;
+    const previousTier = "tier" in item ? item.tier : null;
+    if (autoRating !== null && previousTier !== tier && item.rating !== autoRating) {
+      try {
+        await api.items.update(item.id, { rating: autoRating });
+        item = { ...item, rating: autoRating };
+      } catch (cause) {
+        notifyError(cause);
+        return;
+      }
+    }
     const current = data.items
       .filter((entry) => entry.tier === tier && entry.id !== item.id)
       .sort((a, b) => a.position - b.position);
