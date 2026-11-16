@@ -140,6 +140,14 @@ async fn run(config: Config, pool: PgPool) -> Result<(), Box<dyn Error>> {
         config: Arc::new(config),
     };
 
+    let pool_for_chat = state.pool.clone();
+    let chat_events = state.chat.clone();
+    tokio::spawn(async move {
+        if let Err(error) = jey_api::chat::spawn_listener(pool_for_chat, chat_events).await {
+            tracing::warn!(%error, "chat listener unavailable; using local delivery");
+        }
+    });
+
     let service =
         telemetry::instrument(router(state)).into_make_service_with_connect_info::<SocketAddr>();
 

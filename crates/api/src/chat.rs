@@ -9,6 +9,7 @@ use axum::extract::{Path, State};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use std::sync::Arc;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
@@ -21,13 +22,15 @@ pub struct NewThread {
     pub user_id: Uuid,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChatEvent {
     pub kind: String,
     pub thread_id: Uuid,
     pub recipients: Vec<Uuid>,
     pub message: Option<Value>,
     pub read_by: Option<Uuid>,
+    #[serde(default)]
+    pub origin: Uuid,
 }
 
 #[derive(Serialize)]
@@ -56,21 +59,62 @@ impl ChatEvent {
 #[derive(Clone)]
 pub struct ChatEvents {
     tx: broadcast::Sender<ChatEvent>,
+    instance: Uuid,
 }
 
 impl ChatEvents {
     pub fn new() -> Self {
         let (tx, _) = broadcast::channel(256);
-        Self { tx }
+        Self {
+            tx,
+            instance: Uuid::new_v4(),
+        }
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<ChatEvent> {
         self.tx.subscribe()
     }
 
-    pub fn publish(&self, event: ChatEvent) {
+    fn forward(&self, event: ChatEvent) {
         let _ = self.tx.send(event);
     }
+
+    /// Publish locally and to other API instances through PostgreSQL.
+    pub async fn publish(&self, pool: &PgPool, mut event: ChatEvent) {
+        event.origin = self.instance;
+        let _ = self.tx.send(event.clone());
+        if let Ok(payload) = serde_json::to_string(&event) {
+            let _ = sqlx::query("select pg_notify('chat_events', $1)")
+                .bind(payload)
+                .execute(pool)
+                .await;
+        }
+    }
+}
+
+/// Starts the cross-instance listener. Failure to listen is non-fatal: the
+/// instance keeps its in-process delivery and falls back to polling clients.
+pub async fn spawn_listener(pool: PgPool, events: Arc<ChatEvents>) -> Result<(), sqlx::Error> {
+    let mut listener = sqlx::postgres::PgListener::connect_with(&pool).await?;
+    listener.listen("chat_events").await?;
+    tokio::spawn(async move {
+        loop {
+            let notification = match listener.recv().await {
+                Ok(notification) => notification,
+                Err(error) => {
+                    tracing::warn!(%error, "chat listener stopped");
+                    break;
+                }
+            };
+            let Ok(event) = serde_json::from_str::<ChatEvent>(notification.payload()) else {
+                continue;
+            };
+            if event.origin != events.instance {
+                events.forward(event);
+            }
+        }
+    });
+    Ok(())
 }
 
 impl Default for ChatEvents {
@@ -549,13 +593,20 @@ pub async fn send(
     tx.commit().await.map_err(AppError::internal)?;
 
     let message = message_payload(&state.pool, thread_id, message_id).await?;
-    state.chat.publish(ChatEvent {
-        kind: "message.created".to_owned(),
-        thread_id,
-        recipients: vec![current.user.id, target],
-        message: Some(message.clone()),
-        read_by: None,
-    });
+    state
+        .chat
+        .publish(
+            &state.pool,
+            ChatEvent {
+                kind: "message.created".to_owned(),
+                thread_id,
+                recipients: vec![current.user.id, target],
+                message: Some(message.clone()),
+                read_by: None,
+                origin: Uuid::nil(),
+            },
+        )
+        .await;
     Ok(Json(json!({
         "message": message,
         "created": inserted.is_some()
@@ -662,13 +713,20 @@ pub async fn mark_read(
         return Err(AppError::not_found("conversation"));
     }
     let target = peer_id(&state.pool, thread_id, current.user.id).await?;
-    state.chat.publish(ChatEvent {
-        kind: "message.read".to_owned(),
-        thread_id,
-        recipients: vec![current.user.id, target],
-        message: None,
-        read_by: Some(current.user.id),
-    });
+    state
+        .chat
+        .publish(
+            &state.pool,
+            ChatEvent {
+                kind: "message.read".to_owned(),
+                thread_id,
+                recipients: vec![current.user.id, target],
+                message: None,
+                read_by: Some(current.user.id),
+                origin: Uuid::nil(),
+            },
+        )
+        .await;
     Ok(Json(json!({ "read": true })))
 }
 

@@ -74,7 +74,7 @@
 | T135 | Чат: API диалогов | `[x]` | Создать, список, get, скрыть + тесты |
 | T136 | Чат: API сообщений | `[x]` | Отправка, история, read, идемпотентность |
 | T137 | Чат: realtime | `[x]` | SSE, keep-alive, resync; polling fallback в T139 |
-| T137.1 | Чат: мультиинстанс-доставка | `[–]` | PostgreSQL LISTEN/NOTIFY |
+| T137.1 | Чат: мультиинстанс-доставка | `[x]` | PostgreSQL LISTEN/NOTIFY |
 | T138 | Веб: инбокс чата | `[x]` | `/messages`, unread, empty state |
 | T139 | Веб: экран диалога | `[x]` | Бабблы, отправка, SSE/polling, mobile |
 | T140 | Веб: точки входа в чат | `[x]` | Сайдбар, профиль, unread badge |
