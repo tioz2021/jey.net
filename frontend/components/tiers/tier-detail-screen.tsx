@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { NotebookTabs } from "@/components/notebook-tabs";
@@ -33,6 +33,7 @@ export function TierDetailScreen() {
   const [catalogue, setCatalogue] = useState<Item[]>([]);
   const [poolTier, setPoolTier] = useState<TierName>("S");
   const [dragged, setDragged] = useState<string | null>(null);
+  const dropped = useRef(false);
 
   useEffect(() => {
     api.tierLists
@@ -77,6 +78,19 @@ export function TierDetailScreen() {
     } catch (cause) {
       notifyError(cause);
     }
+  }
+
+  function startDrag(itemId: string) {
+    dropped.current = false;
+    setDragged(itemId);
+  }
+
+  function finishDrag() {
+    if (!dropped.current) {
+      const placed = data?.items.find((entry) => entry.id === dragged);
+      if (placed) void remove(placed);
+    }
+    setDragged(null);
   }
 
   async function remove(item: TierListItem) {
@@ -155,6 +169,7 @@ export function TierDetailScreen() {
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
+                dropped.current = true;
                 const placed = data.items.find((entry) => entry.id === dragged);
                 if (placed) void move(placed, tier);
                 else {
@@ -171,13 +186,11 @@ export function TierDetailScreen() {
                     className={styles.tierItem}
                     draggable
                     key={item.id}
-                    onDragStart={() => setDragged(item.id)}
-                    onDragEnd={() => setDragged(null)}
+                    onDragEnd={finishDrag}
+                    onDragStart={() => startDrag(item.id)}
                     title={item.title}
                   >
                     {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
-                    <span>{item.title}</span>
-                    <button aria-label={t("common.delete")} onClick={() => void remove(item)} type="button">×</button>
                   </div>
                 ))}
 
@@ -200,15 +213,25 @@ export function TierDetailScreen() {
             {TIERS.map((tier) => <option key={tier} value={tier}>{tier}</option>)}
           </Select>
         </div>
-        <div className={styles.poolItems}>
+        <div
+          className={styles.poolItems}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            dropped.current = true;
+            const placed = data.items.find((entry) => entry.id === dragged);
+            if (placed) void remove(placed);
+            setDragged(null);
+          }}
+        >
           {available.map((item) => (
             <button
               className={styles.poolItem}
               draggable
               key={item.id}
               onClick={() => void add(item)}
-              onDragEnd={() => setDragged(null)}
-              onDragStart={() => setDragged(item.id)}
+              onDragEnd={finishDrag}
+              onDragStart={() => startDrag(item.id)}
               title={`${item.title} → ${poolTier}`}
               type="button"
             >

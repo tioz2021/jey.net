@@ -139,26 +139,29 @@
 }
 
 .tierItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 230px;
-  min-height: 32px;
-  padding: 3px 7px 3px 3px;
-  color: var(--color-text);
-  text-decoration: none;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 64px;
+  padding: 0;
+  overflow: hidden;
+  color: var(--color-text-muted);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: grab;
 }
 
+.tierItem:active {
+  cursor: grabbing;
+}
+
 .tierItem img,
 .tierItem .tierPlaceholder {
-  width: 26px;
-  height: 26px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 3px;
 }
 
 .tierPlaceholder {
@@ -167,22 +170,6 @@
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   background: var(--color-bg);
-}
-
-.tierItem > span:not(.tierPlaceholder) {
-  overflow: hidden;
-  font-size: var(--text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tierItem button {
-  padding: 0 2px;
-  color: var(--color-text-muted);
-  font: inherit;
-  background: none;
-  border: 0;
-  cursor: pointer;
 }
 
 .addItem {

@@ -40,9 +40,13 @@ export function PublicTierScreen() {
               <div className={`${styles.tierLabel} ${styles[`tier${tier}`]}`}>{tier}</div>
               <div className={styles.tierItems}>
                 {items.map((item) => (
-                  <AppLink className={styles.tierItem} href={item.slug ? `/u/${data.tier_list.handle}/item/${item.slug}` : `/items/${item.id}`} key={item.id}>
+                  <AppLink
+                    className={styles.tierItem}
+                    href={item.slug ? `/u/${data.tier_list.handle}/item/${item.slug}` : `/items/${item.id}`}
+                    key={item.id}
+                    title={item.title}
+                  >
                     {item.cover_key ? <img alt="" src={mediaUrl(item.cover_key)} /> : <span className={styles.tierPlaceholder}>{item.title.slice(0, 1)}</span>}
-                    <span>{item.title}</span>
                   </AppLink>
                 ))}
               </div>
