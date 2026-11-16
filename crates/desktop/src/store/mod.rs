@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use rusqlite::{Connection, OptionalExtension, params};
 
+pub mod chat;
 pub mod collections;
 pub mod comments;
 mod export;
@@ -33,6 +34,7 @@ const MIGRATIONS: &[(i64, &str)] = &[
         4,
         include_str!("../../migrations/0004_comment_reactions.sql"),
     ),
+    (5, include_str!("../../migrations/0005_chat.sql")),
 ];
 
 fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
@@ -276,7 +278,11 @@ impl DesktopStore {
     pub fn status(&self) -> Result<StoreStatus, StoreError> {
         let connection = self.connection()?;
         let items = connection.query_row("select count(*) from items", [], |row| row.get(0))?;
-        let outbox = connection.query_row("select count(*) from outbox", [], |row| row.get(0))?;
+        let outbox: i64 = connection.query_row(
+            "select (select count(*) from outbox) + (select count(*) from chat_outbox)",
+            [],
+            |row| row.get(0),
+        )?;
         let conflicts =
             connection.query_row("select count(*) from conflicts", [], |row| row.get(0))?;
         let last_sync_seq = connection.query_row(
@@ -364,7 +370,7 @@ mod tests {
     fn migrates_and_survives_reopen() {
         let dir = temp_dir();
         let store = DesktopStore::open(&dir).expect("open store");
-        assert_eq!(store.schema_version().unwrap(), 4);
+        assert_eq!(store.schema_version().unwrap(), 5);
         assert_eq!(store.status().unwrap().items, 0);
 
         {
@@ -390,7 +396,7 @@ mod tests {
         let store = DesktopStore::in_memory().expect("store");
         store.migrate().unwrap();
         store.migrate().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 4);
+        assert_eq!(store.schema_version().unwrap(), 5);
     }
 
     #[test]
@@ -421,7 +427,7 @@ mod tests {
         }
 
         let store = DesktopStore::open(&dir).expect("migrate old store");
-        assert_eq!(store.schema_version().unwrap(), 4);
+        assert_eq!(store.schema_version().unwrap(), 5);
         assert_eq!(store.status().unwrap().items, 1);
         let backups = std::fs::read_dir(dir.join("backups"))
             .unwrap()
@@ -433,7 +439,7 @@ mod tests {
     }
     #[test]
     fn migrates_each_old_version_and_keeps_data() {
-        for old in 1..4 {
+        for old in 1..5 {
             let dir = temp_dir();
             std::fs::create_dir_all(&dir).unwrap();
             {
@@ -464,7 +470,7 @@ mod tests {
                     .unwrap();
             }
             let store = DesktopStore::open(&dir).expect("migrate old store");
-            assert_eq!(store.schema_version().unwrap(), 4, "old={old}");
+            assert_eq!(store.schema_version().unwrap(), 5, "old={old}");
             assert_eq!(store.status().unwrap().items, 1, "old={old}");
             std::fs::remove_dir_all(dir).ok();
         }

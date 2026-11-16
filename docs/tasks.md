@@ -80,8 +80,8 @@
 | T140 | Веб: точки входа в чат | `[x]` | Сайдбар, профиль, unread badge |
 | T141 | Веб: read и уведомления | `[x]` | Read, muted, title/badge |
 | T142 | Чат: приватность и модерация | `[x]` | Mute, settings, reports, block checks |
-| T143 | Desktop: кеш и outbox чата | `[ ]` | SQLite, очередь, reconnect |
-| T144 | Desktop: UI чата | `[ ]` | SPA + Tauri bridge |
+| T143 | Desktop: кеш и outbox чата | `[x]` | SQLite 0005, очередь, reconnect |
+| T144 | Desktop: UI чата | `[x]` | Панель чата, Tauri-команды, offline |
 | T145 | Чат: тесты | `[ ]` | API, E2E, offline |
 | T146 | Чат: релиз | `[ ]` | Веб → desktop → тег |
 | T147 | Чат: группы | `[–]` | После MVP |

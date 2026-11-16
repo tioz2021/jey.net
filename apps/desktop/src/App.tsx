@@ -14,6 +14,7 @@ import { Button, Card, Input, PageHeader, Select, Textarea } from "@/components/
 import { useI18n } from "@/lib/locale-context";
 import type { Item, ItemKind, ItemStatus, NewItem } from "@/lib/types";
 
+import { ChatPanel } from "./ChatPanel";
 import { CardBoundary } from "./CardBoundary";
 import { tauriSource } from "./data/tauri-source";
 import type { LocalItem } from "./data/source";
@@ -50,6 +51,8 @@ export function App() {
   const [syncStatus, setSyncStatus] = useState<{ changes_after: number; last_seq: number } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [selected, setSelected] = useState<LocalItem | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatUnread, setChatUnread] = useState(0);
   const [creating, setCreating] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftStatus, setDraftStatus] = useState<ItemStatus>("planned");
@@ -114,7 +117,12 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (access?.has_access) void load();
+    if (access?.has_access) {
+      void load();
+      void invoke<{ unread: number }>("local_chat_unread")
+        .then((response) => setChatUnread(response.unread))
+        .catch(() => {});
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [access?.has_access]);
 
@@ -308,6 +316,20 @@ export function App() {
     );
   }
 
+  if (chatOpen) {
+    return (
+      <main className="desktop-app">
+        <header className="desktop-topbar">
+          <div className="desktop-brand"><Logo size={22} /><span>jey.net</span></div>
+          <div className="desktop-actions">
+            <Button size="sm" variant="secondary" onClick={() => setChatOpen(false)}>← К записям</Button>
+          </div>
+        </header>
+        <ChatPanel onUnread={setChatUnread} userId={access.user_id ?? ""} />
+      </main>
+    );
+  }
+
   if (creating) {
     return (
       <main className="desktop-app">
@@ -392,6 +414,9 @@ export function App() {
         <nav className="desktop-sections">
           <span className="desktop-section-active">{t("nav.items")}</span>
           <span className="desktop-section-muted">Коллекции</span>
+          <button className="desktop-section-button" onClick={() => setChatOpen(true)} type="button">
+            Сообщения{chatUnread > 0 ? ` ${chatUnread}` : ""}
+          </button>
         </nav>
         <div className="desktop-actions">
           <Button loading={syncing} size="sm" onClick={() => void sync()}>{syncing ? "Синхронизация…" : "Синхронизировать"}</Button>

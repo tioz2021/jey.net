@@ -166,12 +166,28 @@ thread.updated
 
 ## Desktop и offline
 
-- локальный SQLite-кеш диалогов и сообщений;
-- исходящие сообщения в outbox;
+- локальный SQLite-кеш диалогов и сообщений (миграция `0005_chat`);
+- исходящие сообщения в `chat_outbox`;
 - при отсутствии сервера можно читать кеш и писать в очередь;
 - после reconnect очередь отправляется с теми же `client_id`;
 - сервер остаётся источником истины;
 - удаление/выход очищают локальный кеш в рамках текущей политики данных.
+
+Команды desktop:
+
+```text
+local_chat_threads
+local_chat_thread
+local_chat_messages
+local_chat_send
+local_chat_read
+local_chat_mute
+local_chat_sync
+local_chat_unread
+```
+
+UI: пункт «Сообщения» в верхней панели, список диалогов, сообщения,
+композер, read/mute и offline-пометка «ожидает отправки».
 
 ## Безопасность и модерация
 
