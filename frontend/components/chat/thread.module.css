@@ -108,6 +108,7 @@
 
 .message {
   display: grid;
+  flex: 0 0 auto;
   max-width: min(72%, 38rem);
   gap: 3px;
   justify-items: start;
