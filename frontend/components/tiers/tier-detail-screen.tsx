@@ -240,7 +240,7 @@ export function TierDetailScreen() {
         document.body.style.cursor = "grabbing";
       }
       moveEvent.preventDefault();
-      current.ghost.style.transform = `translate3d(${moveEvent.clientX - current.width / 2}px, ${moveEvent.clientY - current.height - 10}px, 0) rotate(2deg)`;
+      current.ghost.style.transform = `translate3d(${moveEvent.clientX + 14}px, ${moveEvent.clientY - current.height / 2}px, 0) rotate(2deg)`;
 
       if (pointerFrame.current !== null) return;
       const x = moveEvent.clientX;
