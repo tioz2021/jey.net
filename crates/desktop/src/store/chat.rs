@@ -379,14 +379,12 @@ mod tests {
         assert_eq!(store.chat_outbox().expect("outbox").len(), 1);
         let messages = store.list_chat_messages("t1", None, 50).expect("list");
         assert_eq!(messages["messages"].as_array().unwrap().len(), 2);
-        assert_eq!(
+        assert!(
             messages["messages"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .find(|message| message["body"] == "offline text")
-                .is_some(),
-            true
+                .any(|message| message["body"] == "offline text")
         );
         store.clear_chat_outbox("c2").expect("flush");
         assert!(store.chat_outbox().expect("outbox").is_empty());
