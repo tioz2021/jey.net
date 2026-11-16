@@ -207,10 +207,17 @@ export function installDesktopBridge() {
       if (method === "POST") {
         return json(await api.invoke("local_chat_send", {
           threadId,
-          body: body?.body,
+          body: body?.body ?? null,
           clientId: body?.client_id,
+          encrypted: body?.encrypted ?? null,
         }));
       }
+    }
+    const chatUserDevices = path.match(/^\/api\/v1\/chat\/users\/([^/]+)\/devices$/);
+    if (chatUserDevices && method === "GET") {
+      return json(await api.invoke("local_chat_user_devices", {
+        userId: chatUserDevices[1],
+      }));
     }
     const chatRead = path.match(/^\/api\/v1\/chat\/threads\/([^/]+)\/read$/);
     if (chatRead && method === "POST") {

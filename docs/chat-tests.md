@@ -20,7 +20,8 @@ cargo test --test chat_schema --test chat_threads --test chat_messages \
 - доставка события между двумя `ChatEvents` через PostgreSQL `LISTEN/NOTIFY`;
 - T149: редактирование, реакции, поиск и typing;
 - T150.3: isolated crypto self-test (24 слова, recovery public key, encrypt/decrypt);
-- T150.4: opaque envelope send/edit/history test.
+- T150.4: opaque envelope send/edit/history test;
+- T150.5: encrypted desktop outbox survives restart, plaintext не сохраняется.
 
 ## Desktop / offline
 

@@ -40,7 +40,7 @@ async fn cached_thread_and_queued_message_survive_restart() {
             }] }))
             .expect("messages");
         let queued = store
-            .queue_chat_message("thread-1", "me", "Офлайн-сообщение", &client_id)
+            .queue_chat_message("thread-1", "me", "Офлайн-сообщение", &client_id, None)
             .expect("queue");
         assert_eq!(queued["pending"], true);
         assert_eq!(store.chat_outbox().expect("outbox").len(), 1);
@@ -90,6 +90,76 @@ async fn cached_thread_and_queued_message_survive_restart() {
             .count(),
         1
     );
+
+    fs::remove_dir_all(dir).ok();
+}
+
+#[tokio::test]
+async fn encrypted_outbox_keeps_only_the_envelope_across_restart() {
+    let dir = temp_dir();
+    fs::create_dir_all(&dir).expect("data dir");
+    let client_id = Uuid::new_v4().to_string();
+    let envelope = json!({
+        "version": 1,
+        "envelopes": [{
+            "device_id": Uuid::new_v4(),
+            "version": 1,
+            "ephemeral_public": "ZXBoZW1lcmFs",
+            "salt": "c2FsdA==",
+            "nonce": "bm9uY2U=",
+            "ciphertext": "Y2lwaGVy"
+        }]
+    });
+
+    {
+        let store = DesktopStore::open(&dir).expect("store");
+        store
+            .save_chat_thread(&json!({
+                "id": "thread-e2e",
+                "kind": "direct",
+                "created_at": "2026-11-16T10:00:00Z",
+                "updated_at": "2026-11-16T10:05:00Z",
+                "muted": false,
+                "unread": 0,
+                "peer": { "id": "peer", "handle": "bob", "display_name": "Bob", "avatar_key": null },
+                "last_message": null
+            }))
+            .expect("thread");
+        store
+            .queue_chat_message(
+                "thread-e2e",
+                "me",
+                "plaintext must not be stored",
+                &client_id,
+                Some(&envelope),
+            )
+            .expect("queue");
+        let outbox = store.chat_outbox().expect("outbox");
+        assert_eq!(outbox.len(), 1);
+        assert!(
+            outbox[0]
+                .encrypted
+                .as_deref()
+                .unwrap()
+                .contains("ciphertext")
+        );
+    }
+
+    let reopened = DesktopStore::open(&dir).expect("reopen");
+    let messages = reopened
+        .list_chat_messages("thread-e2e", None, 50)
+        .expect("messages");
+    let message = messages["messages"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|message| message["client_id"] == client_id)
+        .expect("message");
+    assert_eq!(message["body"], "[encrypted]");
+    assert_eq!(message["encrypted"]["version"], 1);
+    assert_eq!(reopened.chat_outbox().expect("outbox").len(), 1);
+    let outbox = reopened.chat_outbox().expect("outbox");
+    assert!(!outbox[0].body.contains("plaintext"));
 
     fs::remove_dir_all(dir).ok();
 }

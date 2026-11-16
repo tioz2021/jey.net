@@ -616,12 +616,19 @@ async fn flush_chat_outbox(state: &DesktopState) -> Result<usize, String> {
         .chat_outbox()
         .map_err(|error| error.to_string())?;
     let mut sent = 0;
-    for (thread_id, client_id, body) in rows {
+    for row in rows {
+        let payload = match row.encrypted.as_deref() {
+            Some(raw) => {
+                let encrypted: Value = serde_json::from_str(raw).unwrap_or(Value::Null);
+                json!({ "client_id": row.client_id, "encrypted": encrypted })
+            }
+            None => json!({ "body": row.body, "client_id": row.client_id }),
+        };
         match chat_remote(
             state,
             "POST",
-            &format!("/api/v1/chat/threads/{thread_id}/messages"),
-            Some(json!({ "body": body, "client_id": client_id })),
+            &format!("/api/v1/chat/threads/{}/messages", row.thread_id),
+            Some(payload),
         )
         .await
         {
@@ -631,7 +638,7 @@ async fn flush_chat_outbox(state: &DesktopState) -> Result<usize, String> {
                 }
                 state
                     .store
-                    .clear_chat_outbox(&client_id)
+                    .clear_chat_outbox(&row.client_id)
                     .map_err(|error| error.to_string())?;
                 sent += 1;
             }
@@ -639,7 +646,7 @@ async fn flush_chat_outbox(state: &DesktopState) -> Result<usize, String> {
                 // Idempotent replay with a different body must not loop forever.
                 state
                     .store
-                    .clear_chat_outbox(&client_id)
+                    .clear_chat_outbox(&row.client_id)
                     .map_err(|error| error.to_string())?;
             }
             Err(ChatRemoteError::Status(_, _)) | Err(ChatRemoteError::Offline) => break,
@@ -742,16 +749,19 @@ async fn local_chat_messages(
 async fn local_chat_send(
     state: State<'_, DesktopState>,
     thread_id: String,
-    body: String,
+    body: Option<String>,
     client_id: String,
+    encrypted: Option<Value>,
 ) -> Result<Value, String> {
     let user = current_user(&state)?;
-    let body = body.trim().to_owned();
-    if body.is_empty() {
-        return Err("Сообщение не может быть пустым".to_owned());
-    }
-    if body.chars().count() > 4000 {
-        return Err("Сообщение длиннее 4000 символов".to_owned());
+    let body = body.unwrap_or_default().trim().to_owned();
+    if encrypted.is_none() {
+        if body.is_empty() {
+            return Err("Сообщение не может быть пустым".to_owned());
+        }
+        if body.chars().count() > 4000 {
+            return Err("Сообщение длиннее 4000 символов".to_owned());
+        }
     }
     if !state
         .store
@@ -765,7 +775,10 @@ async fn local_chat_send(
         &state,
         "POST",
         &format!("/api/v1/chat/threads/{thread_id}/messages"),
-        Some(json!({ "body": body, "client_id": client_id })),
+        Some(match encrypted.as_ref() {
+            Some(envelope) => json!({ "client_id": client_id, "encrypted": envelope }),
+            None => json!({ "body": body, "client_id": client_id }),
+        }),
     )
     .await
     {
@@ -785,7 +798,13 @@ async fn local_chat_send(
         Err(ChatRemoteError::Offline) => {
             let message = state
                 .store
-                .queue_chat_message(&thread_id, &user.to_string(), &body, &client_id)
+                .queue_chat_message(
+                    &thread_id,
+                    &user.to_string(),
+                    &body,
+                    &client_id,
+                    encrypted.as_ref(),
+                )
                 .map_err(|error| error.to_string())?;
             Ok(json!({ "message": message, "created": true, "pending": true }))
         }
@@ -843,6 +862,29 @@ async fn local_chat_mute(
         Err(ChatRemoteError::Status(code, message)) => Err(format!("{code}: {message}")),
         Err(ChatRemoteError::Invalid(message)) => Err(message),
         Err(ChatRemoteError::Offline) => Ok(json!({ "muted": muted })),
+    }
+}
+
+#[tauri::command]
+async fn local_chat_user_devices(
+    state: State<'_, DesktopState>,
+    user_id: String,
+) -> Result<Value, String> {
+    let path = format!("/api/v1/chat/users/{user_id}/devices");
+    match chat_remote(&state, "GET", &path, None).await {
+        Ok(value) => {
+            state
+                .store
+                .cache_chat_devices(&user_id, &value)
+                .map_err(|error| error.to_string())?;
+            Ok(value)
+        }
+        Err(ChatRemoteError::Status(code, message)) => Err(format!("{code}: {message}")),
+        Err(ChatRemoteError::Invalid(message)) => Err(message),
+        Err(ChatRemoteError::Offline) => state
+            .store
+            .list_chat_devices(&user_id)
+            .map_err(|error| error.to_string()),
     }
 }
 
@@ -1164,6 +1206,7 @@ pub fn run() {
             local_chat_send,
             local_chat_read,
             local_chat_mute,
+            local_chat_user_devices,
             local_chat_sync
         ])
         .run(tauri::generate_context!())

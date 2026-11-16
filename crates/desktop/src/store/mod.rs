@@ -35,6 +35,7 @@ const MIGRATIONS: &[(i64, &str)] = &[
         include_str!("../../migrations/0004_comment_reactions.sql"),
     ),
     (5, include_str!("../../migrations/0005_chat.sql")),
+    (6, include_str!("../../migrations/0006_chat_e2e.sql")),
 ];
 
 fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
@@ -370,7 +371,7 @@ mod tests {
     fn migrates_and_survives_reopen() {
         let dir = temp_dir();
         let store = DesktopStore::open(&dir).expect("open store");
-        assert_eq!(store.schema_version().unwrap(), 5);
+        assert_eq!(store.schema_version().unwrap(), 6);
         assert_eq!(store.status().unwrap().items, 0);
 
         {
@@ -396,7 +397,7 @@ mod tests {
         let store = DesktopStore::in_memory().expect("store");
         store.migrate().unwrap();
         store.migrate().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 5);
+        assert_eq!(store.schema_version().unwrap(), 6);
     }
 
     #[test]
@@ -427,7 +428,7 @@ mod tests {
         }
 
         let store = DesktopStore::open(&dir).expect("migrate old store");
-        assert_eq!(store.schema_version().unwrap(), 5);
+        assert_eq!(store.schema_version().unwrap(), 6);
         assert_eq!(store.status().unwrap().items, 1);
         let backups = std::fs::read_dir(dir.join("backups"))
             .unwrap()
@@ -439,7 +440,7 @@ mod tests {
     }
     #[test]
     fn migrates_each_old_version_and_keeps_data() {
-        for old in 1..5 {
+        for old in 1..6 {
             let dir = temp_dir();
             std::fs::create_dir_all(&dir).unwrap();
             {
@@ -470,7 +471,7 @@ mod tests {
                     .unwrap();
             }
             let store = DesktopStore::open(&dir).expect("migrate old store");
-            assert_eq!(store.schema_version().unwrap(), 5, "old={old}");
+            assert_eq!(store.schema_version().unwrap(), 6, "old={old}");
             assert_eq!(store.status().unwrap().items, 1, "old={old}");
             std::fs::remove_dir_all(dir).ok();
         }

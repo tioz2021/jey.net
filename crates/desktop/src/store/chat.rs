@@ -6,6 +6,13 @@ use uuid::Uuid;
 
 use super::{DesktopStore, StoreError};
 
+pub struct ChatOutboxRow {
+    pub thread_id: String,
+    pub client_id: String,
+    pub body: String,
+    pub encrypted: Option<String>,
+}
+
 fn millis(value: Option<&Value>) -> i64 {
     match value {
         Some(Value::Number(number)) => number.as_i64().unwrap_or(0),
@@ -78,15 +85,21 @@ impl DesktopStore {
         ) else {
             return Ok(());
         };
+        let encrypted = message
+            .get("encrypted")
+            .filter(|value| !value.is_null())
+            .map(Value::to_string);
         let connection = self.connection()?;
         connection.execute(
             "insert into chat_messages
-                (id, thread_id, sender_id, body, client_id, created_at, pending)
-             values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                (id, thread_id, sender_id, body, client_id, created_at, pending,
+                 encrypted, encryption_version)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
              on conflict (thread_id, client_id) do update set
                 id = excluded.id, sender_id = excluded.sender_id,
                 body = excluded.body, created_at = excluded.created_at,
-                pending = excluded.pending",
+                pending = excluded.pending, encrypted = excluded.encrypted,
+                encryption_version = excluded.encryption_version",
             params![
                 id,
                 thread_id,
@@ -94,7 +107,9 @@ impl DesktopStore {
                 body,
                 client_id,
                 millis(message.get("created_at")),
-                pending as i64
+                pending as i64,
+                encrypted,
+                message.get("encryption_version").and_then(Value::as_i64)
             ],
         )?;
         Ok(())
@@ -185,7 +200,8 @@ impl DesktopStore {
         let limit = limit.clamp(1, 100);
         let connection = self.connection()?;
         let mut statement = connection.prepare(
-            "select id, thread_id, sender_id, body, client_id, created_at, pending
+            "select id, thread_id, sender_id, body, client_id, created_at, pending,
+                    encrypted, encryption_version
              from chat_messages
              where thread_id = ?1
                and (?2 is null or created_at < (
@@ -194,6 +210,7 @@ impl DesktopStore {
              order by created_at desc limit ?3",
         )?;
         let rows = statement.query_map(params![thread_id, before, limit + 1], |row| {
+            let encrypted: Option<String> = row.get(7)?;
             Ok(json!({
                 "id": row.get::<_, String>(0)?,
                 "thread_id": row.get::<_, String>(1)?,
@@ -202,6 +219,8 @@ impl DesktopStore {
                 "client_id": row.get::<_, String>(4)?,
                 "created_at": row.get::<_, i64>(5)?.to_string(),
                 "pending": row.get::<_, i64>(6)? != 0,
+                "encrypted": encrypted.and_then(|raw| serde_json::from_str::<Value>(&raw).ok()),
+                "encryption_version": row.get::<_, Option<i64>>(8)?,
             }))
         })?;
         let mut messages = rows
@@ -229,9 +248,15 @@ impl DesktopStore {
         sender_id: &str,
         body: &str,
         client_id: &str,
+        encrypted: Option<&Value>,
     ) -> Result<Value, StoreError> {
         let now = super::now_millis();
         let id = Uuid::new_v4().to_string();
+        let body = if encrypted.is_some() {
+            "[encrypted]"
+        } else {
+            body
+        };
         let message = json!({
             "id": id,
             "thread_id": thread_id,
@@ -240,15 +265,25 @@ impl DesktopStore {
             "client_id": client_id,
             "created_at": now.to_string(),
             "pending": true,
+            "encrypted": encrypted.cloned(),
+            "encryption_version": encrypted.map(|_| 1),
         });
         let thread = self.get_chat_thread(thread_id)?;
         if thread.is_some() {
             self.save_chat_message(&message, true)?;
             let connection = self.connection()?;
             connection.execute(
-                "insert or replace into chat_outbox (thread_id, client_id, body, created_at)
-                 values (?1, ?2, ?3, ?4)",
-                params![thread_id, client_id, body, now],
+                "insert or replace into chat_outbox
+                    (thread_id, client_id, body, created_at, encrypted, encryption_version)
+                 values (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![
+                    thread_id,
+                    client_id,
+                    body,
+                    now,
+                    encrypted.map(Value::to_string),
+                    encrypted.map(|_| 1_i64)
+                ],
             )?;
             connection.execute(
                 "update chat_threads set updated_at = ?2, last_message_id = ?3,
@@ -260,14 +295,77 @@ impl DesktopStore {
         Ok(message)
     }
 
-    pub fn chat_outbox(&self) -> Result<Vec<(String, String, String)>, StoreError> {
+    pub fn chat_outbox(&self) -> Result<Vec<ChatOutboxRow>, StoreError> {
         let connection = self.connection()?;
         let mut statement = connection.prepare(
-            "select thread_id, client_id, body from chat_outbox order by created_at asc",
+            "select thread_id, client_id, body, encrypted
+             from chat_outbox order by created_at asc",
         )?;
-        let rows = statement.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
+        let rows = statement.query_map([], |row| {
+            Ok(ChatOutboxRow {
+                thread_id: row.get(0)?,
+                client_id: row.get(1)?,
+                body: row.get(2)?,
+                encrypted: row.get(3)?,
+            })
+        })?;
         rows.collect::<rusqlite::Result<Vec<_>>>()
             .map_err(StoreError::Sql)
+    }
+
+    pub fn cache_chat_devices(&self, user_id: &str, value: &Value) -> Result<(), StoreError> {
+        let Some(devices) = value.get("devices").and_then(Value::as_array) else {
+            return Ok(());
+        };
+        let connection = self.connection()?;
+        for device in devices {
+            let Some(device_id) = text(device, "device_id") else {
+                continue;
+            };
+            let Some(public_key) = text(device, "public_key") else {
+                continue;
+            };
+            connection.execute(
+                "insert into chat_devices
+                    (user_id, device_id, public_key, algorithm, name, updated_at)
+                 values (?1, ?2, ?3, ?4, ?5, ?6)
+                 on conflict (user_id, device_id) do update set
+                    public_key = excluded.public_key,
+                    algorithm = excluded.algorithm,
+                    name = excluded.name,
+                    updated_at = excluded.updated_at",
+                params![
+                    user_id,
+                    device_id,
+                    public_key,
+                    text(device, "algorithm").unwrap_or("x25519"),
+                    text(device, "name"),
+                    millis(device.get("updated_at")),
+                ],
+            )?;
+        }
+        Ok(())
+    }
+
+    pub fn list_chat_devices(&self, user_id: &str) -> Result<Value, StoreError> {
+        let connection = self.connection()?;
+        let mut statement = connection.prepare(
+            "select device_id, public_key, algorithm, name, updated_at
+             from chat_devices where user_id = ?1 order by updated_at desc",
+        )?;
+        let rows = statement.query_map([user_id], |row| {
+            Ok(json!({
+                "device_id": row.get::<_, String>(0)?,
+                "public_key": row.get::<_, String>(1)?,
+                "algorithm": row.get::<_, String>(2)?,
+                "name": row.get::<_, Option<String>>(3)?,
+                "updated_at": row.get::<_, i64>(4)?.to_string(),
+            }))
+        })?;
+        let devices = rows
+            .collect::<rusqlite::Result<Vec<Value>>>()
+            .map_err(StoreError::Sql)?;
+        Ok(json!({ "devices": devices }))
     }
 
     pub fn clear_chat_outbox(&self, client_id: &str) -> Result<(), StoreError> {
@@ -302,6 +400,7 @@ impl DesktopStore {
         let connection = self.connection()?;
         connection.execute("delete from chat_outbox", [])?;
         connection.execute("delete from chat_messages", [])?;
+        connection.execute("delete from chat_devices", [])?;
         connection.execute("delete from chat_threads", [])?;
         Ok(())
     }
@@ -373,7 +472,7 @@ mod tests {
         assert_eq!(messages["messages"][0]["body"], "hello");
 
         let queued = store
-            .queue_chat_message("t1", "u1", "offline text", "c2")
+            .queue_chat_message("t1", "u1", "offline text", "c2", None)
             .expect("queue");
         assert_eq!(queued["pending"], true);
         assert_eq!(store.chat_outbox().expect("outbox").len(), 1);

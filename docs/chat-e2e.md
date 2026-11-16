@@ -96,8 +96,21 @@ DELETE /chat/devices/{device_id}         отозвать своё устрой�
 | T150.2 | Реестр устройств | ✅ миграция `0065_chat_devices`, API, тесты |
 | T150.3 | Web crypto | ✅ X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
 | T150.4 | Отправка и история | ✅ encrypted envelope, edit, client search, live E2E test |
-| T150.5 | Desktop | bridge, offline-кеш конвертов |
+| T150.5 | Desktop | ✅ bridge, offline-кеш конвертов, device cache |
 | T150.6 | Тесты и релиз | crypto vectors, multi-device, recovery, tag |
+
+## T150.5 — desktop
+
+Сделано:
+
+- desktop-миграция `0006_chat_e2e.sql`;
+- `chat_messages.encrypted` и `encryption_version` в SQLite;
+- `chat_outbox.encrypted` — офлайн-очередь хранит только конверт, не plaintext;
+- кеш публичных device keys собеседника (`chat_devices`);
+- Tauri-команда `local_chat_user_devices`;
+- bridge передаёт `encrypted` в `local_chat_send`;
+- flush outbox отправляет конверты после reconnect;
+- тесты: encrypted outbox сохраняется после перезапуска, plaintext не пишется.
 
 ## T150.4 — encrypted messages
 
