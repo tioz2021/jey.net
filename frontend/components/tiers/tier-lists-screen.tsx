@@ -9,6 +9,7 @@ import { ListSkeleton } from "@/components/skeletons";
 import { AppLink } from "@/lib/navigation";
 import { Badge, Button, Card, Dialog, Input } from "@/components/ui";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
@@ -26,7 +27,7 @@ export function TierListsScreen() {
   const [kind, setKind] = useState<TierListKind>("all");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>(() => readViewPreference("jey:view:tiers"));
   const [filter, setFilter] = useState<"all" | "auto" | "custom">("all");
 
   function load() {
@@ -94,7 +95,13 @@ export function TierListsScreen() {
     <main>
       <NotebookTabs />
       <div className={styles.listToolbar}>
-        <ViewSwitch onChange={setView} value={view} />
+        <ViewSwitch
+          onChange={(value) => {
+            setView(value);
+            saveViewPreference("jey:view:tiers", value);
+          }}
+          value={view}
+        />
         <div aria-label={t("tiers.filter")} className={styles.filterSwitch} role="group">
           {(["all", "auto", "custom"] as const).map((value) => (
             <button

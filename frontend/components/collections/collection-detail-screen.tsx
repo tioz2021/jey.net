@@ -13,12 +13,13 @@ import type { CollectionDetail } from "@/lib/types";
 import styles from "./collection-detail-screen.module.css";
 import { LoadingScreen } from "@/components/loading-screen";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 
 export function CollectionDetailScreen({ id }: { id: string }) {
   const { t } = useI18n();
   const [data, setData] = useState<CollectionDetail | null>(null);
   const [error, setError] = useState(false);
-  const [view, setView] = useState<ViewMode>("grid");
+  const [view, setView] = useState<ViewMode>(() => readViewPreference("jey:view:collections", "grid"));
 
   useEffect(() => {
     api.collections.detail(id).then(setData).catch(() => setError(true));
@@ -41,7 +42,13 @@ export function CollectionDetailScreen({ id }: { id: string }) {
       <AppLink className={styles.back} href="/collections">← {t("collections.title")}</AppLink>
       <PageHeader title={data.collection.title} />
       <div className="section-toolbar">
-        <ViewSwitch onChange={setView} value={view} />
+        <ViewSwitch
+          onChange={(value) => {
+            setView(value);
+            saveViewPreference("jey:view:collections", value);
+          }}
+          value={view}
+        />
       </div>
       {data.items.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
