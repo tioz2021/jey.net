@@ -185,7 +185,6 @@ export function TierDetailScreen() {
     <main>
       <NotebookTabs />
       <header className={styles.detailHead}>
-        <AppLink href="/tiers">← {t("tiers.title")}</AppLink>
         <div>
           <h1>{data.tier_list.title}</h1>
           <Badge tone={data.tier_list.visibility === "public" ? "success" : "neutral"}>
