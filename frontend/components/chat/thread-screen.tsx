@@ -21,7 +21,9 @@ import styles from "./thread.module.css";
 type PendingMessage = ChatMessage & { pending?: boolean; failed?: boolean };
 
 function messageKey(message: ChatMessage) {
-  return message.id || message.client_id;
+  // The optimistic copy and the server copy share a client_id; prefer it so
+  // an SSE event can replace the pending bubble instead of adding a duplicate.
+  return message.client_id || message.id;
 }
 
 function mergeMessages(current: ChatMessage[], incoming: ChatMessage[]) {
@@ -185,8 +187,9 @@ export function ChatThreadScreen() {
     try {
       const response = await api.chat.send(id, body, clientId);
       setMessages((current) =>
-        current.map((message) =>
-          message.client_id === clientId ? response.message : message,
+        mergeMessages(
+          current.filter((message) => message.client_id !== clientId),
+          [response.message],
         ),
       );
       window.dispatchEvent(new Event("jey:chat-updated"));
