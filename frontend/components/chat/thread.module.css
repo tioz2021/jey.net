@@ -107,7 +107,6 @@
   gap: 3px;
   margin-bottom: 10px;
   justify-items: start;
-  cursor: pointer;
 }
 
 .message:last-of-type {
@@ -121,6 +120,7 @@
 
 .bubble {
   padding: 8px 12px;
+  cursor: pointer;
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -379,6 +379,7 @@
   position: fixed;
   z-index: 61;
   display: grid;
+  width: 210px;
   min-width: 190px;
   padding: 6px;
   background: var(--color-bg);
@@ -412,9 +413,10 @@
 
 .menuReactions {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 4px 6px;
-  overflow-x: auto;
+  overflow: visible;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }
