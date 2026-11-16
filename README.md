@@ -89,6 +89,7 @@ cd apps/web && npm run build
 | [docs/openapi.yaml](docs/openapi.yaml) | OpenAPI 3.1, все эндпоинты v1 |
 | [docs/protocol.md](docs/protocol.md) | Полный текстовый контракт HTTP API |
 | [docs/sync.md](docs/sync.md) | Протокол синхронизации каталога |
+| [docs/tiers.md](docs/tiers.md) | Тир-листы и градация оценок |
 | [docs/chat.md](docs/chat.md) | Чат, API, realtime, private keys |
 | [docs/chat-e2e.md](docs/chat-e2e.md) | E2E-шифрование и recovery |
 | [docs/chat-tests.md](docs/chat-tests.md) | Тесты API/offline/crypto |
