@@ -367,3 +367,44 @@
     opacity: 0.65;
   }
 }
+
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.contextMenu {
+  position: fixed;
+  z-index: 61;
+  display: grid;
+  min-width: 190px;
+  padding: 6px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.contextMenu p {
+  margin: 0;
+  padding: 6px 8px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.contextMenu button {
+  padding: 8px;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.contextMenu button:hover {
+  background: var(--color-surface);
+}

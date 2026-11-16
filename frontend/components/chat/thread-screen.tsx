@@ -7,6 +7,7 @@ import { IconBell, IconBellOff } from "@/components/icons";
 import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
 import { ReportButton } from "@/components/report-button";
+import { useToast } from "@/components/toasts";
 import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/i18n";
@@ -43,6 +44,7 @@ export function ChatThreadScreen() {
   const { id = "" } = useParams();
   const { t, locale } = useI18n();
   const { user } = useUser();
+  const { notify } = useToast();
   const [thread, setThread] = useState<ChatThread | null>(null);
   const [messages, setMessages] = useState<PendingMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,7 @@ export function ChatThreadScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
+  const [menu, setMenu] = useState<{ message: ChatMessage; x: number; y: number } | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingSentAt = useRef(0);
@@ -143,6 +146,38 @@ export function ChatThreadScreen() {
     if (now - typingSentAt.current < 2000) return;
     typingSentAt.current = now;
     void api.chat.typing(id).catch(() => {});
+  }
+
+  function showMenu(message: PendingMessage, x: number, y: number) {
+    if (message.pending || message.failed) return;
+    setMenu({
+      message,
+      x: Math.min(x, window.innerWidth - 210),
+      y: Math.min(y, window.innerHeight - 240),
+    });
+  }
+
+  function openMenu(event: React.MouseEvent, message: PendingMessage) {
+    event.preventDefault();
+    event.stopPropagation();
+    showMenu(message, event.clientX, event.clientY);
+  }
+
+  function openMenuFromButton(event: React.MouseEvent, message: PendingMessage) {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    showMenu(message, rect.left, rect.bottom);
+  }
+
+  async function copyMessage(message: PendingMessage) {
+    try {
+      await navigator.clipboard.writeText(message.body);
+      notify({ tone: "success", title: t("chat.copied"), text: "", requestId: null });
+    } catch {
+      // Clipboard can be unavailable in an insecure context.
+    }
+    setMenu(null);
   }
 
   function startEdit(message: ChatMessage) {
@@ -281,6 +316,15 @@ export function ChatThreadScreen() {
     // loadThread/searchFor intentionally read the current thread state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, id]);
+
+  useEffect(() => {
+    if (!menu) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menu]);
 
   useEffect(() => {
     const box = messagesRef.current;
@@ -430,6 +474,7 @@ export function ChatThreadScreen() {
               <div
                 className={`${styles.message} ${own ? styles.own : ""} ${message.failed ? styles.failed : ""}`}
                 key={messageKey(message)}
+                onContextMenu={(event) => openMenu(event, message)}
               >
                 {editingId === message.id ? (
                   <form
@@ -510,6 +555,14 @@ export function ChatThreadScreen() {
                         targetType="chat_message"
                       />
                     )}
+                    <button
+                      aria-label={t("chat.more")}
+                      className={styles.action}
+                      onClick={(event) => openMenuFromButton(event, message)}
+                      type="button"
+                    >
+                      ⋯
+                    </button>
                   </div>
                 ) : null}
               </div>
@@ -551,6 +604,42 @@ export function ChatThreadScreen() {
           {sending ? t("chat.sending") : t("chat.send")}
         </Button>
       </form>
+
+      {menu ? (
+        <div className={styles.menuBackdrop} onClick={() => setMenu(null)} onContextMenu={(event) => event.preventDefault()}>
+          <div
+            className={styles.contextMenu}
+            onClick={(event) => event.stopPropagation()}
+            style={{ left: menu.x, top: menu.y }}
+          >
+            <p>{t("chat.more")}</p>
+            <button onClick={() => void copyMessage(menu.message)} type="button">{t("chat.copy")}</button>
+            {REACTION_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => {
+                  void toggleReaction(menu.message, emoji);
+                  setMenu(null);
+                }}
+                type="button"
+              >
+                {emoji} {t("chat.react")}
+              </button>
+            ))}
+            {menu.message.sender_id === ownId ? (
+              <button
+                onClick={() => {
+                  startEdit(menu.message);
+                  setMenu(null);
+                }}
+                type="button"
+              >
+                {t("chat.edit")}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
