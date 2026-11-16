@@ -4,6 +4,7 @@ import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { Button, Dialog, Input } from "@/components/ui";
+import { IconCollection, IconGlobe, IconLock, IconTrash } from "@/components/icons";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import type { Collection } from "@/lib/types";
@@ -79,40 +80,52 @@ export function CollectionManager({ view = "list" }: { view?: ViewMode }) {
           {collections.map((collection) => (
             <li className={styles.item} key={collection.id}>
               <AppLink className={styles.link} href={`/collections/${collection.id}`}>
-                <span>{collection.title}</span>
-                <span className={styles.meta}>
-                  {collection.visibility === "public"
-                    ? t("collections.public")
-                    : t("collections.private")}
-                  {" · "}
-                  {collection.item_count}
+                <span className={styles.icon}><IconCollection size={18} /></span>
+                <span className={styles.body}>
+                  <strong>{collection.title}</strong>
+                  <span className={styles.meta}>
+                    <span className={`${styles.visibility} ${collection.visibility === "public" ? styles.visibilityPublic : ""}`}>
+                      {collection.visibility === "public"
+                        ? t("collections.public")
+                        : t("collections.private")}
+                    </span>
+                    <span>{collection.item_count}</span>
+                  </span>
                 </span>
               </AppLink>
-              <Button
-                onClick={() => {
-                  const next = collection.visibility === "public" ? "private" : "public";
-                  void api.collections
-                    .update(collection.id, { title: collection.title, visibility: next })
-                    .then(() => {
-                      load();
-                      window.dispatchEvent(new Event("jey:collections-changed"));
-                    })
-                    .catch(() => setError(t("collections.removeError")));
-                }}
-                size="sm"
-                variant="ghost"
-              >
-                {collection.visibility === "public"
-                  ? t("collections.makePrivate")
-                  : t("collections.makePublic")}
-              </Button>
-              <Button
-                onClick={() => setPendingDelete(collection)}
-                size="sm"
-                variant="ghost"
-              >
-                {t("collections.remove")}
-              </Button>
+              <span className={styles.actions}>
+                <button
+                  aria-label={collection.visibility === "public"
+                    ? t("collections.makePrivate")
+                    : t("collections.makePublic")}
+                  className={styles.action}
+                  onClick={() => {
+                    const next = collection.visibility === "public" ? "private" : "public";
+                    void api.collections
+                      .update(collection.id, { title: collection.title, visibility: next })
+                      .then(() => {
+                        load();
+                        window.dispatchEvent(new Event("jey:collections-changed"));
+                      })
+                      .catch(() => setError(t("collections.removeError")));
+                  }}
+                  title={collection.visibility === "public"
+                    ? t("collections.makePrivate")
+                    : t("collections.makePublic")}
+                  type="button"
+                >
+                  {collection.visibility === "public" ? <IconLock size={16} /> : <IconGlobe size={16} />}
+                </button>
+                <button
+                  aria-label={t("collections.remove")}
+                  className={`${styles.action} ${styles.danger}`}
+                  onClick={() => setPendingDelete(collection)}
+                  title={t("collections.remove")}
+                  type="button"
+                >
+                  <IconTrash size={16} />
+                </button>
+              </span>
             </li>
           ))}
         </ul>

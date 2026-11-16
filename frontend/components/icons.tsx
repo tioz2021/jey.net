@@ -7,8 +7,10 @@ import {
   Film,
   Folder,
   Gamepad2,
+  Globe,
   Heart,
   Image,
+  Lock,
   LayoutGrid,
   List,
   MessageCircle,
@@ -52,6 +54,8 @@ export const IconHeart = makeIcon(Heart, "IconHeart");
 export const IconSparkles = makeIcon(Sparkles, "IconSparkles");
 export const IconFeed = makeIcon(Rss, "IconFeed");
 export const IconCollection = makeIcon(Folder, "IconCollection");
+export const IconGlobe = makeIcon(Globe, "IconGlobe");
+export const IconLock = makeIcon(Lock, "IconLock");
 export const IconList = makeIcon(List, "IconList");
 export const IconFilm = makeIcon(Film, "IconFilm");
 export const IconTv = makeIcon(Tv, "IconTv");
