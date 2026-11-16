@@ -35,8 +35,6 @@ export function TierDetailScreen() {
   const [dragged, setDragged] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ tier: TierName; index: number } | null>(null);
   const [overPool, setOverPool] = useState(false);
-  const dropped = useRef(false);
-  const canceled = useRef(false);
   const suppressPoolClick = useRef(false);
 
   useEffect(() => {
@@ -50,14 +48,6 @@ export function TierDetailScreen() {
   useEffect(() => {
     void source.list({ limit: 100 }).then((response) => setCatalogue(response.items));
   }, [source]);
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && dragged) canceled.current = true;
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [dragged]);
 
   const used = useMemo(() => new Set(data?.items.map((item) => item.id)), [data]);
   const available = catalogue.filter((item) =>
@@ -106,11 +96,26 @@ export function TierDetailScreen() {
   }
 
   function startDrag(event: React.DragEvent, itemId: string) {
-    dropped.current = false;
-    canceled.current = false;
     suppressPoolClick.current = true;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", itemId);
+    const source = event.currentTarget as HTMLElement;
+    const rect = source.getBoundingClientRect();
+    const ghost = source.cloneNode(true) as HTMLElement;
+    ghost.style.cssText = [
+      "position:fixed",
+      "top:-1000px",
+      "left:-1000px",
+      `width:${rect.width}px`,
+      `height:${rect.height}px`,
+      "opacity:.9",
+      "pointer-events:none",
+      "transform:rotate(2deg)",
+      "box-shadow:0 12px 30px rgb(0 0 0 / 24%)",
+    ].join(";");
+    document.body.appendChild(ghost);
+    event.dataTransfer.setDragImage(ghost, rect.width / 2, rect.height / 2);
+    window.setTimeout(() => ghost.remove(), 0);
     setDropTarget(null);
     setDragged(itemId);
   }
@@ -137,13 +142,13 @@ export function TierDetailScreen() {
       if (event.clientX > rect.left + rect.width / 2) index += 1;
     }
     setDropTarget({ tier, index });
+
+    const edge = 72;
+    if (event.clientY < edge) window.scrollBy({ top: -12 });
+    else if (event.clientY > window.innerHeight - edge) window.scrollBy({ top: 12 });
   }
 
   function finishDrag() {
-    if (!dropped.current && !canceled.current) {
-      const placed = data?.items.find((entry) => entry.id === dragged);
-      if (placed) void remove(placed);
-    }
     setDragged(null);
     setDropTarget(null);
     setOverPool(false);
@@ -221,7 +226,7 @@ export function TierDetailScreen() {
           const items = data.items.filter((item) => item.tier === tier).sort((a, b) => a.position - b.position);
           return (
             <section
-              className={styles.tierRow}
+              className={`${styles.tierRow} ${dropTarget?.tier === tier ? styles.rowOver : ""}`}
               data-tier-row={tier}
               key={tier}
               onDragLeave={(event) => {
@@ -235,7 +240,6 @@ export function TierDetailScreen() {
               }}
               onDrop={(event) => {
                 event.preventDefault();
-                dropped.current = true;
                 const target = dropTarget?.tier === tier
                   ? dropTarget.index
                   : getDropIndex(event, tier);
@@ -285,7 +289,7 @@ export function TierDetailScreen() {
       <footer className={styles.pool}>
         <div className={styles.poolHead}>
           <strong>{t("tiers.pool")}</strong>
-          <span>{t("tiers.poolHint")}</span>
+          <span>{overPool ? t("tiers.dropToRemove") : t("tiers.poolHint")}</span>
           <Select
             hideLabel
             label={t("tiers.tier")}
@@ -304,7 +308,6 @@ export function TierDetailScreen() {
           }}
           onDrop={(event) => {
             event.preventDefault();
-            dropped.current = true;
             const placed = data.items.find((entry) => entry.id === dragged);
             if (placed) void remove(placed);
             setDragged(null);

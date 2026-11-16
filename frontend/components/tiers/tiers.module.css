@@ -156,6 +156,9 @@
 }
 
 .tierRow {
+  --tier-tile-width: 96px;
+  --tier-tile-height: 128px;
+
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr);
   gap: var(--space-2);
@@ -193,8 +196,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 72px;
-  height: 96px;
+  width: var(--tier-tile-width);
+  height: var(--tier-tile-height);
   padding: 0;
   overflow: hidden;
   color: var(--color-text-muted);
@@ -206,8 +209,8 @@
 
 .dropGap {
   flex: none;
-  width: 72px;
-  height: 96px;
+  width: var(--tier-tile-width);
+  height: var(--tier-tile-height);
   background: var(--color-accent-soft);
   border: 1px dashed var(--color-accent);
   border-radius: var(--radius-md);
@@ -229,6 +232,11 @@
   outline: 2px dashed var(--color-accent);
   outline-offset: 4px;
   background: var(--color-accent-soft);
+}
+
+.rowOver {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
 }
 
 .tierItem:active {
@@ -323,14 +331,14 @@
 }
 
 @media (width <= 600px) {
-  .tierItem {
-    width: 60px;
-    height: 80px;
+  .tierRow {
+    --tier-tile-width: 78px;
+    --tier-tile-height: 104px;
   }
 
   .poolItem {
-    width: 68px;
-    height: 90px;
+    width: 88px;
+    height: 117px;
   }
 
   .detailHead {
@@ -387,7 +395,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  min-height: 108px;
+  min-height: 144px;
   overflow-x: auto;
 }
 
@@ -395,8 +403,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 81px;
-  height: 108px;
+  width: 108px;
+  height: 144px;
   padding: 0;
   overflow: hidden;
   color: var(--color-text-muted);
