@@ -483,7 +483,6 @@ export function ChatThreadScreen() {
               <div
                 className={`${styles.message} ${own ? styles.own : ""} ${message.failed ? styles.failed : ""}`}
                 key={messageKey(message)}
-                onContextMenu={(event) => openMenu(event, message)}
               >
                 {editingId === message.id ? (
                   <form
@@ -508,7 +507,10 @@ export function ChatThreadScreen() {
                     </div>
                   </form>
                 ) : (
-                  <div className={styles.bubble}>
+                  <div
+                    className={styles.bubble}
+                    onContextMenu={(event) => openMenu(event, message)}
+                  >
                     {message.body}
                     {message.failed ? (
                       <button className={styles.retry} onClick={() => retryFailed(message)} type="button">
