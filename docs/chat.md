@@ -100,6 +100,10 @@ GET    /api/v1/chat/settings
 PATCH  /api/v1/chat/settings              { message_policy }
 GET    /api/v1/chat/unread
 GET    /api/v1/chat/stream               -- SSE
+POST   /api/v1/chat/devices              { device_id, public_key, name }
+GET    /api/v1/chat/devices
+GET    /api/v1/chat/users/{id}/devices
+DELETE /api/v1/chat/devices/{device_id}
 ```
 
 Правила:

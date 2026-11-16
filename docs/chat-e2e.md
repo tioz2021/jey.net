@@ -89,11 +89,26 @@ DELETE /chat/devices/{device_id}         отозвать своё устрой�
 | ID | Этап | Результат |
 |---|---|---|
 | T150.1 | Архитектура и threat model | этот документ, конверт, recovery |
-| T150.2 | Реестр устройств | миграция, API, тесты |
+| T150.2 | Реестр устройств | ✅ миграция `0065_chat_devices`, API, тесты |
 | T150.3 | Web crypto | X25519/HKDF/AES-GCM, IndexedDB, recovery UI |
 | T150.4 | Отправка и история | encrypted envelope, edit, client search |
 | T150.5 | Desktop | bridge, offline-кеш конвертов |
 | T150.6 | Тесты и релиз | crypto vectors, multi-device, recovery, tag |
+
+## T150.2 — реестр устройств
+
+Сделано:
+
+- миграция `migrations/0065_chat_devices.sql`;
+- `POST /api/v1/chat/devices` — регистрация/ротация X25519 public key;
+- `GET /api/v1/chat/devices` — свои устройства;
+- `GET /api/v1/chat/users/{id}/devices` — публичные ключи собеседника;
+- `DELETE /api/v1/chat/devices/{device_id}` — отзыв;
+- проверка base64 и длины 32 байта;
+- тест `chat_devices`.
+
+Приватные ключи на сервер не попадают. Шифрование сообщений ещё не включено —
+это T150.3–T150.4.
 
 ## Критерии готовности
 
