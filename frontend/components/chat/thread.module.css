@@ -408,3 +408,41 @@
 .contextMenu button:hover {
   background: var(--color-surface);
 }
+
+.menuReactions {
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px;
+  overflow-x: auto;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menuReactions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 17px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menuReactions button:hover {
+  background: var(--color-surface);
+}
+
+/* Message actions now live in the context menu, never on hover. */
+.reactionPicker,
+.messageActions,
+.message:hover .reactionPicker,
+.message:focus-within .reactionPicker,
+.message:hover .messageActions,
+.message:focus-within .messageActions {
+  display: none;
+}

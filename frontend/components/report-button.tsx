@@ -14,15 +14,25 @@ export function ReportButton({
   targetType,
   targetId,
   ownerId,
+  open: controlledOpen,
+  onClose,
 }: {
   targetType: "item" | "comment" | "profile" | "chat_message";
   targetId: string;
   ownerId?: string;
+  open?: boolean;
+  onClose?: () => void;
 }) {
   const { t } = useI18n();
   const { user } = useUser();
   const { notify } = useToast();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : internalOpen;
+  const close = () => {
+    if (controlled) onClose?.();
+    else setInternalOpen(false);
+  };
   const [reason, setReason] = useState("spam");
   const [details, setDetails] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,7 +50,7 @@ export function ReportButton({
         reason,
         details: details.trim() || undefined,
       });
-      setOpen(false);
+      close();
       setDetails("");
       notify({
         tone: "success",
@@ -57,15 +67,17 @@ export function ReportButton({
 
   return (
     <>
-      <button className={styles.trigger} onClick={() => setOpen(true)} type="button">
-        {t("report.action")}
-      </button>
+      {!controlled ? (
+        <button className={styles.trigger} onClick={() => setInternalOpen(true)} type="button">
+          {t("report.action")}
+        </button>
+      ) : null}
       <Dialog
         footer={
           <>
             <Button
               className={styles.cancel}
-              onClick={() => setOpen(false)}
+              onClick={close}
               size="sm"
               variant="secondary"
             >
@@ -81,7 +93,7 @@ export function ReportButton({
             </Button>
           </>
         }
-        onClose={() => setOpen(false)}
+        onClose={close}
         open={open}
         title={t("report.title")}
       >

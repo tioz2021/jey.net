@@ -21,7 +21,7 @@ import styles from "./thread.module.css";
 
 type PendingMessage = ChatMessage & { pending?: boolean; failed?: boolean };
 
-const REACTION_EMOJIS = ["❤️", "👍", "😂"];
+const REACTION_EMOJIS = ["❤️", "👍", "😂", "😮", "😢", "🔥", "🎉", "🙏"];
 
 function messageKey(message: ChatMessage) {
   // The optimistic copy and the server copy share a client_id; prefer it so
@@ -58,6 +58,7 @@ export function ChatThreadScreen() {
   const [editText, setEditText] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
   const [menu, setMenu] = useState<{ message: ChatMessage; x: number; y: number } | null>(null);
+  const [reportTarget, setReportTarget] = useState<PendingMessage | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingSentAt = useRef(0);
@@ -163,12 +164,7 @@ export function ChatThreadScreen() {
     showMenu(message, event.clientX, event.clientY);
   }
 
-  function openMenuFromButton(event: React.MouseEvent, message: PendingMessage) {
-    event.preventDefault();
-    event.stopPropagation();
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    showMenu(message, rect.left, rect.bottom);
-  }
+
 
   async function copyMessage(message: PendingMessage) {
     try {
@@ -527,44 +523,7 @@ export function ChatThreadScreen() {
                       {reaction.emoji} {reaction.count}
                     </button>
                   ))}
-                  {!message.pending && !message.failed ? (
-                    <span className={styles.reactionPicker}>
-                      {REACTION_EMOJIS.map((emoji) => (
-                        <button
-                          aria-label={`${t("chat.react")} ${emoji}`}
-                          key={emoji}
-                          onClick={() => void toggleReaction(message, emoji)}
-                          type="button"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </span>
-                  ) : null}
                 </div>
-                {!message.pending && !message.failed ? (
-                  <div className={styles.messageActions}>
-                    {own ? (
-                      <button className={styles.action} onClick={() => startEdit(message)} type="button">
-                        {t("chat.edit")}
-                      </button>
-                    ) : (
-                      <ReportButton
-                        ownerId={message.sender_id}
-                        targetId={message.id}
-                        targetType="chat_message"
-                      />
-                    )}
-                    <button
-                      aria-label={t("chat.more")}
-                      className={styles.action}
-                      onClick={(event) => openMenuFromButton(event, message)}
-                      type="button"
-                    >
-                      ⋯
-                    </button>
-                  </div>
-                ) : null}
               </div>
             );
           })
@@ -614,18 +573,21 @@ export function ChatThreadScreen() {
           >
             <p>{t("chat.more")}</p>
             <button onClick={() => void copyMessage(menu.message)} type="button">{t("chat.copy")}</button>
-            {REACTION_EMOJIS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => {
-                  void toggleReaction(menu.message, emoji);
-                  setMenu(null);
-                }}
-                type="button"
-              >
-                {emoji} {t("chat.react")}
-              </button>
-            ))}
+            <div className={styles.menuReactions}>
+              {REACTION_EMOJIS.map((emoji) => (
+                <button
+                  aria-label={`${t("chat.react")} ${emoji}`}
+                  key={emoji}
+                  onClick={() => {
+                    void toggleReaction(menu.message, emoji);
+                    setMenu(null);
+                  }}
+                  type="button"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
             {menu.message.sender_id === ownId ? (
               <button
                 onClick={() => {
@@ -636,9 +598,29 @@ export function ChatThreadScreen() {
               >
                 {t("chat.edit")}
               </button>
-            ) : null}
+            ) : (
+              <button
+                onClick={() => {
+                  setReportTarget(menu.message);
+                  setMenu(null);
+                }}
+                type="button"
+              >
+                {t("report.action")}
+              </button>
+            )}
           </div>
         </div>
+      ) : null}
+
+      {reportTarget ? (
+        <ReportButton
+          onClose={() => setReportTarget(null)}
+          open
+          ownerId={reportTarget.sender_id}
+          targetId={reportTarget.id}
+          targetType="chat_message"
+        />
       ) : null}
     </main>
   );
