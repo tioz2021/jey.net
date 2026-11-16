@@ -85,7 +85,7 @@
 | T145 | Чат: тесты | `[x]` | API, load, offline, manual web E2E |
 | T146 | Чат: релиз | `[x]` | v0.5.0: веб/API, AppImage/deb, тег |
 | T147 | Чат: группы | `[–]` | После MVP |
-| T148 | Чат: вложения | `[–]` | После MVP |
+| T148 | Чат: вложения | `[–]` | Отложено: нет места на VPS; только external object storage |
 | T149 | Чат: реакции/поиск/typing | `[x]` | Web/API: реакции, edit, search, typing |
 | T150 | Чат: E2E-шифрование | `[x]` | 0.6.0: X25519, recovery, web/desktop envelopes |
 
