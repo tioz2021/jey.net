@@ -24,6 +24,7 @@ import "./globals.css";
 import { ToastProvider } from "@/components/toasts";
 import { LocaleProvider } from "@/lib/locale-context";
 import { BackToTop } from "@/components/back-to-top";
+import { FastTooltip } from "@/components/fast-tooltip";
 import type { Locale } from "@/lib/i18n";
 import { UserProvider } from "@/lib/user-context";
 import { CatalogueSourceProvider, webCatalogueSource } from "@/lib/data-source";
@@ -112,6 +113,7 @@ createRoot(document.getElementById("root")!).render(
         </ErrorBoundary>
       </BrowserRouter>
       <BackToTop />
+      <FastTooltip />
       </ToastProvider>
       </UserProvider>
       </CatalogueSourceProvider>
