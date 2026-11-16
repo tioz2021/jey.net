@@ -76,7 +76,7 @@ export function TierListsScreen() {
                 <span className={styles.listMark}>S</span>
                 <span className={styles.listBody}>
                   <strong>{list.auto ? t(KIND_PLURAL_KEYS[list.kind as Exclude<typeof list.kind, "all">]) : list.title}</strong>
-                  <span>{list.auto ? `${t("tiers.auto")} · ` : ""}{list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[list.kind])} · {t("tiers.items", { count: list.item_count })} · {date(list.updated_at, { dateStyle: "medium" })}</span>
+                  <span>{list.auto ? "" : `${list.kind === "all" ? t("tiers.allKinds") : t(KIND_PLURAL_KEYS[list.kind])} · `}{t("tiers.items", { count: list.item_count })} · {date(list.updated_at, { dateStyle: "medium" })}</span>
                 </span>
                 {list.auto ? <Badge tone="accent">{t("tiers.auto")}</Badge> : null}
                 <Badge tone={list.visibility === "public" ? "success" : "neutral"}>
