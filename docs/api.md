@@ -176,6 +176,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET/PATCH/DELETE | `/tier-lists/{id}` | детали/изменение/удаление |
 | PUT/DELETE | `/tier-lists/{id}/items/{item_id}` | положить/убрать запись |
 | GET | `/public/users/{id}/tier-lists/{slug}` | публичная страница |
+| GET | `/public/users/{id}` | профиль + публичные коллекции и тир-листы |
 
 Полосы фиксированы: `S`, `A`, `B`, `C`, `D`, `E`, `F`. `kind` — `all` или
 `movie/tv/anime/book/game/image/other`; список с категорией принимает только

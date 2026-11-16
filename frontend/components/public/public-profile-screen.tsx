@@ -24,5 +24,13 @@ export function PublicProfileScreen({ id }: { id: string }) {
 
   if (error) return <main><p>Профиль не найден</p></main>;
   if (!data) return <main><LoadingScreen /></main>;
-  return <PublicProfileView collections={data.collections ?? []} items={data.items} preview={data.preview} profile={data.profile} />;
+  return (
+    <PublicProfileView
+      collections={data.collections ?? []}
+      items={data.items}
+      preview={data.preview}
+      profile={data.profile}
+      tierLists={data.tier_lists ?? []}
+    />
+  );
 }

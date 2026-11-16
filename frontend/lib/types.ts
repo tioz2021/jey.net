@@ -666,10 +666,20 @@ export interface PublicCollectionSummary {
   item_count: number;
 }
 
+export interface PublicTierListSummary {
+  id: string;
+  title: string;
+  slug: string;
+  kind: TierListKind;
+  auto: boolean;
+  item_count: number;
+}
+
 export interface PublicProfileResponse {
   profile: PublicProfile;
   items: PublicItem[];
   collections?: PublicCollectionSummary[];
+  tier_lists?: PublicTierListSummary[];
   preview?: boolean;
 }
 

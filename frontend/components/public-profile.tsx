@@ -17,7 +17,9 @@ import type {
   PublicCollectionSummary,
   PublicItem,
   PublicProfile,
+  PublicTierListSummary,
 } from "@/lib/types";
+import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
 
 import styles from "./public-profile.module.css";
 import { mediaUrl } from "@/lib/media";
@@ -39,11 +41,13 @@ export function PublicProfileView({
   profile,
   items,
   collections = [],
+  tierLists = [],
   preview = false,
 }: {
   profile: PublicProfile;
   items: PublicItem[];
   collections?: PublicCollectionSummary[];
+  tierLists?: PublicTierListSummary[];
   preview?: boolean;
 }) {
   const { t, date } = useI18n();
@@ -124,6 +128,11 @@ export function PublicProfileView({
   const visibleCollections = useMemo(
     () => collections.filter((collection) => collection.item_count > 0),
     [collections],
+  );
+
+  const visibleTierLists = useMemo(
+    () => tierLists.filter((tierList) => tierList.item_count > 0),
+    [tierLists],
   );
 
   const counts = useMemo(() => {
@@ -296,6 +305,23 @@ export function PublicProfileView({
                   >
                     {collection.title}
                     <span>{collection.item_count}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+
+            {visibleTierLists.length > 0 ? (
+              <div className={styles.collectionStrip}>
+                <span>{t("tiers.title")}:</span>
+                {visibleTierLists.map((tierList) => (
+                  <Link
+                    href={`/u/${profile.handle}/tier/${tierList.slug}`}
+                    key={tierList.id}
+                  >
+                    {tierList.auto
+                      ? t(KIND_PLURAL_KEYS[tierList.kind as Exclude<typeof tierList.kind, "all">])
+                      : tierList.title}
+                    <span>{tierList.item_count}</span>
                   </Link>
                 ))}
               </div>

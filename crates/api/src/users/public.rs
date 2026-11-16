@@ -188,6 +188,29 @@ pub async fn profile(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
+    let tier_lists: Vec<Value> = sqlx::query_scalar(
+        "select jsonb_build_object(
+            'id', t.id, 'title', t.title, 'slug', t.slug,
+            'kind', t.kind, 'auto', t.auto,
+            'item_count', (
+                select count(*)
+                from tier_list_items ti
+                join items i on i.id = ti.item_id
+                where ti.tier_list_id = t.id
+                  and i.deleted_at is null and not i.public_hidden
+                  and i.status = ANY(u.public_statuses)
+                  and (t.kind = 'all' or i.kind = t.kind)
+            )
+         )
+         from tier_lists t
+         join users u on u.id = t.user_id
+         where t.user_id = $1 and t.visibility = 'public'
+         order by t.auto desc, t.updated_at desc",
+    )
+    .bind(id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
     let (followers, following): (i64, i64) = sqlx::query_as(
         "select
             (select count(*) from follows where followee_id = $1),
@@ -212,6 +235,7 @@ pub async fn profile(
         },
         "items": items,
         "collections": collections,
+        "tier_lists": tier_lists,
     })))
 }
 

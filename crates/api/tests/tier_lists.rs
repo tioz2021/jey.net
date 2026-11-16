@@ -110,6 +110,20 @@ async fn tier_lists_are_private_until_published_and_hide_private_items() {
     assert_eq!(public.body["items"].as_array().unwrap().len(), 1);
     assert_eq!(public.body["items"][0]["title"], "Visible tier item");
 
+    let profile = bob
+        .get(
+            &format!("/api/v1/public/users/{alice_id}"),
+            Some(&bob_cookie),
+        )
+        .await;
+    assert_eq!(profile.status, 200, "body: {}", profile.body);
+    let public_lists = profile.body["tier_lists"].as_array().unwrap();
+    let listed = public_lists
+        .iter()
+        .find(|entry| entry["id"] == *id)
+        .unwrap();
+    assert_eq!(listed["item_count"], 1);
+
     let private = alice
         .patch(
             &format!("/api/v1/tier-lists/{id}"),
