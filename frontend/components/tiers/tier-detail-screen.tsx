@@ -164,17 +164,22 @@ export function TierDetailScreen() {
         return { pool: true };
       }
     }
+    let nearest: { tier: TierName; index: number; distance: number } | null = null;
     for (const row of document.querySelectorAll<HTMLElement>("[data-tier-row]")) {
       const rect = row.getBoundingClientRect();
-      if (y < rect.top || y > rect.bottom || x < rect.left || x > rect.right) continue;
+      if (x < rect.left - 24 || x > rect.right + 24) continue;
+      const distance = y < rect.top ? rect.top - y : y > rect.bottom ? y - rect.bottom : 0;
+      if (distance > 32) continue;
       let index = 0;
       for (const tile of row.querySelectorAll<HTMLElement>("[data-tier-tile]")) {
         const tileRect = tile.getBoundingClientRect();
         if (x > tileRect.left + tileRect.width / 2) index += 1;
       }
-      return { tier: row.dataset.tierRow as TierName, index };
+      if (!nearest || distance < nearest.distance) {
+        nearest = { tier: row.dataset.tierRow as TierName, index, distance };
+      }
     }
-    return null;
+    return nearest ? { tier: nearest.tier, index: nearest.index } : null;
   }
 
   function cleanupPointer() {
