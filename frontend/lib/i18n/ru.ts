@@ -93,6 +93,7 @@ export const ru = {
   "share.send": "Отправить",
   "share.sent": "Отправлено",
   "share.noFriends": "У вас пока нет подписок.",
+  "share.preview": "Поделился записью: {title}",
   "share.open": "Открыть",
   "share.privateNote": "Ссылка откроется только для публичной завершённой записи.",
   "chat.title": "Сообщения",

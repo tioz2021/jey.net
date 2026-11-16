@@ -8,6 +8,7 @@ import { Avatar } from "@/components/profile/avatar";
 import { LoadingScreen } from "@/components/loading-screen";
 import { Badge, Card } from "@/components/ui";
 import { api } from "@/lib/api";
+import { decodeItemShare } from "@/lib/chat-share";
 import { formatDate } from "@/lib/i18n";
 import { useI18n } from "@/lib/locale-context";
 import { AppLink } from "@/lib/navigation";
@@ -64,9 +65,12 @@ export function ChatInboxScreen() {
           <ul className={styles.list}>
             {threads.map((thread) => {
               const message = thread.last_message;
-              const preview = message
-                ? message.body
-                : t("chat.noMessages");
+              const shared = message ? decodeItemShare(message.body) : null;
+              const preview = shared
+                ? t("share.preview", { title: shared.item.title })
+                : message
+                  ? message.body
+                  : t("chat.noMessages");
               const date = message
                 ? formatDate(locale, message.created_at, {
                     day: "2-digit",

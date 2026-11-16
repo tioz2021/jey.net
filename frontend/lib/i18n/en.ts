@@ -94,6 +94,7 @@ export const en = {
   "share.send": "Send",
   "share.sent": "Sent",
   "share.noFriends": "You have no following yet.",
+  "share.preview": "Shared a record: {title}",
   "share.open": "Open",
   "share.privateNote": "The link works only for a public completed record.",
   "chat.title": "Messages",

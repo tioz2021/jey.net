@@ -94,6 +94,7 @@ export const uk = {
   "share.send": "Надіслати",
   "share.sent": "Надіслано",
   "share.noFriends": "У вас поки немає підписок.",
+  "share.preview": "Поділився записом: {title}",
   "share.open": "Відкрити",
   "share.privateNote": "Посилання відкриється лише для публічного завершеного запису.",
   "chat.title": "Повідомлення",
