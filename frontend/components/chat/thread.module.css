@@ -102,16 +102,20 @@
 }
 
 .older {
-  align-self: center;
-  margin-bottom: var(--space-2);
+  display: block;
+  margin: 0 auto var(--space-2);
 }
 
 .message {
   display: grid;
-  flex: 0 0 auto;
   max-width: min(72%, 38rem);
   gap: 3px;
+  margin-bottom: 10px;
   justify-items: start;
+}
+
+.message:last-of-type {
+  margin-bottom: 0;
 }
 
 .own {
@@ -169,8 +173,9 @@
 }
 
 .empty {
-  margin: auto;
+  margin: 0;
   color: var(--color-text-muted);
+  text-align: center;
 }
 
 .composer {
