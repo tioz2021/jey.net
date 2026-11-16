@@ -59,6 +59,8 @@ export function ChatThreadScreen() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingSentAt = useRef(0);
   const typingTimer = useRef<number | null>(null);
+  const searchActiveRef = useRef(false);
+  const searchRequest = useRef(0);
   const sseHealthy = useRef(false);
 
   async function toggleMute() {
@@ -102,25 +104,36 @@ export function ChatThreadScreen() {
 
   async function runSearch(event?: React.FormEvent) {
     event?.preventDefault();
-    const query = search.trim();
+    await searchFor(search.trim());
+  }
+
+  async function searchFor(query: string) {
     if (!query) {
-      setSearchActive(false);
-      await loadThread(false);
+      if (searchActiveRef.current) {
+        searchActiveRef.current = false;
+        setSearchActive(false);
+        await loadThread(false);
+      }
       return;
     }
+    const request = ++searchRequest.current;
     try {
       const response = await api.chat.messages(id, { q: query, limit: 50 });
+      if (request !== searchRequest.current) return;
       setMessages(response.messages);
       setNextBefore(response.next_before);
+      searchActiveRef.current = true;
       setSearchActive(true);
       setEditingId(null);
     } catch {
-      setError(true);
+      if (request === searchRequest.current) setError(true);
     }
   }
 
   async function clearSearch() {
+    searchRequest.current += 1;
     setSearch("");
+    searchActiveRef.current = false;
     setSearchActive(false);
     await loadThread(false);
   }
@@ -252,6 +265,22 @@ export function ChatThreadScreen() {
     }, 5000);
     return () => window.clearInterval(timer);
   }, [id, searchActive]);
+
+  useEffect(() => {
+    const query = search.trim();
+    if (!query) {
+      if (searchActiveRef.current) {
+        searchActiveRef.current = false;
+        setSearchActive(false);
+        void loadThread(false);
+      }
+      return;
+    }
+    const timer = window.setTimeout(() => void searchFor(query), 300);
+    return () => window.clearTimeout(timer);
+    // loadThread/searchFor intentionally read the current thread state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, id]);
 
   useEffect(() => {
     const box = messagesRef.current;
