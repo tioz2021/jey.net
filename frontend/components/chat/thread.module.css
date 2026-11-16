@@ -449,3 +449,23 @@
 .message:focus-within .messageActions {
   display: none;
 }
+
+.cryptoStatus {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
+  white-space: nowrap;
+}
+
+.cryptoStatus a {
+  color: var(--color-link);
+  text-decoration: underline;
+}
+
+.cryptoOn {
+  color: var(--color-success, #15803d);
+}
+
+.header .mute {
+  margin-left: 0;
+}
