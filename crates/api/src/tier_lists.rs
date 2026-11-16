@@ -330,7 +330,18 @@ pub async fn public_detail(
     State(state): State<AppState>,
     Path((user_id, slug)): Path<(String, String)>,
 ) -> Result<Json<Value>, AppError> {
-    let owner = Uuid::parse_str(&user_id).map_err(|_| AppError::not_found("tier list"))?;
+    let owner: Option<Uuid> = if let Ok(uuid) = Uuid::parse_str(&user_id) {
+        Some(uuid)
+    } else {
+        sqlx::query_scalar("select id from users where handle = $1 and deleted_at is null")
+            .bind(&user_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(AppError::internal)?
+    };
+    let Some(owner) = owner else {
+        return Err(AppError::not_found("tier list"));
+    };
     let row: Option<(Uuid, Uuid)> = sqlx::query_as(
         "select t.id, t.user_id from tier_lists t join users u on u.id = t.user_id
          where t.user_id = $1 and t.slug = $2 and t.visibility = 'public'

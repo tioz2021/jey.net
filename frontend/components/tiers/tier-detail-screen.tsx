@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { EmptyState } from "@/components/empty-state";
+import { NotebookTabs } from "@/components/notebook-tabs";
 import { LoadingScreen } from "@/components/loading-screen";
 import { AppLink } from "@/lib/navigation";
 import { Button, Card, Dialog, Input, Select, Badge } from "@/components/ui";
@@ -119,6 +120,7 @@ export function TierDetailScreen() {
 
   return (
     <main>
+      <NotebookTabs />
       <header className={styles.detailHead}>
         <AppLink href="/tiers">← {t("tiers.title")}</AppLink>
         <div>

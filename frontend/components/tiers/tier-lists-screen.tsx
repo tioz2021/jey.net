@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
+import { NotebookTabs } from "@/components/notebook-tabs";
 import { ListSkeleton } from "@/components/skeletons";
 import { AppLink } from "@/lib/navigation";
 import { Badge, Button, Card, Dialog, Input, PageHeader, Select } from "@/components/ui";
@@ -51,6 +52,7 @@ export function TierListsScreen() {
 
   return (
     <main>
+      <NotebookTabs />
       <PageHeader
         action={<Button onClick={() => setCreating(true)} size="sm">{t("tiers.create")}</Button>}
         title={t("tiers.title")}
