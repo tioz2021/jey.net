@@ -177,6 +177,37 @@ impl DesktopStore {
 }
 
 impl DesktopStore {
+    pub fn replace_collection_items(
+        &self,
+        user_id: Uuid,
+        id: &str,
+        item_ids: &[String],
+    ) -> Result<(), StoreError> {
+        let connection = self.connection()?;
+        let owns: bool = connection.query_row(
+            "select exists(select 1 from collections where id = ?1 and user_id = ?2)",
+            params![id, user_id.to_string()],
+            |row| row.get(0),
+        )?;
+        if !owns {
+            return Ok(());
+        }
+        connection.execute(
+            "delete from collection_items where collection_id = ?1",
+            params![id],
+        )?;
+        for item_id in item_ids {
+            connection.execute(
+                "insert or ignore into collection_items (collection_id, item_id, position, created_at)
+                 select ?1, id, 0, ?2 from items where id = ?3 and user_id = ?4",
+                params![id, super::now_millis(), item_id, user_id.to_string()],
+            )?;
+        }
+        Ok(())
+    }
+}
+
+impl DesktopStore {
     pub fn purge_collection(&self, user_id: Uuid, id: &str) -> Result<(), StoreError> {
         let connection = self.connection()?;
         connection.execute(

@@ -518,6 +518,17 @@ impl SyncService {
             self.store
                 .upsert_collection(self.user_id, id, title, slug, visibility, created_at)
                 .map_err(|error| error.to_string())?;
+            let item_ids: Vec<String> = collection
+                .get("item_ids")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+            self.store
+                .replace_collection_items(self.user_id, id, &item_ids)
+                .map_err(|error| error.to_string())?;
         }
         for comment in body
             .get("comments")

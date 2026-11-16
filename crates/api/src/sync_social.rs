@@ -15,7 +15,11 @@ pub async fn social(
     let collections: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', c.id, 'title', c.title, 'slug', c.slug, 'visibility', c.visibility,
-            'created_at', (extract(epoch from c.created_at) * 1000)::bigint
+            'created_at', (extract(epoch from c.created_at) * 1000)::bigint,
+            'item_ids', coalesce((
+                select jsonb_agg(ci.item_id order by ci.position, ci.created_at)
+                from collection_items ci where ci.collection_id = c.id
+            ), '[]'::jsonb)
          )
          from collections c where c.user_id = $1 order by c.created_at asc",
     )
