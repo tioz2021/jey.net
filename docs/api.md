@@ -192,7 +192,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | POST | `/chat/threads` | найти/создать direct-диалог |
 | GET | `/chat/threads/{id}` | диалог |
 | GET | `/chat/threads/{id}/messages?before=&limit=&q=` | история |
-| POST | `/chat/threads/{id}/messages` | текст или encrypted-envelope |
+| POST | `/chat/threads/{id}/messages` | текст или encrypted-envelope; `reply_to_id` |
 | PATCH | `/chat/threads/{id}/messages/{message_id}` | edit |
 | POST | `/chat/threads/{id}/messages/{message_id}/reactions` | реакция |
 | POST | `/chat/threads/{id}/typing` | typing |
