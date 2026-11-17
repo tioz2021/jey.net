@@ -121,6 +121,7 @@ export const uk = {
   "tiers.auto": "Авто",
   "tiers.pool": "Пул записів",
   "tiers.dropToRemove": "Відпустіть тут, щоб прибрати з тір-листа",
+  "tiers.poolEmptyHint": "Усі записи вже розкладені",
   "tiers.poolHint": "Перетягніть обкладинку в смугу або натисніть, щоб додати у вибраний тір.",
   "tiers.kind": "Категорія",
   "tiers.allKinds": "Усі категорії",

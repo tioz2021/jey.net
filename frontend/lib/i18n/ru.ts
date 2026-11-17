@@ -120,6 +120,7 @@ export const ru = {
   "tiers.auto": "Авто",
   "tiers.pool": "Пул записей",
   "tiers.dropToRemove": "Отпустите здесь, чтобы убрать из тир-листа",
+  "tiers.poolEmptyHint": "Все записи уже разложены",
   "tiers.poolHint": "Перетащите обложку в полосу или нажмите, чтобы добавить в выбранный тир.",
   "tiers.kind": "Категория",
   "tiers.allKinds": "Все категории",

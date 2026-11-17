@@ -121,6 +121,7 @@ export const en = {
   "tiers.auto": "Auto",
   "tiers.pool": "Record pool",
   "tiers.dropToRemove": "Drop here to remove from the tier list",
+  "tiers.poolEmptyHint": "All records are already placed",
   "tiers.poolHint": "Drag a cover into a tier or click to add it to the selected tier.",
   "tiers.kind": "Category",
   "tiers.allKinds": "All categories",

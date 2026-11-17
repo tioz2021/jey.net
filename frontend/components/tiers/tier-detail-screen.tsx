@@ -504,7 +504,7 @@ export function TierDetailScreen() {
       >
         <div className={styles.poolHead}>
           <strong>{t("tiers.pool")}</strong>
-          <span>{overPool ? t("tiers.dropToRemove") : t("tiers.poolHint")}</span>
+          <span>{overPool ? t("tiers.dropToRemove") : available.length === 0 ? t("tiers.poolEmptyHint") : t("tiers.poolHint")}</span>
           <Select
             hideLabel
             label={t("tiers.tier")}
@@ -514,6 +514,7 @@ export function TierDetailScreen() {
             {TIERS.map((tier) => <option key={tier} value={tier}>{tier}</option>)}
           </Select>
         </div>
+        {(available.length > 0 || dragged) ? (
         <div
           className={`${styles.poolItems} ${overPool ? styles.poolOver : ""}`}
           data-tier-pool
@@ -534,11 +535,10 @@ export function TierDetailScreen() {
             </button>
           ))}
           {available.length === 0 ? (
-            <span className={styles.poolEmpty}>
-              {dragged ? t("tiers.dropToRemove") : t("tiers.noItems")}
-            </span>
+            <span className={styles.poolEmpty}>{t("tiers.dropToRemove")}</span>
           ) : null}
         </div>
+        ) : null}
       </footer>
 
       <Dialog
