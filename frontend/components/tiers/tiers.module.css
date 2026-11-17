@@ -601,6 +601,17 @@
   line-height: 1.3;
 }
 
+.poolDragging {
+  border-color: var(--color-accent);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px var(--color-accent);
+}
+
+.poolDragging .poolItems {
+  min-height: 96px;
+}
+
 .poolItem {
   display: grid;
   place-items: center;

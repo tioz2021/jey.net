@@ -499,7 +499,9 @@ export function TierDetailScreen() {
         })}
       </div>
 
-      <footer className={`${styles.pool} ${available.length === 0 ? styles.poolEmptyState : ""}`}>
+      <footer
+        className={`${styles.pool} ${available.length === 0 ? styles.poolEmptyState : ""} ${dragged ? styles.poolDragging : ""}`}
+      >
         <div className={styles.poolHead}>
           <strong>{t("tiers.pool")}</strong>
           <span>{overPool ? t("tiers.dropToRemove") : t("tiers.poolHint")}</span>
@@ -531,7 +533,11 @@ export function TierDetailScreen() {
               {item.cover_key ? <img alt="" draggable={false} src={mediaUrl(item.cover_key)} /> : <span>{item.title.slice(0, 1)}</span>}
             </button>
           ))}
-          {available.length === 0 ? <span className={styles.poolEmpty}>{t("tiers.noItems")}</span> : null}
+          {available.length === 0 ? (
+            <span className={styles.poolEmpty}>
+              {dragged ? t("tiers.dropToRemove") : t("tiers.noItems")}
+            </span>
+          ) : null}
         </div>
       </footer>
 
