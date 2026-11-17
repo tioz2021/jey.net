@@ -499,7 +499,7 @@ export function TierDetailScreen() {
         })}
       </div>
 
-      <footer className={styles.pool}>
+      <footer className={`${styles.pool} ${available.length === 0 ? styles.poolEmptyState : ""}`}>
         <div className={styles.poolHead}>
           <strong>{t("tiers.pool")}</strong>
           <span>{overPool ? t("tiers.dropToRemove") : t("tiers.poolHint")}</span>

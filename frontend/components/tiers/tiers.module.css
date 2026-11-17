@@ -589,6 +589,18 @@
   overflow-x: auto;
 }
 
+.poolEmptyState {
+  padding-block: var(--space-2);
+}
+
+.poolEmptyState .poolItems {
+  min-height: 0;
+}
+
+.poolEmptyState .poolEmpty {
+  line-height: 1.3;
+}
+
 .poolItem {
   display: grid;
   place-items: center;
