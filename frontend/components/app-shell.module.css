@@ -38,14 +38,88 @@
   font-weight: 400;
   line-height: 1;
   text-decoration: none;
+  position: relative;
   background: var(--color-accent);
   border: 0;
   border-radius: var(--radius-full);
   cursor: pointer;
+  animation: create-pulse 6.5s ease-in-out infinite;
+}
+
+.contextCreate::after {
+  position: absolute;
+  inset: -4px;
+  content: "";
+  pointer-events: none;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: create-ring 6.5s ease-out infinite;
 }
 
 .contextCreate:hover {
   filter: brightness(1.06);
+}
+
+.contextPlus {
+  display: block;
+  line-height: 1;
+  transition: transform 160ms var(--ease-out);
+}
+
+.contextCreate:hover .contextPlus {
+  transform: rotate(90deg);
+}
+
+.contextCreate:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+@keyframes create-pulse {
+  0%,
+  84%,
+  100% {
+    transform: scale(1);
+  }
+
+  88% {
+    transform: scale(1.1);
+  }
+
+  93% {
+    transform: scale(1);
+  }
+}
+
+@keyframes create-ring {
+  0%,
+  83% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  88% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+
+  98%,
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contextCreate,
+  .contextCreate::after {
+    animation: none;
+  }
+
+  .contextPlus {
+    transition: none;
+  }
 }
 
 .topControlsInTabs {

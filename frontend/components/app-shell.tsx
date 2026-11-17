@@ -22,7 +22,7 @@ function ContextCreate() {
   if (pathname === "/items" || pathname.startsWith("/items/")) {
     return (
       <AppLink aria-label={t("common.add")} className={styles.contextCreate} href="/items/new" title={t("common.add")}>
-        +
+        <span aria-hidden="true" className={styles.contextPlus}>+</span>
       </AppLink>
     );
   }
@@ -35,7 +35,7 @@ function ContextCreate() {
         title={t("collections.create")}
         type="button"
       >
-        +
+        <span aria-hidden="true" className={styles.contextPlus}>+</span>
       </button>
     );
   }
@@ -48,7 +48,7 @@ function ContextCreate() {
         title={t("tiers.create")}
         type="button"
       >
-        +
+        <span aria-hidden="true" className={styles.contextPlus}>+</span>
       </button>
     );
   }
