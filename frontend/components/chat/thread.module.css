@@ -177,15 +177,28 @@
 .replyQuote {
   display: grid;
   gap: 2px;
+  width: 100%;
   max-width: 100%;
   padding: 4px 8px;
   margin-bottom: 6px;
   overflow: hidden;
   color: inherit;
+  font: inherit;
+  text-align: left;
   background: rgb(255 255 255 / 12%);
+  border: 0;
   border-left: 2px solid currentColor;
   border-radius: 4px;
   opacity: 0.85;
+  cursor: pointer;
+}
+
+.replyQuote:hover:not(:disabled) {
+  background: rgb(255 255 255 / 20%);
+}
+
+.replyQuote:disabled {
+  cursor: default;
 }
 
 .replyQuote small {
@@ -249,6 +262,23 @@
 .replyComposer button:hover {
   color: var(--color-text);
   background: var(--color-bg);
+}
+
+.replyTarget .bubble {
+  animation: reply-target 1.4s ease-out;
+}
+
+@keyframes reply-target {
+  0%,
+  35% {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 0;
+  }
 }
 
 .composer {

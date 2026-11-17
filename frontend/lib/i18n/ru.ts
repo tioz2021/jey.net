@@ -61,6 +61,7 @@ export const ru = {
   "chat.typing": "печатает…",
   "chat.searchEmpty": "Ничего не найдено",
   "chat.copied": "Скопировано",
+  "chat.jumpToReply": "Перейти к сообщению",
   "chat.reply": "Ответить",
   "chat.replyingTo": "Ответ {name}",
   "chat.cancelReply": "Отменить ответ",

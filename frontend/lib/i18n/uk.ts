@@ -62,6 +62,7 @@ export const uk = {
   "chat.typing": "пише…",
   "chat.searchEmpty": "Нічого не знайдено",
   "chat.copied": "Скопійовано",
+  "chat.jumpToReply": "Перейти до повідомлення",
   "chat.reply": "Відповісти",
   "chat.replyingTo": "Відповідь {name}",
   "chat.cancelReply": "Скасувати відповідь",

@@ -567,13 +567,27 @@ export function ChatThreadScreen() {
       ? messages.find((entry) => entry.id === message.reply_to_id)
       : null;
     if (!parent) {
-      return { name: t("chat.messageUnavailable"), text: "" };
+      return { id: null, name: t("chat.messageUnavailable"), text: "" };
     }
     const share = decodeItemShare(parent.body);
     return {
+      id: parent.id,
       name: parent.sender_id === ownId ? t("chat.you") : peerName,
       text: share?.text ?? parent.body,
     };
+  }
+
+  function scrollToMessage(messageId: string) {
+    const escaped = typeof CSS !== "undefined" && CSS.escape
+      ? CSS.escape(messageId)
+      : messageId.replace(/"/g, '\"');
+    const element = messagesRef.current?.querySelector<HTMLElement>(
+      `[data-message-id="${escaped}"]`,
+    );
+    if (!element) return;
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    element.classList.add(styles.replyTarget);
+    window.setTimeout(() => element.classList.remove(styles.replyTarget), 1400);
   }
 
   return (
@@ -675,10 +689,19 @@ export function ChatThreadScreen() {
                     {message.reply_to_id ? (() => {
                       const preview = replyPreview(message);
                       return (
-                        <div className={styles.replyQuote}>
+                        <button
+                          aria-label={t("chat.jumpToReply")}
+                          className={styles.replyQuote}
+                          disabled={!preview.id}
+                          onClick={() => {
+                            if (preview.id) scrollToMessage(preview.id);
+                          }}
+                          title={preview.id ? t("chat.jumpToReply") : undefined}
+                          type="button"
+                        >
                           <small>{preview.name}</small>
                           <span>{preview.text}</span>
-                        </div>
+                        </button>
                       );
                     })() : null}
                     {message.shared_item ? <SharedItemCard item={message.shared_item} /> : message.body}
