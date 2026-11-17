@@ -475,7 +475,7 @@ export function ChatThreadScreen() {
     box.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => box.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [loading, thread?.id]);
 
   useEffect(() => {
     const box = messagesRef.current;
