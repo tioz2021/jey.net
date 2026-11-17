@@ -503,8 +503,10 @@ export function TierDetailScreen() {
         className={`${styles.pool} ${available.length === 0 ? styles.poolEmptyState : ""} ${dragged ? styles.poolDragging : ""}`}
       >
         <div className={styles.poolHead}>
-          <strong>{t("tiers.pool")}</strong>
-          <span>{overPool ? t("tiers.dropToRemove") : available.length === 0 ? t("tiers.poolEmptyHint") : t("tiers.poolHint")}</span>
+          <div className={styles.poolTitles}>
+            <strong>{t("tiers.pool")}</strong>
+            <span>{overPool ? t("tiers.dropToRemove") : available.length === 0 ? t("tiers.poolEmptyHint") : t("tiers.poolHint")}</span>
+          </div>
           <Select
             hideLabel
             label={t("tiers.tier")}
