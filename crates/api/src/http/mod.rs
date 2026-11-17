@@ -11,7 +11,7 @@ use axum::Json;
 use axum::Router;
 use axum::extract::DefaultBodyLimit;
 use axum::extract::State;
-use axum::http::StatusCode;
+use axum::http::{HeaderValue, StatusCode, header};
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post};
@@ -116,10 +116,18 @@ async fn spa_file(
     let requested = path.trim_start_matches('/');
     let candidate = root.join(requested);
     let safe = !requested.split('/').any(|part| part == "..") && candidate.starts_with(root);
+    let entry = root.join("index.html");
     let file = if safe && candidate.is_file() {
         candidate
     } else {
-        root.join("index.html")
+        entry.clone()
+    };
+    let cache_control = if requested.starts_with("assets/") {
+        "public, max-age=31536000, immutable"
+    } else if file == entry || requested == "sw.js" {
+        "no-cache"
+    } else {
+        "public, max-age=86400"
     };
     match tokio::fs::read(&file).await {
         Ok(bytes) => {
@@ -134,10 +142,25 @@ async fn spa_file(
                 Some("wav") => "audio/wav",
                 _ => "text/html; charset=utf-8",
             };
-            ([(axum::http::header::CONTENT_TYPE, content_type)], bytes).into_response()
+            (
+                [
+                    (header::CONTENT_TYPE, content_type),
+                    (header::CACHE_CONTROL, cache_control),
+                ],
+                bytes,
+            )
+                .into_response()
         }
         Err(_) => (StatusCode::NOT_FOUND, "SPA not found").into_response(),
     }
+}
+
+async fn no_store(request: axum::extract::Request, next: middleware::Next) -> Response {
+    let mut response = next.run(request).await;
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    response
 }
 
 async fn track_errors(
@@ -489,6 +512,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
     public
         .merge(protected)
         .layer(middleware::from_fn_with_state(state.clone(), track_errors))
+        .layer(middleware::from_fn(no_store))
         .route_layer(middleware::from_fn_with_state(
             state,
             require_allowed_origin,

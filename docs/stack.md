@@ -177,3 +177,12 @@ Tauri использует системный WebView и тот же Rust-код
 3. Лицензия совместима с закрытым использованием (MIT/Apache-2.0).
 4. Есть документация и примеры, а не только README.
 5. Можно заменить: слой изолирован, а не размазан по коду.
+
+## Браузерный кеш
+
+- `/assets/*` — `public, max-age=31536000, immutable` (Vite-хеши в именах);
+- `index.html` и fallback-маршруты SPA — `no-cache`;
+- `sw.js` — `no-cache`, чтобы обновление service worker не залипало;
+- `/media/*` — `immutable` + ETag;
+- `/api/v1/*` — `Cache-Control: no-store`;
+- service worker кеширует только shell и статику, API не кеширует.
