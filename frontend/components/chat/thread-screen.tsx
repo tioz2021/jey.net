@@ -103,6 +103,7 @@ export function ChatThreadScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [text, setText] = useState("");
+  const [replyTo, setReplyTo] = useState<PendingMessage | null>(null);
   const [sending, setSending] = useState(false);
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -496,10 +497,13 @@ export function ChatThreadScreen() {
       body,
       client_id: clientId,
       created_at: new Date().toISOString(),
+      reply_to_id: replyTo?.id ?? null,
       pending: true,
     };
+    const replyId = replyTo?.id ?? null;
     setMessages((current) => [...current, optimistic]);
     setText("");
+    setReplyTo(null);
     setSending(true);
     try {
       const identity = identityRef.current;
@@ -511,6 +515,7 @@ export function ChatThreadScreen() {
         encrypted ? null : body,
         clientId,
         encrypted,
+        replyId,
       );
       const decoded = await decodeMessage(response.message);
       setMessages((current) =>
@@ -555,6 +560,21 @@ export function ChatThreadScreen() {
   }
 
   const ownId = user?.id;
+  const peerName = thread.peer.display_name;
+
+  function replyPreview(message: PendingMessage) {
+    const parent = message.reply_to_id
+      ? messages.find((entry) => entry.id === message.reply_to_id)
+      : null;
+    if (!parent) {
+      return { name: t("chat.messageUnavailable"), text: "" };
+    }
+    const share = decodeItemShare(parent.body);
+    return {
+      name: parent.sender_id === ownId ? t("chat.you") : peerName,
+      text: share?.text ?? parent.body,
+    };
+  }
 
   return (
     <main className={styles.page}>
@@ -622,6 +642,7 @@ export function ChatThreadScreen() {
             return (
               <div
                 className={`${styles.message} ${own ? styles.own : ""} ${message.failed ? styles.failed : ""}`}
+                data-message-id={message.id}
                 key={messageKey(message)}
               >
                 {editingId === message.id ? (
@@ -651,6 +672,15 @@ export function ChatThreadScreen() {
                     className={styles.bubble}
                     onContextMenu={(event) => openMenu(event, message)}
                   >
+                    {message.reply_to_id ? (() => {
+                      const preview = replyPreview(message);
+                      return (
+                        <div className={styles.replyQuote}>
+                          <small>{preview.name}</small>
+                          <span>{preview.text}</span>
+                        </div>
+                      );
+                    })() : null}
                     {message.shared_item ? <SharedItemCard item={message.shared_item} /> : message.body}
                     {message.failed ? (
                       <button className={styles.retry} onClick={() => retryFailed(message)} type="button">
@@ -688,6 +718,23 @@ export function ChatThreadScreen() {
 
       {peerTyping ? (
         <p className={styles.typing}>{thread.peer.display_name} {t("chat.typing")}</p>
+      ) : null}
+
+      {replyTo ? (
+        <div className={styles.replyComposer}>
+          <div>
+            <strong>{t("chat.replyingTo", { name: replyTo.sender_id === ownId ? t("chat.you") : thread.peer.display_name })}</strong>
+            <span>{decodeItemShare(replyTo.body)?.text ?? replyTo.body}</span>
+          </div>
+          <button
+            aria-label={t("chat.cancelReply")}
+            onClick={() => setReplyTo(null)}
+            title={t("chat.cancelReply")}
+            type="button"
+          >
+            ×
+          </button>
+        </div>
       ) : null}
 
       <form
@@ -734,6 +781,16 @@ export function ChatThreadScreen() {
             style={{ left: menu.x, top: menu.y }}
           >
             <p>{t("chat.more")}</p>
+            <button
+              onClick={() => {
+                setReplyTo(menu.message);
+                setMenu(null);
+                inputRef.current?.focus();
+              }}
+              type="button"
+            >
+              {t("chat.reply")}
+            </button>
             <button onClick={() => void copyMessage(menu.message)} type="button">{t("chat.copy")}</button>
             <div className={styles.menuReactions}>
               {REACTION_EMOJIS.map((emoji) => (

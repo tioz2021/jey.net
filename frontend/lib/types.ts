@@ -771,6 +771,7 @@ export interface ChatMessage {
   client_id: string;
   created_at: string;
   edited_at?: string | null;
+  reply_to_id?: string | null;
   reactions?: ChatReaction[];
   encrypted?: ChatEncryptedMessage | null;
   encryption_version?: number | null;

@@ -443,6 +443,7 @@ pub struct NewMessage {
     pub body: Option<String>,
     pub client_id: Uuid,
     pub encrypted: Option<Value>,
+    pub reply_to_id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -589,6 +590,7 @@ async fn message_payload(
             'client_id', m.client_id,
             'created_at', m.created_at,
             'edited_at', m.edited_at,
+            'reply_to_id', m.reply_to_id,
             'encrypted', m.encrypted,
             'encryption_version', m.encryption_version,
             'reactions', (
@@ -630,12 +632,29 @@ pub async fn send(
     can_start(&state, current.user.id, target).await?;
     let (body, encrypted, encryption_version) =
         encrypted_or_body(payload.body.clone(), payload.encrypted.clone())?;
+    if let Some(reply_to_id) = payload.reply_to_id {
+        let exists: bool = sqlx::query_scalar(
+            "select exists(select 1 from chat_messages
+             where id = $1 and thread_id = $2 and deleted_at is null)",
+        )
+        .bind(reply_to_id)
+        .bind(thread_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        if !exists {
+            return Err(AppError::validation_field(
+                "reply_to_id",
+                "reply target is not in this conversation",
+            ));
+        }
+    }
 
     let mut tx = state.pool.begin().await.map_err(AppError::internal)?;
     let inserted: Option<Uuid> = sqlx::query_scalar(
         "insert into chat_messages
-            (thread_id, sender_id, body, client_id, encrypted, encryption_version)
-         values ($1, $2, $3, $4, $5, $6)
+            (thread_id, sender_id, body, client_id, encrypted, encryption_version, reply_to_id)
+         values ($1, $2, $3, $4, $5, $6, $7)
          on conflict (thread_id, client_id) do nothing
          returning id",
     )
@@ -645,6 +664,7 @@ pub async fn send(
     .bind(payload.client_id)
     .bind(&encrypted)
     .bind(encryption_version)
+    .bind(payload.reply_to_id)
     .fetch_optional(&mut *tx)
     .await
     .map_err(AppError::internal)?;
@@ -911,7 +931,8 @@ pub async fn history(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
                 'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
-                'edited_at', m.edited_at, 'encrypted', m.encrypted,
+                'edited_at', m.edited_at, 'reply_to_id', m.reply_to_id,
+                'encrypted', m.encrypted,
                 'encryption_version', m.encryption_version,
                 'reactions', (
                     select coalesce(jsonb_agg(jsonb_build_object(
@@ -949,7 +970,8 @@ pub async fn history(
             "select jsonb_build_object(
                 'id', m.id, 'thread_id', m.thread_id, 'sender_id', m.sender_id,
                 'body', m.body, 'client_id', m.client_id, 'created_at', m.created_at,
-                'edited_at', m.edited_at, 'encrypted', m.encrypted,
+                'edited_at', m.edited_at, 'reply_to_id', m.reply_to_id,
+                'encrypted', m.encrypted,
                 'encryption_version', m.encryption_version,
                 'reactions', (
                     select coalesce(jsonb_agg(jsonb_build_object(

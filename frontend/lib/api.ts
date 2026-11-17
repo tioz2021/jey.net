@@ -557,14 +557,15 @@ export const chat = {
     body: string | null,
     clientId: string,
     encrypted?: ChatEncryptedMessage,
+    replyToId?: string | null,
   ) =>
     request<{ message: ChatMessage; created: boolean }>(
       `/chat/threads/${id}/messages`,
       {
         method: "POST",
         body: encrypted
-          ? { client_id: clientId, encrypted }
-          : { body, client_id: clientId },
+          ? { client_id: clientId, encrypted, reply_to_id: replyToId ?? null }
+          : { body, client_id: clientId, reply_to_id: replyToId ?? null },
       },
     ),
   settings: () => request<ChatSettings>("/chat/settings"),

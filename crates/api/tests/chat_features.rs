@@ -64,6 +64,25 @@ async fn edit_search_reactions_and_typing() {
     send(&bob, &bob_cookie, thread_id, "ответ с яблоком").await;
     send(&alice, &alice_cookie, thread_id, "третье сообщение").await;
 
+    let reply = alice
+        .post_with_cookie(
+            &format!("/api/v1/chat/threads/{thread_id}/messages"),
+            json!({ "body": "ответ на первое", "client_id": Uuid::new_v4(), "reply_to_id": first }),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(reply.status, 200, "body: {}", reply.body);
+    assert_eq!(reply.body["message"]["reply_to_id"], first.to_string());
+
+    let bad_reply = alice
+        .post_with_cookie(
+            &format!("/api/v1/chat/threads/{thread_id}/messages"),
+            json!({ "body": "битая цель", "client_id": Uuid::new_v4(), "reply_to_id": Uuid::new_v4() }),
+            &alice_cookie,
+        )
+        .await;
+    assert_eq!(bad_reply.status, 400, "body: {}", bad_reply.body);
+
     let edited = alice
         .patch(
             &format!("/api/v1/chat/threads/{thread_id}/messages/{first}"),

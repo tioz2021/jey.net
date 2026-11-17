@@ -209,6 +209,7 @@ export function installDesktopBridge() {
         }));
       }
       if (method === "POST") {
+        if (body?.reply_to_id) return remote(method, path, body);
         try {
           return json(await api.invoke("local_chat_send", {
             threadId,

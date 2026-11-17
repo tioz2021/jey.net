@@ -174,6 +174,83 @@
   text-align: center;
 }
 
+.replyQuote {
+  display: grid;
+  gap: 2px;
+  max-width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  color: inherit;
+  background: rgb(255 255 255 / 12%);
+  border-left: 2px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+.replyQuote small {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.replyQuote span {
+  overflow: hidden;
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replyComposer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-left: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.replyComposer > div {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.replyComposer strong {
+  color: var(--color-text);
+  font-size: var(--text-xs);
+}
+
+.replyComposer span {
+  overflow: hidden;
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replyComposer button {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 18px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.replyComposer button:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
 .composer {
   display: flex;
   align-items: flex-end;
