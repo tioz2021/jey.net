@@ -465,6 +465,11 @@ export function ChatThreadScreen() {
   }, [menu]);
 
   useEffect(() => {
+    stickToBottom.current = true;
+    setShowJumpToBottom(false);
+  }, [id]);
+
+  useEffect(() => {
     const box = messagesRef.current;
     if (!box) return;
     const onScroll = () => {
@@ -472,8 +477,11 @@ export function ChatThreadScreen() {
       stickToBottom.current = distance < 40;
       setShowJumpToBottom(distance > 120);
     };
-    box.addEventListener("scroll", onScroll, { passive: true });
+    // The first render starts at scrollTop=0; put the thread at its latest
+    // message before deciding whether the jump button is needed.
+    if (stickToBottom.current) box.scrollTop = box.scrollHeight;
     onScroll();
+    box.addEventListener("scroll", onScroll, { passive: true });
     return () => box.removeEventListener("scroll", onScroll);
   }, [loading, thread?.id]);
 
