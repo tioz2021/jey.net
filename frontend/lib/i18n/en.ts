@@ -62,6 +62,7 @@ export const en = {
   "chat.typing": "typing…",
   "chat.searchEmpty": "Nothing found",
   "chat.copied": "Copied",
+  "chat.jumpToBottom": "Jump to latest message",
   "chat.jumpToReply": "Jump to message",
   "chat.reply": "Reply",
   "chat.replyingTo": "Reply to {name}",

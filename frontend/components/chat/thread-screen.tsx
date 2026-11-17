@@ -114,6 +114,8 @@ export function ChatThreadScreen() {
   const [menu, setMenu] = useState<{ message: ChatMessage; x: number; y: number } | null>(null);
   const [reportTarget, setReportTarget] = useState<PendingMessage | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
+  const stickToBottom = useRef(true);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingSentAt = useRef(0);
   const typingTimer = useRef<number | null>(null);
@@ -464,7 +466,20 @@ export function ChatThreadScreen() {
 
   useEffect(() => {
     const box = messagesRef.current;
-    if (box) box.scrollTop = box.scrollHeight;
+    if (!box) return;
+    const onScroll = () => {
+      const distance = box.scrollHeight - box.scrollTop - box.clientHeight;
+      stickToBottom.current = distance < 40;
+      setShowJumpToBottom(distance > 120);
+    };
+    box.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => box.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const box = messagesRef.current;
+    if (box && stickToBottom.current) box.scrollTop = box.scrollHeight;
   }, [messages.length]);
 
   async function loadOlder() {
@@ -501,6 +516,7 @@ export function ChatThreadScreen() {
       pending: true,
     };
     const replyId = replyTo?.id ?? null;
+    stickToBottom.current = true;
     setMessages((current) => [...current, optimistic]);
     setText("");
     setReplyTo(null);
@@ -577,6 +593,14 @@ export function ChatThreadScreen() {
     };
   }
 
+  function jumpToBottom() {
+    const box = messagesRef.current;
+    if (!box) return;
+    stickToBottom.current = true;
+    setShowJumpToBottom(false);
+    box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
+  }
+
   function scrollToMessage(messageId: string) {
     const escaped = typeof CSS !== "undefined" && CSS.escape
       ? CSS.escape(messageId)
@@ -640,6 +664,7 @@ export function ChatThreadScreen() {
         ) : null}
       </form>
 
+      <div className={styles.messagesArea}>
       <div className={styles.messages} ref={messagesRef}>
         {nextBefore ? (
           <Button className={styles.older} onClick={() => void loadOlder()} size="sm" variant="ghost">
@@ -737,6 +762,18 @@ export function ChatThreadScreen() {
           })
         )}
 
+      </div>
+      {showJumpToBottom ? (
+        <button
+          aria-label={t("chat.jumpToBottom")}
+          className={styles.jumpToBottom}
+          onClick={jumpToBottom}
+          title={t("chat.jumpToBottom")}
+          type="button"
+        >
+          ↓
+        </button>
+      ) : null}
       </div>
 
       {peerTyping ? (
