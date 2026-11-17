@@ -17,11 +17,15 @@ import styles from "./app-shell.module.css";
 
 /** Shared authenticated shell for Next and the Vite SPA. */
 function ContextCreate() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { t } = useI18n();
   if (pathname === "/items" || pathname.startsWith("/items/")) {
+    const kind = new URLSearchParams(search).get("kind");
+    const href = kind && ["movie", "tv", "anime", "book", "game", "image", "other"].includes(kind)
+      ? `/items/new?kind=${encodeURIComponent(kind)}`
+      : "/items/new";
     return (
-      <AppLink aria-label={t("common.add")} className={styles.contextCreate} href="/items/new" title={t("common.add")}>
+      <AppLink aria-label={t("common.add")} className={styles.contextCreate} href={href} title={t("common.add")}>
         <span aria-hidden="true" className={styles.contextPlus}>+</span>
       </AppLink>
     );
