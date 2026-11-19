@@ -136,6 +136,8 @@ rm -f /tmp/jey-spa.tar.gz
 install -m 644 /tmp/jey-api.service.new /etc/systemd/system/jey-api.service
 rm -f /tmp/jey-api.service.new
 systemctl daemon-reload
+# Survive a VPS reboot even on a fresh install.
+systemctl enable jey-api caddy postgresql@18-main
 
 # 3. Backup tooling. The GPG public key is installed once, out of band.
 install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
