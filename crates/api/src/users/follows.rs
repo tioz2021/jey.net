@@ -1,7 +1,7 @@
 //! One-way subscriptions to public profiles and the resulting feed.
 
 use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -152,9 +152,25 @@ pub async fn status(
 }
 
 /// `GET /api/v1/feed` — recent public records of followed profiles.
+#[derive(Debug, serde::Deserialize)]
+pub struct FeedQuery {
+    pub kind: Option<String>,
+}
+
+const FEED_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
+
+fn feed_kind(raw: Option<&str>) -> Result<Option<&str>, AppError> {
+    match raw {
+        None | Some("") => Ok(None),
+        Some(value) if FEED_KINDS.contains(&value) => Ok(Some(value)),
+        _ => Err(AppError::validation_field("kind", "unknown catalogue kind")),
+    }
+}
+
 pub async fn feed(
     State(state): State<AppState>,
     current: CurrentUser,
+    Query(query): Query<FeedQuery>,
 ) -> Result<Json<Value>, AppError> {
     let items: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
@@ -170,6 +186,7 @@ pub async fn feed(
          join users u on u.id = f.followee_id
          join items i on i.user_id = u.id
          where f.follower_id = $1
+           and ($2::text is null or i.kind = $2)
            and f.notifications
            and u.is_public and u.deleted_at is null
            and i.status = ANY(u.public_statuses)
@@ -183,6 +200,7 @@ pub async fn feed(
          limit 50",
     )
     .bind(current.user.id)
+    .bind(feed_kind(query.kind.as_deref())?)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;

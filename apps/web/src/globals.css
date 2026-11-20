@@ -451,7 +451,8 @@ button:not(:disabled):active {
   flex-wrap: wrap;
 }
 
-.kind-chips a {
+.kind-chips a,
+.kind-chips button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -463,18 +464,37 @@ button:not(:disabled):active {
   border-radius: var(--radius-full);
 }
 
-.kind-chips a:hover {
+.kind-chips a:hover,
+.kind-chips button:hover {
   color: var(--color-text);
   background: var(--color-surface);
 }
 
-.kind-chips a[aria-current="page"] {
+.kind-chips a[aria-current="page"],
+.kind-chips button[aria-pressed="true"] {
   color: var(--color-text);
   background: var(--color-surface);
   border-color: var(--color-border);
 }
 
-.kind-chips a span {
+.kind-chips button {
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.feed-toolbar {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.feed-toolbar .view-switch {
+  margin-left: auto;
+}
+
+.kind-chips a span,
+.kind-chips button span {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
 }

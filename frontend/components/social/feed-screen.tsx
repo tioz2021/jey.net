@@ -12,8 +12,9 @@ import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
 import { markFeedSeen } from "@/components/feed-badge";
 import { FeedTabs } from "@/components/feed-tabs";
+import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
-import type { FeedItem } from "@/lib/types";
+import type { FeedItem, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
 
@@ -25,13 +26,14 @@ export function FeedScreen() {
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<ViewMode>("grid");
+  const [kind, setKind] = useState<ItemKind | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     api.feed
-      .get()
+      .get(kind)
       .then((response) => {
         if (!cancelled) {
           setItems(response.items);
@@ -47,13 +49,14 @@ export function FeedScreen() {
     return () => {
       cancelled = true;
     };
-  }, [reload, i18n]);
+  }, [reload, i18n, kind]);
 
   return (
     <main>
       <FeedTabs />
       <p className="tabs-subtitle">{t("feed.subtitle")}</p>
-      <div className="section-toolbar">
+      <div className="section-toolbar feed-toolbar">
+        <FeedKindFilter onChange={setKind} value={kind} />
         <ViewSwitch onChange={setView} value={view} />
       </div>
       <Card>
@@ -74,8 +77,8 @@ export function FeedScreen() {
           />
         ) : items.length === 0 ? (
           <EmptyState
-            text={t("feed.emptyText")}
-            title={t("feed.emptyTitle")}
+            text={kind ? t("feed.kindEmpty") : t("feed.emptyText")}
+            title={kind ? t("feed.kindEmptyTitle") : t("feed.emptyTitle")}
           />
         ) : (
           <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>

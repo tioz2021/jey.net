@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { FeedTabs } from "@/components/feed-tabs";
+import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
@@ -15,7 +16,7 @@ import {
   publicRecommendationKey,
   useHiddenRecommendations,
 } from "@/lib/use-hidden-recommendations";
-import type { CommunityRecommendation, FriendRecommendation } from "@/lib/types";
+import type { CommunityRecommendation, FriendRecommendation, ItemKind } from "@/lib/types";
 
 import styles from "./recommendations.module.css";
 
@@ -27,11 +28,15 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>("list");
+  const [kind, setKind] = useState<ItemKind | null>(null);
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api.recommendations.friends(), api.recommendations.community()])
+    Promise.all([
+      api.recommendations.friends(kind),
+      api.recommendations.community(kind),
+    ])
       .then(([friendResponse, communityResponse]) => {
         if (cancelled) return;
         setFriends(friendResponse.items);
@@ -43,7 +48,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [kind]);
 
   const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
@@ -59,7 +64,8 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
       <p className="tabs-subtitle">
         {isCommunity ? t("recommendations.generalSubtitle") : t("recommendations.subtitle")}
       </p>
-      <div className="section-toolbar">
+      <div className="section-toolbar feed-toolbar">
+        <FeedKindFilter onChange={setKind} value={kind} />
         <ViewSwitch onChange={setView} value={view} />
       </div>
 
@@ -69,7 +75,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             <EmptyState
               actionHref="/people"
               actionLabel={t("recommendations.findPeople")}
-              text={t("recommendations.communityEmptyText")}
+              text={kind ? t("recommendations.kindEmpty") : t("recommendations.communityEmptyText")}
               title={t("recommendations.communityEmptyTitle")}
             />
           ) : (
@@ -116,7 +122,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             <EmptyState
               actionHref="/people"
               actionLabel={t("recommendations.findPeople")}
-              text={t("recommendations.emptyText")}
+              text={kind ? t("recommendations.kindEmpty") : t("recommendations.emptyText")}
               title={t("recommendations.emptyTitle")}
             />
           ) : (

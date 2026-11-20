@@ -5,7 +5,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use axum::Json;
-use axum::extract::State;
+use axum::extract::{Query, State};
 use serde_json::{Value, json};
 
 use crate::auth::middleware::CurrentUser;
@@ -339,12 +339,29 @@ pub async fn public_similar(
     Ok(Json(payload))
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct RecommendationQuery {
+    pub kind: Option<String>,
+}
+
+const RECOMMENDATION_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
+
+fn recommendation_kind(raw: Option<&str>) -> Result<Option<&str>, AppError> {
+    match raw {
+        None | Some("") => Ok(None),
+        Some(value) if RECOMMENDATION_KINDS.contains(&value) => Ok(Some(value)),
+        _ => Err(AppError::validation_field("kind", "unknown catalogue kind")),
+    }
+}
+
 /// `GET /api/v1/recommendations/friends`
 pub async fn friends(
     State(state): State<AppState>,
     current: CurrentUser,
+    Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let cache_key = format!("friends:{}", current.user.id);
+    let kind = recommendation_kind(query.kind.as_deref())?;
+    let cache_key = format!("friends:{}:{}", current.user.id, kind.unwrap_or("all"));
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
     }
@@ -375,6 +392,7 @@ pub async fn friends(
          join users u on u.id = f.followee_id
          join items i on i.user_id = u.id
          where f.follower_id = $1
+           and ($2::text is null or i.kind = $2)
            and u.is_public and u.deleted_at is null
            and i.status = 'done'
            and i.rating >= 8
@@ -402,6 +420,7 @@ pub async fn friends(
          limit 12",
     )
     .bind(current.user.id)
+    .bind(kind)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
@@ -416,8 +435,10 @@ pub async fn friends(
 pub async fn community(
     State(state): State<AppState>,
     current: CurrentUser,
+    Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let cache_key = format!("community:{}", current.user.id);
+    let kind = recommendation_kind(query.kind.as_deref())?;
+    let cache_key = format!("community:{}:{}", current.user.id, kind.unwrap_or("all"));
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
     }
@@ -431,6 +452,7 @@ pub async fn community(
             from items i
             join users u on u.id = i.user_id
             where i.user_id <> $1
+              and ($2::text is null or i.kind = $2)
               and u.is_public and u.deleted_at is null
               and i.status = 'done' and i.rating >= 8
               and not i.public_hidden and i.deleted_at is null
@@ -492,6 +514,7 @@ pub async fn community(
          limit 12",
     )
     .bind(current.user.id)
+    .bind(kind)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;

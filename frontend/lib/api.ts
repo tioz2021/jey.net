@@ -601,14 +601,19 @@ export const chat = {
 };
 
 export const feed = {
-  get: () => request<{ items: FeedItem[] }>("/feed"),
+  get: (kind?: string | null) =>
+    request<{ items: FeedItem[] }>(`/feed${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`),
 };
 
 export const recommendations = {
-  friends: () =>
-    request<{ items: FriendRecommendation[] }>("/recommendations/friends"),
-  community: () =>
-    request<{ items: CommunityRecommendation[] }>("/recommendations/community"),
+  friends: (kind?: string | null) =>
+    request<{ items: FriendRecommendation[] }>(
+      `/recommendations/friends${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`,
+    ),
+  community: (kind?: string | null) =>
+    request<{ items: CommunityRecommendation[] }>(
+      `/recommendations/community${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`,
+    ),
   taste: () =>
     request<{ genres: TasteGenre[]; items: TasteRecommendation[] }>(
       "/recommendations/taste",
