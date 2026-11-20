@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
+import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
@@ -31,13 +32,14 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [view, setView] = useState<ViewMode>("list");
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("rating");
+  const [period, setPeriod] = useState<FeedPeriodValue>("all");
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      api.recommendations.friends(kind, sort),
-      api.recommendations.community(kind, sort),
+      api.recommendations.friends(kind, sort, period),
+      api.recommendations.community(kind, sort, period),
     ])
       .then(([friendResponse, communityResponse]) => {
         if (cancelled) return;
@@ -50,7 +52,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     return () => {
       cancelled = true;
     };
-  }, [kind, sort]);
+  }, [kind, sort, period]);
 
   const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
@@ -72,6 +74,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={setView} value={view} />
         <FeedSort onChange={setSort} value={sort} />
+        <FeedPeriod onChange={setPeriod} value={period} />
       </div>
 
       {isCommunity ? (

@@ -2,6 +2,7 @@
 
 use axum::Json;
 use axum::extract::{Path, Query, State};
+use chrono::{DateTime, Duration, Utc};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -156,6 +157,20 @@ pub async fn status(
 pub struct FeedQuery {
     pub kind: Option<String>,
     pub sort: Option<String>,
+    pub period: Option<String>,
+}
+
+fn feed_period(raw: Option<&str>) -> Result<(&'static str, Option<DateTime<Utc>>), AppError> {
+    match raw {
+        None | Some("") | Some("all") => Ok(("all", None)),
+        Some("24h") => Ok(("24h", Some(Utc::now() - Duration::hours(24)))),
+        Some("week") => Ok(("week", Some(Utc::now() - Duration::days(7)))),
+        Some("month") => Ok(("month", Some(Utc::now() - Duration::days(30)))),
+        _ => Err(AppError::validation_field(
+            "period",
+            "period must be 24h, week, month or all",
+        )),
+    }
 }
 
 const FEED_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
@@ -185,6 +200,7 @@ pub async fn feed(
     Query(query): Query<FeedQuery>,
 ) -> Result<Json<Value>, AppError> {
     let sort = feed_sort(query.sort.as_deref())?;
+    let (_, since) = feed_period(query.period.as_deref())?;
     let order = if sort == "rating" {
         "i.rating desc, i.updated_at desc"
     } else {
@@ -205,6 +221,7 @@ pub async fn feed(
          join items i on i.user_id = u.id
          where f.follower_id = $1
            and ($2::text is null or i.kind = $2)
+           and ($3::timestamptz is null or i.updated_at >= $3)
            and f.notifications
            and u.is_public and u.deleted_at is null
            and i.status = ANY(u.public_statuses)
@@ -220,6 +237,7 @@ pub async fn feed(
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(feed_kind(query.kind.as_deref())?)
+        .bind(since)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;

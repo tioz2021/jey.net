@@ -14,6 +14,7 @@ import { markFeedSeen } from "@/components/feed-badge";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
+import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import type { FeedItem, ItemKind } from "@/lib/types";
 
@@ -29,13 +30,14 @@ export function FeedScreen() {
   const [view, setView] = useState<ViewMode>("grid");
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("new");
+  const [period, setPeriod] = useState<FeedPeriodValue>("all");
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     api.feed
-      .get(kind, sort)
+      .get(kind, sort, period)
       .then((response) => {
         if (!cancelled) {
           setItems(response.items);
@@ -51,7 +53,7 @@ export function FeedScreen() {
     return () => {
       cancelled = true;
     };
-  }, [reload, i18n, kind, sort]);
+  }, [reload, i18n, kind, sort, period]);
 
   return (
     <main>
@@ -63,6 +65,7 @@ export function FeedScreen() {
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={setView} value={view} />
         <FeedSort includePopular={false} onChange={setSort} value={sort} />
+        <FeedPeriod onChange={setPeriod} value={period} />
       </div>
       <Card>
         {loading ? (

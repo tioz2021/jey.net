@@ -601,29 +601,32 @@ export const chat = {
 };
 
 export const feed = {
-  get: (kind?: string | null, sort?: string | null) => {
+  get: (kind?: string | null, sort?: string | null, period?: string | null) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
+    if (period) params.set("period", period);
     const query = params.toString();
     return request<{ items: FeedItem[] }>(`/feed${query ? `?${query}` : ""}`);
   },
 };
 
 export const recommendations = {
-  friends: (kind?: string | null, sort?: string | null) => {
+  friends: (kind?: string | null, sort?: string | null, period?: string | null) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
+    if (period) params.set("period", period);
     const query = params.toString();
     return request<{ items: FriendRecommendation[] }>(
       `/recommendations/friends${query ? `?${query}` : ""}`,
     );
   },
-  community: (kind?: string | null, sort?: string | null) => {
+  community: (kind?: string | null, sort?: string | null, period?: string | null) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
+    if (period) params.set("period", period);
     const query = params.toString();
     return request<{ items: CommunityRecommendation[] }>(
       `/recommendations/community${query ? `?${query}` : ""}`,

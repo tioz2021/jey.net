@@ -59,6 +59,29 @@ async fn community_aggregates_public_ratings_across_profiles() {
         .expect("community movie");
     assert_eq!(movie["people_count"], 2);
     assert_eq!(movie["average_rating"], 9.5);
+    let recent = viewer
+        .get(
+            "/api/v1/recommendations/community?period=24h&sort=rating",
+            Some(&viewer_cookie),
+        )
+        .await;
+    assert_eq!(recent.status, 200, "body: {}", recent.body);
+    assert!(
+        recent.body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["title"] == title)
+    );
+
+    let invalid_period = viewer
+        .get(
+            "/api/v1/recommendations/community?period=year",
+            Some(&viewer_cookie),
+        )
+        .await;
+    assert_eq!(invalid_period.status, 400, "body: {}", invalid_period.body);
+
     let people = movie["people"].as_array().unwrap();
     assert!(people.iter().any(|p| p["name"] == "Community Alice"));
     assert!(people.iter().any(|p| p["name"] == "Community Bob"));

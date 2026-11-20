@@ -497,6 +497,10 @@ button:not(:disabled):active {
   width: 180px;
 }
 
+.feed-period {
+  width: 145px;
+}
+
 .kind-chips a span,
 .kind-chips button span {
   color: var(--color-text-muted);

@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 
 use axum::Json;
 use axum::extract::{Query, State};
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
 use serde_json::{Value, json};
 
 use crate::auth::middleware::CurrentUser;
@@ -343,6 +344,22 @@ pub async fn public_similar(
 pub struct RecommendationQuery {
     pub kind: Option<String>,
     pub sort: Option<String>,
+    pub period: Option<String>,
+}
+
+fn recommendation_period(
+    raw: Option<&str>,
+) -> Result<(&'static str, Option<DateTime<Utc>>), AppError> {
+    match raw {
+        None | Some("") | Some("all") => Ok(("all", None)),
+        Some("24h") => Ok(("24h", Some(Utc::now() - ChronoDuration::hours(24)))),
+        Some("week") => Ok(("week", Some(Utc::now() - ChronoDuration::days(7)))),
+        Some("month") => Ok(("month", Some(Utc::now() - ChronoDuration::days(30)))),
+        _ => Err(AppError::validation_field(
+            "period",
+            "period must be 24h, week, month or all",
+        )),
+    }
 }
 
 const RECOMMENDATION_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
@@ -375,11 +392,13 @@ pub async fn friends(
 ) -> Result<Json<Value>, AppError> {
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
+    let (period, since) = recommendation_period(query.period.as_deref())?;
     let cache_key = format!(
-        "friends:{}:{}:{}",
+        "friends:{}:{}:{}:{}",
         current.user.id,
         kind.unwrap_or("all"),
-        sort
+        sort,
+        period
     );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
@@ -417,6 +436,7 @@ pub async fn friends(
          join items i on i.user_id = u.id
          where f.follower_id = $1
            and ($2::text is null or i.kind = $2)
+           and ($3::timestamptz is null or i.updated_at >= $3)
            and u.is_public and u.deleted_at is null
            and i.status = 'done'
            and i.rating >= 8
@@ -446,6 +466,7 @@ pub async fn friends(
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(kind)
+        .bind(since)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
@@ -464,11 +485,13 @@ pub async fn community(
 ) -> Result<Json<Value>, AppError> {
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
+    let (period, since) = recommendation_period(query.period.as_deref())?;
     let cache_key = format!(
-        "community:{}:{}:{}",
+        "community:{}:{}:{}:{}",
         current.user.id,
         kind.unwrap_or("all"),
-        sort
+        sort,
+        period
     );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
@@ -489,6 +512,7 @@ pub async fn community(
             join users u on u.id = i.user_id
             where i.user_id <> $1
               and ($2::text is null or i.kind = $2)
+              and ($3::timestamptz is null or i.updated_at >= $3)
               and u.is_public and u.deleted_at is null
               and i.status = 'done' and i.rating >= 8
               and not i.public_hidden and i.deleted_at is null
@@ -552,6 +576,7 @@ pub async fn community(
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(kind)
+        .bind(since)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
