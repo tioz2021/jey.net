@@ -155,9 +155,21 @@ pub async fn status(
 #[derive(Debug, serde::Deserialize)]
 pub struct FeedQuery {
     pub kind: Option<String>,
+    pub sort: Option<String>,
 }
 
 const FEED_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
+
+fn feed_sort(raw: Option<&str>) -> Result<&'static str, AppError> {
+    match raw {
+        None | Some("") | Some("new") => Ok("new"),
+        Some("rating") | Some("popular") => Ok("rating"),
+        _ => Err(AppError::validation_field(
+            "sort",
+            "sort must be new or rating",
+        )),
+    }
+}
 
 fn feed_kind(raw: Option<&str>) -> Result<Option<&str>, AppError> {
     match raw {
@@ -172,7 +184,13 @@ pub async fn feed(
     current: CurrentUser,
     Query(query): Query<FeedQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let items: Vec<Value> = sqlx::query_scalar(
+    let sort = feed_sort(query.sort.as_deref())?;
+    let order = if sort == "rating" {
+        "i.rating desc, i.updated_at desc"
+    } else {
+        "i.updated_at desc"
+    };
+    let sql = format!(
         "select jsonb_build_object(
             'id', i.id, 'slug', i.slug, 'author_id', u.id, 'author_name', u.display_name, 'author_handle', u.handle,
             'kind', i.kind, 'title', i.title, 'subtitle', i.subtitle,
@@ -196,14 +214,15 @@ pub async fn feed(
                where (b.blocker_id = $1 and b.blocked_id = u.id)
                   or (b.blocker_id = u.id and b.blocked_id = $1)
            )
-         order by i.updated_at desc
-         limit 50",
-    )
-    .bind(current.user.id)
-    .bind(feed_kind(query.kind.as_deref())?)
-    .fetch_all(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+         order by {order}
+         limit 50"
+    );
+    let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
+        .bind(current.user.id)
+        .bind(feed_kind(query.kind.as_deref())?)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
     Ok(Json(json!({ "items": items })))
 }
 

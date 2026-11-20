@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
+import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
@@ -29,13 +30,14 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>("list");
   const [kind, setKind] = useState<ItemKind | null>(null);
+  const [sort, setSort] = useState<FeedSortValue>("rating");
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      api.recommendations.friends(kind),
-      api.recommendations.community(kind),
+      api.recommendations.friends(kind, sort),
+      api.recommendations.community(kind, sort),
     ])
       .then(([friendResponse, communityResponse]) => {
         if (cancelled) return;
@@ -48,7 +50,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     return () => {
       cancelled = true;
     };
-  }, [kind]);
+  }, [kind, sort]);
 
   const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
@@ -66,7 +68,10 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
       </p>
       <div className="section-toolbar feed-toolbar">
         <FeedKindFilter onChange={setKind} value={kind} />
-        <ViewSwitch onChange={setView} value={view} />
+        <div className="feed-toolbar-end">
+          <FeedSort onChange={setSort} value={sort} />
+          <ViewSwitch onChange={setView} value={view} />
+        </div>
       </div>
 
       {isCommunity ? (

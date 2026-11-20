@@ -342,9 +342,22 @@ pub async fn public_similar(
 #[derive(Debug, serde::Deserialize)]
 pub struct RecommendationQuery {
     pub kind: Option<String>,
+    pub sort: Option<String>,
 }
 
 const RECOMMENDATION_KINDS: [&str; 7] = ["movie", "tv", "anime", "book", "game", "image", "other"];
+
+fn recommendation_sort(raw: Option<&str>) -> Result<&'static str, AppError> {
+    match raw {
+        None | Some("") | Some("rating") => Ok("rating"),
+        Some("new") => Ok("new"),
+        Some("popular") => Ok("popular"),
+        _ => Err(AppError::validation_field(
+            "sort",
+            "sort must be new, popular or rating",
+        )),
+    }
+}
 
 fn recommendation_kind(raw: Option<&str>) -> Result<Option<&str>, AppError> {
     match raw {
@@ -361,11 +374,22 @@ pub async fn friends(
     Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
     let kind = recommendation_kind(query.kind.as_deref())?;
-    let cache_key = format!("friends:{}:{}", current.user.id, kind.unwrap_or("all"));
+    let sort = recommendation_sort(query.sort.as_deref())?;
+    let cache_key = format!(
+        "friends:{}:{}:{}",
+        current.user.id,
+        kind.unwrap_or("all"),
+        sort
+    );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
     }
-    let items: Vec<Value> = sqlx::query_scalar(
+    let order = match sort {
+        "new" => "i.updated_at desc",
+        "popular" => "count(distinct u.id) desc, avg(i.rating) desc, i.updated_at desc",
+        _ => "avg(i.rating) desc, count(distinct u.id) desc, i.updated_at desc",
+    };
+    let sql = format!(
         "select jsonb_build_object(
             'id', i.id,
             'slug', i.slug,
@@ -416,14 +440,15 @@ pub async fn friends(
                   or (b.blocker_id = u.id and b.blocked_id = $1)
            )
          group by i.id
-         order by avg(i.rating) desc, count(distinct u.id) desc, i.updated_at desc
-         limit 12",
-    )
-    .bind(current.user.id)
-    .bind(kind)
-    .fetch_all(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+         order by {order}
+         limit 12"
+    );
+    let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
+        .bind(current.user.id)
+        .bind(kind)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
 
     let payload = json!({ "items": items });
     state.recommendations.set(cache_key, payload.clone());
@@ -438,11 +463,22 @@ pub async fn community(
     Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
     let kind = recommendation_kind(query.kind.as_deref())?;
-    let cache_key = format!("community:{}:{}", current.user.id, kind.unwrap_or("all"));
+    let sort = recommendation_sort(query.sort.as_deref())?;
+    let cache_key = format!(
+        "community:{}:{}:{}",
+        current.user.id,
+        kind.unwrap_or("all"),
+        sort
+    );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
     }
-    let items: Vec<Value> = sqlx::query_scalar(
+    let order = match sort {
+        "new" => "updated_at desc",
+        "popular" => "people_count desc, average_rating desc, updated_at desc",
+        _ => "average_rating desc, people_count desc, updated_at desc",
+    };
+    let sql = format!(
         "with candidates as (
             select
                 i.id, i.slug, i.kind, i.title, i.subtitle, i.year, i.status,
@@ -510,14 +546,15 @@ pub async fn community(
             'average_rating', average_rating
          )
          from grouped
-         order by average_rating desc, people_count desc, updated_at desc
-         limit 12",
-    )
-    .bind(current.user.id)
-    .bind(kind)
-    .fetch_all(&state.pool)
-    .await
-    .map_err(AppError::internal)?;
+         order by {order}
+         limit 12"
+    );
+    let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
+        .bind(current.user.id)
+        .bind(kind)
+        .fetch_all(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
 
     let payload = json!({ "items": items });
     state.recommendations.set(cache_key, payload.clone());

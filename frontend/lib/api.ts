@@ -601,19 +601,34 @@ export const chat = {
 };
 
 export const feed = {
-  get: (kind?: string | null) =>
-    request<{ items: FeedItem[] }>(`/feed${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`),
+  get: (kind?: string | null, sort?: string | null) => {
+    const params = new URLSearchParams();
+    if (kind) params.set("kind", kind);
+    if (sort) params.set("sort", sort);
+    const query = params.toString();
+    return request<{ items: FeedItem[] }>(`/feed${query ? `?${query}` : ""}`);
+  },
 };
 
 export const recommendations = {
-  friends: (kind?: string | null) =>
-    request<{ items: FriendRecommendation[] }>(
-      `/recommendations/friends${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`,
-    ),
-  community: (kind?: string | null) =>
-    request<{ items: CommunityRecommendation[] }>(
-      `/recommendations/community${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`,
-    ),
+  friends: (kind?: string | null, sort?: string | null) => {
+    const params = new URLSearchParams();
+    if (kind) params.set("kind", kind);
+    if (sort) params.set("sort", sort);
+    const query = params.toString();
+    return request<{ items: FriendRecommendation[] }>(
+      `/recommendations/friends${query ? `?${query}` : ""}`,
+    );
+  },
+  community: (kind?: string | null, sort?: string | null) => {
+    const params = new URLSearchParams();
+    if (kind) params.set("kind", kind);
+    if (sort) params.set("sort", sort);
+    const query = params.toString();
+    return request<{ items: CommunityRecommendation[] }>(
+      `/recommendations/community${query ? `?${query}` : ""}`,
+    );
+  },
   taste: () =>
     request<{ genres: TasteGenre[]; items: TasteRecommendation[] }>(
       "/recommendations/taste",

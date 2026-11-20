@@ -489,8 +489,15 @@ button:not(:disabled):active {
   gap: var(--space-2);
 }
 
-.feed-toolbar .view-switch {
+.feed-toolbar-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-left: auto;
+}
+
+.feed-sort {
+  width: 155px;
 }
 
 .kind-chips a span,

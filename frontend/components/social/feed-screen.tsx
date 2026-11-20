@@ -13,6 +13,7 @@ import { describeError } from "@/lib/messages";
 import { markFeedSeen } from "@/components/feed-badge";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
+import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import type { FeedItem, ItemKind } from "@/lib/types";
 
@@ -27,13 +28,14 @@ export function FeedScreen() {
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<ViewMode>("grid");
   const [kind, setKind] = useState<ItemKind | null>(null);
+  const [sort, setSort] = useState<FeedSortValue>("new");
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     api.feed
-      .get(kind)
+      .get(kind, sort)
       .then((response) => {
         if (!cancelled) {
           setItems(response.items);
@@ -49,7 +51,7 @@ export function FeedScreen() {
     return () => {
       cancelled = true;
     };
-  }, [reload, i18n, kind]);
+  }, [reload, i18n, kind, sort]);
 
   return (
     <main>
@@ -57,7 +59,10 @@ export function FeedScreen() {
       <p className="tabs-subtitle">{t("feed.subtitle")}</p>
       <div className="section-toolbar feed-toolbar">
         <FeedKindFilter onChange={setKind} value={kind} />
-        <ViewSwitch onChange={setView} value={view} />
+        <div className="feed-toolbar-end">
+          <FeedSort includePopular={false} onChange={setSort} value={sort} />
+          <ViewSwitch onChange={setView} value={view} />
+        </div>
       </div>
       <Card>
         {loading ? (
