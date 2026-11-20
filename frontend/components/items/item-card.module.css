@@ -224,17 +224,8 @@
 
 @media (hover: hover) {
   .cardWrap:hover .card {
-    transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
   }
-
-  .cardWrap:has(.button:hover) .card {
-    transform: translateY(-1px);
-  }
-}
-
-.cardWrap:active .card {
-  transform: translateY(0);
 }
 
 
