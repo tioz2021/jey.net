@@ -241,7 +241,37 @@ pub async fn feed(
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
-    Ok(Json(json!({ "items": items })))
+    let count_rows: Vec<(String, i64)> = sqlx::query_as(
+        "select i.kind, count(*)
+         from follows f
+         join users u on u.id = f.followee_id
+         join items i on i.user_id = u.id
+         where f.follower_id = $1
+           and ($2::timestamptz is null or i.updated_at >= $2)
+           and f.notifications
+           and u.is_public and u.deleted_at is null
+           and i.status = ANY(u.public_statuses)
+           and not i.public_hidden and i.deleted_at is null
+           and not exists (
+               select 1 from blocks b
+               where (b.blocker_id = $1 and b.blocked_id = u.id)
+                  or (b.blocker_id = u.id and b.blocked_id = $1)
+           )
+         group by i.kind",
+    )
+    .bind(current.user.id)
+    .bind(since)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let mut counts = serde_json::Map::new();
+    let mut total = 0;
+    for (kind, count) in count_rows {
+        total += count;
+        counts.insert(kind, json!(count));
+    }
+    counts.insert("all".to_owned(), json!(total));
+    Ok(Json(json!({ "items": items, "counts": counts })))
 }
 
 /// `GET /api/v1/blocks` — profiles blocked by the current account.

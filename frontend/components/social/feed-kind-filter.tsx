@@ -40,7 +40,7 @@ export function FeedKindFilter({
           >
             <Icon size={14} />
             {kind ? t(KIND_PLURAL_KEYS[kind]) : t("nav.all")}
-            {counts?.[kind ?? "all"] != null ? <span>{counts[kind ?? "all"]}</span> : null}
+            {counts ? <span>{counts[kind ?? "all"] ?? 0}</span> : null}
           </button>
         );
       })}
