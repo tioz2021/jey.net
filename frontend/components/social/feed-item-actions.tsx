@@ -7,6 +7,7 @@ import { FollowButton } from "@/components/social/follow-button";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useToast } from "@/components/toasts";
+import { mediaUrl } from "@/lib/media";
 import type { NewItem, PublicItem } from "@/lib/types";
 
 import styles from "./feed-item-actions.module.css";
@@ -38,7 +39,24 @@ export function FeedItemActions({
         external_source: item.external_source,
         external_id: item.external_id,
       };
-      await api.items.create(input);
+      const created = await api.items.create(input);
+      // A cover belongs to another user's media store; copy it into this
+      // account before saving the item so it survives independently.
+      if (item.cover_key) {
+        try {
+          const response = await fetch(mediaUrl(item.cover_key), { credentials: "include" });
+          if (response.ok) {
+            const blob = await response.blob();
+            const file = new File([blob], "recommendation-cover", {
+              type: blob.type || "image/webp",
+            });
+            const upload = await api.uploads.upload(file);
+            await api.items.setCover(created.item.id, upload.upload.id);
+          }
+        } catch {
+          // The record is still useful without its cover.
+        }
+      }
       setAdded(true);
       notify({ tone: "success", title: t("feed.addedToMine"), text: "", requestId: null });
       window.dispatchEvent(new Event("jey:item-refreshed"));
