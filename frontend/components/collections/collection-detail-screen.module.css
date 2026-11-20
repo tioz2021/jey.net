@@ -1,9 +1,18 @@
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  flex-wrap: wrap;
   margin-bottom: var(--space-3);
+}
+
+.headerActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
 }
 
 .titleLine {
@@ -18,8 +27,16 @@
   overflow: hidden;
   margin: 0;
   font-size: var(--text-xl);
+  line-height: var(--line-tight);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (width <= 600px) {
+  .headerActions {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 .list { display: grid; gap: 0.75rem; padding: 0; margin: 0.75rem 0; list-style: none; }
 .empty { color: var(--color-text-muted); }
