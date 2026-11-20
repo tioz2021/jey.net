@@ -40,6 +40,7 @@ import { RecommendationsScreen } from "@/components/social/recommendations-scree
 import { PeopleScreen } from "@/components/social/people-screen";
 import { NotificationsScreen } from "@/components/social/notifications-screen";
 import { TierListsScreen } from "@/components/tiers/tier-lists-screen";
+import { LikedScreen } from "@/components/liked-screen";
 import { TierDetailScreen } from "@/components/tiers/tier-detail-screen";
 import { PublicTierScreen } from "@/components/tiers/public-tier-screen";
 import { ChatInboxScreen } from "@/components/chat/inbox-screen";
@@ -83,6 +84,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/items/:id/edit" element={<ItemFormRoute mode="edit" />} />
             <Route path="/items/:id" element={<ItemDetailRoute />} />
             <Route path="/collections" element={<CollectionsRoute />} />
+            <Route path="/liked" element={<LikedScreen />} />
             <Route path="/tiers" element={<TierListsScreen />} />
             <Route path="/tiers/:id" element={<TierDetailScreen />} />
             <Route path="/collections/:id" element={<CollectionDetailRoute />} />

@@ -20,6 +20,7 @@ import type {
   FriendRecommendation,
   CommunityRecommendation,
   FeedKindCounts,
+  LikedItem,
   PublicUserCard,
   PublicCollection,
   SimilarItem,
@@ -673,6 +674,18 @@ export const recommendations = {
     ),
 };
 
+export const liked = {
+  list: (kind?: string | null, offset = 0, limit = 20) => {
+    const params = new URLSearchParams();
+    if (kind) params.set("kind", kind);
+    params.set("offset", String(offset));
+    params.set("limit", String(limit));
+    return request<{ items: LikedItem[]; next_offset: number | null }>(
+      `/liked?${params.toString()}`,
+    );
+  },
+};
+
 export const comments = {
   list: (userId: string, itemId: string, offset = 0) =>
     request<{
@@ -873,6 +886,6 @@ export const social = {
     }),
 };
 
-export const api = { admin, anime, auth, books, collections, publicCollections, comments, social, chat, tierLists, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
+export const api = { admin, anime, auth, books, collections, publicCollections, comments, liked, social, chat, tierLists, feed, push, reports, follows, games, items, movies, notifications, publicItems, publicUsers, recommendations, tv, stats, sync, transfer, uploads };
 
 export type { Item, ItemFilters, ItemList, ItemPatch, NewItem, Stats };

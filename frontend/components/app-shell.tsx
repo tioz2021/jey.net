@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         .catch(() => {});
     }
   }, []);
-  const controlsInTabs = pathname === "/items" || pathname === "/collections" || pathname === "/feed" || pathname.startsWith("/recommendations") || pathname === "/people" || pathname.startsWith("/collections/") || pathname.startsWith("/tiers") || pathname === "/messages";
+  const controlsInTabs = pathname === "/items" || pathname === "/liked" || pathname === "/collections" || pathname === "/feed" || pathname.startsWith("/recommendations") || pathname === "/people" || pathname.startsWith("/collections/") || pathname.startsWith("/tiers") || pathname === "/messages";
   return (
     <>
       <div className={styles.desktopHeader}>

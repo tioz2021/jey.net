@@ -26,7 +26,7 @@ const DOMAINS: Array<{ href: string; labelKey: TranslationKey; Icon: typeof Icon
 
 function domainActive(pathname: string, href: string) {
   if (href === "/items") {
-    return pathname === "/items" || pathname.startsWith("/items/") || pathname === "/collections" || pathname.startsWith("/collections/");
+    return pathname === "/items" || pathname.startsWith("/items/") || pathname === "/collections" || pathname.startsWith("/collections/") || pathname === "/liked";
   }
   if (href === "/feed") {
     return pathname === "/feed" || pathname.startsWith("/recommendations");

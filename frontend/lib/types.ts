@@ -425,6 +425,13 @@ export interface CommunityRecommendation extends PublicItem {
   average_rating: number;
 }
 
+export interface LikedItem extends PublicItem {
+  author_id: string;
+  author_name: string;
+  author_handle: string;
+  liked_at: string;
+}
+
 export interface PublicUserCard {
   id: string;
   handle: string;

@@ -9,6 +9,7 @@ import { LanguageSwitch } from "@/components/language-switch";
 import {
   IconCollection,
   IconFeed,
+  IconHeart,
   IconList,
   IconPeople,
   IconSparkles,
@@ -27,6 +28,7 @@ const GROUPS: Array<{
     links: [
       { href: "/items", labelKey: "nav.items", Icon: IconList },
       { href: "/collections", labelKey: "nav.collections", Icon: IconCollection },
+      { href: "/liked", labelKey: "nav.liked", Icon: IconHeart },
     ],
   },
   {

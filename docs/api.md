@@ -159,6 +159,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | Метод | Путь | Назначение |
 |---|---|---|
 | GET | `/feed?kind=&sort=&period=&offset=&limit=` | лента подписок + `counts` по категориям |
+| GET | `/liked?kind=&offset=&limit=` | записи, которые пользователь лайкнул |
 | GET | `/recommendations/friends?kind=&sort=&period=&offset=&limit=` | высокие оценки подписок + `counts` |
 | GET | `/recommendations/community?kind=&sort=&period=&offset=&limit=` | все публичные профили + `counts` |
 | POST | `/recommendations/hidden` | скрыть рекомендацию (`author_id`, `item_id`) |

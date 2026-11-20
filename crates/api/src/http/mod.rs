@@ -399,6 +399,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
             get(crate::recommendations::friends),
         )
         .route("/recommendations/taste", get(crate::recommendations::taste))
+        .route("/liked", get(crate::reactions::liked))
         .route(
             "/recommendations/community",
             get(crate::recommendations::community),
