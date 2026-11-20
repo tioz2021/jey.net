@@ -156,11 +156,15 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                           </span>
                         ))}
                         {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
-                        {" · "}
-                        {t("recommendations.communityMeta", {
-                          count: item.people_count,
-                          rating: item.average_rating,
-                        })}
+                        {item.people_count > 1 ? (
+                          <>
+                            {" · "}
+                            {t("recommendations.communityMeta", {
+                              count: item.people_count,
+                              rating: item.average_rating,
+                            })}
+                          </>
+                        ) : null}
                       </FeedCardHeader>
                     }
                     footer={
@@ -222,8 +226,9 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                               <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
                             </span>
                           ))}
-                        {" "}
-                        {t("recommendations.friendsCount", { count: item.friend_count })}
+                        {item.friend_count > 1
+                          ? ` ${t("recommendations.friendsCount", { count: item.friend_count })}`
+                          : ""}
                       </FeedCardHeader>
                     }
                     footer={
