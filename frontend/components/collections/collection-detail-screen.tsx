@@ -140,20 +140,20 @@ export function CollectionDetailScreen({ id }: { id: string }) {
               : t("collections.private")}
           </Badge>
         </div>
-        <div className={styles.headerActions}>
-          <Button onClick={openPicker} size="sm" variant="secondary">
-            <IconPlus size={15} />
-            {t("collections.addItems")}
-          </Button>
-          <ViewSwitch
-            onChange={(value) => {
-              setView(value);
-              saveViewPreference("jey:view:collections", value);
-            }}
-            value={view}
-          />
-        </div>
       </header>
+      <div className={`section-toolbar ${styles.controls}`}>
+        <ViewSwitch
+          onChange={(value) => {
+            setView(value);
+            saveViewPreference("jey:view:collections", value);
+          }}
+          value={view}
+        />
+        <Button onClick={openPicker} size="sm" variant="secondary">
+          <IconPlus size={15} />
+          {t("collections.addItems")}
+        </Button>
+      </div>
       {data.items.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
       ) : (
