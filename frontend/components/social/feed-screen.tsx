@@ -15,6 +15,7 @@ import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
+import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
@@ -120,6 +121,7 @@ export function FeedScreen() {
                   item={item}
                   reactions
                 />
+                <FeedItemActions item={item} />
               </li>
             ))}
           </ul>

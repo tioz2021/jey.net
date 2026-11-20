@@ -643,6 +643,11 @@ export const recommendations = {
       next_offset: number | null;
     }>(`/recommendations/friends?${params.toString()}`);
   },
+  hide: (authorId: string, itemId: string) =>
+    request<void>("/recommendations/hidden", {
+      method: "POST",
+      body: { author_id: authorId, item_id: itemId },
+    }),
   community: (
     kind?: string | null,
     sort?: string | null,

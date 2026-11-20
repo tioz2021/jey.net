@@ -403,6 +403,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/recommendations/community",
             get(crate::recommendations::community),
         )
+        .route(
+            "/recommendations/hidden",
+            post(crate::recommendations::hide),
+        )
         .route("/items/{id}/similar", get(crate::recommendations::similar))
         .route("/follows/following", get(crate::users::follows::following))
         .route(

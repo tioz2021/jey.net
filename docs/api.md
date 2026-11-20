@@ -161,6 +161,7 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 | GET | `/feed?kind=&sort=&period=&offset=&limit=` | лента подписок + `counts` по категориям |
 | GET | `/recommendations/friends?kind=&sort=&period=&offset=&limit=` | высокие оценки подписок + `counts` |
 | GET | `/recommendations/community?kind=&sort=&period=&offset=&limit=` | все публичные профили + `counts` |
+| POST | `/recommendations/hidden` | скрыть рекомендацию (`author_id`, `item_id`) |
 | GET | `/follows/following` | подписки |
 | POST/DELETE | `/users/{id}/follow` | подписаться/отписаться |
 | POST/DELETE | `/users/{id}/block` | блокировка |

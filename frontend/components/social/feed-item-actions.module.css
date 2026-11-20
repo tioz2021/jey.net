@@ -1,0 +1,22 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 0;
+}
+
+.hide {
+  padding: 5px 2px;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.hide:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}

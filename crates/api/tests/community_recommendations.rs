@@ -82,6 +82,28 @@ async fn community_aggregates_public_ratings_across_profiles() {
         .await;
     assert_eq!(invalid_period.status, 400, "body: {}", invalid_period.body);
 
+    let hidden = viewer
+        .post_with_cookie(
+            "/api/v1/recommendations/hidden",
+            json!({ "author_id": movie["author_id"], "item_id": movie["id"] }),
+            &viewer_cookie,
+        )
+        .await;
+    assert_eq!(hidden.status, 204, "body: {}", hidden.body);
+    let after_hide = viewer
+        .get(
+            "/api/v1/recommendations/community?period=all",
+            Some(&viewer_cookie),
+        )
+        .await;
+    assert!(
+        after_hide.body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|item| item["title"] != title)
+    );
+
     let people = movie["people"].as_array().unwrap();
     assert!(people.iter().any(|p| p["name"] == "Community Alice"));
     assert!(people.iter().any(|p| p["name"] == "Community Bob"));

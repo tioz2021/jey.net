@@ -7,7 +7,7 @@ import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
-import { HideRecommendation } from "@/components/hide-recommendation";
+import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { Button, Card } from "@/components/ui";
@@ -76,6 +76,15 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   );
   const isCommunity = variant === "community";
 
+  async function hideRecommendation(item: FriendRecommendation | CommunityRecommendation) {
+    try {
+      await api.recommendations.hide(item.author_id, item.id);
+    } catch {
+      // Keep the local hide even if the network is unavailable.
+    }
+    hide(publicRecommendationKey(item.author_id, item.id));
+  }
+
   async function loadMore() {
     const next = isCommunity ? nextCommunity : nextFriends;
     if (next === null || loadingMore) return;
@@ -140,14 +149,16 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         rating: item.average_rating,
                       })}
                     </p>
-                    <HideRecommendation
-                      onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
-                    />
                   </div>
                   <ItemCard
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions
+                  />
+                  <FeedItemActions
+                    item={item}
+                    onHide={() => void hideRecommendation(item)}
+                    showFollow={isCommunity}
                   />
                 </li>
               ))}
@@ -192,14 +203,16 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                       {" "}
                       {t("recommendations.rated", { rating: item.average_rating })}
                     </p>
-                    <HideRecommendation
-                      onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
-                    />
                   </div>
                   <ItemCard
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions
+                  />
+                  <FeedItemActions
+                    item={item}
+                    onHide={() => void hideRecommendation(item)}
+                    showFollow={isCommunity}
                   />
                 </li>
               ))}

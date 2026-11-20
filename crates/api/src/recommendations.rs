@@ -14,6 +14,7 @@ use crate::books::openlibrary::SearchItem as BookSearchItem;
 use crate::error::AppError;
 use crate::http::AppState;
 use crate::movies::tmdb::SimilarItem;
+use serde::Deserialize;
 
 const CACHE_TTL: Duration = Duration::from_secs(30 * 60);
 const CACHE_CAPACITY: usize = 200;
@@ -340,6 +341,47 @@ pub async fn public_similar(
     Ok(Json(payload))
 }
 
+#[derive(Debug, Deserialize)]
+pub struct HideRecommendation {
+    pub author_id: uuid::Uuid,
+    pub item_id: uuid::Uuid,
+}
+
+/// `POST /api/v1/recommendations/hidden`
+pub async fn hide(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Json(input): Json<HideRecommendation>,
+) -> Result<axum::http::StatusCode, AppError> {
+    let valid: bool = sqlx::query_scalar(
+        "select exists(
+            select 1 from items i join users u on u.id = i.user_id
+            where i.id = $1 and i.user_id = $2 and i.deleted_at is null
+              and u.is_public and u.deleted_at is null
+         )",
+    )
+    .bind(input.item_id)
+    .bind(input.author_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    if !valid {
+        return Err(AppError::not_found("recommendation"));
+    }
+    sqlx::query(
+        "insert into hidden_recommendations (user_id, author_id, item_id)
+         values ($1, $2, $3) on conflict do nothing",
+    )
+    .bind(current.user.id)
+    .bind(input.author_id)
+    .bind(input.item_id)
+    .execute(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    state.recommendations.clear();
+    Ok(axum::http::StatusCode::NO_CONTENT)
+}
+
 #[derive(Debug, serde::Deserialize)]
 pub struct RecommendationQuery {
     pub kind: Option<String>,
@@ -466,6 +508,17 @@ pub async fn friends(
            and ($2::text is null or i.kind = $2)
            and ($3::timestamptz is null or i.updated_at >= $3)
            and u.is_public and u.deleted_at is null
+           and not exists (
+                  select 1 from hidden_recommendations hr
+                  join items hidden_item on hidden_item.id = hr.item_id
+                  where hr.user_id = $1
+                    and (
+                        (i.external_source is not null
+                         and hidden_item.external_source = i.external_source
+                         and hidden_item.external_id = i.external_id)
+                        or lower(hidden_item.title) = lower(i.title)
+                    )
+              )
            and i.status = 'done'
            and i.rating >= 8
            and not i.public_hidden
@@ -510,6 +563,17 @@ pub async fn friends(
             where f.follower_id = $1
               and ($2::timestamptz is null or i.updated_at >= $2)
               and u.is_public and u.deleted_at is null
+              and not exists (
+                  select 1 from hidden_recommendations hr
+                  join items hidden_item on hidden_item.id = hr.item_id
+                  where hr.user_id = $1
+                    and (
+                        (i.external_source is not null
+                         and hidden_item.external_source = i.external_source
+                         and hidden_item.external_id = i.external_id)
+                        or lower(hidden_item.title) = lower(i.title)
+                    )
+              )
               and i.status = 'done' and i.rating >= 8
               and not i.public_hidden and i.deleted_at is null
               and 'done' = ANY(u.public_statuses)
@@ -588,6 +652,17 @@ pub async fn community(
               and ($2::text is null or i.kind = $2)
               and ($3::timestamptz is null or i.updated_at >= $3)
               and u.is_public and u.deleted_at is null
+              and not exists (
+                  select 1 from hidden_recommendations hr
+                  join items hidden_item on hidden_item.id = hr.item_id
+                  where hr.user_id = $1
+                    and (
+                        (i.external_source is not null
+                         and hidden_item.external_source = i.external_source
+                         and hidden_item.external_id = i.external_id)
+                        or lower(hidden_item.title) = lower(i.title)
+                    )
+              )
               and i.status = 'done' and i.rating >= 8
               and not i.public_hidden and i.deleted_at is null
               and 'done' = ANY(u.public_statuses)
@@ -665,6 +740,17 @@ pub async fn community(
             where i.user_id <> $1
               and ($2::timestamptz is null or i.updated_at >= $2)
               and u.is_public and u.deleted_at is null
+              and not exists (
+                  select 1 from hidden_recommendations hr
+                  join items hidden_item on hidden_item.id = hr.item_id
+                  where hr.user_id = $1
+                    and (
+                        (i.external_source is not null
+                         and hidden_item.external_source = i.external_source
+                         and hidden_item.external_id = i.external_id)
+                        or lower(hidden_item.title) = lower(i.title)
+                    )
+              )
               and i.status = 'done' and i.rating >= 8
               and not i.public_hidden and i.deleted_at is null
               and 'done' = ANY(u.public_statuses)
