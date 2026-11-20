@@ -21,9 +21,11 @@ import styles from "./feed-item-actions.module.css";
 export function FeedItemActions({
   item,
   onHide,
+  showLike = true,
 }: {
   item: PublicItem;
   onHide?: () => void;
+  showLike?: boolean;
 }) {
   const { t } = useI18n();
   const { user } = useUser();
@@ -104,17 +106,19 @@ export function FeedItemActions({
 
   return (
     <div className={styles.actions}>
-      <button
-        aria-label={t("reactions.like")}
-        aria-pressed={liked}
-        className={styles.icon}
-        disabled={!user || likeBusy}
-        onClick={() => void toggleLike()}
-        title={t("reactions.like")}
-        type="button"
-      >
-        {liked ? <IconHeartFilled size={15} /> : <IconHeart size={15} />}
-      </button>
+      {showLike ? (
+        <button
+          aria-label={t("reactions.like")}
+          aria-pressed={liked}
+          className={styles.icon}
+          disabled={!user || likeBusy}
+          onClick={() => void toggleLike()}
+          title={t("reactions.like")}
+          type="button"
+        >
+          {liked ? <IconHeartFilled size={15} /> : <IconHeart size={15} />}
+        </button>
+      ) : null}
       <button
         aria-label={t("feed.addToMine")}
         className={styles.icon}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
+import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { ItemCard } from "@/components/items/item-card";
 import { ListSkeleton } from "@/components/skeletons";
@@ -90,13 +91,15 @@ export function LikedScreen() {
               <li key={item.id}>
                 <ItemCard
                   header={
-                    <FeedCardHeader avatars={[{ name: item.author_name }]}>
+                    <FeedCardHeader
+                      actions={<FeedItemActions item={item} showLike={false} />}
+                      avatars={[{ name: item.author_name }]}
+                    >
                       <AppLink href={`/u/${item.author_handle}`}>{item.author_name}</AppLink>
                     </FeedCardHeader>
                   }
                   href={`/u/${item.author_handle}/cart/${item.slug}`}
                   item={item}
-                  reactions
                 />
               </li>
             ))}
