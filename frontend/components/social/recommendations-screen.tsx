@@ -170,6 +170,10 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         showFollow={isCommunity}
                       />
                     }
+                    hideActionDate
+                    hideRating
+                    hideReview
+                    hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions
@@ -229,6 +233,10 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         showFollow={isCommunity}
                       />
                     }
+                    hideActionDate
+                    hideRating
+                    hideReview
+                    hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions

@@ -129,6 +129,7 @@ export function FeedScreen() {
                     </FeedCardHeader>
                   }
                   footer={<FeedItemActions item={item} />}
+                  hideStatus
                   href={`/u/${item.author_handle}/cart/${item.slug}`}
                   item={item}
                   reactions

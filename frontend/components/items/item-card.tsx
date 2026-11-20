@@ -102,6 +102,10 @@ export function ItemCard({
   showContinue = false,
   header,
   footer,
+  hideStatus = false,
+  hideRating = false,
+  hideReview = false,
+  hideActionDate = false,
   onOpen,
   coverSrc,
 }: {
@@ -113,6 +117,10 @@ export function ItemCard({
   showContinue?: boolean;
   header?: React.ReactNode;
   footer?: React.ReactNode;
+  hideStatus?: boolean;
+  hideRating?: boolean;
+  hideReview?: boolean;
+  hideActionDate?: boolean;
   /** Desktop opens a local detail view instead of following a web route. */
   onOpen?: () => void;
   /** Explicit image source for clients with a local media cache. */
@@ -189,9 +197,11 @@ export function ItemCard({
           <h2 className={styles.title}>
             <Highlight text={title} query={query} />
           </h2>
-          <Badge tone={STATUS_TONES[item.status]}>
-            {t(statusKey(item.kind, item.status))}
-          </Badge>
+          {hideStatus ? null : (
+            <Badge tone={STATUS_TONES[item.status]}>
+              {t(statusKey(item.kind, item.status))}
+            </Badge>
+          )}
         </div>
 
         {subtitle ? (
@@ -257,7 +267,7 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {item.rating ? (
+        {item.rating && !hideRating ? (
           <div className={styles.rating}>
             <RatingStars
               compact
@@ -267,7 +277,7 @@ export function ItemCard({
           </div>
         ) : null}
 
-        {actionDate ? (
+        {actionDate && !hideActionDate ? (
           <p className={styles.actionDate}>
             {t("card.lastAction", { date: actionDate })}
             {rewatches > 0
@@ -276,7 +286,7 @@ export function ItemCard({
           </p>
         ) : null}
 
-        {item.review ? <p className={styles.review}>{item.review}</p> : null}
+        {item.review && !hideReview ? <p className={styles.review}>{item.review}</p> : null}
 
         {item.deleted_at ? (
           <div className={styles.deleted}>

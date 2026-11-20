@@ -31,7 +31,7 @@ export function FollowButton({ userId }: { userId: string }) {
     };
   }, [userId, user]);
 
-  if (!user || user.id === userId || following === null) return null;
+  if (!user || user.id === userId || following === null || following) return null;
 
   async function toggle() {
     setBusy(true);
