@@ -602,38 +602,65 @@ export const chat = {
 };
 
 export const feed = {
-  get: (kind?: string | null, sort?: string | null, period?: string | null) => {
+  get: (
+    kind?: string | null,
+    sort?: string | null,
+    period?: string | null,
+    offset = 0,
+    limit = 20,
+  ) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
-    const query = params.toString();
-    return request<{ items: FeedItem[]; counts: FeedKindCounts }>(
-      `/feed${query ? `?${query}` : ""}`,
-    );
+    params.set("offset", String(offset));
+    params.set("limit", String(limit));
+    return request<{
+      items: FeedItem[];
+      counts: FeedKindCounts;
+      next_offset: number | null;
+    }>(`/feed?${params.toString()}`);
   },
 };
 
 export const recommendations = {
-  friends: (kind?: string | null, sort?: string | null, period?: string | null) => {
+  friends: (
+    kind?: string | null,
+    sort?: string | null,
+    period?: string | null,
+    offset = 0,
+    limit = 12,
+  ) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
-    const query = params.toString();
-    return request<{ items: FriendRecommendation[]; counts: FeedKindCounts }>(
-      `/recommendations/friends${query ? `?${query}` : ""}`,
-    );
+    params.set("offset", String(offset));
+    params.set("limit", String(limit));
+    return request<{
+      items: FriendRecommendation[];
+      counts: FeedKindCounts;
+      next_offset: number | null;
+    }>(`/recommendations/friends?${params.toString()}`);
   },
-  community: (kind?: string | null, sort?: string | null, period?: string | null) => {
+  community: (
+    kind?: string | null,
+    sort?: string | null,
+    period?: string | null,
+    offset = 0,
+    limit = 12,
+  ) => {
     const params = new URLSearchParams();
     if (kind) params.set("kind", kind);
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
-    const query = params.toString();
-    return request<{ items: CommunityRecommendation[]; counts: FeedKindCounts }>(
-      `/recommendations/community${query ? `?${query}` : ""}`,
-    );
+    params.set("offset", String(offset));
+    params.set("limit", String(limit));
+    return request<{
+      items: CommunityRecommendation[];
+      counts: FeedKindCounts;
+      next_offset: number | null;
+    }>(`/recommendations/community?${params.toString()}`);
   },
   taste: () =>
     request<{ genres: TasteGenre[]; items: TasteRecommendation[] }>(

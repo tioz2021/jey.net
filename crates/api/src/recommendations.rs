@@ -345,6 +345,20 @@ pub struct RecommendationQuery {
     pub kind: Option<String>,
     pub sort: Option<String>,
     pub period: Option<String>,
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+}
+
+fn recommendation_page(offset: Option<i64>, limit: Option<i64>) -> Result<(i64, i64), AppError> {
+    let offset = offset.unwrap_or(0);
+    let limit = limit.unwrap_or(12);
+    if offset < 0 || !(1..=50).contains(&limit) {
+        return Err(AppError::validation_field(
+            "pagination",
+            "offset must be >= 0 and limit between 1 and 50",
+        ));
+    }
+    Ok((offset, limit))
 }
 
 fn recommendation_period(
@@ -404,12 +418,15 @@ pub async fn friends(
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
     let (period, since) = recommendation_period(query.period.as_deref())?;
+    let (offset, limit) = recommendation_page(query.offset, query.limit)?;
     let cache_key = format!(
-        "friends:{}:{}:{}:{}",
+        "friends:{}:{}:{}:{}:{}:{}",
         current.user.id,
         kind.unwrap_or("all"),
         sort,
-        period
+        period,
+        offset,
+        limit
     );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
@@ -472,12 +489,14 @@ pub async fn friends(
            )
          group by i.id
          order by {order}
-         limit 12"
+         limit $5 offset $4"
     );
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(kind)
         .bind(since)
+        .bind(offset)
+        .bind(limit)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
@@ -518,7 +537,12 @@ pub async fn friends(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let payload = json!({ "items": items, "counts": counts_payload(count_rows) });
+    let next_offset = (items.len() as i64 == limit).then_some(offset + limit);
+    let payload = json!({
+        "items": items,
+        "counts": counts_payload(count_rows),
+        "next_offset": next_offset,
+    });
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }
@@ -533,12 +557,15 @@ pub async fn community(
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
     let (period, since) = recommendation_period(query.period.as_deref())?;
+    let (offset, limit) = recommendation_page(query.offset, query.limit)?;
     let cache_key = format!(
-        "community:{}:{}:{}:{}",
+        "community:{}:{}:{}:{}:{}:{}",
         current.user.id,
         kind.unwrap_or("all"),
         sort,
-        period
+        period,
+        offset,
+        limit
     );
     if let Some(value) = state.recommendations.get(&cache_key) {
         return Ok(Json(value));
@@ -618,12 +645,14 @@ pub async fn community(
          )
          from grouped
          order by {order}
-         limit 12"
+         limit $5 offset $4"
     );
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(kind)
         .bind(since)
+        .bind(offset)
+        .bind(limit)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
@@ -667,7 +696,12 @@ pub async fn community(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let payload = json!({ "items": items, "counts": counts_payload(count_rows) });
+    let next_offset = (items.len() as i64 == limit).then_some(offset + limit);
+    let payload = json!({
+        "items": items,
+        "counts": counts_payload(count_rows),
+        "next_offset": next_offset,
+    });
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }

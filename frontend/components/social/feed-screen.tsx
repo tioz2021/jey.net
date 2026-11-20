@@ -32,17 +32,22 @@ export function FeedScreen() {
   const [sort, setSort] = useState<FeedSortValue>("new");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
   const [counts, setCounts] = useState<FeedKindCounts>({});
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setNextOffset(null);
+    setItems([]);
     api.feed
-      .get(kind, sort, period)
+      .get(kind, sort, period, 0)
       .then((response) => {
         if (!cancelled) {
           setItems(response.items);
           setCounts(response.counts ?? {});
+          setNextOffset(response.next_offset);
           markFeedSeen();
         }
       })
@@ -56,6 +61,19 @@ export function FeedScreen() {
       cancelled = true;
     };
   }, [reload, i18n, kind, sort, period]);
+
+  async function loadMore() {
+    if (nextOffset === null || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const response = await api.feed.get(kind, sort, period, nextOffset);
+      setItems((current) => [...current, ...response.items]);
+      setCounts(response.counts ?? {});
+      setNextOffset(response.next_offset);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <main>
@@ -106,6 +124,13 @@ export function FeedScreen() {
             ))}
           </ul>
         )}
+        {nextOffset !== null ? (
+          <div className="feed-load-more">
+            <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
+              {t("feed.loadMore")}
+            </Button>
+          </div>
+        ) : null}
       </Card>
     </main>
   );

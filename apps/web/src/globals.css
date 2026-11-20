@@ -501,6 +501,12 @@ button:not(:disabled):active {
   width: 145px;
 }
 
+.feed-load-more {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-4);
+}
+
 .kind-chips a span,
 .kind-chips button span {
   color: var(--color-text-muted);

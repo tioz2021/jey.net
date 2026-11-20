@@ -158,6 +158,20 @@ pub struct FeedQuery {
     pub kind: Option<String>,
     pub sort: Option<String>,
     pub period: Option<String>,
+    pub offset: Option<i64>,
+    pub limit: Option<i64>,
+}
+
+fn feed_page(offset: Option<i64>, limit: Option<i64>) -> Result<(i64, i64), AppError> {
+    let offset = offset.unwrap_or(0);
+    let limit = limit.unwrap_or(20);
+    if offset < 0 || !(1..=50).contains(&limit) {
+        return Err(AppError::validation_field(
+            "pagination",
+            "offset must be >= 0 and limit between 1 and 50",
+        ));
+    }
+    Ok((offset, limit))
 }
 
 fn feed_period(raw: Option<&str>) -> Result<(&'static str, Option<DateTime<Utc>>), AppError> {
@@ -201,6 +215,7 @@ pub async fn feed(
 ) -> Result<Json<Value>, AppError> {
     let sort = feed_sort(query.sort.as_deref())?;
     let (_, since) = feed_period(query.period.as_deref())?;
+    let (offset, limit) = feed_page(query.offset, query.limit)?;
     let order = if sort == "rating" {
         "i.rating desc, i.updated_at desc"
     } else {
@@ -232,12 +247,14 @@ pub async fn feed(
                   or (b.blocker_id = u.id and b.blocked_id = $1)
            )
          order by {order}
-         limit 50"
+         limit $5 offset $4"
     );
     let items: Vec<Value> = sqlx::query_scalar(sqlx::AssertSqlSafe(sql))
         .bind(current.user.id)
         .bind(feed_kind(query.kind.as_deref())?)
         .bind(since)
+        .bind(offset)
+        .bind(limit)
         .fetch_all(&state.pool)
         .await
         .map_err(AppError::internal)?;
@@ -271,7 +288,12 @@ pub async fn feed(
         counts.insert(kind, json!(count));
     }
     counts.insert("all".to_owned(), json!(total));
-    Ok(Json(json!({ "items": items, "counts": counts })))
+    let next_offset = (items.len() as i64 == limit).then_some(offset + limit);
+    Ok(Json(json!({
+        "items": items,
+        "counts": counts,
+        "next_offset": next_offset,
+    })))
 }
 
 /// `GET /api/v1/blocks` — profiles blocked by the current account.

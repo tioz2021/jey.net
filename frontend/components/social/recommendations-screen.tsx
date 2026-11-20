@@ -10,7 +10,7 @@ import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-perio
 import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
@@ -34,18 +34,28 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [sort, setSort] = useState<FeedSortValue>("rating");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
   const [counts, setCounts] = useState<FeedKindCounts>({});
+  const [nextFriends, setNextFriends] = useState<number | null>(null);
+  const [nextCommunity, setNextCommunity] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setFriends([]);
+    setCommunity([]);
+    setNextFriends(null);
+    setNextCommunity(null);
     Promise.all([
-      api.recommendations.friends(kind, sort, period),
-      api.recommendations.community(kind, sort, period),
+      api.recommendations.friends(kind, sort, period, 0),
+      api.recommendations.community(kind, sort, period, 0),
     ])
       .then(([friendResponse, communityResponse]) => {
         if (cancelled) return;
         setFriends(friendResponse.items);
         setCommunity(communityResponse.items);
+        setNextFriends(friendResponse.next_offset);
+        setNextCommunity(communityResponse.next_offset);
         setCounts(
           variant === "community" ? communityResponse.counts : friendResponse.counts,
         );
@@ -65,6 +75,27 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
   );
   const isCommunity = variant === "community";
+
+  async function loadMore() {
+    const next = isCommunity ? nextCommunity : nextFriends;
+    if (next === null || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      if (isCommunity) {
+        const response = await api.recommendations.community(kind, sort, period, next);
+        setCommunity((current) => [...current, ...response.items]);
+        setCounts(response.counts ?? {});
+        setNextCommunity(response.next_offset);
+      } else {
+        const response = await api.recommendations.friends(kind, sort, period, next);
+        setFriends((current) => [...current, ...response.items]);
+        setCounts(response.counts ?? {});
+        setNextFriends(response.next_offset);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <main>
@@ -127,6 +158,13 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               <AppLink href="/people">{t("recommendations.findPeople")}</AppLink>
             </p>
           ) : null}
+          {nextCommunity !== null ? (
+            <div className="feed-load-more">
+              <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
+                {t("feed.loadMore")}
+              </Button>
+            </div>
+          ) : null}
         </Card>
       ) : (
         <Card title={t("recommendations.friendsTitle")}>
@@ -171,6 +209,13 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             <p className={styles.note}>
               <AppLink href="/feed">{t("recommendations.feedLink")}</AppLink>
             </p>
+          ) : null}
+          {nextFriends !== null ? (
+            <div className="feed-load-more">
+              <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
+                {t("feed.loadMore")}
+              </Button>
+            </div>
           ) : null}
         </Card>
       )}
