@@ -172,6 +172,7 @@ export const uk = {
   "recommendations.feedLink": "Дивитися стрічку",
   "nav.feed": "Стрічка",
   "feed.new": "Нові записи: {count}",
+  "feed.loadingMore": "Завантаження…",
   "feed.loadMore": "Показати ще",
   "feed.period": "Період",
   "feed.period24h": "24 години",

@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
+import { FeedLoadMore } from "@/components/feed-load-more";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { ItemCard } from "@/components/items/item-card";
 import { ListSkeleton } from "@/components/skeletons";
 import { NotebookTabs } from "@/components/notebook-tabs";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
@@ -105,18 +106,11 @@ export function LikedScreen() {
             ))}
           </ul>
         )}
-        {nextOffset !== null ? (
-          <div className="feed-load-more">
-            <Button
-              loading={loadingMore}
-              onClick={() => void loadMore()}
-              size="sm"
-              variant="secondary"
-            >
-              {t("feed.loadMore")}
-            </Button>
-          </div>
-        ) : null}
+        <FeedLoadMore
+          hasMore={nextOffset !== null}
+          loading={loadingMore}
+          onLoad={() => void loadMore()}
+        />
       </Card>
     </main>
   );

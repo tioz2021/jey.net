@@ -504,7 +504,13 @@ button:not(:disabled):active {
 .feed-load-more {
   display: flex;
   justify-content: center;
+  min-height: 24px;
   padding-top: var(--space-4);
+}
+
+.feed-loading {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .kind-chips a span,

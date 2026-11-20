@@ -17,6 +17,7 @@ import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
+import { FeedLoadMore } from "@/components/feed-load-more";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
@@ -139,13 +140,11 @@ export function FeedScreen() {
             ))}
           </ul>
         )}
-        {nextOffset !== null ? (
-          <div className="feed-load-more">
-            <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
-              {t("feed.loadMore")}
-            </Button>
-          </div>
-        ) : null}
+        <FeedLoadMore
+          hasMore={nextOffset !== null}
+          loading={loadingMore}
+          onLoad={() => void loadMore()}
+        />
       </Card>
     </main>
   );

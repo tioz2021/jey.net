@@ -9,10 +9,11 @@ import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
+import { FeedLoadMore } from "@/components/feed-load-more";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
@@ -187,13 +188,11 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               <AppLink href="/people">{t("recommendations.findPeople")}</AppLink>
             </p>
           ) : null}
-          {nextCommunity !== null ? (
-            <div className="feed-load-more">
-              <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
-                {t("feed.loadMore")}
-              </Button>
-            </div>
-          ) : null}
+          <FeedLoadMore
+            hasMore={nextCommunity !== null}
+            loading={loadingMore}
+            onLoad={() => void loadMore()}
+          />
         </Card>
       ) : (
         <Card title={t("recommendations.friendsTitle")}>
@@ -247,13 +246,11 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               <AppLink href="/feed">{t("recommendations.feedLink")}</AppLink>
             </p>
           ) : null}
-          {nextFriends !== null ? (
-            <div className="feed-load-more">
-              <Button loading={loadingMore} onClick={() => void loadMore()} size="sm" variant="secondary">
-                {t("feed.loadMore")}
-              </Button>
-            </div>
-          ) : null}
+          <FeedLoadMore
+            hasMore={nextFriends !== null}
+            loading={loadingMore}
+            onLoad={() => void loadMore()}
+          />
         </Card>
       )}
     </main>

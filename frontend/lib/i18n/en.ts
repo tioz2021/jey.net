@@ -172,6 +172,7 @@ export const en = {
   "recommendations.feedLink": "Open feed",
   "nav.feed": "Feed",
   "feed.new": "New records: {count}",
+  "feed.loadingMore": "Loading…",
   "feed.loadMore": "Show more",
   "feed.period": "Period",
   "feed.period24h": "24 hours",
