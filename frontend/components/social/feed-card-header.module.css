@@ -42,6 +42,7 @@
   flex: 0 0 auto;
   display: flex;
   gap: 4px;
+  margin-left: auto;
 }
 
 .score {
