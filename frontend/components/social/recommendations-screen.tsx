@@ -217,7 +217,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                           </span>
                         ))}
                       {" "}
-                      {t("recommendations.rated", { rating: item.average_rating })}
+                      {t("recommendations.friendsCount", { count: item.friend_count })}
                     </p>
                     <span className={styles.score}>{item.average_rating}/10</span>
                   </div>
