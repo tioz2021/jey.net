@@ -147,7 +147,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                     header={
                       <FeedCardHeader
                         avatars={item.people}
-                        score={`${item.average_rating}/10`}
+                        score={item.people_count > 1 ? `${item.average_rating}/10` : undefined}
                       >
                         {item.people.slice(0, 3).map((person, index) => (
                           <span key={`${person.handle}-${index}`}>
@@ -175,8 +175,6 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                       />
                     }
                     hideActionDate
-                    hideRating
-                    hideReview
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
@@ -216,7 +214,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                     header={
                       <FeedCardHeader
                         avatars={item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle }))}
-                        score={`${item.average_rating}/10`}
+                        score={item.friend_count > 1 ? `${item.average_rating}/10` : undefined}
                       >
                         {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
                           .slice(0, 3)
@@ -239,8 +237,6 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                       />
                     }
                     hideActionDate
-                    hideRating
-                    hideReview
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
