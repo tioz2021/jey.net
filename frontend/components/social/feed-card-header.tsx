@@ -10,10 +10,12 @@ export function FeedCardHeader({
   avatars,
   children,
   score,
+  actions,
 }: {
   avatars: Array<{ name: string; url?: string | null }>;
   children: ReactNode;
   score?: string;
+  actions?: ReactNode;
 }) {
   return (
     <div className={styles.header}>
@@ -24,6 +26,7 @@ export function FeedCardHeader({
       </div>
       <p className={styles.text}>{children}</p>
       {score ? <span className={styles.score}>{score}</span> : null}
+      {actions ? <div className={styles.actions}>{actions}</div> : null}
     </div>
   );
 }

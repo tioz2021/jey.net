@@ -2,14 +2,22 @@
   position: relative;
   z-index: 3;
   display: flex;
-  flex-wrap: wrap;
+  flex: 0 0 auto;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-1);
-  padding: 0;
+  gap: 4px;
 }
 
-.actions button {
+.icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
   transition:
     color var(--duration-fast) var(--ease-out),
     background-color var(--duration-fast) var(--ease-out),
@@ -17,37 +25,23 @@
     transform var(--duration-fast) var(--ease-out);
 }
 
-.actions button:hover:not(:disabled) {
+.icon:hover:not(:disabled) {
   color: var(--color-on-accent);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
 
-.actions button:active:not(:disabled) {
-  transform: scale(0.97);
+.icon:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
-.actions button[aria-pressed="true"]:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-surface);
+.icon[aria-pressed="true"] {
+  color: var(--color-accent);
   border-color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
-.hide {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-}
-
-.hide:hover {
-  color: var(--color-on-accent);
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+.icon:disabled {
+  cursor: default;
+  opacity: 0.55;
 }

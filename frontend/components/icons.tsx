@@ -3,6 +3,7 @@ import {
   Bell,
   BellOff,
   Book,
+  Check,
   Clapperboard,
   Film,
   Folder,
@@ -15,6 +16,7 @@ import {
   List,
   MessageCircle,
   Pencil,
+  Plus,
   type LucideIcon,
   Rss,
   SlidersHorizontal,
@@ -50,6 +52,8 @@ export const IconBell = makeIcon(Bell, "IconBell");
 export const IconBellOff = makeIcon(BellOff, "IconBellOff");
 export const IconPeople = makeIcon(Users, "IconPeople");
 export const IconX = makeIcon(X, "IconX");
+export const IconPlus = makeIcon(Plus, "IconPlus");
+export const IconCheck = makeIcon(Check, "IconCheck");
 export const IconSubscriptions = makeIcon(UserRoundCheck, "IconSubscriptions");
 export const IconHeart = makeIcon(Heart, "IconHeart");
 export const IconSparkles = makeIcon(Sparkles, "IconSparkles");

@@ -146,6 +146,12 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                   <ItemCard
                     header={
                       <FeedCardHeader
+                        actions={
+                          <FeedItemActions
+                            item={item}
+                            onHide={() => void hideRecommendation(item)}
+                          />
+                        }
                         avatars={item.people}
                         score={item.people_count > 1 ? `${item.average_rating}/10` : undefined}
                       >
@@ -167,18 +173,10 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         ) : null}
                       </FeedCardHeader>
                     }
-                    footer={
-                      <FeedItemActions
-                        item={item}
-                        onHide={() => void hideRecommendation(item)}
-                        showFollow={isCommunity}
-                      />
-                    }
                     hideActionDate
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
-                    reactions
                   />
                 </li>
               ))}
@@ -213,6 +211,12 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                   <ItemCard
                     header={
                       <FeedCardHeader
+                        actions={
+                          <FeedItemActions
+                            item={item}
+                            onHide={() => void hideRecommendation(item)}
+                          />
+                        }
                         avatars={item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle }))}
                         score={item.friend_count > 1 ? `${item.average_rating}/10` : undefined}
                       >
@@ -229,18 +233,10 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                           : ""}
                       </FeedCardHeader>
                     }
-                    footer={
-                      <FeedItemActions
-                        item={item}
-                        onHide={() => void hideRecommendation(item)}
-                        showFollow={isCommunity}
-                      />
-                    }
                     hideActionDate
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
-                    reactions
                   />
                 </li>
               ))}

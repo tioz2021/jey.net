@@ -1,34 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { IconX } from "@/components/icons";
-import { Button } from "@/components/ui";
-import { FollowButton } from "@/components/social/follow-button";
+import {
+  IconCheck,
+  IconHeart,
+  IconHeartFilled,
+  IconPlus,
+  IconX,
+} from "@/components/icons";
+import { useToast } from "@/components/toasts";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
-import { useToast } from "@/components/toasts";
 import { mediaUrl } from "@/lib/media";
 import type { NewItem, PublicItem } from "@/lib/types";
+import { useUser } from "@/lib/user-context";
 
 import styles from "./feed-item-actions.module.css";
 
 export function FeedItemActions({
   item,
   onHide,
-  showFollow = false,
 }: {
-  item: PublicItem & { author_id: string };
+  item: PublicItem;
   onHide?: () => void;
-  showFollow?: boolean;
 }) {
   const { t } = useI18n();
+  const { user } = useUser();
   const { notify, notifyError } = useToast();
+  const [liked, setLiked] = useState(false);
+  const [likeBusy, setLikeBusy] = useState(false);
   const [added, setAdded] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [addBusy, setAddBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.publicItems
+      .reactions(item.id)
+      .then((response) => {
+        if (!cancelled) {
+          setLiked(Boolean(user && response.likers.some((liker) => liker.id === user.id)));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [item.id, user]);
+
+  async function toggleLike() {
+    if (!user || likeBusy) return;
+    setLikeBusy(true);
+    try {
+      const response = await api.publicItems.react(item.id);
+      setLiked(response.reacted);
+    } catch (cause) {
+      notifyError(cause);
+    } finally {
+      setLikeBusy(false);
+    }
+  }
 
   async function add() {
-    setBusy(true);
+    setAddBusy(true);
     try {
       const input: NewItem = {
         kind: item.kind,
@@ -64,31 +98,42 @@ export function FeedItemActions({
     } catch (cause) {
       notifyError(cause);
     } finally {
-      setBusy(false);
+      setAddBusy(false);
     }
   }
 
   return (
     <div className={styles.actions}>
-      <Button
-        disabled={added || busy}
-        onClick={() => void add()}
-        size="sm"
-        title={t("feed.addToMine")}
-        variant="secondary"
+      <button
+        aria-label={t("reactions.like")}
+        aria-pressed={liked}
+        className={styles.icon}
+        disabled={!user || likeBusy}
+        onClick={() => void toggleLike()}
+        title={t("reactions.like")}
+        type="button"
       >
-        {added ? t("feed.added") : t("feed.addToMineShort")}
-      </Button>
-      {showFollow ? <FollowButton userId={item.author_id} /> : null}
+        {liked ? <IconHeartFilled size={15} /> : <IconHeart size={15} />}
+      </button>
+      <button
+        aria-label={t("feed.addToMine")}
+        className={styles.icon}
+        disabled={added || addBusy}
+        onClick={() => void add()}
+        title={added ? t("feed.added") : t("feed.addToMine")}
+        type="button"
+      >
+        {added ? <IconCheck size={15} /> : <IconPlus size={15} />}
+      </button>
       {onHide ? (
         <button
           aria-label={t("recommendations.notInterested")}
-          className={styles.hide}
+          className={styles.icon}
           onClick={onHide}
           title={t("recommendations.notInterested")}
           type="button"
         >
-          <IconX size={14} />
+          <IconX size={15} />
         </button>
       ) : null}
     </div>

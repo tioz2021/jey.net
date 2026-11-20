@@ -124,15 +124,16 @@ export function FeedScreen() {
               <li key={`${item.author_id}-${item.id}`}>
                 <ItemCard
                   header={
-                    <FeedCardHeader avatars={[{ name: item.author_name }]}>
+                    <FeedCardHeader
+                      actions={<FeedItemActions item={item} />}
+                      avatars={[{ name: item.author_name }]}
+                    >
                       <AppLink href={`/u/${item.author_handle}`}>{item.author_name}</AppLink>
                     </FeedCardHeader>
                   }
-                  footer={<FeedItemActions item={item} />}
                   hideStatus
                   href={`/u/${item.author_handle}/cart/${item.slug}`}
                   item={item}
-                  reactions
                 />
               </li>
             ))}
