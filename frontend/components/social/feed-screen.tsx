@@ -16,7 +16,7 @@ import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
-import type { FeedItem, ItemKind } from "@/lib/types";
+import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
 
@@ -31,6 +31,7 @@ export function FeedScreen() {
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("new");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
+  const [counts, setCounts] = useState<FeedKindCounts>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +42,7 @@ export function FeedScreen() {
       .then((response) => {
         if (!cancelled) {
           setItems(response.items);
+          setCounts(response.counts ?? {});
           markFeedSeen();
         }
       })
@@ -60,7 +62,7 @@ export function FeedScreen() {
       <FeedTabs />
       <p className="tabs-subtitle">{t("feed.subtitle")}</p>
       <div className="feed-kind-row">
-        <FeedKindFilter onChange={setKind} value={kind} />
+        <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={setView} value={view} />

@@ -642,6 +642,8 @@ export interface FollowState {
   following_count: number;
 }
 
+export type FeedKindCounts = Partial<Record<ItemKind | "all", number>>;
+
 export interface FeedItem extends PublicItem {
   author_id: string;
   author_name: string;

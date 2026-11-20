@@ -3,7 +3,7 @@
 import { IconAnime, IconBook, IconFilm, IconGame, IconImage, IconList, IconOther, IconTv } from "@/components/icons";
 import { KIND_PLURAL_KEYS } from "@/lib/i18n/labels";
 import { useI18n } from "@/lib/locale-context";
-import type { ItemKind } from "@/lib/types";
+import type { FeedKindCounts, ItemKind } from "@/lib/types";
 
 const KINDS: Array<ItemKind | null> = [null, "movie", "tv", "anime", "book", "game", "image", "other"];
 
@@ -20,9 +20,11 @@ const ICONS = {
 export function FeedKindFilter({
   value,
   onChange,
+  counts,
 }: {
   value: ItemKind | null;
   onChange: (kind: ItemKind | null) => void;
+  counts?: FeedKindCounts;
 }) {
   const { t } = useI18n();
   return (
@@ -38,6 +40,7 @@ export function FeedKindFilter({
           >
             <Icon size={14} />
             {kind ? t(KIND_PLURAL_KEYS[kind]) : t("nav.all")}
+            {counts?.[kind ?? "all"] != null ? <span>{counts[kind ?? "all"]}</span> : null}
           </button>
         );
       })}

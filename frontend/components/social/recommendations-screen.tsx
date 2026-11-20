@@ -18,7 +18,7 @@ import {
   publicRecommendationKey,
   useHiddenRecommendations,
 } from "@/lib/use-hidden-recommendations";
-import type { CommunityRecommendation, FriendRecommendation, ItemKind } from "@/lib/types";
+import type { CommunityRecommendation, FeedKindCounts, FriendRecommendation, ItemKind } from "@/lib/types";
 
 import styles from "./recommendations.module.css";
 
@@ -33,6 +33,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("rating");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
+  const [counts, setCounts] = useState<FeedKindCounts>({});
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
@@ -45,6 +46,9 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         if (cancelled) return;
         setFriends(friendResponse.items);
         setCommunity(communityResponse.items);
+        setCounts(
+          variant === "community" ? communityResponse.counts : friendResponse.counts,
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -52,7 +56,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     return () => {
       cancelled = true;
     };
-  }, [kind, sort, period]);
+  }, [kind, sort, period, variant]);
 
   const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
@@ -69,7 +73,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         {isCommunity ? t("recommendations.generalSubtitle") : t("recommendations.subtitle")}
       </p>
       <div className="feed-kind-row">
-        <FeedKindFilter onChange={setKind} value={kind} />
+        <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={setView} value={view} />

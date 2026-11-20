@@ -158,9 +158,9 @@ curl -sS -b jar.txt "$BASE/items?limit=20"
 
 | Метод | Путь | Назначение |
 |---|---|---|
-| GET | `/feed?kind=&sort=&period=` | лента подписок (`new`, `rating`) |
-| GET | `/recommendations/friends?kind=&sort=&period=` | высокие оценки подписок (`new`, `popular`, `rating`) |
-| GET | `/recommendations/community?kind=&sort=&period=` | все публичные профили (`new`, `popular`, `rating`) |
+| GET | `/feed?kind=&sort=&period=` | лента подписок + `counts` по категориям |
+| GET | `/recommendations/friends?kind=&sort=&period=` | высокие оценки подписок + `counts` |
+| GET | `/recommendations/community?kind=&sort=&period=` | все публичные профили + `counts` |
 | GET | `/follows/following` | подписки |
 | POST/DELETE | `/users/{id}/follow` | подписаться/отписаться |
 | POST/DELETE | `/users/{id}/block` | блокировка |

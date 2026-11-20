@@ -384,6 +384,17 @@ fn recommendation_kind(raw: Option<&str>) -> Result<Option<&str>, AppError> {
     }
 }
 
+fn counts_payload(rows: Vec<(String, i64)>) -> Value {
+    let mut counts = serde_json::Map::new();
+    let mut total = 0;
+    for (kind, count) in rows {
+        total += count;
+        counts.insert(kind, json!(count));
+    }
+    counts.insert("all".to_owned(), json!(total));
+    Value::Object(counts)
+}
+
 /// `GET /api/v1/recommendations/friends`
 pub async fn friends(
     State(state): State<AppState>,
@@ -471,7 +482,43 @@ pub async fn friends(
         .await
         .map_err(AppError::internal)?;
 
-    let payload = json!({ "items": items });
+    let count_rows: Vec<(String, i64)> = sqlx::query_as(
+        "with filtered as (
+            select i.id, i.kind
+            from follows f
+            join users u on u.id = f.followee_id
+            join items i on i.user_id = u.id
+            where f.follower_id = $1
+              and ($2::timestamptz is null or i.updated_at >= $2)
+              and u.is_public and u.deleted_at is null
+              and i.status = 'done' and i.rating >= 8
+              and not i.public_hidden and i.deleted_at is null
+              and 'done' = ANY(u.public_statuses)
+              and not exists (
+                  select 1 from items mine
+                  where mine.user_id = $1 and mine.deleted_at is null
+                    and (
+                        (i.external_source is not null
+                         and mine.external_source = i.external_source
+                         and mine.external_id = i.external_id)
+                        or lower(mine.title) = lower(i.title)
+                    )
+              )
+              and not exists (
+                  select 1 from blocks b
+                  where (b.blocker_id = $1 and b.blocked_id = u.id)
+                     or (b.blocker_id = u.id and b.blocked_id = $1)
+              )
+            group by i.id, i.kind
+         )
+         select kind, count(*) from filtered group by kind",
+    )
+    .bind(current.user.id)
+    .bind(since)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let payload = json!({ "items": items, "counts": counts_payload(count_rows) });
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }
@@ -581,7 +628,46 @@ pub async fn community(
         .await
         .map_err(AppError::internal)?;
 
-    let payload = json!({ "items": items });
+    let count_rows: Vec<(String, i64)> = sqlx::query_as(
+        "with candidates as (
+            select i.kind, i.title, i.external_source, i.external_id
+            from items i
+            join users u on u.id = i.user_id
+            where i.user_id <> $1
+              and ($2::timestamptz is null or i.updated_at >= $2)
+              and u.is_public and u.deleted_at is null
+              and i.status = 'done' and i.rating >= 8
+              and not i.public_hidden and i.deleted_at is null
+              and 'done' = ANY(u.public_statuses)
+              and not exists (
+                  select 1 from items mine
+                  where mine.user_id = $1 and mine.deleted_at is null
+                    and (
+                        (i.external_source is not null
+                         and mine.external_source = i.external_source
+                         and mine.external_id = i.external_id)
+                        or lower(mine.title) = lower(i.title)
+                    )
+              )
+              and not exists (
+                  select 1 from blocks b
+                  where (b.blocker_id = $1 and b.blocked_id = u.id)
+                     or (b.blocker_id = u.id and b.blocked_id = $1)
+              )
+         ),
+         grouped as (
+            select (array_agg(kind order by title))[1] as kind
+            from candidates
+            group by coalesce(external_source || ':' || external_id, lower(title))
+         )
+         select kind, count(*) from grouped group by kind",
+    )
+    .bind(current.user.id)
+    .bind(since)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let payload = json!({ "items": items, "counts": counts_payload(count_rows) });
     state.recommendations.set(cache_key, payload.clone());
     Ok(Json(payload))
 }

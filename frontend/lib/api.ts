@@ -19,6 +19,7 @@ import type {
   Report,
   FriendRecommendation,
   CommunityRecommendation,
+  FeedKindCounts,
   PublicUserCard,
   PublicCollection,
   SimilarItem,
@@ -607,7 +608,9 @@ export const feed = {
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
     const query = params.toString();
-    return request<{ items: FeedItem[] }>(`/feed${query ? `?${query}` : ""}`);
+    return request<{ items: FeedItem[]; counts: FeedKindCounts }>(
+      `/feed${query ? `?${query}` : ""}`,
+    );
   },
 };
 
@@ -618,7 +621,7 @@ export const recommendations = {
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
     const query = params.toString();
-    return request<{ items: FriendRecommendation[] }>(
+    return request<{ items: FriendRecommendation[]; counts: FeedKindCounts }>(
       `/recommendations/friends${query ? `?${query}` : ""}`,
     );
   },
@@ -628,7 +631,7 @@ export const recommendations = {
     if (sort) params.set("sort", sort);
     if (period) params.set("period", period);
     const query = params.toString();
-    return request<{ items: CommunityRecommendation[] }>(
+    return request<{ items: CommunityRecommendation[]; counts: FeedKindCounts }>(
       `/recommendations/community${query ? `?${query}` : ""}`,
     );
   },
