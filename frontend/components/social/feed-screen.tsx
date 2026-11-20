@@ -57,12 +57,12 @@ export function FeedScreen() {
     <main>
       <FeedTabs />
       <p className="tabs-subtitle">{t("feed.subtitle")}</p>
-      <div className="section-toolbar feed-toolbar">
+      <div className="feed-kind-row">
         <FeedKindFilter onChange={setKind} value={kind} />
-        <div className="feed-toolbar-end">
-          <FeedSort includePopular={false} onChange={setSort} value={sort} />
-          <ViewSwitch onChange={setView} value={view} />
-        </div>
+      </div>
+      <div className="section-toolbar feed-controls">
+        <ViewSwitch onChange={setView} value={view} />
+        <FeedSort includePopular={false} onChange={setSort} value={sort} />
       </div>
       <Card>
         {loading ? (

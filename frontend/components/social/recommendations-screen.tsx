@@ -66,12 +66,12 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
       <p className="tabs-subtitle">
         {isCommunity ? t("recommendations.generalSubtitle") : t("recommendations.subtitle")}
       </p>
-      <div className="section-toolbar feed-toolbar">
+      <div className="feed-kind-row">
         <FeedKindFilter onChange={setKind} value={kind} />
-        <div className="feed-toolbar-end">
-          <FeedSort onChange={setSort} value={sort} />
-          <ViewSwitch onChange={setView} value={view} />
-        </div>
+      </div>
+      <div className="section-toolbar feed-controls">
+        <ViewSwitch onChange={setView} value={view} />
+        <FeedSort onChange={setSort} value={sort} />
       </div>
 
       {isCommunity ? (
