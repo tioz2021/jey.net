@@ -11,6 +11,7 @@ import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { Avatar } from "@/components/profile/avatar";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import { Button, Card } from "@/components/ui";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
@@ -30,7 +31,14 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [friends, setFriends] = useState<FriendRecommendation[]>([]);
   const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>(() =>
+    readViewPreference("jey:view:feed", "list"),
+  );
+
+  function changeView(value: ViewMode) {
+    setView(value);
+    saveViewPreference("jey:view:feed", value);
+  }
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("rating");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
@@ -117,7 +125,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
-        <ViewSwitch onChange={setView} value={view} />
+        <ViewSwitch onChange={changeView} value={view} />
         <FeedSort onChange={setSort} value={sort} />
         <FeedPeriod onChange={setPeriod} value={period} />
       </div>

@@ -17,6 +17,7 @@ import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -28,7 +29,14 @@ export function FeedScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
-  const [view, setView] = useState<ViewMode>("grid");
+  const [view, setView] = useState<ViewMode>(() =>
+    readViewPreference("jey:view:feed", "grid"),
+  );
+
+  function changeView(value: ViewMode) {
+    setView(value);
+    saveViewPreference("jey:view:feed", value);
+  }
   const [kind, setKind] = useState<ItemKind | null>(null);
   const [sort, setSort] = useState<FeedSortValue>("new");
   const [period, setPeriod] = useState<FeedPeriodValue>("all");
@@ -84,7 +92,7 @@ export function FeedScreen() {
         <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
-        <ViewSwitch onChange={setView} value={view} />
+        <ViewSwitch onChange={changeView} value={view} />
         <FeedSort includePopular={false} onChange={setSort} value={sort} />
         <FeedPeriod onChange={setPeriod} value={period} />
       </div>
