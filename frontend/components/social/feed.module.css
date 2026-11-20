@@ -28,7 +28,7 @@
   min-width: 0;
 }
 
-.grid > li > div {
+.grid > li > div:last-child {
   display: flex;
   flex: 1;
   flex-direction: column;
