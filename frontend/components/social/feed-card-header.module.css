@@ -3,6 +3,7 @@
   flex: 1;
   align-items: center;
   min-width: 0;
+  min-height: 24px;
   gap: var(--space-2);
 }
 
@@ -24,8 +25,12 @@
 .text {
   min-width: 0;
   margin: 0;
+  overflow: hidden;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
+  line-height: var(--line-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .text a {
