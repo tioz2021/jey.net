@@ -8,16 +8,19 @@
 }
 
 .hide {
-  padding: 5px 4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-xs);
   background: transparent;
-  border: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
   cursor: pointer;
 }
 
 .hide:hover {
   color: var(--color-text);
-  text-decoration: underline;
+  background: var(--color-surface);
 }

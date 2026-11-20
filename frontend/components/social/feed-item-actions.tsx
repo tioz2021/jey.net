@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { IconX } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { FollowButton } from "@/components/social/follow-button";
 import { api } from "@/lib/api";
@@ -81,12 +82,13 @@ export function FeedItemActions({
       {showFollow ? <FollowButton userId={item.author_id} /> : null}
       {onHide ? (
         <button
+          aria-label={t("recommendations.notInterested")}
           className={styles.hide}
           onClick={onHide}
           title={t("recommendations.notInterested")}
           type="button"
         >
-          {t("recommendations.hide")}
+          <IconX size={14} />
         </button>
       ) : null}
     </div>
