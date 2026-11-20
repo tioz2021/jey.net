@@ -135,29 +135,31 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
               {visibleCommunity.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
-                  <div className={styles.reasonRow}>
-                    <div className={styles.avatars}>
-                      {item.people.slice(0, 3).map((person, index) => (
-                        <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
-                      ))}
-                    </div>
-                    <p className={styles.reason}>
-                      {item.people.slice(0, 3).map((person, index) => (
-                        <span key={`${person.handle}-${index}`}>
-                          {index > 0 ? ", " : ""}
-                          <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
-                        </span>
-                      ))}
-                      {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
-                      {" · "}
-                      {t("recommendations.communityMeta", {
-                        count: item.people_count,
-                        rating: item.average_rating,
-                      })}
-                    </p>
-                    <span className={styles.score}>{item.average_rating}/10</span>
-                  </div>
                   <ItemCard
+                    header={
+                      <div className={styles.reasonRow}>
+                        <div className={styles.avatars}>
+                          {item.people.slice(0, 3).map((person, index) => (
+                            <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
+                          ))}
+                        </div>
+                        <p className={styles.reason}>
+                          {item.people.slice(0, 3).map((person, index) => (
+                            <span key={`${person.handle}-${index}`}>
+                              {index > 0 ? ", " : ""}
+                              <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                            </span>
+                          ))}
+                          {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
+                          {" · "}
+                          {t("recommendations.communityMeta", {
+                            count: item.people_count,
+                            rating: item.average_rating,
+                          })}
+                        </p>
+                        <span className={styles.score}>{item.average_rating}/10</span>
+                      </div>
+                    }
                     footer={
                       <FeedItemActions
                         item={item}
@@ -199,29 +201,31 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
               {visibleFriends.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
-                  <div className={styles.reasonRow}>
-                    <div className={styles.avatars}>
-                      {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
-                        .slice(0, 3)
-                        .map((person, index) => (
-                          <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
-                        ))}
-                    </div>
-                    <p className={styles.reason}>
-                      {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
-                        .slice(0, 3)
-                        .map((person, index) => (
-                          <span key={`${person.handle}-${index}`}>
-                            {index > 0 ? ", " : ""}
-                            <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
-                          </span>
-                        ))}
-                      {" "}
-                      {t("recommendations.friendsCount", { count: item.friend_count })}
-                    </p>
-                    <span className={styles.score}>{item.average_rating}/10</span>
-                  </div>
                   <ItemCard
+                    header={
+                      <div className={styles.reasonRow}>
+                        <div className={styles.avatars}>
+                          {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                            .slice(0, 3)
+                            .map((person, index) => (
+                              <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
+                            ))}
+                        </div>
+                        <p className={styles.reason}>
+                          {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                            .slice(0, 3)
+                            .map((person, index) => (
+                              <span key={`${person.handle}-${index}`}>
+                                {index > 0 ? ", " : ""}
+                                <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                              </span>
+                            ))}
+                          {" "}
+                          {t("recommendations.friendsCount", { count: item.friend_count })}
+                        </p>
+                        <span className={styles.score}>{item.average_rating}/10</span>
+                      </div>
+                    }
                     footer={
                       <FeedItemActions
                         item={item}

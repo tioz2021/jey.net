@@ -49,7 +49,13 @@ export function FollowButton({ userId }: { userId: string }) {
   }
 
   return (
-    <Button disabled={busy} onClick={() => void toggle()} size="sm" variant="secondary">
+    <Button
+      aria-pressed={following}
+      disabled={busy}
+      onClick={() => void toggle()}
+      size="sm"
+      variant="secondary"
+    >
       {following ? t("feed.following") : t("feed.follow")}
     </Button>
   );

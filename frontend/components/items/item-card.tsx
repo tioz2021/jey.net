@@ -100,6 +100,7 @@ export function ItemCard({
   selected = false,
   reactions = false,
   showContinue = false,
+  header,
   footer,
   onOpen,
   coverSrc,
@@ -110,6 +111,7 @@ export function ItemCard({
   selected?: boolean;
   reactions?: boolean;
   showContinue?: boolean;
+  header?: React.ReactNode;
   footer?: React.ReactNode;
   /** Desktop opens a local detail view instead of following a web route. */
   onOpen?: () => void;
@@ -164,6 +166,7 @@ export function ItemCard({
 
   const card = (
     <article className={`${styles.card} ${selected ? styles.cardSelected : ""}`}>
+      {header ? <div className={styles.cardTop}>{header}</div> : null}
       <div className={styles.poster}>
         {coverSrc ?? item.cover_key ? (
           <img
