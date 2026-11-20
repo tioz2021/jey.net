@@ -149,7 +149,7 @@ export function CollectionDetailScreen({ id }: { id: string }) {
           }}
           value={view}
         />
-        <Button onClick={openPicker} size="sm" variant="secondary">
+        <Button onClick={openPicker} variant="secondary">
           <IconPlus size={15} />
           {t("collections.addItems")}
         </Button>
