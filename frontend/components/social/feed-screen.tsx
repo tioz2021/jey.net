@@ -117,11 +117,11 @@ export function FeedScreen() {
                   <AppLink href={`/u/${item.author_id}`}>{item.author_name}</AppLink>
                 </p>
                 <ItemCard
+                  footer={<FeedItemActions item={item} />}
                   href={`/u/${item.author_handle}/cart/${item.slug}`}
                   item={item}
                   reactions
                 />
-                <FeedItemActions item={item} />
               </li>
             ))}
           </ul>

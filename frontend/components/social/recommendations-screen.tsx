@@ -8,6 +8,7 @@ import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
+import { Avatar } from "@/components/profile/avatar";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { Button, Card } from "@/components/ui";
@@ -135,6 +136,11 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               {visibleCommunity.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
                   <div className={styles.reasonRow}>
+                    <div className={styles.avatars}>
+                      {item.people.slice(0, 3).map((person, index) => (
+                        <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
+                      ))}
+                    </div>
                     <p className={styles.reason}>
                       {item.people.slice(0, 3).map((person, index) => (
                         <span key={`${person.handle}-${index}`}>
@@ -149,16 +155,19 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         rating: item.average_rating,
                       })}
                     </p>
+                    <span className={styles.score}>{item.average_rating}/10</span>
                   </div>
                   <ItemCard
+                    footer={
+                      <FeedItemActions
+                        item={item}
+                        onHide={() => void hideRecommendation(item)}
+                        showFollow={isCommunity}
+                      />
+                    }
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions
-                  />
-                  <FeedItemActions
-                    item={item}
-                    onHide={() => void hideRecommendation(item)}
-                    showFollow={isCommunity}
                   />
                 </li>
               ))}
@@ -191,6 +200,13 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               {visibleFriends.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
                   <div className={styles.reasonRow}>
+                    <div className={styles.avatars}>
+                      {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                        .slice(0, 3)
+                        .map((person, index) => (
+                          <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
+                        ))}
+                    </div>
                     <p className={styles.reason}>
                       {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
                         .slice(0, 3)
@@ -203,16 +219,19 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                       {" "}
                       {t("recommendations.rated", { rating: item.average_rating })}
                     </p>
+                    <span className={styles.score}>{item.average_rating}/10</span>
                   </div>
                   <ItemCard
+                    footer={
+                      <FeedItemActions
+                        item={item}
+                        onHide={() => void hideRecommendation(item)}
+                        showFollow={isCommunity}
+                      />
+                    }
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}
                     reactions
-                  />
-                  <FeedItemActions
-                    item={item}
-                    onHide={() => void hideRecommendation(item)}
-                    showFollow={isCommunity}
                   />
                 </li>
               ))}
