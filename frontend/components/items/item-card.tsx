@@ -173,7 +173,11 @@ export function ItemCard({
   ].filter(Boolean);
 
   const card = (
-    <article className={`${styles.card} ${selected ? styles.cardSelected : ""}`}>
+    <article
+      className={`${styles.card} ${header ? styles.cardWithHeader : ""} ${
+        selected ? styles.cardSelected : ""
+      }`}
+    >
       {header ? <div className={styles.cardTop}>{header}</div> : null}
       <div className={styles.poster}>
         {coverSrc ?? item.cover_key ? (

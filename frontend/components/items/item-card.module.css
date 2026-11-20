@@ -41,6 +41,10 @@
   outline-offset: 2px;
 }
 
+.cardWithHeader {
+  grid-template-rows: 16px auto;
+}
+
 .cardTop {
   position: relative;
   z-index: 2;
