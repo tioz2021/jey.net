@@ -417,6 +417,14 @@ export interface FriendRecommendation extends PublicItem {
   average_rating: number;
 }
 
+export interface CommunityRecommendation extends PublicItem {
+  author_id: string;
+  author_handle: string;
+  people: Array<{ name: string; handle: string }>;
+  people_count: number;
+  average_rating: number;
+}
+
 export interface PublicUserCard {
   id: string;
   handle: string;

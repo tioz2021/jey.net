@@ -1,49 +1,41 @@
 "use client";
 
-import { AppLink } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
-import { HideRecommendation } from "@/components/hide-recommendation";
 import { FeedTabs } from "@/components/feed-tabs";
-import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { HideRecommendation } from "@/components/hide-recommendation";
 import { ItemCard } from "@/components/items/item-card";
-import { Badge, Card } from "@/components/ui";
+import { ViewSwitch, type ViewMode } from "@/components/view-switch";
+import { Card } from "@/components/ui";
+import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import {
   publicRecommendationKey,
   useHiddenRecommendations,
 } from "@/lib/use-hidden-recommendations";
-import type {
-  FriendRecommendation,
-  TasteGenre,
-  TasteRecommendation,
-} from "@/lib/types";
+import type { CommunityRecommendation, FriendRecommendation } from "@/lib/types";
 
 import styles from "./recommendations.module.css";
 
-export function RecommendationsScreen({ variant = "friends" }: { variant?: "friends" | "taste" }) {
+type Variant = "friends" | "community";
+
+export function RecommendationsScreen({ variant = "friends" }: { variant?: Variant }) {
   const { t } = useI18n();
-  const [items, setItems] = useState<FriendRecommendation[]>([]);
-  const [tasteItems, setTasteItems] = useState<TasteRecommendation[]>([]);
-  const [genres, setGenres] = useState<TasteGenre[]>([]);
+  const [friends, setFriends] = useState<FriendRecommendation[]>([]);
+  const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>("list");
   const { hidden, hide } = useHiddenRecommendations();
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      api.recommendations.friends(),
-      api.recommendations.taste(),
-    ])
-      .then(([friends, taste]) => {
-        if (!cancelled) {
-          setItems(friends.items);
-          setTasteItems(taste.items);
-          setGenres(taste.genres);
-        }
+    Promise.all([api.recommendations.friends(), api.recommendations.community()])
+      .then(([friendResponse, communityResponse]) => {
+        if (cancelled) return;
+        setFriends(friendResponse.items);
+        setCommunity(communityResponse.items);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -53,116 +45,117 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: "frie
     };
   }, []);
 
-  const visibleTaste = tasteItems.filter(
+  const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
   );
-  const visibleFriends = items.filter(
+  const visibleCommunity = community.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
   );
-  const showTaste = variant === "taste";
-  const showFriends = variant === "friends";
+  const isCommunity = variant === "community";
 
   return (
     <main>
       <FeedTabs />
       <p className="tabs-subtitle">
-        {showTaste
-          ? t("recommendations.generalSubtitle")
-          : t("recommendations.subtitle")}
+        {isCommunity ? t("recommendations.generalSubtitle") : t("recommendations.subtitle")}
       </p>
       <div className="section-toolbar">
         <ViewSwitch onChange={setView} value={view} />
       </div>
-      {showTaste ? (
-      <Card title={showTaste ? t("recommendations.generalTitle") : t("recommendations.tasteTitle")}>
-        {genres.length === 0 ? (
-          <p className={styles.empty}>{t("recommendations.tasteEmpty")}</p>
-        ) : (
-          <>
-            <ul className={styles.genres}>
-              {genres.map((genre) => (
-                <li key={genre.name}>
-                  <Badge>{genre.name}</Badge>
-                </li>
-              ))}
-            </ul>
-            {visibleTaste.length > 0 ? (
-              <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
-                {visibleTaste.map((item) => (
-                  <li key={`${item.author_id}-${item.id}`}>
-                    <div className={styles.reasonRow}>
-                      <p className={styles.reason}>
-                        <AppLink href={`/u/${item.author_handle}`}>{item.author_name}</AppLink>
-                        {" — "}
-                        {t("recommendations.tasteReason", {
-                          genres: item.matched_genres.join(", "),
-                        })}
-                      </p>
-                      <HideRecommendation
-                        onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
-                      />
-                    </div>
-                    <ItemCard
-                      href={`/u/${item.author_handle}/cart/${item.slug}`}
-                      item={item}
-                      reactions
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.empty}>{t("recommendations.tasteNoItems")}</p>
-            )}
-          </>
-        )}
-      </Card>
-      ) : null}
-      {showFriends ? (
-      <Card title={t("recommendations.friendsTitle")}>
-        {!loading && visibleFriends.length === 0 ? (
-          <EmptyState
-            actionHref="/people"
-            actionLabel={t("recommendations.findPeople")}
-            text={t("recommendations.emptyText")}
-            title={t("recommendations.emptyTitle")}
-          />
-        ) : (
-          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
-            {visibleFriends.map((item) => (
-              <li key={`${item.author_id}-${item.id}`}>
-                <div className={styles.reasonRow}>
-                  <p className={styles.reason}>
-                    {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
-                      .slice(0, 3)
-                      .map((person, index) => (
+
+      {isCommunity ? (
+        <Card title={t("recommendations.generalTitle")}>
+          {!loading && visibleCommunity.length === 0 ? (
+            <EmptyState
+              actionHref="/people"
+              actionLabel={t("recommendations.findPeople")}
+              text={t("recommendations.communityEmptyText")}
+              title={t("recommendations.communityEmptyTitle")}
+            />
+          ) : (
+            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+              {visibleCommunity.map((item) => (
+                <li key={`${item.author_id}-${item.id}`}>
+                  <div className={styles.reasonRow}>
+                    <p className={styles.reason}>
+                      {item.people.slice(0, 3).map((person, index) => (
                         <span key={`${person.handle}-${index}`}>
                           {index > 0 ? ", " : ""}
                           <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
                         </span>
                       ))}
-                    {" "}
-                    {t("recommendations.rated", { rating: item.average_rating })}
-                  </p>
-                  <HideRecommendation
-                    onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+                      {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
+                      {" · "}
+                      {t("recommendations.communityMeta", {
+                        count: item.people_count,
+                        rating: item.average_rating,
+                      })}
+                    </p>
+                    <HideRecommendation
+                      onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+                    />
+                  </div>
+                  <ItemCard
+                    href={`/u/${item.author_handle}/cart/${item.slug}`}
+                    item={item}
+                    reactions
                   />
-                </div>
-                <ItemCard
-                  href={`/u/${item.author_handle}/cart/${item.slug}`}
-                  item={item}
-                  reactions
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        {!loading && visibleFriends.length > 0 ? (
-          <p className={styles.note}>
-            <AppLink href="/feed">{t("recommendations.feedLink")}</AppLink>
-          </p>
-        ) : null}
-      </Card>      ) : null}
-
+                </li>
+              ))}
+            </ul>
+          )}
+          {!loading && visibleCommunity.length > 0 ? (
+            <p className={styles.note}>
+              <AppLink href="/people">{t("recommendations.findPeople")}</AppLink>
+            </p>
+          ) : null}
+        </Card>
+      ) : (
+        <Card title={t("recommendations.friendsTitle")}>
+          {!loading && visibleFriends.length === 0 ? (
+            <EmptyState
+              actionHref="/people"
+              actionLabel={t("recommendations.findPeople")}
+              text={t("recommendations.emptyText")}
+              title={t("recommendations.emptyTitle")}
+            />
+          ) : (
+            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+              {visibleFriends.map((item) => (
+                <li key={`${item.author_id}-${item.id}`}>
+                  <div className={styles.reasonRow}>
+                    <p className={styles.reason}>
+                      {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                        .slice(0, 3)
+                        .map((person, index) => (
+                          <span key={`${person.handle}-${index}`}>
+                            {index > 0 ? ", " : ""}
+                            <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                          </span>
+                        ))}
+                      {" "}
+                      {t("recommendations.rated", { rating: item.average_rating })}
+                    </p>
+                    <HideRecommendation
+                      onHide={() => hide(publicRecommendationKey(item.author_id, item.id))}
+                    />
+                  </div>
+                  <ItemCard
+                    href={`/u/${item.author_handle}/cart/${item.slug}`}
+                    item={item}
+                    reactions
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          {!loading && visibleFriends.length > 0 ? (
+            <p className={styles.note}>
+              <AppLink href="/feed">{t("recommendations.feedLink")}</AppLink>
+            </p>
+          ) : null}
+        </Card>
+      )}
     </main>
   );
 }

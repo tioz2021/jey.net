@@ -411,6 +411,96 @@ pub async fn friends(
     Ok(Json(payload))
 }
 
+/// `GET /api/v1/recommendations/community` — highly rated public records
+/// across every public profile, grouped by the record itself.
+pub async fn community(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> Result<Json<Value>, AppError> {
+    let cache_key = format!("community:{}", current.user.id);
+    if let Some(value) = state.recommendations.get(&cache_key) {
+        return Ok(Json(value));
+    }
+    let items: Vec<Value> = sqlx::query_scalar(
+        "with candidates as (
+            select
+                i.id, i.slug, i.kind, i.title, i.subtitle, i.year, i.status,
+                i.rating, i.review, i.cover_key, i.external_source, i.external_id,
+                i.details, i.updated_at,
+                u.id as user_id, u.handle, u.display_name
+            from items i
+            join users u on u.id = i.user_id
+            where i.user_id <> $1
+              and u.is_public and u.deleted_at is null
+              and i.status = 'done' and i.rating >= 8
+              and not i.public_hidden and i.deleted_at is null
+              and 'done' = ANY(u.public_statuses)
+              and not exists (
+                  select 1 from items mine
+                  where mine.user_id = $1 and mine.deleted_at is null
+                    and (
+                        (i.external_source is not null
+                         and mine.external_source = i.external_source
+                         and mine.external_id = i.external_id)
+                        or lower(mine.title) = lower(i.title)
+                    )
+              )
+              and not exists (
+                  select 1 from blocks b
+                  where (b.blocker_id = $1 and b.blocked_id = u.id)
+                     or (b.blocker_id = u.id and b.blocked_id = $1)
+              )
+         ),
+         grouped as (
+            select
+                (array_agg(id order by rating desc, updated_at desc))[1] as id,
+                (array_agg(slug order by rating desc, updated_at desc))[1] as slug,
+                (array_agg(kind order by rating desc, updated_at desc))[1] as kind,
+                (array_agg(title order by rating desc, updated_at desc))[1] as title,
+                (array_agg(subtitle order by rating desc, updated_at desc))[1] as subtitle,
+                (array_agg(year order by rating desc, updated_at desc))[1] as year,
+                (array_agg(status order by rating desc, updated_at desc))[1] as status,
+                (array_agg(rating order by rating desc, updated_at desc))[1] as rating,
+                (array_agg(review order by rating desc, updated_at desc))[1] as review,
+                (array_agg(cover_key order by rating desc, updated_at desc))[1] as cover_key,
+                (array_agg(external_source order by rating desc, updated_at desc))[1] as external_source,
+                (array_agg(external_id order by rating desc, updated_at desc))[1] as external_id,
+                (array_agg(details order by rating desc, updated_at desc))[1] as details,
+                (array_agg(updated_at order by rating desc, updated_at desc))[1] as updated_at,
+                (array_agg(user_id order by rating desc, updated_at desc))[1] as author_id,
+                (array_agg(handle order by rating desc, updated_at desc))[1] as author_handle,
+                jsonb_agg(distinct jsonb_build_object(
+                    'name', display_name, 'handle', handle
+                )) as people,
+                count(distinct user_id) as people_count,
+                round(avg(rating)::numeric, 1) as average_rating
+            from candidates
+            group by coalesce(external_source || ':' || external_id, lower(title))
+         )
+         select jsonb_build_object(
+            'id', id, 'slug', slug, 'author_id', author_id,
+            'author_handle', author_handle, 'kind', kind, 'title', title,
+            'subtitle', subtitle, 'year', year, 'status', status,
+            'rating', rating, 'review', review, 'cover_key', cover_key,
+            'external_source', external_source, 'external_id', external_id,
+            'details', details, 'updated_at', updated_at,
+            'people', people, 'people_count', people_count,
+            'average_rating', average_rating
+         )
+         from grouped
+         order by average_rating desc, people_count desc, updated_at desc
+         limit 12",
+    )
+    .bind(current.user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    let payload = json!({ "items": items });
+    state.recommendations.set(cache_key, payload.clone());
+    Ok(Json(payload))
+}
+
 /// `GET /api/v1/recommendations/taste` — genres from high ratings and public matches.
 pub async fn taste(
     State(state): State<AppState>,

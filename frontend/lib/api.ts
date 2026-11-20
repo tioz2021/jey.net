@@ -18,6 +18,7 @@ import type {
   NotificationPreferences,
   Report,
   FriendRecommendation,
+  CommunityRecommendation,
   PublicUserCard,
   PublicCollection,
   SimilarItem,
@@ -606,6 +607,8 @@ export const feed = {
 export const recommendations = {
   friends: () =>
     request<{ items: FriendRecommendation[] }>("/recommendations/friends"),
+  community: () =>
+    request<{ items: CommunityRecommendation[] }>("/recommendations/community"),
   taste: () =>
     request<{ genres: TasteGenre[]; items: TasteRecommendation[] }>(
       "/recommendations/taste",
