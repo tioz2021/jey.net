@@ -184,6 +184,7 @@ export const en = {
   "feed.sortRating": "Top rated",
   "feed.follow": "Follow",
   "feed.following": "Following",
+  "feed.addToMineShort": "Add",
   "feed.addToMine": "Add to my records",
   "feed.added": "Added",
   "feed.addedToMine": "Record added",

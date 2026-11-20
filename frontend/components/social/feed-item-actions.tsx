@@ -69,13 +69,24 @@ export function FeedItemActions({
 
   return (
     <div className={styles.actions}>
-      <Button disabled={added || busy} onClick={() => void add()} size="sm" variant="secondary">
-        {added ? t("feed.added") : t("feed.addToMine")}
+      <Button
+        disabled={added || busy}
+        onClick={() => void add()}
+        size="sm"
+        title={t("feed.addToMine")}
+        variant="secondary"
+      >
+        {added ? t("feed.added") : t("feed.addToMineShort")}
       </Button>
       {showFollow ? <FollowButton userId={item.author_id} /> : null}
       {onHide ? (
-        <button className={styles.hide} onClick={onHide} type="button">
-          {t("recommendations.notInterested")}
+        <button
+          className={styles.hide}
+          onClick={onHide}
+          title={t("recommendations.notInterested")}
+          type="button"
+        >
+          {t("recommendations.hide")}
         </button>
       ) : null}
     </div>

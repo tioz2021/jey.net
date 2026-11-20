@@ -183,6 +183,7 @@ export const ru = {
   "feed.sortRating": "Высокая оценка",
   "feed.follow": "Подписаться",
   "feed.following": "Вы подписаны",
+  "feed.addToMineShort": "Добавить",
   "feed.addToMine": "Добавить к себе",
   "feed.added": "Добавлено",
   "feed.addedToMine": "Запись добавлена",

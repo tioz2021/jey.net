@@ -67,6 +67,25 @@
 
 .grid {
   grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+  align-items: stretch;
+}
+
+.grid > li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.grid > li > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.grid > li article {
+  flex: 1;
+  height: 100%;
 }
 
 @media (width <= 1000px) {

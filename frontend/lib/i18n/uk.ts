@@ -184,6 +184,7 @@ export const uk = {
   "feed.sortRating": "Висока оцінка",
   "feed.follow": "Підписатися",
   "feed.following": "Ви підписані",
+  "feed.addToMineShort": "Додати",
   "feed.addToMine": "Додати до себе",
   "feed.added": "Додано",
   "feed.addedToMine": "Запис додано",
