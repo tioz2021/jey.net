@@ -16,6 +16,7 @@ import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
+import { FeedCardHeader } from "@/components/social/feed-card-header";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
@@ -121,10 +122,12 @@ export function FeedScreen() {
           <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
             {items.map((item) => (
               <li key={`${item.author_id}-${item.id}`}>
-                <p className={styles.author}>
-                  <AppLink href={`/u/${item.author_id}`}>{item.author_name}</AppLink>
-                </p>
                 <ItemCard
+                  header={
+                    <FeedCardHeader avatars={[{ name: item.author_name }]}>
+                      <AppLink href={`/u/${item.author_handle}`}>{item.author_name}</AppLink>
+                    </FeedCardHeader>
+                  }
                   footer={<FeedItemActions item={item} />}
                   href={`/u/${item.author_handle}/cart/${item.slug}`}
                   item={item}

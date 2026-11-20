@@ -8,7 +8,7 @@ import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
-import { Avatar } from "@/components/profile/avatar";
+import { FeedCardHeader } from "@/components/social/feed-card-header";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
@@ -145,28 +145,23 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                 <li key={`${item.author_id}-${item.id}`}>
                   <ItemCard
                     header={
-                      <div className={styles.reasonRow}>
-                        <div className={styles.avatars}>
-                          {item.people.slice(0, 3).map((person, index) => (
-                            <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
-                          ))}
-                        </div>
-                        <p className={styles.reason}>
-                          {item.people.slice(0, 3).map((person, index) => (
-                            <span key={`${person.handle}-${index}`}>
-                              {index > 0 ? ", " : ""}
-                              <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
-                            </span>
-                          ))}
-                          {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
-                          {" · "}
-                          {t("recommendations.communityMeta", {
-                            count: item.people_count,
-                            rating: item.average_rating,
-                          })}
-                        </p>
-                        <span className={styles.score}>{item.average_rating}/10</span>
-                      </div>
+                      <FeedCardHeader
+                        avatars={item.people}
+                        score={`${item.average_rating}/10`}
+                      >
+                        {item.people.slice(0, 3).map((person, index) => (
+                          <span key={`${person.handle}-${index}`}>
+                            {index > 0 ? ", " : ""}
+                            <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                          </span>
+                        ))}
+                        {item.people.length > 3 ? ` +${item.people.length - 3}` : ""}
+                        {" · "}
+                        {t("recommendations.communityMeta", {
+                          count: item.people_count,
+                          rating: item.average_rating,
+                        })}
+                      </FeedCardHeader>
                     }
                     footer={
                       <FeedItemActions
@@ -211,28 +206,21 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                 <li key={`${item.author_id}-${item.id}`}>
                   <ItemCard
                     header={
-                      <div className={styles.reasonRow}>
-                        <div className={styles.avatars}>
-                          {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
-                            .slice(0, 3)
-                            .map((person, index) => (
-                              <Avatar key={`${person.handle}-${index}`} name={person.name} size={24} />
-                            ))}
-                        </div>
-                        <p className={styles.reason}>
-                          {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
-                            .slice(0, 3)
-                            .map((person, index) => (
-                              <span key={`${person.handle}-${index}`}>
-                                {index > 0 ? ", " : ""}
-                                <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
-                              </span>
-                            ))}
-                          {" "}
-                          {t("recommendations.friendsCount", { count: item.friend_count })}
-                        </p>
-                        <span className={styles.score}>{item.average_rating}/10</span>
-                      </div>
+                      <FeedCardHeader
+                        avatars={item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle }))}
+                        score={`${item.average_rating}/10`}
+                      >
+                        {(item.friend_people ?? item.friends.map((name) => ({ name, handle: item.author_handle })))
+                          .slice(0, 3)
+                          .map((person, index) => (
+                            <span key={`${person.handle}-${index}`}>
+                              {index > 0 ? ", " : ""}
+                              <AppLink href={`/u/${person.handle}`}>{person.name}</AppLink>
+                            </span>
+                          ))}
+                        {" "}
+                        {t("recommendations.friendsCount", { count: item.friend_count })}
+                      </FeedCardHeader>
                     }
                     footer={
                       <FeedItemActions
