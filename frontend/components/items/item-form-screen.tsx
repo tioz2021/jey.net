@@ -25,7 +25,7 @@ export function ItemFormScreen({
 
   return (
     <main>
-      <div className={styles.heading}>
+      <div className={styles.backRow}>
         <Button
           onClick={() => router.push(itemId ? `/items/${itemId}` : "/items")}
           size="sm"
@@ -33,8 +33,8 @@ export function ItemFormScreen({
         >
           ← {t("common.back")}
         </Button>
-        <PageHeader title={itemId ? "Редактировать запись" : "Добавить запись"} />
       </div>
+      <PageHeader title={itemId ? "Редактировать запись" : "Добавить запись"} />
       <Card>
         <ItemForm initial={initial} initialKind={initialKind} itemId={itemId} lockKind={lockKind} />
       </Card>
