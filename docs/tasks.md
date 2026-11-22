@@ -121,7 +121,7 @@
 | T168 | P0 | Единый CI quality gate `[x]` | `check.sh`, clippy, web tests/build, миграции, API release |
 | T169 | P0 | Производительность API и ленты `[x]` | EXPLAIN, индексы, N+1, бюджеты p95 |
 | T170 | P0 | Безопасность и лимиты `[x]` | headers, read limits, pixel cap, dependency audit |
-| T171 | P0 | Наблюдаемость и восстановление | логи, ошибки, health/ready, метрики, проверка restore из backup |
+| T171 | P0 | Наблюдаемость и восстановление `[x]` | метрики в admin/system, backup restore-check |
 | T172 | P1 | Offline-паритет `[~]` | кэш чтения, tier outbox, снятие лайка; новый лайк без кэша — online |
 | T173 | P1 | Frontend-тесты | компонентные тесты ключевых состояний и ошибок |
 | T174 | P1 | Доступность | клавиатура, фокус, aria, контраст, reduced motion |
