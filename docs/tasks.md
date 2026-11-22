@@ -128,7 +128,7 @@
 | T175 | P1 | Дизайн-система карточек `[x]` | токены + docs/design-system.md |
 | T176 | P1 | UX-состояния `[x]` | error/retry, URL-фильтры, stale-while-revalidate |
 | T177 | P1 | Матрица устройств `[x]` | 390/768/1440, RU/UK/EN, no overflow |
-| T178 | P1 | i18n и форматы | плюрализация, даты, числа, непереведённые строки |
+| T178 | P1 | i18n и форматы `[x]` | словари, plural, даты/числа, locale-aware UI |
 | T179 | P2 | Desktop release pipeline | CI AppImage/deb, checksums, auto-update, подпись Windows |
 | T180 | P2 | Документация и релиз | актуальность docs, release checklist, 0.7.x tag |
 

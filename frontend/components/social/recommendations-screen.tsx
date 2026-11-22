@@ -32,7 +32,7 @@ type Variant = "friends" | "community";
 
 export function RecommendationsScreen({ variant = "friends" }: { variant?: Variant }) {
   const i18n = useI18n();
-  const { t } = i18n;
+  const { t, plural } = i18n;
   const [friends, setFriends] = useState<FriendRecommendation[]>([]);
   const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,10 +194,13 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                         {item.people_count > 1 ? (
                           <>
                             {" · "}
-                            {t("recommendations.communityMeta", {
-                              count: item.people_count,
-                              rating: item.average_rating,
+                            {plural(item.people_count, {
+                              one: t("recommendations.peopleOne", { count: item.people_count }),
+                              few: t("recommendations.peopleFew", { count: item.people_count }),
+                              many: t("recommendations.peopleMany", { count: item.people_count }),
                             })}
+                            {" · "}
+                            {t("recommendations.average", { rating: item.average_rating })}
                           </>
                         ) : null}
                         {item.review_count ? (
