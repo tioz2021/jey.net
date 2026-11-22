@@ -58,6 +58,19 @@ export function installDesktopBridge() {
     const putCache = async (key: string, value: unknown) => {
       try { await api.invoke("local_cache_put", { key, payload: value }); } catch { /* best effort */ }
     };
+    const cachedItem = async (itemId: string): Promise<any | null> => {
+      for (const key of [
+        "/api/v1/liked",
+        "/api/v1/feed?sort=new&period=all&offset=0&limit=20",
+        "/api/v1/recommendations/friends?sort=rating&period=all&offset=0&limit=12",
+        "/api/v1/recommendations/community?sort=rating&period=all&offset=0&limit=12",
+      ]) {
+        const value = await cacheValue(key);
+        const found = value?.items?.find((entry: any) => entry.id === itemId);
+        if (found) return found;
+      }
+      return null;
+    };
     const enqueueSocial = async (method: string, requestPath: string, requestBody?: unknown) => {
       try { await api.invoke("local_enqueue_social", { method, path: requestPath, body: requestBody }); }
       catch { /* the UI remains optimistic until the next sync */ }
@@ -242,17 +255,30 @@ export function installDesktopBridge() {
         return method === "PUT" ? json({ ok: true, tier: body?.tier ?? "S" }) : new Response(null, { status: 204 });
       }
     }
-    if (likedPath && method === "POST" && /^\/api\/v1\/public\/items\/[^/]+\/reactions$/.test(path)) {
+    const reactionPath = path.match(/^\/api\/v1\/public\/items\/([^/]+)\/reactions$/);
+    if (reactionPath && method === "POST") {
       try { return await remote(method, path, body); }
       catch {
-        const liked = await cacheValue("/api/v1/liked");
-        const itemId = path.split("/")[5];
-        const item = liked?.items?.find((entry: any) => entry.id === itemId);
-        if (!liked || !item) return json({ error: { code: "offline_unsupported" } }, 503);
-        liked.items = liked.items.filter((entry: any) => entry.id !== itemId);
+        const itemId = reactionPath[1];
+        const liked = (await cacheValue("/api/v1/liked")) ?? { items: [] };
+        if (!Array.isArray(liked.items)) liked.items = [];
+        const alreadyLiked = liked.items.some((entry: any) => entry.id === itemId);
+        if (alreadyLiked) {
+          liked.items = liked.items.filter((entry: any) => entry.id !== itemId);
+          await putCache("/api/v1/liked", liked);
+          await enqueueSocial("PUT", `/api/v1/public/items/${itemId}/reactions`, { liked: false });
+          return json({ reacted: false, count: 0 });
+        }
+        const source = await cachedItem(itemId);
+        if (!source) return json({ error: { code: "offline_unsupported" } }, 503);
+        liked.items = [{
+          ...source,
+          author_name: source.author_name ?? source.people?.[0]?.name ?? source.author_handle,
+          liked_at: new Date().toISOString(),
+        }, ...liked.items];
         await putCache("/api/v1/liked", liked);
-        await enqueueSocial("PUT", `/api/v1/public/items/${itemId}/reactions`, { liked: false });
-        return json({ reacted: false, count: 0 });
+        await enqueueSocial("PUT", `/api/v1/public/items/${itemId}/reactions`, { liked: true });
+        return json({ reacted: true, count: 0 });
       }
     }
     if (/^\/api\/v1\/public\/users\/[^/]+\/tier-lists\/[^/]+$/.test(path) && method === "GET") {

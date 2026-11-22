@@ -675,6 +675,32 @@ impl SyncService {
                 .cache_put(self.user_id, "/api/v1/liked", &body)
                 .map_err(|error| error.to_string())?;
         }
+        for (path, key) in [
+            (
+                "/api/v1/feed?sort=new&period=all&offset=0&limit=20",
+                "/api/v1/feed?sort=new&period=all&offset=0&limit=20",
+            ),
+            (
+                "/api/v1/recommendations/friends?sort=rating&period=all&offset=0&limit=12",
+                "/api/v1/recommendations/friends?sort=rating&period=all&offset=0&limit=12",
+            ),
+            (
+                "/api/v1/recommendations/community?sort=rating&period=all&offset=0&limit=12",
+                "/api/v1/recommendations/community?sort=rating&period=all&offset=0&limit=12",
+            ),
+        ] {
+            let response = self
+                .headers(self.client.get(format!("{}{path}", self.server)))
+                .send()
+                .await
+                .map_err(|error| format!("Сервер недоступен: {error}"))?;
+            if response.status().is_success() {
+                let body: Value = response.json().await.map_err(|error| error.to_string())?;
+                self.store
+                    .cache_put(self.user_id, key, &body)
+                    .map_err(|error| error.to_string())?;
+            }
+        }
         Ok(())
     }
 
