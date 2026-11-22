@@ -162,7 +162,7 @@ bash scripts/desktop-run.sh
 AppImage:
 
 ```bash
-./target/release/bundle/appimage/jey.net_0.7.3_amd64.AppImage
+./target/release/bundle/appimage/jey.net_0.7.4_amd64.AppImage
 ```
 
 Для разработки с пересборкой:
@@ -200,12 +200,12 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
-## 0.7.3
+## 0.7.4
 
 - ленты: сообщество, сортировка, период, счётчики и бесконечная подгрузка;
 - «Понравилось» в Блокноте;
 - переименование коллекций и добавление записей из детали;
-- desktop собран на общем SPA `0.7.3`.
+- desktop собран на общем SPA `0.7.4`.
 
 ## 0.6.0
 
@@ -233,8 +233,8 @@ Windows и Linux собираются из одного кода, но отде�
 Принудительный выбор:
 
 ```bash
-JEY_BACKEND=wayland ./jey.net_0.7.3_amd64.AppImage
-JEY_BACKEND=x11 ./jey.net_0.7.3_amd64.AppImage
+JEY_BACKEND=wayland ./jey.net_0.7.4_amd64.AppImage
+JEY_BACKEND=x11 ./jey.net_0.7.4_amd64.AppImage
 ```
 
 ## Аппаратное ускорение
