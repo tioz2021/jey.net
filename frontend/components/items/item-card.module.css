@@ -206,6 +206,8 @@
 .cardWrap {
   position: relative;
   z-index: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 190px;
   animation: card-in 240ms var(--ease-out) both;
 }
 

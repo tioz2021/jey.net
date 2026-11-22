@@ -35,8 +35,6 @@ tauri = { version = "2", optional = true , features = [] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 
-[target.'cfg(target_os = "linux")'.dependencies]
-webkit2gtk = { version = "2.0", features = ["v2_16"] }
 
 [dev-dependencies]
 jey-repo-contract = { path = "../repo-contract" }

@@ -88,31 +88,42 @@ fn save_data_dir(default_dir: &Path, path: &Path) -> Result<(), String> {
     write_storage_config(default_dir, &value)
 }
 
-fn apply_gpu_setting(app: &tauri::App, enabled: bool) {
+fn app_data_candidate() -> Option<PathBuf> {
+    if let Ok(value) = std::env::var("XDG_DATA_HOME") {
+        if !value.trim().is_empty() {
+            return Some(PathBuf::from(value).join("net.jey.desktop"));
+        }
+    }
+    std::env::var("HOME")
+        .ok()
+        .map(|home| PathBuf::from(home).join(".local/share/net.jey.desktop"))
+}
+
+/// Startup-only compatibility switch. WebKitGTK reads these variables when it
+/// creates the web process, so they must be set before Tauri builds the window.
+/// `JEY_SAFE_MODE=1` is the recovery path for a bad GPU/driver combination.
+fn apply_startup_gpu_setting() {
+    let safe_mode = std::env::var("JEY_SAFE_MODE").as_deref() == Ok("1");
+    let enabled = safe_mode
+        || app_data_candidate()
+            .map(|dir| gpu_acceleration_enabled(&dir))
+            .unwrap_or(true);
     #[cfg(target_os = "linux")]
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.with_webview(move |webview| {
-            use webkit2gtk::{SettingsExt, WebViewExt};
-            let policy = if enabled {
-                webkit2gtk::HardwareAccelerationPolicy::OnDemand
-            } else {
-                webkit2gtk::HardwareAccelerationPolicy::Never
-            };
-            if let Some(settings) = webview.inner().settings() {
-                settings.set_hardware_acceleration_policy(policy);
-            }
-        });
+    if !enabled {
+        // SAFETY: called once before any worker/webview thread is started.
+        unsafe {
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
     }
     #[cfg(target_os = "windows")]
     if !enabled {
-        // WebView2 reads this before creating its renderer. The setting takes
-        // effect after the restart requested by the UI.
-        // SAFETY: this is set during single-threaded app setup.
+        // SAFETY: called once before the WebView2 environment is created.
         unsafe {
             std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
         }
     }
-    let _ = (app, enabled);
+    let _ = enabled;
 }
 
 #[tauri::command]
@@ -1243,6 +1254,7 @@ async fn local_google_sign_in(
 }
 
 pub fn run() {
+    apply_startup_gpu_setting();
     tauri::Builder::default()
         .setup(|app| {
             let default_dir = app
@@ -1252,7 +1264,6 @@ pub fn run() {
             let data_dir = configured_data_dir(&default_dir).unwrap_or_else(|| default_dir.clone());
             let store = DesktopStore::open(&data_dir)
                 .map_err(|error| format!("local database: {error}"))?;
-            apply_gpu_setting(app, gpu_acceleration_enabled(&default_dir));
             app.manage(DesktopState {
                 default_dir,
                 access: AccessStore::new(data_dir.clone()),

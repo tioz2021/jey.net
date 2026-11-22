@@ -231,8 +231,11 @@ Windows и Linux собираются из одного кода, но отде�
 
 На Linux используется WebKitGTK:
 
-- включено — `HardwareAccelerationPolicy::OnDemand`;
-- выключено — `HardwareAccelerationPolicy::Never`, интерфейс рисуется без GPU.
+- включено — стандартный WebKit compositing;
+- выключено — до создания webview выставляются
+  `WEBKIT_DISABLE_COMPOSITING_MODE=1` и `WEBKIT_DISABLE_DMABUF_RENDERER=1`;
+- `JEY_SAFE_MODE=1` принудительно запускает с ускорением, если после смены
+  настройки экран остался чёрным.
 
 Настройка хранится в `storage.json` рядом с базой. Если WebKitGTK всё равно
 уходит в software rendering, это ограничение драйвера/WebKit, а не React.
