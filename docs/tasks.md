@@ -406,7 +406,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 |---|---|---|---|---|---|
 | T183 | P1 | Решение по Windows-подписи и auto-update `[x]` | 0.5 d | — | unsigned Windows + auto-update |
 | T184 | P1 | Автопроверка опубликованного релиза `[ ]` | 1 d | T183 | verify-release: версия, URL, SHA, Windows, health |
-| T185 | P1 | Внедрение updater `[~]` | 3–5 d | T183 | ключи, latest.json, подпись, staged rollout |
+| T185 | P1 | Внедрение updater `[~]` | 3–5 d | T183 | 0.7.3 подписан; остался тест 0.7.3→0.7.4 |
 | T186 | P1 | Spike Tauri WebDriver/WebKitWebDriver `[ ]` | 1–2 d | — | доказано, можно ли гонять WebKit в CI |
 | T187 | P1 | Desktop smoke suite `[ ]` | 2–3 d | T186 | 6 сценариев: форма/черновик/обложка/корзина/уведомления/вход |
 | T188 | P1 | Singleton notification stream `[ ]` | 1 d | — | один SSE, late subscribers, без гонки страницы |

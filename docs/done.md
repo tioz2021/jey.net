@@ -1,5 +1,14 @@
 # Архив задач
 
+## 0.7.3 `[x]`
+
+- первый релиз с `tauri-plugin-updater`;
+- подписанный Tauri `latest.json` (`platforms`);
+- VPS: AppImage, deb, Windows exe + signatures;
+- кнопка «Проверить обновления» → «Обновить»;
+- quality gate 793 s, E2E 18.
+
+
 ## 0.7.2 `[x]`
 
 - форма: полный черновик, постер, обложка, статус, hover-оценка, back/clear;
