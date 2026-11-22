@@ -5,11 +5,12 @@ import { useEffect, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 import { AppNav } from "@/components/app-nav";
-import { AppLink } from "@/lib/navigation";
+import { AppLink, useAppRouter } from "@/lib/navigation";
 import { useI18n } from "@/lib/locale-context";
 import { LanguageSwitch } from "@/components/language-switch";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { getPageCache, setPageCache } from "@/lib/page-cache";
 
@@ -59,6 +60,29 @@ function ContextCreate() {
   return null;
 }
 
+function formBackTarget(pathname: string): string | null {
+  if (pathname === "/items/new") return "/items";
+  const match = pathname.match(/^\/items\/([^/]+)\/edit$/);
+  return match ? `/items/${match[1]}` : null;
+}
+
+function FormBack() {
+  const { pathname } = useLocation();
+  const router = useAppRouter();
+  const { t } = useI18n();
+  const target = formBackTarget(pathname);
+  if (!target) return null;
+  return (
+    <Button
+      onClick={() => router.push(target)}
+      size="sm"
+      variant="secondary"
+    >
+      ← {t("common.back")}
+    </Button>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const { t } = useI18n();
@@ -87,11 +111,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className={styles.shell}>
         <AppNav />
         <div className={styles.content} id="main-content" tabIndex={-1}>
-          <div className={`${styles.topControls} ${controlsInTabs ? styles.topControlsInTabs : ""}`}>
+          <div
+          className={`${styles.topControls} ${controlsInTabs ? styles.topControlsInTabs : ""} ${
+            formBackTarget(pathname) ? styles.topControlsWithBack : ""
+          }`}
+        >
+          <FormBack />
+          <div className={styles.topControlsRight}>
             <ThemeToggle />
             <LanguageSwitch />
             <ContextCreate />
           </div>
+        </div>
           {children}
         </div>
       </div>
