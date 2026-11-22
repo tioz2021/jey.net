@@ -4,6 +4,7 @@ use axum::Json;
 use axum::extract::{Path, State};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -199,12 +200,16 @@ pub async fn detail(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let mut items = Vec::new();
-    for item_id in ids {
-        if let Some(item) = repo::get(&state.pool, current.user.id, item_id).await? {
-            items.push(ItemView::from(item));
-        }
-    }
+    // Fetch the collection in one query, then restore the stored order.
+    let mut by_id: HashMap<Uuid, _> = repo::get_many(&state.pool, current.user.id, &ids)
+        .await?
+        .into_iter()
+        .map(|item| (item.id, item))
+        .collect();
+    let items: Vec<ItemView> = ids
+        .iter()
+        .filter_map(|item_id| by_id.remove(item_id).map(ItemView::from))
+        .collect();
     Ok(Json(json!({ "collection": collection, "items": items })))
 }
 
