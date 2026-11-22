@@ -897,7 +897,7 @@ export const en = {
   'settings.gpuSaved': 'Setting saved',
   'settings.gpuRestart': 'Restart jey.net to apply this setting.',
   'settings.gpuHint': 'Use the GPU to render the interface. Restart jey.net to apply this setting.',
-  'settings.gpuMeasure': 'Measure FPS',
+  'settings.gpuMeasure': 'Measure FPS (rAF)',
   'settings.gpuFps': 'Current smoothness: {fps} FPS',
   'settings.saved': 'Saved',
   'settings.photo': 'Profile photo',

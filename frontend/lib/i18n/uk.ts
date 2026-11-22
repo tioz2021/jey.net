@@ -897,7 +897,7 @@ export const uk = {
   'settings.gpuSaved': 'Налаштування збережено',
   'settings.gpuRestart': 'Перезапустіть jey.net, щоб застосувати налаштування.',
   'settings.gpuHint': 'Використовувати GPU для відображення інтерфейсу. Перезапустіть jey.net, щоб застосувати налаштування.',
-  'settings.gpuMeasure': 'Виміряти FPS',
+  'settings.gpuMeasure': 'Виміряти FPS (rAF)',
   'settings.gpuFps': 'Поточна плавність: {fps} FPS',
   'settings.saved': 'Збережено',
   'settings.photo': 'Фотографія профілю',

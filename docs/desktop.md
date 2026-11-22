@@ -231,9 +231,10 @@ Windows и Linux собираются из одного кода, но отде�
 
 На Linux используется WebKitGTK:
 
-- включено — стандартный WebKit compositing;
-- выключено — до создания webview выставляются
-  `WEBKIT_DISABLE_COMPOSITING_MODE=1` и `WEBKIT_DISABLE_DMABUF_RENDERER=1`;
+- включено — до создания webview выставляется
+  `WEBKIT_FORCE_COMPOSITING_MODE=1`;
+- выключено — выставляются `WEBKIT_DISABLE_COMPOSITING_MODE=1` и
+  `WEBKIT_DISABLE_DMABUF_RENDERER=1`;
 - `JEY_SAFE_MODE=1` принудительно запускает с ускорением, если после смены
   настройки экран остался чёрным.
 
@@ -253,7 +254,9 @@ WEBKIT_DISABLE_DMABUF_RENDERER=1 ./target/release/jey-desktop
 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./target/release/jey-desktop
 ```
 
-В карточке есть кнопка **«Замерить FPS»**: она 2,5 секунды считает
-`requestAnimationFrame` и показывает результат. Замер нужно делать на машине
+В карточке есть кнопка **«Замерить FPS (rAF)»**: она 2,5 секунды считает
+`requestAnimationFrame` и показывает результат. Это не тест стоимости
+прокрутки: rAF на статичной странице может показывать больше 60 FPS и не
+говорит, сколько кадров реально рисуется при скролле. Замер нужно делать на машине
 с рабочим GPU: в headless-среде без DRI WebKit создаёт software context,
 поэтому цифры не показательны.

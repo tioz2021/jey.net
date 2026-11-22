@@ -103,15 +103,23 @@ fn app_data_candidate() -> Option<PathBuf> {
 /// creates the web process, so they must be set before Tauri builds the window.
 /// `JEY_SAFE_MODE=1` is the recovery path for a bad GPU/driver combination.
 fn apply_startup_gpu_setting() {
-    let safe_mode = std::env::var("JEY_SAFE_MODE").as_deref() == Ok("1");
-    let enabled = safe_mode
-        || app_data_candidate()
-            .map(|dir| gpu_acceleration_enabled(&dir))
-            .unwrap_or(true);
+    if std::env::var("JEY_SAFE_MODE").as_deref() == Ok("1") {
+        return;
+    }
+    let enabled = app_data_candidate()
+        .map(|dir| gpu_acceleration_enabled(&dir))
+        .unwrap_or(true);
     #[cfg(target_os = "linux")]
-    if !enabled {
+    if enabled {
         // SAFETY: called once before any worker/webview thread is started.
         unsafe {
+            std::env::remove_var("WEBKIT_DISABLE_COMPOSITING_MODE");
+            std::env::set_var("WEBKIT_FORCE_COMPOSITING_MODE", "1");
+        }
+    } else {
+        // SAFETY: called once before any worker/webview thread is started.
+        unsafe {
+            std::env::remove_var("WEBKIT_FORCE_COMPOSITING_MODE");
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
             std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }

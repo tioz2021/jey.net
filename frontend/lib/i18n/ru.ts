@@ -896,7 +896,7 @@ export const ru = {
   'settings.gpuSaved': 'Настройка сохранена',
   'settings.gpuRestart': 'Перезапустите jey.net, чтобы применить настройку.',
   'settings.gpuHint': 'Использовать GPU для отрисовки интерфейса. Перезапустите jey.net, чтобы применить настройку.',
-  'settings.gpuMeasure': 'Замерить FPS',
+  'settings.gpuMeasure': 'Замерить FPS (rAF)',
   'settings.gpuFps': 'Текущая плавность: {fps} FPS',
   'settings.saved': 'Сохранено',
   'settings.photo': 'Фотография профиля',
