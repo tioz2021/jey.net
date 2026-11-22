@@ -1,5 +1,13 @@
 # Архив задач
 
+## T177 · Матрица устройств `[x]`
+
+- Playwright проверяет 390, 768 и 1440 px;
+- проверены items, collections, feed, recommendations, liked, messages;
+- горизонтального overflow нет;
+- RU/UK/EN переключаются и выставляют `html[lang]`.
+
+
 ## T176 · UX-состояния `[x]`
 
 - фильтры ленты и рекомендаций сохраняются в URL;
