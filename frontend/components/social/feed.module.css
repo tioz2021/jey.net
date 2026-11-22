@@ -35,3 +35,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+.newDivider {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.newDivider::before,
+.newDivider::after {
+  height: 1px;
+  content: "";
+  background: var(--color-border);
+}
+
+.newDivider::before {
+  width: 24px;
+}
+
+.newDivider::after {
+  flex: 1;
+}
