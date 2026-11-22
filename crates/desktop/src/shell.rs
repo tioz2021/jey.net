@@ -169,6 +169,54 @@ fn apply_startup_gpu_setting() {
 }
 
 #[tauri::command]
+fn local_test_sound() -> Result<(), String> {
+    #[cfg(target_os = "linux")]
+    {
+        let path = std::env::temp_dir().join("jey-notification.wav");
+        std::fs::write(
+            &path,
+            include_bytes!("../../../apps/web/public/notification.wav"),
+        )
+        .map_err(|error| error.to_string())?;
+        let candidates: [(&str, &[&str]); 4] = [
+            ("paplay", &[]),
+            ("pw-play", &[]),
+            ("aplay", &["-q"]),
+            ("canberra-gtk-play", &["-f"]),
+        ];
+        for (program, args) in candidates {
+            if std::process::Command::new(program)
+                .args(args)
+                .arg(&path)
+                .spawn()
+                .is_ok()
+            {
+                return Ok(());
+            }
+        }
+        return Err("Системный аудиоплеер не найден".to_owned());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let path = std::env::temp_dir().join("jey-notification.wav");
+        std::fs::write(
+            &path,
+            include_bytes!("../../../apps/web/public/notification.wav"),
+        )
+        .map_err(|error| error.to_string())?;
+        std::process::Command::new("afplay")
+            .arg(&path)
+            .spawn()
+            .map(|_| ())
+            .map_err(|error| error.to_string())
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    {
+        Err("Звук недоступен на этой платформе".to_owned())
+    }
+}
+
+#[tauri::command]
 fn local_open_external(url: String) -> Result<(), String> {
     if !url.starts_with("https://") && !url.starts_with("http://") {
         return Err("Разрешены только http(s)-ссылки".to_owned());
@@ -1341,6 +1389,7 @@ pub fn run() {
             local_access_status,
             local_db_status,
             local_open_external,
+            local_test_sound,
             local_storage_info,
             local_gpu_info,
             local_set_gpu_acceleration,

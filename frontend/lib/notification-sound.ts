@@ -39,8 +39,27 @@ async function within<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   }
 }
 
+/** In desktop the webview media stack can block; use the native player. */
+function desktopInvoke(): ((command: string) => Promise<unknown>) | null {
+  if (typeof window === "undefined" || !("__TAURI__" in window)) return null;
+  const tauri = (window as unknown as {
+    __TAURI__?: { core?: { invoke?: (command: string) => Promise<unknown> } };
+  }).__TAURI__;
+  return tauri?.core?.invoke ?? null;
+}
+
 /** Plays a tiny WAV first, then falls back to a Web Audio tone. */
 export async function playNotificationSound(): Promise<void> {
+  const native = desktopInvoke();
+  if (native) {
+    try {
+      await native("local_test_sound");
+    } catch {
+      // A missing system player must not break notifications.
+    }
+    return;
+  }
+
   try {
     player ??= new Audio("/notification.wav");
     player.currentTime = 0;
@@ -50,7 +69,6 @@ export async function playNotificationSound(): Promise<void> {
   } catch {
     // A broken/missing audio backend may never resolve play(); fall through.
     player?.pause();
-    if (typeof window !== "undefined" && "__TAURI__" in window) return;
   }
 
   const audio = audioContext();

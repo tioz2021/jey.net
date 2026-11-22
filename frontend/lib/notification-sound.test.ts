@@ -60,7 +60,8 @@ describe("notification sound", () => {
   });
 
   it("never creates Web Audio inside the desktop shell", async () => {
-    vi.stubGlobal("__TAURI__", {});
+    const invoke = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("__TAURI__", { core: { invoke } });
     const Context = vi.fn(() => {
       throw new Error("AudioContext must not run in desktop");
     });
@@ -77,6 +78,7 @@ describe("notification sound", () => {
 
     const { playNotificationSound } = await import("./notification-sound");
     await playNotificationSound();
+    expect(invoke).toHaveBeenCalledWith("local_test_sound");
     expect(Context).not.toHaveBeenCalled();
   });
 });
