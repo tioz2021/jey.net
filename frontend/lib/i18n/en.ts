@@ -939,6 +939,7 @@ export const en = {
   'form.clearCancel': 'Cancel',
   'form.clearConfirm': 'Clear',
   'form.draftRestored': 'Review draft restored',
+  'nav.downloadApp': 'Download the app',
   'settings.saved': 'Saved',
   'settings.photo': 'Profile photo',
   'settings.bannerHint': 'A wide image, 1200×300 or larger recommended. Shown on the public profile.',

@@ -939,6 +939,7 @@ export const uk = {
   'form.clearCancel': 'Скасувати',
   'form.clearConfirm': 'Очистити',
   'form.draftRestored': 'Чернетку рецензії відновлено',
+  'nav.downloadApp': 'Завантажити застосунок',
   'settings.saved': 'Збережено',
   'settings.photo': 'Фотографія профілю',
   'settings.bannerHint': 'Широка картинка, рекомендовано від 1200×300. Видна в публічному профілі.',

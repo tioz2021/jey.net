@@ -938,6 +938,7 @@ export const ru = {
   'form.clearCancel': 'Отмена',
   'form.clearConfirm': 'Очистить',
   'form.draftRestored': 'Черновик рецензии восстановлен',
+  'nav.downloadApp': 'Скачать приложение',
   'settings.saved': 'Сохранено',
   'settings.photo': 'Фотография профиля',
   'settings.bannerHint': 'Широкая картинка, рекомендуется от 1200×300. Видна на публичном профиле.',
