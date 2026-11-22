@@ -1,5 +1,15 @@
 # Архив задач
 
+## T180 · Документация и релиз `[x]`
+
+- README/spec/install/known-limitations обновлены до 0.7.1;
+- добавлен `docs/release-checklist.md`;
+- release notes 0.7.1;
+- версия поднята в Cargo/package/tauri;
+- production и desktop 0.7.1, VPS-манифест;
+- тег `v0.7.1`.
+
+
 ## T182 · VPS update channel `[x]`
 
 - `/downloads/desktop/latest.json` на VPS;
@@ -19,7 +29,7 @@
   сертификата; требования описаны в `docs/release-desktop.md`.
 
 
-## T181 · Desktop GPU `[~]`
+## T181 · Desktop GPU `[x]`
 
 - переключатель «Аппаратное ускорение» в настройках, по умолчанию включён;
 - Linux: WebKitGTK `OnDemand` / `Never`;
@@ -127,7 +137,7 @@ CI quality gate теперь устанавливает Wayland/GTK/WebKit dev-�
 ## T167 · Web E2E `[x]`
 
 - Playwright + отдельная схема `jey_e2e`;
-- 5 сценариев: регистрация, запись, коллекция, лента/лайк/«Понравилось», чат;
+- сценарии: регистрация, запись, коллекция, лента/лайк/«Понравилось», чат;
 - `scripts/e2e.sh`, `CHECK_E2E=1` для quality gate;
 - CI job устанавливает Chromium и запускает тот же набор.
 

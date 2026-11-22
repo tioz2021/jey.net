@@ -76,7 +76,7 @@ bash scripts/seed.sh                 # аккаунт и 200 записей
 
 ```bash
 bash scripts/check.sh                # fmt, clippy, web tests/build, миграции, API release
-bash scripts/e2e.sh                  # Playwright E2E (5 сценариев)
+bash scripts/e2e.sh                  # Playwright E2E (8 сценариев)
 CHECK_E2E=1 bash scripts/check.sh    # quality gate + E2E
 bash scripts/security-audit.sh       # cargo audit + production npm audit
 
@@ -100,9 +100,12 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 | [docs/social.md](docs/social.md) | Конфликты social-сущностей |
 | [docs/data.md](docs/data.md) | Где данные, backup, restore, работа без сервера |
 | [docs/pwa.md](docs/pwa.md) | Установка PWA и офлайн-оболочка |
-| [docs/known-limitations.md](docs/known-limitations.md) | Известные ограничения 0.6.x |
+| [docs/known-limitations.md](docs/known-limitations.md) | Известные ограничения 0.7.x |
 | [docs/deploy.md](docs/deploy.md) | Провижининг, Postgres, systemd, Caddy, секреты |
 | [docs/install.md](docs/install.md) | Установка desktop: AppImage, deb, Windows NSIS |
+| [docs/release-checklist.md](docs/release-checklist.md) | Финальный чек-лист релиза |
+| [docs/release-desktop.md](docs/release-desktop.md) | Сборка и VPS-канал обновлений |
+| [docs/releases/0.7.1.md](docs/releases/0.7.1.md) | Release notes 0.7.1 |
 | [docs/monitoring.md](docs/monitoring.md) | Health-check, алерты, ротация логов |
 | [docs/security.md](docs/security.md) | Аудит безопасности и остаточные риски |
 | [docs/perf.md](docs/perf.md) | Нагрузочные тесты и LCP |
@@ -128,10 +131,10 @@ jey.net/
 
 ## Статус
 
-Актуальная версия — **0.7.0**: веб и desktop на общем SPA, социальные функции,
+Актуальная версия — **0.7.1**: веб и desktop на общем SPA, социальные функции,
 чат с E2E-шифрованием, локальный кеш и offline outbox.
 
-## Известные ограничения 0.7.0
+## Известные ограничения 0.7.1
 
 - E2E без forward secrecy; сервер видит метаданные;
 - старые plaintext-сообщения не перешифровываются;

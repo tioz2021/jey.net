@@ -31,7 +31,8 @@ async fn pushes_outbox_then_pulls_remote_change() {
     let remote_id = Uuid::new_v4().to_string();
     let remote = remote_id.clone();
     let handle = std::thread::spawn(move || {
-        for request in server.incoming_requests().take(5) {
+        // device + push + pull + social + 5 cache refreshes + media.
+        for request in server.incoming_requests().take(10) {
             let path = request.url().to_owned();
             let body = if path.starts_with("/api/v1/devices") {
                 r#"{"device":{"device_id":"x"}}"#.to_owned()

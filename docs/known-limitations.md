@@ -1,4 +1,4 @@
-# Known limitations 0.6.x
+# Known limitations 0.7.x
 
 ## Item conflicts
 
@@ -35,5 +35,5 @@ conflict copy и экран разрешения в настройках про�
 
 ## Server address
 
-Desktop 0.6.x работает с `https://j3ynet.site`. Переключение адреса сервера
+Desktop 0.7.x работает с `https://j3ynet.site`. Переключение адреса сервера
 не входит в текущий объём.

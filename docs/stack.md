@@ -30,7 +30,7 @@
 | Runtime | tokio | 1.x | стандарт де-факто для асинхронного Rust |
 | Middleware | tower, tower-http | 0.5 / 0.7 | трейсинг, лимиты тела, таймауты, CORS |
 | БД | sqlx | 0.9.x | SQL без ORM, проверка запросов, миграции, пул |
-| Пароли | argon2 | 0.6.x | argon2id, современный стандарт |
+| Пароли | argon2 | 0.7.x | argon2id, современный стандарт |
 | Сериализация | serde, serde_json | 1.x | JSON-контракт |
 | Время | chrono | 0.4.x | timestamptz ↔ RFC 3339 |
 | UUID | uuid | 1.x | идентификаторы |

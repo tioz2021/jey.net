@@ -130,7 +130,7 @@
 | T177 | P1 | Матрица устройств `[x]` | 390/768/1440, RU/UK/EN, no overflow |
 | T178 | P1 | i18n и форматы `[x]` | словари, plural, даты/числа, locale-aware UI |
 | T179 | P2 | Desktop release pipeline `[~]` | builds, version gate, SHA256, manifest; signing/updater с секретами |
-| T180 | P2 | Документация и релиз | актуальность docs, release checklist, 0.7.x tag |
+| T180 | P2 | Документация и релиз `[x]` | docs 0.7.1, release checklist, tag |
 | T181 | P2 | Desktop: X11/GPU-плавность `[x]` | X11 по умолчанию, Wayland fallback, GPU toggle |
 | T182 | P2 | VPS-канал обновлений `[x]` | latest.json, атомарная публикация, проверка версии |
 

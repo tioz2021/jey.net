@@ -56,7 +56,8 @@ async fn pushes_twelve_batches_and_clears_the_outbox() {
     };
     let handle = std::thread::spawn(move || {
         let mut pushes = 0;
-        for request in server.incoming_requests().take(15) {
+        // device registration + 12 pushes + pull/social + 5 cache refreshes.
+        for request in server.incoming_requests().take(20) {
             let path = request.url().to_owned();
             let body = if path.starts_with("/api/v1/devices") {
                 r#"{"device":{"device_id":"x"}}"#.to_owned()
