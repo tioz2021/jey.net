@@ -217,6 +217,28 @@ fn local_test_sound() -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn local_latest_release() -> Result<Value, String> {
+    let url = std::env::var("JEY_RELEASE_URL")
+        .unwrap_or_else(|_| "https://j3ynet.site/downloads/desktop/latest.json".to_owned());
+    let response = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|error| error.to_string())?
+        .get(&url)
+        .send()
+        .await
+        .map_err(|error| format!("Сервер обновлений недоступен: {error}"))?;
+    if !response.status().is_success() {
+        return Err(format!("Сервер обновлений ответил {}", response.status()));
+    }
+    let body: Value = response
+        .json()
+        .await
+        .map_err(|error| format!("Некорректный latest.json: {error}"))?;
+    Ok(body)
+}
+
+#[tauri::command]
 fn local_open_external(url: String) -> Result<(), String> {
     if !url.starts_with("https://") && !url.starts_with("http://") {
         return Err("Разрешены только http(s)-ссылки".to_owned());
@@ -1389,6 +1411,7 @@ pub fn run() {
             local_access_status,
             local_db_status,
             local_open_external,
+            local_latest_release,
             local_test_sound,
             local_storage_info,
             local_gpu_info,

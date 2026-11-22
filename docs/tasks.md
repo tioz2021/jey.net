@@ -132,6 +132,7 @@
 | T179 | P2 | Desktop release pipeline `[~]` | builds, version gate, SHA256, manifest; signing/updater с секретами |
 | T180 | P2 | Документация и релиз | актуальность docs, release checklist, 0.7.x tag |
 | T181 | P2 | Desktop: X11/GPU-плавность `[x]` | X11 по умолчанию, Wayland fallback, GPU toggle |
+| T182 | P2 | VPS-канал обновлений `[x]` | latest.json, атомарная публикация, проверка версии |
 
 ### Порядок работ
 

@@ -93,6 +93,37 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  vps:
+    name: Publish VPS download channel
+    needs: [linux, windows]
+    runs-on: ubuntu-24.04
+    if: github.ref_type == 'tag'
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ github.ref_name }}
+      ARTIFACTS_DIR: release-assets
+      REQUIRE_WINDOWS: "1"
+      DEPLOY_HOST: ${{ secrets.VPS_HOST }}
+      DEPLOY_USER: ${{ secrets.VPS_USER }}
+      SSH_KEY: ~/.ssh/jey_vps
+      NOTES: ${{ github.event.head_commit.message }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: release-assets
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${VPS_SSH_KEY}" > ~/.ssh/jey_vps
+          chmod 600 ~/.ssh/jey_vps
+      - name: Publish to VPS
+        run: bash scripts/publish-desktop.sh
+
   publish:
     name: Publish release
     needs: [linux, windows]

@@ -1,5 +1,14 @@
 # Архив задач
 
+## T182 · VPS update channel `[x]`
+
+- `/downloads/desktop/latest.json` на VPS;
+- атомарная публикация версии и `current` symlink;
+- SHA256, манифест, хранение текущей и предыдущей версии;
+- GitHub Actions job для private repo;
+- кнопка «Проверить обновления» в «О приложении».
+
+
 ## T179 · Desktop release pipeline `[~]`
 
 - version gate для Cargo/package/tauri/tag;

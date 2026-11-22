@@ -30,6 +30,18 @@
 		reverse_proxy 127.0.0.1:8080
 	}
 
+	handle /downloads/desktop/latest.json {
+		root * /opt/jey
+		file_server
+		header Cache-Control "no-cache"
+	}
+
+	handle /downloads/* {
+		root * /opt/jey
+		file_server
+		header Cache-Control "public, max-age=86400"
+	}
+
 	handle /media/* {
 		reverse_proxy 127.0.0.1:8080
 	}

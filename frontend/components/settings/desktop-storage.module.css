@@ -16,3 +16,9 @@
   height: 18px;
   accent-color: var(--color-accent);
 }
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
