@@ -1,5 +1,15 @@
 # Архив задач
 
+## 0.7.2 `[x]`
+
+- форма: полный черновик, постер, обложка, статус, hover-оценка, back/clear;
+- realtime-уведомления через SSE;
+- desktop: локальная корзина, deleted/purge/empty;
+- production API/SPA 0.7.2;
+- VPS latest.json 0.7.2 с Linux, deb и Windows;
+- тег `v0.7.2`, quality gate 666 s, 18 E2E.
+
+
 ## T180 · Документация и релиз `[x]`
 
 - README/spec/install/known-limitations обновлены до 0.7.1;
