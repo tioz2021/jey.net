@@ -60,6 +60,13 @@ export function FeedBadge() {
   );
 }
 
+export function feedSeenCutoff(): number {
+  const seen = localStorage.getItem(SEEN_KEY);
+  if (!seen) return 0;
+  const value = new Date(seen).getTime();
+  return Number.isFinite(value) ? value : 0;
+}
+
 export function markFeedSeen() {
   localStorage.setItem(SEEN_KEY, new Date().toISOString());
   window.dispatchEvent(new Event(SEEN_EVENT));

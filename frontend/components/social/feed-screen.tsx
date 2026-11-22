@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLink } from "@/lib/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { ItemCard } from "@/components/items/item-card";
@@ -10,7 +10,7 @@ import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
-import { markFeedSeen } from "@/components/feed-badge";
+import { feedSeenCutoff, markFeedSeen } from "@/components/feed-badge";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
@@ -45,6 +45,7 @@ export function FeedScreen() {
   const [counts, setCounts] = useState<FeedKindCounts>({});
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [newSince, setNewSince] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +53,7 @@ export function FeedScreen() {
     setError(null);
     setNextOffset(null);
     setItems([]);
+    setNewSince(feedSeenCutoff());
     api.feed
       .get(kind, sort, period, 0)
       .then((response) => {
@@ -85,6 +87,12 @@ export function FeedScreen() {
       setLoadingMore(false);
     }
   }
+
+  const newItemsCount = newSince
+    ? items.filter((item) => new Date(item.updated_at).getTime() > newSince).length
+    : 0;
+  const showNewDivider =
+    sort === "new" && newSince > 0 && newItemsCount > 0 && newItemsCount < items.length;
 
   return (
     <main>
@@ -121,8 +129,14 @@ export function FeedScreen() {
           />
         ) : (
           <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
-            {items.map((item) => (
-              <li key={`${item.author_id}-${item.id}`}>
+            {items.map((item, index) => (
+              <Fragment key={`${item.author_id}-${item.id}`}>
+                {showNewDivider && index === newItemsCount ? (
+                  <li className={styles.newDivider}>
+                    <span>{t("feed.newSince")}</span>
+                  </li>
+                ) : null}
+              <li>
                 <ItemCard
                   header={
                     <FeedCardHeader
@@ -137,6 +151,7 @@ export function FeedScreen() {
                   item={item}
                 />
               </li>
+              </Fragment>
             ))}
           </ul>
         )}

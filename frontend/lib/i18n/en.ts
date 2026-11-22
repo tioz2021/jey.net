@@ -175,6 +175,7 @@ export const en = {
   "recommendations.feedLink": "Open feed",
   "nav.feed": "Feed",
   "feed.new": "New records: {count}",
+  "feed.newSince": "New since your last visit",
   "feed.loadingMore": "Loading…",
   "feed.loadMore": "Show more",
   "feed.period": "Period",
