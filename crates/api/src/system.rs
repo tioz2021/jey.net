@@ -123,6 +123,7 @@ pub async fn status(
         "memory": { "total": mem_total, "available": mem_available },
         "migrations": migrations,
         "errors_24h": errors_24h,
+        "metrics": crate::telemetry::metrics(),
         "backup": backup,
         "last_deploy_at": deploy_at,
     })))

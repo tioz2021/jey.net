@@ -1,5 +1,13 @@
 # Архив задач
 
+## T171 · Наблюдаемость `[x]`
+
+- process-local счётчики запросов и latency-бакеты в `/api/v1/admin/system`;
+- блок метрик в админке;
+- backup продолжает проверять restore во временную БД и сверять counts;
+- runbook восстановления описан в monitoring.md.
+
+
 ## T170 · Безопасность `[x]`
 
 - security headers в API и Caddy;

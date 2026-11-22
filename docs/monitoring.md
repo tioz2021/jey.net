@@ -95,3 +95,35 @@ HEALTH_ENV=/tmp/test-health.env /usr/local/bin/jey-healthcheck --verbose
 
 Порог диска проверяется тем же способом: `DISK_WARN=1` в тестовом env даёт
 предупреждение о диске при текущих 2 %.
+
+## Метрики T171
+
+`GET /api/v1/admin/system` для staff-аккаунта теперь отдаёт блок `metrics`:
+
+- `requests.total`, `2xx`, `3xx`, `4xx`, `5xx`;
+- `latency_ms.avg`, `latency_ms.max`;
+- распределение по корзинам `5/10/25/50/100/250/500/1000/+inf` мс.
+
+Счётчики процессные: они обнуляются при рестарте API и не являются заменой
+Prometheus/Grafana. Этого достаточно, чтобы увидеть деградацию между деплоями
+и связать пользовательскую жалобу с request id из `system_errors`.
+
+## Восстановление
+
+Ежедневный `jey-backup-db` не только шифрует дамп, но и **восстанавливает его
+во временную БД** `jey_restore_*`, сверяет количество строк в `users`, `items`
+и `_sqlx_migrations`, и только после этого помечает backup-status успешным.
+Отдельный restore-drill:
+
+```bash
+# проверить последний архив вручную
+ls -lt /var/backups/jey/*.dump.gpg | head -1
+sha256sum -c /var/backups/jey/<latest>.sha256
+
+# восстановить на отдельной БД, не трогая production
+/usr/local/bin/jey-restore-db /var/backups/jey/<latest>.dump.gpg --yes
+```
+
+Последняя команда останавливает API и восстанавливает **production**;
+для учебной проверки используй staging. Ежедневный restore-check уже
+запускается в `jey-backup-db` и не затрагивает рабочую БД.

@@ -599,6 +599,14 @@ export interface SystemStatus {
   memory: { total: number; available: number };
   migrations: { count: number; latest: number | null; installed_at: string | null };
   errors_24h: number;
+  metrics?: {
+    requests: { total: number; "2xx": number; "3xx": number; "4xx": number; "5xx": number };
+    latency_ms: {
+      avg: number;
+      max: number;
+      buckets: Record<string, number>;
+    };
+  };
   backup: {
     ok?: boolean;
     missing?: boolean;

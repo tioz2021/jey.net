@@ -46,6 +46,17 @@ export function AdminSystemScreen() {
         <Card title={t("admin.memory")}><div className={styles.meter}><div style={{ width: `${percent(data.memory.total - data.memory.available, data.memory.total)}%` }} /></div><p>{bytes(data.memory.total - data.memory.available)} / {bytes(data.memory.total)}</p></Card>
       </div>
       <Card title={t("admin.deployment")}><dl className={styles.facts}><dt>{t("admin.version")}</dt><dd>{data.version}</dd><dt>{t("admin.lastDeploy")}</dt><dd>{dateTime(data.last_deploy_at)}</dd><dt>{t("admin.migrations")}</dt><dd>{data.migrations.count} · {data.migrations.latest ?? "—"}</dd><dt>{t("admin.errors24")}</dt><dd>{data.errors_24h}</dd></dl></Card>
+      {data.metrics ? (
+        <Card title={t("admin.metrics")}>
+          <dl className={styles.facts}>
+            <dt>{t("admin.requests")}</dt><dd>{data.metrics.requests.total}</dd>
+            <dt>{t("admin.success")}</dt><dd>{data.metrics.requests["2xx"]}</dd>
+            <dt>{t("admin.clientErrors")}</dt><dd>{data.metrics.requests["4xx"]}</dd>
+            <dt>{t("admin.serverErrors")}</dt><dd>{data.metrics.requests["5xx"]}</dd>
+            <dt>{t("admin.latency")}</dt><dd>{data.metrics.latency_ms.avg} ms · max {data.metrics.latency_ms.max} ms</dd>
+          </dl>
+        </Card>
+      ) : null}
       <Card title={t("admin.backup")}>{data.backup.missing || !data.backup.ok ? <p className={styles.warn}>{t("admin.backupMissing")}</p> : (
         <dl className={styles.facts}><dt>{t("admin.backupLast")}</dt><dd>{dateTime(data.backup.finished_at)}</dd><dt>{t("admin.backupFile")}</dt><dd><code>{data.backup.file}</code></dd><dt>{t("admin.backupSize")}</dt><dd>{bytes(data.backup.bytes ?? 0)}</dd><dt>{t("admin.backupSha")}</dt><dd><code>{data.backup.sha256}</code></dd></dl>
       )}</Card>
