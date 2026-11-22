@@ -73,3 +73,20 @@ test("an uploaded cover preview survives a reload with the form draft", async ({
   await page.reload();
   await expect(page.locator('img[src*="/media/"]')).toBeVisible();
 });
+
+test("the clear button resets the form and its draft", async ({ context, page, request }) => {
+  const account = await register(request, unique("Clear Form User"));
+  await useSession(context, account);
+  await page.goto("/items/new");
+  await page.getByRole("button", { name: "Дополнительные настройки" }).click();
+  await page.getByLabel("Название").fill("Временный черновик");
+  await page.getByLabel("Публичная рецензия").fill("Текст, который нужно убрать");
+  await page.waitForTimeout(600);
+
+  await page.getByRole("button", { name: "Очистить", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Очистить" }).click();
+  await expect(page.getByLabel("Название")).toHaveValue("");
+  await expect(page.getByLabel("Публичная рецензия")).toHaveValue("");
+});

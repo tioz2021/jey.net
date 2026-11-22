@@ -4,7 +4,7 @@ import { useAppRouter } from "@/lib/navigation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
-import { Button, Input, Select, Textarea } from "@/components/ui";
+import { Button, Dialog, Input, Select, Textarea } from "@/components/ui";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/errors";
 import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
@@ -258,6 +258,7 @@ export function ItemForm({
   );
   const [coverCleared, setCoverCleared] = useState(initialDraft?.coverCleared ?? false);
   const [posterPending, setPosterPending] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [advanced, setAdvanced] = useState(
     () =>
       initialDraft?.advanced ??
@@ -475,6 +476,17 @@ export function ItemForm({
     if (!COMPACT_KINDS.has(kind)) {
       setAdvanced(true);
     }
+  }
+
+  function clearForm() {
+    setValues(toValues(initial, lockKind ?? initialKind));
+    setErrors({});
+    setCoverUploadId(null);
+    setCoverPreview(null);
+    setCoverCleared(false);
+    setPosterPending(false);
+    removeDraft(storageKey);
+    setClearOpen(false);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -768,7 +780,32 @@ export function ItemForm({
         >
           {t("form.cancel")}
         </Button>
+        <Button
+          disabled={submitting}
+          onClick={() => setClearOpen(true)}
+          variant="ghost"
+        >
+          {t("form.clear")}
+        </Button>
       </div>
+
+      <Dialog
+        footer={
+          <>
+            <Button onClick={() => setClearOpen(false)} variant="secondary">
+              {t("form.clearCancel")}
+            </Button>
+            <Button onClick={clearForm} variant="danger">
+              {t("form.clearConfirm")}
+            </Button>
+          </>
+        }
+        onClose={() => setClearOpen(false)}
+        open={clearOpen}
+        title={t("form.clearTitle")}
+      >
+        <p>{t("form.clearText")}</p>
+      </Dialog>
     </form>
   );
 }
