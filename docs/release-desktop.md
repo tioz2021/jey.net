@@ -103,3 +103,33 @@ Actions `REQUIRE_VPS=1`, поэтому job падает с явной ошиб�
 открывает ссылку на скачивание через `local_open_external`. Автоустановки нет:
 пользователь скачивает файл вручную. Это осознанно: подпись Windows и updater
 пока не настроены.
+
+## Auto-update (T185)
+
+Решение: Windows остаётся unsigned, auto-update включён.
+
+Ключ Tauri updater сгенерирован локально и **не коммитится**:
+
+```text
+.staging/updater/jey.key       # private, только GitHub Secret
+.staging/updater/jey.key.pub   # public, уже в tauri.conf.json
+```
+
+Для CI добавить secret:
+
+```text
+TAURI_SIGNING_PRIVATE_KEY = содержимое jey.key
+TAURI_SIGNING_PRIVATE_KEY_PASSWORD = пусто
+```
+
+`latest.json` теперь содержит `platforms` с полями `signature` и `url`.
+Артефакты `.sig` создаёт Tauri build/tauri-action; `publish-desktop.sh`
+отказывается публиковать релиз без подписей (`REQUIRE_SIGNATURES=1`).
+
+В приложении кнопка «Проверить обновления» вызывает `check()` из
+`tauri-plugin-updater`, затем «Обновить» делает `downloadAndInstall()` и
+перезапускает приложение.
+
+Важно: текущая сборка 0.7.2 ещё не содержит updater. Автообновление
+заработает начиная с первой сборки с плагином (0.7.3) и следующего
+подписанного релиза.

@@ -32,6 +32,8 @@ tiny_http = "0.12"
 webbrowser = "1"
 rfd = "0.15"
 tauri = { version = "2", optional = true , features = [] }
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 

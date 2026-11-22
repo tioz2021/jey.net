@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Update } from "@tauri-apps/plugin-updater";
 
 import { Button, Card } from "@/components/ui";
-import { isNewerVersion } from "@/lib/version";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 import styles from "./desktop-storage.module.css";
@@ -17,18 +17,6 @@ function tauri(): Invoke | null {
 
 const PRODUCTION_URL = "https://j3ynet.site";
 
-interface ReleaseFile {
-  url: string;
-  name?: string;
-  sha256?: string;
-}
-
-interface LatestRelease {
-  version: string;
-  notes?: string;
-  files?: Record<string, ReleaseFile>;
-}
-
 export function DesktopAbout() {
   const invoke = tauri();
   const { t } = useI18n();
@@ -37,7 +25,8 @@ export function DesktopAbout() {
   const [server, setServer] = useState(PRODUCTION_URL);
   const [dataDir, setDataDir] = useState("");
   const [checking, setChecking] = useState(false);
-  const [latest, setLatest] = useState<LatestRelease | null>(null);
+  const [installing, setInstalling] = useState(false);
+  const [update, setUpdate] = useState<Update | null>(null);
   const [updateState, setUpdateState] = useState<"idle" | "current" | "available" | "error">("idle");
 
   useEffect(() => {
@@ -52,14 +41,14 @@ export function DesktopAbout() {
   }, [invoke]);
 
   async function checkUpdates() {
-    const api = invoke;
-    if (!api || !version) return;
+    if (!version) return;
     setChecking(true);
-    setLatest(null);
+    setUpdate(null);
     try {
-      const response = await api<LatestRelease>("local_latest_release");
-      if (isNewerVersion(response.version, version)) {
-        setLatest(response);
+      const { check } = await import("@tauri-apps/plugin-updater");
+      const available = await check();
+      if (available) {
+        setUpdate(available);
         setUpdateState("available");
       } else {
         setUpdateState("current");
@@ -68,6 +57,20 @@ export function DesktopAbout() {
       setUpdateState("error");
     } finally {
       setChecking(false);
+    }
+  }
+
+  async function installUpdate() {
+    if (!update) return;
+    setInstalling(true);
+    try {
+      await update.downloadAndInstall();
+      const { relaunch } = await import("@tauri-apps/plugin-process");
+      await relaunch();
+    } catch {
+      setUpdateState("error");
+    } finally {
+      setInstalling(false);
     }
   }
 
@@ -88,22 +91,13 @@ export function DesktopAbout() {
       </Button>
       {updateState === "current" ? <p className={styles.hint}>{t("about.upToDate")}</p> : null}
       {updateState === "error" ? <p className={styles.warn}>{t("about.updateError")}</p> : null}
-      {updateState === "available" && latest ? (
+      {updateState === "available" && update ? (
         <div className={styles.body}>
-          <p className={styles.hint}>{t("about.available", { version: latest.version })}</p>
-          {latest.notes ? <p className={styles.hint}>{latest.notes}</p> : null}
-          <div className={styles.downloads}>
-            {Object.entries(latest.files ?? {}).map(([key, file]) => (
-              <Button
-                key={key}
-                onClick={() => void invoke("local_open_external", { url: file.url })}
-                size="sm"
-                variant="secondary"
-              >
-                {t("about.download")} · {file.name ?? key}
-              </Button>
-            ))}
-          </div>
+          <p className={styles.hint}>{t("about.available", { version: update.version })}</p>
+          {update.body ? <p className={styles.hint}>{update.body}</p> : null}
+          <Button loading={installing} onClick={() => void installUpdate()} size="sm">
+            {t("about.installUpdate")}
+          </Button>
         </div>
       ) : null}
     </Card>

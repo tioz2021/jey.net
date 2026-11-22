@@ -23,7 +23,7 @@ STAGE=".staging/desktop-release/${VERSION}"
 
 rm -rf "${STAGE}"
 mkdir -p "${STAGE}"
-find "${ARTIFACTS_DIR}" -type f \( -name "*${VERSION}*.AppImage" -o -name "*${VERSION}*.deb" -o -name "*${VERSION}*.exe" \) -exec cp -v {} "${STAGE}/" \;
+find "${ARTIFACTS_DIR}" -type f \( -name "*${VERSION}*.AppImage" -o -name "*${VERSION}*.deb" -o -name "*${VERSION}*.exe" -o -name "*${VERSION}*.sig" \) -exec cp -v {} "${STAGE}/" \;
 files=("${STAGE}"/*)
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No desktop artifacts found under ${ARTIFACTS_DIR}" >&2
@@ -43,7 +43,7 @@ fi
   sha256sum * > SHA256SUMS.txt
 )
 
-VERSION="${VERSION}" STAGE="${STAGE}" RELEASE_URL_BASE="${RELEASE_URL_BASE}" NOTES="${NOTES}" python3 - <<'PY'
+VERSION="${VERSION}" STAGE="${STAGE}" RELEASE_URL_BASE="${RELEASE_URL_BASE}" NOTES="${NOTES}" REQUIRE_SIGNATURES="${REQUIRE_SIGNATURES:-0}" python3 - <<'PY'
 import hashlib
 import json
 import os
@@ -54,9 +54,11 @@ stage = Path(os.environ["STAGE"])
 version = os.environ["VERSION"]
 base = os.environ["RELEASE_URL_BASE"].rstrip("/")
 notes = os.environ["NOTES"]
+require_signatures = os.environ.get("REQUIRE_SIGNATURES") == "1"
 files = {}
+platforms = {}
 for path in sorted(stage.iterdir()):
-    if not path.is_file() or path.name in {"latest.json", "SHA256SUMS.txt"}:
+    if not path.is_file() or path.name in {"latest.json", "SHA256SUMS.txt"} or path.name.endswith(".sig"):
         continue
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     if path.suffix == ".AppImage":
@@ -67,18 +69,34 @@ for path in sorted(stage.iterdir()):
         key = "linux-x86_64-deb"
     else:
         continue
+    url = f"{base}/releases/{version}/{path.name}"
     files[key] = {
         "name": path.name,
-        "url": f"{base}/releases/{version}/{path.name}",
+        "url": url,
         "sha256": digest,
         "size": path.stat().st_size,
     }
+    sig_path = stage / f"{path.name}.sig"
+    if sig_path.is_file():
+        platforms[key] = {
+            "signature": sig_path.read_text(encoding="utf-8").strip(),
+            "url": url,
+        }
+    elif key != "linux-x86_64-deb":
+        print(f"warning: missing updater signature for {path.name}")
+
+if require_signatures:
+    missing = [key for key in files if key != "linux-x86_64-deb" and key not in platforms]
+    if missing:
+        raise SystemExit(f"missing updater signatures for {', '.join(missing)}")
 
 manifest = {
     "version": version,
     "notes": notes,
+    "pub_date": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     "published_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     "files": files,
+    "platforms": platforms,
 }
 (stage / "latest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 print(json.dumps(manifest, ensure_ascii=False, indent=2))

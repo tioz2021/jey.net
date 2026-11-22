@@ -905,6 +905,7 @@ export const ru = {
   'about.upToDate': 'У вас последняя версия',
   'about.updateError': 'Не удалось проверить обновления',
   'about.available': 'Доступна версия {version}',
+  'about.installUpdate': 'Обновить',
   'about.download': 'Скачать',
   'public.download': 'Скачать',
   'download.kicker': 'Desktop',

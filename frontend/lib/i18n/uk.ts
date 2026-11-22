@@ -906,6 +906,7 @@ export const uk = {
   'about.upToDate': 'У вас остання версія',
   'about.updateError': 'Не вдалося перевірити оновлення',
   'about.available': 'Доступна версія {version}',
+  'about.installUpdate': 'Оновити',
   'about.download': 'Завантажити',
   'public.download': 'Завантажити',
   'download.kicker': 'Desktop',

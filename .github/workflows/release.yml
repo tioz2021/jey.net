@@ -36,6 +36,9 @@ jobs:
         run: npm ci && npm run build
       - name: Build AppImage and deb
         uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: crates/desktop
           args: --features tauri --bundles appimage,deb
@@ -48,6 +51,7 @@ jobs:
           name: release-linux
           path: |
             target/release/bundle/appimage/*.AppImage
+            target/release/bundle/appimage/*.sig
             target/release/bundle/deb/*.deb
             target/release/bundle/SHA256SUMS.txt
           if-no-files-found: error
@@ -73,6 +77,9 @@ jobs:
         run: npm ci; npm run build
       - name: Build NSIS installer
         uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: crates/desktop
           args: --features tauri --bundles nsis
@@ -89,6 +96,7 @@ jobs:
           name: release-windows
           path: |
             target/release/bundle/nsis/*.exe
+            target/release/bundle/nsis/*.sig
             target/release/bundle/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
@@ -104,6 +112,7 @@ jobs:
       ARTIFACTS_DIR: release-assets
       REQUIRE_WINDOWS: "1"
       REQUIRE_VPS: "1"
+      REQUIRE_SIGNATURES: "1"
       DEPLOY_HOST: ${{ secrets.VPS_HOST }}
       DEPLOY_USER: ${{ secrets.VPS_USER }}
       SSH_KEY: ~/.ssh/jey_vps

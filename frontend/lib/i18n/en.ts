@@ -906,6 +906,7 @@ export const en = {
   'about.upToDate': 'You have the latest version',
   'about.updateError': 'Could not check for updates',
   'about.available': 'Version {version} is available',
+  'about.installUpdate': 'Update',
   'about.download': 'Download',
   'public.download': 'Download',
   'download.kicker': 'Desktop',

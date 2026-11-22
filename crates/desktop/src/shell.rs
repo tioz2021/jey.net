@@ -1413,6 +1413,8 @@ pub fn run() {
     apply_startup_backend_setting();
     apply_startup_gpu_setting();
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let default_dir = app
                 .path()

@@ -34,6 +34,15 @@
       "icons/icon.ico"
     ],
     "shortDescription": "Personal media catalogue",
-    "longDescription": "Local-first personal catalogue for films, series, anime, books and games."
+    "longDescription": "Local-first personal catalogue for films, series, anime, books and games.",
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI1ODE5RkQ2MEEzMDJCNjcKUldSbkt6QUsxcCtCSlRFUzJjb0pNelhnaVdWSnVwRHJyTzF2K0xFd1cySUxtT3lDMkF4cDZ4RHgK",
+      "endpoints": [
+        "https://j3ynet.site/downloads/desktop/latest.json"
+      ]
+    }
   }
 }
