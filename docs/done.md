@@ -1,5 +1,13 @@
 # Архив задач
 
+## T172 · Offline cache/outbox `[~]`
+
+- SQLite `api_cache` для «Понравилось» и тир-листов;
+- `social_outbox` для tier-мутаций и снятия лайка;
+- flush outbox и обновление кэша в desktop sync;
+- сервер принимает client id тир-листа и точное состояние реакции.
+
+
 ## T171 · Наблюдаемость `[x]`
 
 - process-local счётчики запросов и latency-бакеты в `/api/v1/admin/system`;

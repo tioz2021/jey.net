@@ -315,6 +315,20 @@ fn local_cache_put(
 }
 
 #[tauri::command]
+fn local_enqueue_social(
+    state: State<'_, DesktopState>,
+    method: String,
+    path: String,
+    body: Option<Value>,
+) -> Result<(), String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .enqueue_social(user, &method, &path, body.as_ref())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn local_list_collections(state: State<'_, DesktopState>) -> Result<Value, String> {
     let user = current_user(&state)?;
     let collections = state
@@ -1198,6 +1212,7 @@ pub fn run() {
             local_search_items,
             local_cache_get,
             local_cache_put,
+            local_enqueue_social,
             local_list_collections,
             local_create_collection,
             local_update_collection,

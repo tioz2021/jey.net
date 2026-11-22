@@ -130,6 +130,70 @@ pub async fn list(
     Ok(Json(json!({ "count": count, "likers": likers })))
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct SetReaction {
+    pub liked: bool,
+}
+
+/// `PUT /api/v1/public/items/{id}/reactions` — set the current like state.
+pub async fn set(
+    State(state): State<AppState>,
+    current: CurrentUser,
+    Path(item_id): Path<Uuid>,
+    Json(input): Json<SetReaction>,
+) -> Result<Json<Value>, AppError> {
+    let owner = ensure_public_item(&state.pool, item_id).await?;
+    let existed: bool = sqlx::query_scalar(
+        "select exists(select 1 from reactions where user_id = $1 and item_id = $2)",
+    )
+    .bind(current.user.id)
+    .bind(item_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+
+    if input.liked && !existed {
+        sqlx::query(
+            "insert into reactions (user_id, item_id) values ($1, $2) on conflict do nothing",
+        )
+        .bind(current.user.id)
+        .bind(item_id)
+        .execute(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+        notify_social(
+            &state,
+            owner,
+            current.user.id,
+            SocialNotification {
+                kind: "reaction",
+                item_id,
+                comment_id: None,
+                push_body: &format!(
+                    "{} отреагировал(а) на вашу запись",
+                    current.user.display_name
+                ),
+                url: &format!("/u/{owner}/{item_id}"),
+            },
+        )
+        .await;
+    } else if !input.liked && existed {
+        sqlx::query("delete from reactions where user_id = $1 and item_id = $2")
+            .bind(current.user.id)
+            .bind(item_id)
+            .execute(&state.pool)
+            .await
+            .map_err(AppError::internal)?;
+    }
+
+    let count: i64 = sqlx::query_scalar("select count(*) from reactions where item_id = $1")
+        .bind(item_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(AppError::internal)?;
+    Ok(Json(json!({ "reacted": input.liked, "count": count })))
+}
+
 /// `POST /api/v1/public/items/{id}/reactions` — toggle the current like.
 pub async fn toggle(
     State(state): State<AppState>,

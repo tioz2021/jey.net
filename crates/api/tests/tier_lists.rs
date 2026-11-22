@@ -269,3 +269,28 @@ async fn automatic_category_lists_follow_ratings() {
 
     client.cleanup(&email).await;
 }
+
+#[tokio::test]
+async fn client_generated_tier_id_is_idempotent_for_outbox() {
+    let (alice, email, cookie, _) = account("Tier Outbox").await;
+    let id = Uuid::new_v4();
+    let body = json!({
+        "id": id,
+        "title": "Offline list",
+        "visibility": "private",
+        "kind": "all"
+    });
+
+    let created = alice
+        .post_with_cookie("/api/v1/tier-lists", body.clone(), &cookie)
+        .await;
+    assert_eq!(created.status, 201, "body: {}", created.body);
+    assert_eq!(created.body["id"], id.to_string());
+
+    let replay = alice
+        .post_with_cookie("/api/v1/tier-lists", body, &cookie)
+        .await;
+    assert_eq!(replay.status, 409, "body: {}", replay.body);
+
+    alice.cleanup(&email).await;
+}

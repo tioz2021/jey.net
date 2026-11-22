@@ -24,6 +24,9 @@ pub struct TierListInput {
     pub visibility: Option<String>,
     #[serde(default)]
     pub kind: Option<String>,
+    /// Client-generated id used by the desktop outbox.
+    #[serde(default)]
+    pub id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -418,18 +421,29 @@ pub async fn create(
     let visible = visibility(input.visibility.as_deref())?;
     let kind = kind(input.kind.as_deref())?;
     let slug = slug_for(&state.pool, current.user.id, &title).await?;
-    let id: Uuid = sqlx::query_scalar(
-        "insert into tier_lists (user_id, title, slug, visibility, kind)
-         values ($1, $2, $3, $4, $5) returning id",
+    let id = input.id.unwrap_or_else(Uuid::new_v4);
+    sqlx::query(
+        "insert into tier_lists (id, user_id, title, slug, visibility, kind)
+         values ($1, $2, $3, $4, $5, $6)",
     )
+    .bind(id)
     .bind(current.user.id)
     .bind(&title)
     .bind(&slug)
     .bind(visible)
     .bind(kind)
-    .fetch_one(&state.pool)
+    .execute(&state.pool)
     .await
-    .map_err(AppError::internal)?;
+    .map_err(|error| {
+        if error
+            .as_database_error()
+            .is_some_and(|db| db.is_unique_violation())
+        {
+            AppError::conflict("tier list id already exists")
+        } else {
+            AppError::internal(error)
+        }
+    })?;
     Ok((
         axum::http::StatusCode::CREATED,
         Json(

@@ -286,6 +286,8 @@ impl SyncService {
                 0
             }
         };
+        self.flush_social_outbox().await?;
+        self.refresh_social_cache().await?;
         let media = self.cache_media().await?;
         let last_seq = self
             .store
@@ -580,6 +582,100 @@ impl SyncService {
             .replace_reactions(self.user_id, &reactions)
             .map_err(|error| error.to_string())?;
         Ok(social_conflicts)
+    }
+
+    async fn flush_social_outbox(&self) -> Result<usize, String> {
+        let rows = self
+            .store
+            .social_outbox(self.user_id)
+            .map_err(|error| error.to_string())?;
+        let mut flushed = 0;
+        for row in rows {
+            let method = reqwest::Method::from_bytes(row.method.as_bytes())
+                .map_err(|error| error.to_string())?;
+            let mut request = self.headers(
+                self.client
+                    .request(method, format!("{}{}", self.server, row.path)),
+            );
+            if let Some(body) = row.body {
+                request = request.json(&body);
+            }
+            let response = request
+                .send()
+                .await
+                .map_err(|error| format!("Сервер недоступен: {error}"))?;
+            if response.status() == StatusCode::CONFLICT
+                || response.status() == StatusCode::NOT_FOUND
+            {
+                self.store
+                    .clear_social_outbox(row.id)
+                    .map_err(|error| error.to_string())?;
+                continue;
+            }
+            if !response.status().is_success() {
+                return Err(api_error(response).await);
+            }
+            self.store
+                .clear_social_outbox(row.id)
+                .map_err(|error| error.to_string())?;
+            flushed += 1;
+        }
+        Ok(flushed)
+    }
+
+    async fn refresh_social_cache(&self) -> Result<(), String> {
+        let lists = self
+            .headers(
+                self.client
+                    .get(format!("{}/api/v1/tier-lists", self.server)),
+            )
+            .send()
+            .await
+            .map_err(|error| format!("Сервер недоступен: {error}"))?;
+        if !lists.status().is_success() {
+            return Err(api_error(lists).await);
+        }
+        let lists_body: Value = lists.json().await.map_err(|error| error.to_string())?;
+        self.store
+            .cache_put(self.user_id, "/api/v1/tier-lists", &lists_body)
+            .map_err(|error| error.to_string())?;
+        if let Some(rows) = lists_body.get("tier_lists").and_then(Value::as_array) {
+            for row in rows {
+                let Some(id) = row.get("id").and_then(Value::as_str) else {
+                    continue;
+                };
+                let response = self
+                    .headers(
+                        self.client
+                            .get(format!("{}/api/v1/tier-lists/{id}", self.server)),
+                    )
+                    .send()
+                    .await
+                    .map_err(|error| format!("Сервер недоступен: {error}"))?;
+                if !response.status().is_success() {
+                    continue;
+                }
+                let body: Value = response.json().await.map_err(|error| error.to_string())?;
+                self.store
+                    .cache_put(self.user_id, &format!("/api/v1/tier-lists/{id}"), &body)
+                    .map_err(|error| error.to_string())?;
+            }
+        }
+        let liked = self
+            .headers(
+                self.client
+                    .get(format!("{}/api/v1/liked?offset=0&limit=20", self.server)),
+            )
+            .send()
+            .await
+            .map_err(|error| format!("Сервер недоступен: {error}"))?;
+        if liked.status().is_success() {
+            let body: Value = liked.json().await.map_err(|error| error.to_string())?;
+            self.store
+                .cache_put(self.user_id, "/api/v1/liked", &body)
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(())
     }
 
     async fn cache_media(&self) -> Result<usize, String> {

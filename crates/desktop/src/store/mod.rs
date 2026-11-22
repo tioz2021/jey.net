@@ -19,6 +19,7 @@ mod export;
 mod media;
 mod repository;
 mod settings;
+mod social_outbox;
 mod sync;
 pub use export::{BackupReport, ExportReport, backup, export_json};
 pub use repository::SqliteItems;
@@ -38,6 +39,7 @@ const MIGRATIONS: &[(i64, &str)] = &[
     (5, include_str!("../../migrations/0005_chat.sql")),
     (6, include_str!("../../migrations/0006_chat_e2e.sql")),
     (7, include_str!("../../migrations/0007_offline_cache.sql")),
+    (8, include_str!("../../migrations/0008_social_outbox.sql")),
 ];
 
 fn copy_dir(source: &Path, target: &Path) -> Result<(), StoreError> {
@@ -373,7 +375,7 @@ mod tests {
     fn migrates_and_survives_reopen() {
         let dir = temp_dir();
         let store = DesktopStore::open(&dir).expect("open store");
-        assert_eq!(store.schema_version().unwrap(), 7);
+        assert_eq!(store.schema_version().unwrap(), 8);
         assert_eq!(store.status().unwrap().items, 0);
 
         {
@@ -399,7 +401,7 @@ mod tests {
         let store = DesktopStore::in_memory().expect("store");
         store.migrate().unwrap();
         store.migrate().unwrap();
-        assert_eq!(store.schema_version().unwrap(), 7);
+        assert_eq!(store.schema_version().unwrap(), 8);
     }
 
     #[test]
@@ -430,7 +432,7 @@ mod tests {
         }
 
         let store = DesktopStore::open(&dir).expect("migrate old store");
-        assert_eq!(store.schema_version().unwrap(), 7);
+        assert_eq!(store.schema_version().unwrap(), 8);
         assert_eq!(store.status().unwrap().items, 1);
         let backups = std::fs::read_dir(dir.join("backups"))
             .unwrap()
@@ -473,7 +475,7 @@ mod tests {
                     .unwrap();
             }
             let store = DesktopStore::open(&dir).expect("migrate old store");
-            assert_eq!(store.schema_version().unwrap(), 7, "old={old}");
+            assert_eq!(store.schema_version().unwrap(), 8, "old={old}");
             assert_eq!(store.status().unwrap().items, 1, "old={old}");
             std::fs::remove_dir_all(dir).ok();
         }

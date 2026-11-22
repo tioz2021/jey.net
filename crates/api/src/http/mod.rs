@@ -269,7 +269,12 @@ fn api_v1(state: AppState) -> Router<AppState> {
             "/public/items/{id}/similar",
             get(crate::recommendations::public_similar),
         )
-        .route("/public/items/{id}/reactions", get(crate::reactions::list))
+        .route(
+            "/public/items/{id}/reactions",
+            get(crate::reactions::list)
+                .post(crate::reactions::toggle)
+                .put(crate::reactions::set),
+        )
         .route(
             "/public/users/{id}/items/{item_id}/comments",
             get(crate::comments::list),
@@ -338,10 +343,6 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route(
             "/comments/{id}/reaction",
             post(crate::comments::toggle_reaction).put(crate::comments::set_reaction),
-        )
-        .route(
-            "/public/items/{id}/reactions",
-            post(crate::reactions::toggle),
         )
         .route("/notifications", get(crate::users::notifications::list))
         .route(

@@ -51,6 +51,18 @@ export function installDesktopBridge() {
         return null;
       }
     };
+    const cacheValue = async (key: string): Promise<Record<string, any> | null> => {
+      try { return await api.invoke<Record<string, any> | null>("local_cache_get", { key }); }
+      catch { return null; }
+    };
+    const putCache = async (key: string, value: unknown) => {
+      try { await api.invoke("local_cache_put", { key, payload: value }); } catch { /* best effort */ }
+    };
+    const enqueueSocial = async (method: string, requestPath: string, requestBody?: unknown) => {
+      try { await api.invoke("local_enqueue_social", { method, path: requestPath, body: requestBody }); }
+      catch { /* the UI remains optimistic until the next sync */ }
+      window.dispatchEvent(new Event("jey:sync-needed"));
+    };
     const remote = async (remoteMethod: string, remotePath: string, remoteBody?: unknown) => {
       const result = await api.invoke<{ status: number; body: unknown }>("local_proxy", {
         method: remoteMethod,
@@ -141,32 +153,98 @@ export function installDesktopBridge() {
       try { return await remote(method, path); } catch { return json({ collections: [] }); }
     }
 
-    // Read-only offline copies for the two personal pages.
-    if (path === "/api/v1/liked" && method === "GET") {
-      try { return await remember(cacheKey, await remote(method, path)); }
+    // Offline copies for the two personal pages.
+    const likedPath = path === "/api/v1/liked";
+    if (likedPath && method === "GET") {
+      try { return await remember("/api/v1/liked", await remote(method, path)); }
       catch {
-        const cachedResponse = await cached(cacheKey);
+        const cachedResponse = await cached("/api/v1/liked");
         return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
       }
     }
-    if (path === "/api/v1/tier-lists" && method === "GET") {
-      try { return await remember(cacheKey, await remote(method, path)); }
+    const tierListPath = path === "/api/v1/tier-lists";
+    const tierDetail = path.match(/^\/api\/v1\/tier-lists\/([^/]+)$/);
+    const tierItem = path.match(/^\/api\/v1\/tier-lists\/([^/]+)\/items\/([^/]+)$/);
+    if (tierListPath && method === "GET") {
+      try { return await remember("/api/v1/tier-lists", await remote(method, path)); }
       catch {
-        const cachedResponse = await cached(cacheKey);
+        const cachedResponse = await cached("/api/v1/tier-lists");
         return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
       }
     }
-    if (/^\/api\/v1\/tier-lists\/[^/]+$/.test(path) && method === "GET") {
-      try { return await remember(cacheKey, await remote(method, path)); }
+    if (tierDetail && method === "GET") {
+      try { return await remember(path, await remote(method, path)); }
       catch {
-        const cachedResponse = await cached(cacheKey);
+        const cachedResponse = await cached(path);
         return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
+      }
+    }
+    if (tierListPath && method === "POST") {
+      const now = new Date().toISOString();
+      const id = crypto.randomUUID();
+      const created = {
+        id, title: body?.title ?? "", slug: `local-${id.slice(0, 8)}`,
+        visibility: body?.visibility ?? "private", kind: body?.kind ?? "all",
+        auto: false, created_at: now, updated_at: now, item_count: 0,
+      };
+      const list = (await cacheValue("/api/v1/tier-lists")) ?? { tier_lists: [] };
+      list.tier_lists = [created, ...(Array.isArray(list.tier_lists) ? list.tier_lists : [])];
+      await putCache("/api/v1/tier-lists", list);
+      await putCache(`/api/v1/tier-lists/${id}`, { tier_list: created, items: [] });
+      await enqueueSocial("POST", "/api/v1/tier-lists", { ...body, id });
+      return json(created, 201);
+    }
+    if (tierDetail && method === "PATCH") {
+      try { return await remember(path, await remote(method, path, body)); }
+      catch {
+        const detail = (await cacheValue(path)) ?? { tier_list: {}, items: [] };
+        detail.tier_list = { ...detail.tier_list, ...body, updated_at: new Date().toISOString() };
+        await putCache(path, detail);
+        const list = await cacheValue("/api/v1/tier-lists");
+        if (list?.tier_lists) {
+          list.tier_lists = list.tier_lists.map((entry: any) => entry.id === tierDetail[1] ? { ...entry, ...body } : entry);
+          await putCache("/api/v1/tier-lists", list);
+        }
+        await enqueueSocial("PATCH", path, body);
+        return json({ ok: true });
+      }
+    }
+    if (tierDetail && method === "DELETE") {
+      try { return await remote(method, path); }
+      catch {
+        const list = await cacheValue("/api/v1/tier-lists");
+        if (list?.tier_lists) {
+          list.tier_lists = list.tier_lists.filter((entry: any) => entry.id !== tierDetail[1]);
+          await putCache("/api/v1/tier-lists", list);
+        }
+        await enqueueSocial("DELETE", path);
+        return new Response(null, { status: 204 });
+      }
+    }
+    if (tierItem && (method === "PUT" || method === "DELETE")) {
+      try { return await remote(method, path, body); }
+      catch {
+        await enqueueSocial(method, path, body);
+        return method === "PUT" ? json({ ok: true, tier: body?.tier ?? "S" }) : new Response(null, { status: 204 });
+      }
+    }
+    if (likedPath && method === "POST" && /^\/api\/v1\/public\/items\/[^/]+\/reactions$/.test(path)) {
+      try { return await remote(method, path, body); }
+      catch {
+        const liked = await cacheValue("/api/v1/liked");
+        const itemId = path.split("/")[5];
+        const item = liked?.items?.find((entry: any) => entry.id === itemId);
+        if (!liked || !item) return json({ error: { code: "offline_unsupported" } }, 503);
+        liked.items = liked.items.filter((entry: any) => entry.id !== itemId);
+        await putCache("/api/v1/liked", liked);
+        await enqueueSocial("PUT", `/api/v1/public/items/${itemId}/reactions`, { liked: false });
+        return json({ reacted: false, count: 0 });
       }
     }
     if (/^\/api\/v1\/public\/users\/[^/]+\/tier-lists\/[^/]+$/.test(path) && method === "GET") {
-      try { return await remember(cacheKey, await remote(method, path)); }
+      try { return await remember(path, await remote(method, path)); }
       catch {
-        const cachedResponse = await cached(cacheKey);
+        const cachedResponse = await cached(path);
         return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
       }
     }
