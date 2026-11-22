@@ -20,6 +20,7 @@ export function MovieSearch({
   selectedYear,
   selectedDirector,
   selectedPosterUrl,
+  selectedPosterPath,
   media = "movie",
 }: {
   onSelect: (movie: MovieDetailsResponse) => void;
@@ -27,6 +28,7 @@ export function MovieSearch({
   selectedYear?: string;
   selectedDirector?: string;
   selectedPosterUrl?: string | null;
+  selectedPosterPath?: string | null;
   media?: "movie" | "tv";
 }) {
   const { t } = useI18n();
@@ -60,12 +62,16 @@ export function MovieSearch({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [active, setActive] = useState(-1);
-  const [posterPath, setPosterPath] = useState<string | null>(null);
+  const [posterPath, setPosterPath] = useState<string | null>(selectedPosterPath ?? null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Choosing a film fills the input with its title; that must not trigger a
   // fresh search and reopen the dropdown.
   const skipSearch = useRef(false);
+
+  useEffect(() => {
+    if (selectedPosterPath !== undefined) setPosterPath(selectedPosterPath);
+  }, [selectedPosterPath]);
 
   useEffect(() => {
     if (skipSearch.current) {

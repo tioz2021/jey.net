@@ -81,6 +81,7 @@ interface Values {
   external_id: string;
   details: MovieDetails | null;
   public_hidden: boolean;
+  posterPath: string | null;
 }
 
 const INITIAL: Values = {
@@ -97,6 +98,7 @@ const INITIAL: Values = {
   external_id: "",
   details: null,
   public_hidden: false,
+  posterPath: null,
 };
 
 function toValues(item?: Item, initialKind?: ItemKind): Values {
@@ -118,6 +120,7 @@ function toValues(item?: Item, initialKind?: ItemKind): Values {
     external_id: item.external_id ?? "",
     details: item.details,
     public_hidden: item.public_hidden ?? false,
+    posterPath: null,
   };
 }
 
@@ -301,6 +304,7 @@ export function ItemForm({
       source_url: "",
       external_source: "tmdb",
       external_id: String(movie.tmdb_id),
+      posterPath: movie.poster_path,
       details: {
         original_title: movie.original_title,
         overview: movie.overview,
@@ -500,7 +504,7 @@ export function ItemForm({
         await api.items.setCover(savedId, coverUploadId);
       } else if (coverCleared && itemId) {
         await api.items.clearCover(itemId);
-      } else if (posterPending && values.external_id) {
+      } else if ((posterPending || values.posterPath) && values.external_id) {
         // A missing poster must never block saving the record itself.
         try {
           await api.items.setPoster(savedId);
@@ -590,8 +594,9 @@ export function ItemForm({
           selected={values.external_id ? values.title : null}
           selectedDirector={values.subtitle || undefined}
           selectedPosterUrl={
-            initial?.cover_key ? mediaUrl(initial.cover_key) : null
+            coverPreview ?? (initial?.cover_key ? mediaUrl(initial.cover_key) : null)
           }
+          selectedPosterPath={values.posterPath}
           selectedYear={values.year || undefined}
         />
       ) : null}
