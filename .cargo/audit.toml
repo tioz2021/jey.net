@@ -1,0 +1,10 @@
+# Accepted residual advisories for transitive desktop dependencies.
+# See docs/security.md for the reasoning and upgrade paths.
+[advisories]
+ignore = [
+  "RUSTSEC-2026-0194", # quick-xml via Tauri/plist: bundled XML, not user input
+  "RUSTSEC-2026-0195", # same
+  "RUSTSEC-2026-0459", # libsqlite3-sys via rusqlite: local desktop DB
+  "RUSTSEC-2026-0387", # crypto-bigint via web-push-native
+  "RUSTSEC-2023-0071", # rsa via web-push-native
+]

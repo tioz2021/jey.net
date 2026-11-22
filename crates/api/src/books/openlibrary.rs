@@ -213,10 +213,10 @@ pub async fn details(book_id: &str) -> Result<BookDetails, AppError> {
                 continue;
             }
             let author: Value = author_response.json().await.map_err(AppError::internal)?;
-            if let Some(name) = author.get("name").and_then(Value::as_str) {
-                if !name.trim().is_empty() {
-                    authors.push(name.trim().to_owned());
-                }
+            if let Some(name) = author.get("name").and_then(Value::as_str)
+                && !name.trim().is_empty()
+            {
+                authors.push(name.trim().to_owned());
             }
         }
     }

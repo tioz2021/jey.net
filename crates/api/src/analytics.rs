@@ -148,7 +148,10 @@ pub async fn record(pool: &sqlx::PgPool, name: &str, path: Option<&str>, locale:
 
 async fn prune_old_events(pool: &sqlx::PgPool) {
     static CALLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-    if CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed) % 512 == 0 {
+    if CALLS
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        .is_multiple_of(512)
+    {
         let _ = sqlx::query(
             "delete from analytics_events where created_at < now() - interval '90 days'",
         )

@@ -183,7 +183,7 @@ fn build_item(index: usize) -> NewItem {
     };
     let status = statuses[index / 2 % statuses.len()];
 
-    let rating = if index % 5 == 0 {
+    let rating = if index.is_multiple_of(5) {
         None
     } else {
         Some((index % 10 + 1) as u8)
@@ -194,7 +194,7 @@ fn build_item(index: usize) -> NewItem {
         _ => None,
     };
 
-    let review = if index % 3 == 0 {
+    let review = if index.is_multiple_of(3) {
         Some(format!(
             "Заметка номер {}. Первый абзац текста.\nВторой абзац — тоже текст.",
             index + 1

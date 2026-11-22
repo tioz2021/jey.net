@@ -11,7 +11,7 @@ use axum::Json;
 use axum::Router;
 use axum::extract::DefaultBodyLimit;
 use axum::extract::State;
-use axum::http::{HeaderValue, StatusCode, header};
+use axum::http::{HeaderName, HeaderValue, StatusCode, header};
 use axum::middleware;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post};
@@ -153,6 +153,33 @@ async fn spa_file(
         }
         Err(_) => (StatusCode::NOT_FOUND, "SPA not found").into_response(),
     }
+}
+
+async fn security_headers(request: axum::extract::Request, next: middleware::Next) -> Response {
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+    headers.insert(
+        header::X_CONTENT_TYPE_OPTIONS,
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert(header::X_FRAME_OPTIONS, HeaderValue::from_static("DENY"));
+    headers.insert(
+        header::REFERRER_POLICY,
+        HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
+    headers.insert(
+        HeaderName::from_static("permissions-policy"),
+        HeaderValue::from_static("camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
+    );
+    headers.insert(
+        HeaderName::from_static("cross-origin-opener-policy"),
+        HeaderValue::from_static("same-origin"),
+    );
+    headers.insert(
+        HeaderName::from_static("content-security-policy"),
+        HeaderValue::from_static("default-src 'none'; frame-ancestors 'none'; base-uri 'none'"),
+    );
+    response
 }
 
 async fn no_store(request: axum::extract::Request, next: middleware::Next) -> Response {
@@ -521,6 +548,7 @@ fn api_v1(state: AppState) -> Router<AppState> {
     public
         .merge(protected)
         .layer(middleware::from_fn_with_state(state.clone(), track_errors))
+        .layer(middleware::from_fn(security_headers))
         .layer(middleware::from_fn(no_store))
         .route_layer(middleware::from_fn_with_state(
             state,

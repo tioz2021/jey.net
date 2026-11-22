@@ -50,6 +50,13 @@ pub const ANALYTICS: Rule = Rule {
     block: Duration::from_secs(10 * 60),
 };
 
+/// Heavy read endpoints per account: 120 in a minute.
+pub const READ_HEAVY: Rule = Rule {
+    limit: 120,
+    window: Duration::from_secs(60),
+    block: Duration::from_secs(60),
+};
+
 /// Registrations per IP: 3 in an hour.
 pub const REGISTER: Rule = Rule {
     limit: 3,
@@ -136,7 +143,7 @@ struct RateLimitRow {
 async fn cleanup_occasionally(pool: &PgPool) {
     static CALLS: AtomicU64 = AtomicU64::new(0);
 
-    if CALLS.fetch_add(1, Ordering::Relaxed) % 256 == 0 {
+    if CALLS.fetch_add(1, Ordering::Relaxed).is_multiple_of(256) {
         let _ = sqlx::query("delete from rate_limits where updated_at < now() - interval '1 day'")
             .execute(pool)
             .await;

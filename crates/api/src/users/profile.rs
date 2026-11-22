@@ -49,18 +49,18 @@ pub async fn update_me(
     if let Some(locale) = payload.locale.as_deref() {
         validate_locale(locale)?;
     }
-    if let Some(statuses) = &payload.public_statuses {
-        if statuses.iter().any(|status| {
+    if let Some(statuses) = &payload.public_statuses
+        && statuses.iter().any(|status| {
             !matches!(
                 status.as_str(),
                 "planned" | "in_progress" | "done" | "dropped"
             )
-        }) {
-            return Err(AppError::validation_field(
-                "public_statuses",
-                "statuses must be planned, in_progress, done or dropped",
-            ));
-        }
+        })
+    {
+        return Err(AppError::validation_field(
+            "public_statuses",
+            "statuses must be planned, in_progress, done or dropped",
+        ));
     }
 
     let row = sqlx::query_as::<_, UserRow>(

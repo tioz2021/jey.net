@@ -259,14 +259,14 @@ pub(crate) fn clean_description(value: &str) -> String {
     let chars: Vec<char> = value.chars().collect();
     let mut index = 0;
     while index < chars.len() {
-        if chars[index] == '[' {
-            if let Some(offset) = chars[index + 1..].iter().position(|ch| *ch == ']') {
-                let end = index + 1 + offset;
-                let tag: String = chars[index + 1..end].iter().collect();
-                if is_markup_tag(&tag) {
-                    index = end + 1;
-                    continue;
-                }
+        if chars[index] == '['
+            && let Some(offset) = chars[index + 1..].iter().position(|ch| *ch == ']')
+        {
+            let end = index + 1 + offset;
+            let tag: String = chars[index + 1..end].iter().collect();
+            if is_markup_tag(&tag) {
+                index = end + 1;
+                continue;
             }
         }
         result.push(chars[index]);

@@ -213,6 +213,12 @@ pub async fn feed(
     current: CurrentUser,
     Query(query): Query<FeedQuery>,
 ) -> Result<Json<Value>, AppError> {
+    crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::READ_HEAVY,
+        &format!("feed:{}", current.user.id),
+    )
+    .await?;
     let sort = feed_sort(query.sort.as_deref())?;
     let (_, since) = feed_period(query.period.as_deref())?;
     let (offset, limit) = feed_page(query.offset, query.limit)?;

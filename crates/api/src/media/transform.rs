@@ -38,14 +38,7 @@ pub struct ProcessedImage {
 
 /// Decodes the image, applies EXIF orientation and produces both renditions.
 pub fn process(bytes: &[u8]) -> Result<ProcessedImage, AppError> {
-    let reader = ImageReader::new(Cursor::new(bytes))
-        .with_guessed_format()
-        .map_err(|_| undecodable())?;
-
-    let mut decoder = reader.into_decoder().map_err(|_| undecodable())?;
-    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
-
-    let mut image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+    let (mut image, orientation) = decode_limited(bytes)?;
     image.apply_orientation(orientation);
 
     let width = image.width();
@@ -68,16 +61,29 @@ pub fn process(bytes: &[u8]) -> Result<ProcessedImage, AppError> {
     })
 }
 
-/// Crops the centre square and resizes it to 128 px.
-pub fn avatar(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
+/// Refuse images whose decoded size could exhaust memory or CPU.
+pub const MAX_PIXELS: u64 = 40_000_000;
+
+/// Decodes the image and checks the decoded dimensions before allocating pixels.
+fn decode_limited(bytes: &[u8]) -> Result<(DynamicImage, Orientation), AppError> {
     let reader = ImageReader::new(Cursor::new(bytes))
         .with_guessed_format()
         .map_err(|_| undecodable())?;
-
     let mut decoder = reader.into_decoder().map_err(|_| undecodable())?;
+    let (width, height) = decoder.dimensions();
+    if u64::from(width) * u64::from(height) > MAX_PIXELS {
+        return Err(AppError::payload_too_large(
+            "image dimensions are too large",
+        ));
+    }
     let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
+    let image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+    Ok((image, orientation))
+}
 
-    let mut image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+/// Crops the centre square and resizes it to 128 px.
+pub fn avatar(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
+    let (mut image, orientation) = decode_limited(bytes)?;
     image.apply_orientation(orientation);
 
     let side = image.width().min(image.height());
@@ -95,14 +101,7 @@ pub fn avatar(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
 
 /// Crops the centre strip and resizes it to 1200×300.
 pub fn banner(bytes: &[u8]) -> Result<Vec<u8>, AppError> {
-    let reader = ImageReader::new(Cursor::new(bytes))
-        .with_guessed_format()
-        .map_err(|_| undecodable())?;
-
-    let mut decoder = reader.into_decoder().map_err(|_| undecodable())?;
-    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
-
-    let mut image = DynamicImage::from_decoder(decoder).map_err(|_| undecodable())?;
+    let (mut image, orientation) = decode_limited(bytes)?;
     image.apply_orientation(orientation);
 
     let target_ratio = BANNER_WIDTH as f32 / BANNER_HEIGHT as f32;

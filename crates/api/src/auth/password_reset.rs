@@ -48,10 +48,10 @@ pub async fn request_reset(
     )
     .await?;
 
-    if let Some(record) = user::find_by_email(&state.pool, &email).await? {
-        if let Err(err) = send_reset(&state, record.id, &email).await {
-            tracing::warn!(error = %err, "failed to send the password reset email");
-        }
+    if let Some(record) = user::find_by_email(&state.pool, &email).await?
+        && let Err(err) = send_reset(&state, record.id, &email).await
+    {
+        tracing::warn!(error = %err, "failed to send the password reset email");
     }
 
     Ok(StatusCode::ACCEPTED)

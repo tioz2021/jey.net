@@ -73,3 +73,9 @@ jobs:
         env:
           CHECK_E2E: "1"
         run: bash scripts/check.sh
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Audit dependencies
+        run: bash scripts/security-audit.sh

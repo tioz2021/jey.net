@@ -52,15 +52,15 @@ pub fn score_item(query: &str, item: &Item) -> u32 {
         }
     }
 
-    if let Some(subtitle) = &item.subtitle {
-        if contains(subtitle, &needle) {
-            score = score.max(400);
-        }
+    if let Some(subtitle) = &item.subtitle
+        && contains(subtitle, &needle)
+    {
+        score = score.max(400);
     }
-    if let Some(review) = &item.review {
-        if contains(review, &needle) {
-            score = score.max(300);
-        }
+    if let Some(review) = &item.review
+        && contains(review, &needle)
+    {
+        score = score.max(300);
     }
     if let Some(details) = &item.details {
         let metadata = metadata_text(details);

@@ -5,7 +5,7 @@ members = ["crates/core", "crates/api", "crates/desktop", "crates/repo-contract"
 [workspace.package]
 version = "0.7.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 license = "UNLICENSED"
 publish = false
 

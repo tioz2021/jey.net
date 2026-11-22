@@ -78,6 +78,7 @@ bash scripts/seed.sh                 # аккаунт и 200 записей
 bash scripts/check.sh                # fmt, clippy, web tests/build, миграции, API release
 bash scripts/e2e.sh                  # Playwright E2E (5 сценариев)
 CHECK_E2E=1 bash scripts/check.sh    # quality gate + E2E
+bash scripts/security-audit.sh       # cargo audit + production npm audit
 
 ```
 

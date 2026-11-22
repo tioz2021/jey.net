@@ -45,6 +45,12 @@ pub async fn liked(
     current: CurrentUser,
     Query(query): Query<LikedQuery>,
 ) -> Result<Json<Value>, AppError> {
+    crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::READ_HEAVY,
+        &format!("liked:{}", current.user.id),
+    )
+    .await?;
     let kind = liked_kind(query.kind.as_deref())?;
     let (offset, limit) = liked_page(query.offset, query.limit)?;
     let items: Vec<Value> = sqlx::query_scalar(

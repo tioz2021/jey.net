@@ -457,6 +457,12 @@ pub async fn friends(
     current: CurrentUser,
     Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
+    crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::READ_HEAVY,
+        &format!("recommendations-friends:{}", current.user.id),
+    )
+    .await?;
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
     let (period, since) = recommendation_period(query.period.as_deref())?;
@@ -655,6 +661,12 @@ pub async fn community(
     current: CurrentUser,
     Query(query): Query<RecommendationQuery>,
 ) -> Result<Json<Value>, AppError> {
+    crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::READ_HEAVY,
+        &format!("recommendations-community:{}", current.user.id),
+    )
+    .await?;
     let kind = recommendation_kind(query.kind.as_deref())?;
     let sort = recommendation_sort(query.sort.as_deref())?;
     let (period, since) = recommendation_period(query.period.as_deref())?;
