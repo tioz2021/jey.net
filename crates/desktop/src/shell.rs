@@ -293,6 +293,28 @@ async fn local_get_item(
 }
 
 #[tauri::command]
+fn local_cache_get(state: State<'_, DesktopState>, key: String) -> Result<Option<Value>, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .cache_get(user, &key)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_cache_put(
+    state: State<'_, DesktopState>,
+    key: String,
+    payload: Value,
+) -> Result<(), String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .cache_put(user, &key, &payload)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn local_list_collections(state: State<'_, DesktopState>) -> Result<Value, String> {
     let user = current_user(&state)?;
     let collections = state
@@ -1174,6 +1196,8 @@ pub fn run() {
             local_list_items,
             local_get_item,
             local_search_items,
+            local_cache_get,
+            local_cache_put,
             local_list_collections,
             local_create_collection,
             local_update_collection,

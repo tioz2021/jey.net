@@ -35,6 +35,22 @@ export function installDesktopBridge() {
     const path = url.pathname;
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
     const body = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
+    const cacheKey = `${path}${url.search}`;
+    const remember = async (key: string, response: Response) => {
+      try {
+        const data = await response.clone().json();
+        await api.invoke("local_cache_put", { key, payload: data });
+      } catch { /* cache is best-effort */ }
+      return response;
+    };
+    const cached = async (key: string): Promise<Response | null> => {
+      try {
+        const value = await api.invoke<unknown | null>("local_cache_get", { key });
+        return value == null ? null : json(value);
+      } catch {
+        return null;
+      }
+    };
     const remote = async (remoteMethod: string, remotePath: string, remoteBody?: unknown) => {
       const result = await api.invoke<{ status: number; body: unknown }>("local_proxy", {
         method: remoteMethod,
@@ -123,6 +139,36 @@ export function installDesktopBridge() {
     }
     if (path === "/api/v1/collections/for-item" || path.startsWith("/api/v1/collections/for-item/")) {
       try { return await remote(method, path); } catch { return json({ collections: [] }); }
+    }
+
+    // Read-only offline copies for the two personal pages.
+    if (path === "/api/v1/liked" && method === "GET") {
+      try { return await remember(cacheKey, await remote(method, path)); }
+      catch {
+        const cachedResponse = await cached(cacheKey);
+        return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
+      }
+    }
+    if (path === "/api/v1/tier-lists" && method === "GET") {
+      try { return await remember(cacheKey, await remote(method, path)); }
+      catch {
+        const cachedResponse = await cached(cacheKey);
+        return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
+      }
+    }
+    if (/^\/api\/v1\/tier-lists\/[^/]+$/.test(path) && method === "GET") {
+      try { return await remember(cacheKey, await remote(method, path)); }
+      catch {
+        const cachedResponse = await cached(cacheKey);
+        return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
+      }
+    }
+    if (/^\/api\/v1\/public\/users\/[^/]+\/tier-lists\/[^/]+$/.test(path) && method === "GET") {
+      try { return await remember(cacheKey, await remote(method, path)); }
+      catch {
+        const cachedResponse = await cached(cacheKey);
+        return cachedResponse ?? json({ error: { code: "offline_unsupported" } }, 503);
+      }
     }
 
     const publicItemPath = path.match(/^\/api\/v1\/public\/users\/[^/]+\/items\/([^/]+)$/);
