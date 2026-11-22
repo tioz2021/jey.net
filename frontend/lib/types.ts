@@ -733,6 +733,7 @@ export interface Upload {
   size_bytes: number;
   width: number;
   height: number;
+  preview_url: string;
 }
 
 export interface UploadResponse {

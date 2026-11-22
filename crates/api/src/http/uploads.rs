@@ -62,6 +62,7 @@ pub async fn upload(
                 "size_bytes": stored.size,
                 "width": stored.width,
                 "height": stored.height,
+                "preview_url": state.storage.url(&stored.preview_key),
             }
         })),
     ))
