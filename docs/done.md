@@ -1,5 +1,12 @@
 # Архив задач
 
+## T168 · Единый CI quality gate `[x]`
+
+- `scripts/check.sh`: fmt, clippy, web tests/build, cargo tests, migrations, API release;
+- CI job `Quality gate` вызывает тот же скрипт на PostgreSQL 18 и Node 22;
+- локальный прогон: **622 s**, все этапы зелёные.
+
+
 ## T162 · Новое с прошлого визита `[x]`
 
 - метка последнего визита читается до обновления `jey.feed-seen`;

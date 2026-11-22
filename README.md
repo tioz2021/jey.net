@@ -75,8 +75,8 @@ bash scripts/seed.sh                 # аккаунт и 200 записей
 Проверки:
 
 ```bash
-bash scripts/check.sh                # fmt, clippy, тесты, release-сборка
-cd apps/web && npm run build
+bash scripts/check.sh                # fmt, clippy, web tests/build, миграции, API release
+
 ```
 
 ## Документация

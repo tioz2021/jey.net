@@ -46,6 +46,24 @@ cargo fmt --all -- --check || fail "formatting (run: cargo fmt)"
 step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 
+step "npm ci"
+(
+    cd "${ROOT_DIR}/apps/web"
+    npm ci --no-audit --no-fund --cache "${ROOT_DIR}/.staging/npm-cache"
+) || fail "npm ci"
+
+step "npm test"
+(
+    cd "${ROOT_DIR}/apps/web"
+    npm test
+) || fail "frontend tests"
+
+step "npm run build"
+(
+    cd "${ROOT_DIR}/apps/web"
+    npm run build
+) || fail "frontend build"
+
 step "cargo test"
 # Test uploads are disposable and must not leak between runs.
 rm -rf "${ROOT_DIR}/var/test-media"
@@ -54,8 +72,16 @@ rm -rf "${ROOT_DIR}/var/test-media"
 # preflight deterministic even though it takes a little longer.
 cargo test --locked --workspace -- --test-threads=1 || fail "tests"
 
-step "cargo build --release"
-cargo build --locked --release --workspace || fail "release build"
+step "cargo migrate"
+# The API embeds migrations; run the real command against the configured DB.
+if [[ -n "${DATABASE_URL:-}" ]]; then
+    cargo run --locked --quiet -p jey-api -- migrate || fail "migrations"
+else
+    printf 'DATABASE_URL is not set; migration check skipped\n'
+fi
+
+step "cargo build --release (API)"
+cargo build --locked --release -p jey-api --bin jey-api || fail "release build"
 
 elapsed=$(( $(date +%s) - started_at ))
 printf '\nAll checks passed in %ss\n' "${elapsed}"
