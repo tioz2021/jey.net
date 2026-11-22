@@ -24,6 +24,7 @@ export function NotificationsScreen() {
     let timer: number | null = null;
 
     const refresh = async () => {
+      if (cancelled) return;
       try {
         const response = await api.notifications.list();
         if (cancelled) return;
@@ -36,6 +37,7 @@ export function NotificationsScreen() {
     };
 
     const schedule = () => {
+      if (cancelled) return;
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         void refresh().finally(schedule);

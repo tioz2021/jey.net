@@ -117,6 +117,7 @@ export function FeedScreen() {
     };
 
     const schedule = () => {
+      if (cancelled) return;
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         void refresh().finally(schedule);
