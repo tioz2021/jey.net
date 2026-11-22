@@ -229,7 +229,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                             </span>
                           ))}
                         {item.friend_count > 1
-                          ? ` ${t("recommendations.friendsCount", { count: item.friend_count })}`
+                          ? ` · ${t("recommendations.friendsCount", { count: item.friend_count })}`
                           : ""}
                       </FeedCardHeader>
                     }
