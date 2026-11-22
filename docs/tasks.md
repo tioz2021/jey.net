@@ -409,8 +409,8 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T185 | P1 | Внедрение updater `[~]` | 3–5 d | T183 | 0.7.3 подписан; остался тест 0.7.3→0.7.4 |
 | T186 | P1 | Spike Tauri WebDriver/WebKitWebDriver `[ ]` | 1–2 d | — | доказано, можно ли гонять WebKit в CI |
 | T187 | P1 | Desktop smoke suite `[ ]` | 2–3 d | T186 | 6 сценариев: форма/черновик/обложка/корзина/уведомления/вход |
-| T188 | P1 | Singleton notification stream `[ ]` | 1 d | — | один SSE, late subscribers, без гонки страницы |
-| T189 | P1 | E2E realtime-уведомлений `[ ]` | 1 d | T188 | колокольчик, страница и лента без reload |
+| T188 | P1 | Singleton notification stream `[x]` | 1 d | — | один SSE, replay для поздних подписчиков |
+| T189 | P1 | E2E realtime-уведомлений `[x]` | 1 d | T188 | колокольчик + страница без reload |
 | T190 | P2 | Cross-instance notifications LISTEN/NOTIFY `[ ]` | 2 d | T188 | несколько API-инстансов, без потери SSE |
 | T191 | P1 | CSP: убрать unsafe-inline `[ ]` | 2–3 d | — | nonce/hash, все страницы и e2e зелёные |
 | T192 | P1 | Разбор остаточных audit-advisories `[ ]` | 1–2 d | — | обновления или обоснованные исключения |

@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { subscribeToNotifications } from "@/lib/notification-stream";
 import type { NotificationItem } from "@/lib/types";
 
 import styles from "./notifications.module.css";
@@ -59,15 +60,14 @@ export function NotificationsScreen() {
           schedule();
         }
       });
-    const onNotification = () => void refresh();
+    const unsubscribe = subscribeToNotifications(() => void refresh());
     window.addEventListener("focus", onVisibility);
-    window.addEventListener("jey:notification", onNotification);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
+      unsubscribe();
       window.removeEventListener("focus", onVisibility);
-      window.removeEventListener("jey:notification", onNotification);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

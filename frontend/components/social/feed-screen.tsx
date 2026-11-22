@@ -21,6 +21,7 @@ import { FeedLoadMore } from "@/components/feed-load-more";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
 import { useFeedUrl } from "@/lib/use-feed-url";
+import { subscribeToNotifications } from "@/lib/notification-stream";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -133,14 +134,14 @@ export function FeedScreen() {
     };
 
     schedule();
+    const unsubscribe = subscribeToNotifications(onVisibility);
     window.addEventListener("focus", onVisibility);
-    window.addEventListener("jey:notification", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
+      unsubscribe();
       window.removeEventListener("focus", onVisibility);
-      window.removeEventListener("jey:notification", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [kind, sort, period, loading, refreshing, loadingMore]);

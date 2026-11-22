@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 import { playNotificationSound, unlockNotificationSound } from "@/lib/notification-sound";
+import { subscribeToNotifications } from "@/lib/notification-stream";
 
 import styles from "./notification-bell.module.css";
 
@@ -138,12 +139,8 @@ export function NotificationBell() {
       window.dispatchEvent(new Event("jey:notification"));
       void load();
     };
-    // Live signal; the interval below remains the fallback if SSE is blocked.
-    const source = typeof EventSource === "undefined"
-      ? null
-      : new EventSource("/api/v1/notifications/stream");
-    source?.addEventListener("notification", onNotification);
-    source?.addEventListener("resync", onNotification);
+    // One shared stream; the interval below remains the fallback if SSE is blocked.
+    const unsubscribe = subscribeToNotifications(onNotification);
     const onWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === "jey:notification") void load();
     };
@@ -161,7 +158,7 @@ export function NotificationBell() {
       stopBlink();
       document.title = baseTitle;
       updateFavicon(0);
-      source?.close();
+      unsubscribe();
       window.removeEventListener("jey:notifications-read", onRead);
       window.removeEventListener("jey:chat-updated", onChatUpdated);
       window.removeEventListener("focus", onVisibility);

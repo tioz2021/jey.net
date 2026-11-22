@@ -1,5 +1,15 @@
 # Архив задач
 
+## T188–T189 · Realtime без гонок `[x]`
+
+- один общий EventSource на приложение;
+- подписка через `subscribeToNotifications`;
+- replay события для поздно смонтировавшихся экранов;
+- колокольчик, `/notifications` и лента используют один stream;
+- E2E без `waitForTimeout`: колокольчик + список обновляются без reload;
+- 18 E2E и 27 frontend-тестов зелёные.
+
+
 ## T184 · Автопроверка релиза `[x]`
 
 - `scripts/verify-release.sh`: версия, Linux/Windows, подписи updater,

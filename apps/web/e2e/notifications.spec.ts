@@ -13,10 +13,8 @@ test("a notification arrives without reloading the page", async ({
 
   await page.goto("/notifications");
   await expect(page.getByRole("heading", { name: "Уведомления" })).toBeVisible();
-  // Let both the page and the shell attach their live listeners.
-  await page.waitForTimeout(300);
-
   await follow(request, actor, target);
 
+  await expect(page.getByRole("link", { name: "Уведомления" })).toContainText("1", { timeout: 5000 });
   await expect(page.getByText("подписался")).toBeVisible({ timeout: 5000 });
 });
