@@ -68,7 +68,6 @@ test("an uploaded cover preview survives a reload with the form draft", async ({
     buffer: png,
   });
   await expect(page.locator('img[src*="/media/"]')).toBeVisible();
-  await page.waitForTimeout(700);
   await page.reload();
   await expect(page.locator('img[src*="/media/"]')).toBeVisible();
 });

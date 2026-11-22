@@ -702,11 +702,26 @@ export function ItemForm({
               setCoverUploadId(uploadId);
               setCoverPreview(preview);
               setCoverCleared(false);
+              // Save immediately: the user may reload before the debounce runs.
+              saveDraft(storageKey, {
+                values: values as unknown as Record<string, unknown>,
+                advanced,
+                coverUploadId: uploadId,
+                coverPreview: preview,
+                coverCleared: false,
+              });
             }}
             onCleared={() => {
               setCoverUploadId(null);
               setCoverPreview(null);
               setCoverCleared(true);
+              saveDraft(storageKey, {
+                values: values as unknown as Record<string, unknown>,
+                advanced,
+                coverUploadId: null,
+                coverPreview: null,
+                coverCleared: true,
+              });
             }}
           />
         </>
