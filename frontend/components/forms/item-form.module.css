@@ -35,8 +35,26 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-2);
   margin-top: var(--space-2);
+}
+
+.primaryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.clearAction {
+  margin-left: auto;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.clearAction:hover:not(:disabled):not(:active) {
+  background: var(--color-danger-soft);
 }
 
 .advanced {

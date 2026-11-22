@@ -767,23 +767,26 @@ export function ItemForm({
       ) : null}
 
       <div className={styles.actions}>
-        <Button type="submit" loading={submitting}>
-          {itemId ? t("form.update") : t("form.save")}
-        </Button>
+        <div className={styles.primaryActions}>
+          <Button type="submit" loading={submitting}>
+            {itemId ? t("form.update") : t("form.save")}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              removeDraft(storageKey);
+              router.push("/items");
+            }}
+            disabled={submitting}
+          >
+            {t("form.cancel")}
+          </Button>
+        </div>
         <Button
-          variant="secondary"
-          onClick={() => {
-            removeDraft(storageKey);
-            router.push("/items");
-          }}
-          disabled={submitting}
-        >
-          {t("form.cancel")}
-        </Button>
-        <Button
+          className={styles.clearAction}
           disabled={submitting}
           onClick={() => setClearOpen(true)}
-          variant="ghost"
+          variant="secondary"
         >
           {t("form.clear")}
         </Button>
