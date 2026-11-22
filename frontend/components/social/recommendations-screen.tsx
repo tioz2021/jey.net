@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
-import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
-import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
+import { FeedSort } from "@/components/social/feed-sort";
+import { FeedPeriod } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
 import { RecommendationReviews } from "@/components/social/recommendation-reviews";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
@@ -14,7 +14,9 @@ import { FeedLoadMore } from "@/components/feed-load-more";
 import { ItemCard } from "@/components/items/item-card";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
-import { Card } from "@/components/ui";
+import { useFeedUrl } from "@/lib/use-feed-url";
+import { describeError } from "@/lib/messages";
+import { Button, Card } from "@/components/ui";
 import { AppLink } from "@/lib/navigation";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
@@ -29,7 +31,8 @@ import styles from "./recommendations.module.css";
 type Variant = "friends" | "community";
 
 export function RecommendationsScreen({ variant = "friends" }: { variant?: Variant }) {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
   const [friends, setFriends] = useState<FriendRecommendation[]>([]);
   const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,9 +44,12 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     setView(value);
     saveViewPreference("jey:view:feed", value);
   }
-  const [kind, setKind] = useState<ItemKind | null>(null);
-  const [sort, setSort] = useState<FeedSortValue>("rating");
-  const [period, setPeriod] = useState<FeedPeriodValue>("all");
+  const [filters, setFilters] = useFeedUrl("rating");
+  const kind = filters.kind;
+  const sort = filters.sort;
+  const period = filters.period;
+  const [error, setError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
   const [counts, setCounts] = useState<FeedKindCounts>({});
   const [nextFriends, setNextFriends] = useState<number | null>(null);
   const [nextCommunity, setNextCommunity] = useState<number | null>(null);
@@ -53,6 +59,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(null);
     setFriends([]);
     setCommunity([]);
     setNextFriends(null);
@@ -71,13 +78,16 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
           variant === "community" ? communityResponse.counts : friendResponse.counts,
         );
       })
+      .catch((cause) => {
+        if (!cancelled) setError(describeError(cause, i18n).text);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [kind, sort, period, variant]);
+  }, [kind, sort, period, variant, reload, i18n]);
 
   const visibleFriends = friends.filter(
     (item) => !hidden.has(publicRecommendationKey(item.author_id, item.id)),
@@ -124,17 +134,23 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         {isCommunity ? t("recommendations.generalSubtitle") : t("recommendations.subtitle")}
       </p>
       <div className="feed-kind-row">
-        <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
+        <FeedKindFilter counts={counts} onChange={(value) => setFilters({ kind: value })} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={changeView} value={view} />
-        <FeedSort onChange={setSort} value={sort} />
-        <FeedPeriod onChange={setPeriod} value={period} />
+        <FeedSort onChange={(value) => setFilters({ sort: value })} value={sort} />
+        <FeedPeriod onChange={(value) => setFilters({ period: value })} value={period} />
       </div>
 
       {isCommunity ? (
         <Card title={t("recommendations.generalTitle")}>
-          {!loading && visibleCommunity.length === 0 ? (
+          {error ? (
+            <EmptyState
+              action={<Button onClick={() => setReload((value) => value + 1)} variant="secondary">{t("items.retry")}</Button>}
+              text={error}
+              title={t("items.errorTitle")}
+            />
+          ) : !loading && visibleCommunity.length === 0 ? (
             <EmptyState
               actionHref="/people"
               actionLabel={t("recommendations.findPeople")}
@@ -208,7 +224,13 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         </Card>
       ) : (
         <Card title={t("recommendations.friendsTitle")}>
-          {!loading && visibleFriends.length === 0 ? (
+          {error ? (
+            <EmptyState
+              action={<Button onClick={() => setReload((value) => value + 1)} variant="secondary">{t("items.retry")}</Button>}
+              text={error}
+              title={t("items.errorTitle")}
+            />
+          ) : !loading && visibleFriends.length === 0 ? (
             <EmptyState
               actionHref="/people"
               actionLabel={t("recommendations.findPeople")}

@@ -20,6 +20,7 @@ import { FeedCardHeader } from "@/components/social/feed-card-header";
 import { FeedLoadMore } from "@/components/feed-load-more";
 import { ViewSwitch, type ViewMode } from "@/components/view-switch";
 import { readViewPreference, saveViewPreference } from "@/lib/view-preference";
+import { useFeedUrl } from "@/lib/use-feed-url";
 import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
@@ -39,9 +40,10 @@ export function FeedScreen() {
     setView(value);
     saveViewPreference("jey:view:feed", value);
   }
-  const [kind, setKind] = useState<ItemKind | null>(null);
-  const [sort, setSort] = useState<FeedSortValue>("new");
-  const [period, setPeriod] = useState<FeedPeriodValue>("all");
+  const [filters, setFilters] = useFeedUrl("new");
+  const kind = filters.kind;
+  const sort = filters.sort;
+  const period = filters.period;
   const [counts, setCounts] = useState<FeedKindCounts>({});
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -99,12 +101,12 @@ export function FeedScreen() {
       <FeedTabs />
       <p className="tabs-subtitle">{t("feed.subtitle")}</p>
       <div className="feed-kind-row">
-        <FeedKindFilter counts={counts} onChange={setKind} value={kind} />
+        <FeedKindFilter counts={counts} onChange={(value) => setFilters({ kind: value })} value={kind} />
       </div>
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={changeView} value={view} />
-        <FeedSort includePopular={false} onChange={setSort} value={sort} />
-        <FeedPeriod onChange={setPeriod} value={period} />
+        <FeedSort includePopular={false} onChange={(value) => setFilters({ sort: value })} value={sort} />
+        <FeedPeriod onChange={(value) => setFilters({ period: value })} value={period} />
       </div>
       <Card>
         {loading ? (
