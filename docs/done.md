@@ -43,6 +43,12 @@
 - существующие focus-visible/reduced-motion проверены.
 
 
+## CI fix · System libraries
+
+CI quality gate теперь устанавливает Wayland/GTK/WebKit dev-пакеты перед
+`cargo clippy --workspace`; ошибка `wayland-client.pc` больше не должна
+повторяться.
+
 ## T173 · Frontend tests `[x]`
 
 - Playwright не заменяет компонентные тесты;
