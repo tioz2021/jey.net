@@ -37,19 +37,61 @@ export function CoverPicker({
   const [error, setError] = useState<string | null>(null);
   const [broken, setBroken] = useState(false);
 
-  async function thumbnail(file: File): Promise<string | null> {
+  function drawThumbnail(
+    draw: (context: CanvasRenderingContext2D, width: number, height: number) => void,
+    width: number,
+    height: number,
+  ): string | null {
     try {
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, 240 / Math.max(bitmap.width, bitmap.height));
+      const scale = Math.min(1, 240 / Math.max(width, height));
       const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-      canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      bitmap.close();
+      canvas.width = Math.max(1, Math.round(width * scale));
+      canvas.height = Math.max(1, Math.round(height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) return null;
+      draw(context, canvas.width, canvas.height);
       return canvas.toDataURL("image/jpeg", 0.72);
     } catch {
       return null;
     }
+  }
+
+  async function thumbnail(file: File): Promise<string | null> {
+    // WebKitGTK versions without createImageBitmap still need a draft preview.
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const result = drawThumbnail(
+          (context, width, height) => context.drawImage(bitmap, 0, 0, width, height),
+          bitmap.width,
+          bitmap.height,
+        );
+        bitmap.close();
+        if (result) return result;
+      } catch {
+        // Fall through to the FileReader path.
+      }
+    }
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onerror = () => resolve(null);
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => resolve(null);
+        image.onload = () => {
+          resolve(
+            drawThumbnail(
+              (context, width, height) => context.drawImage(image, 0, 0, width, height),
+              image.naturalWidth,
+              image.naturalHeight,
+            ),
+          );
+        };
+        image.src = String(reader.result);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
