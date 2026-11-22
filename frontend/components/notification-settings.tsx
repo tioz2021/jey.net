@@ -25,6 +25,7 @@ export function NotificationSettings() {
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [tested, setTested] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +39,17 @@ export function NotificationSettings() {
       cancelled = true;
     };
   }, []);
+
+  async function testSound() {
+    if (testing) return;
+    setTesting(true);
+    try {
+      await playNotificationSound();
+      setTested(true);
+    } finally {
+      setTesting(false);
+    }
+  }
 
   async function toggle(key: keyof NotificationPreferences) {
     if (!prefs || busy) return;
@@ -60,9 +72,8 @@ export function NotificationSettings() {
     <Card title={t("settings.notificationsTitle")}>
       <p className={styles.hint}>{t("settings.notificationsHint")}</p>
       <Button
-        onClick={() => {
-          void playNotificationSound().then(() => setTested(true));
-        }}
+        loading={testing}
+        onClick={() => void testSound()}
         size="sm"
         variant="secondary"
       >

@@ -8,7 +8,7 @@ function audioContext(): AudioContext | null {
     window.AudioContext ??
     (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Audio) return null;
-  context ??= new Audio();
+  context ??= new AudioContext();
   return context;
 }
 
@@ -20,22 +20,39 @@ export function unlockNotificationSound(): void {
   }
 }
 
+const PLAY_TIMEOUT_MS = 700;
+
+async function within<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("audio timeout")), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /** Plays a tiny WAV first, then falls back to a Web Audio tone. */
 export async function playNotificationSound(): Promise<void> {
   try {
     player ??= new Audio("/notification.wav");
     player.currentTime = 0;
     player.volume = 0.8;
-    await player.play();
+    await within(player.play(), PLAY_TIMEOUT_MS);
     return;
   } catch {
-    // Fall through: some browsers only allow the Web Audio path.
+    // A broken/missing audio backend may never resolve play(); fall through.
+    player?.pause();
   }
 
   const audio = audioContext();
   if (!audio) return;
   try {
-    if (audio.state === "suspended") await audio.resume();
+    if (audio.state === "suspended") await within(audio.resume(), PLAY_TIMEOUT_MS);
   } catch {
     return;
   }
