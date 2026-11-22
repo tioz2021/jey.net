@@ -549,12 +549,7 @@ export function ItemForm({
           {errors.form}
         </p>
       ) : null}
-      {lockKind && !showExtra ? null : (
-      <div
-        className={`${styles.row} ${
-          showExtra || lockKind ? "" : styles.single
-        }`}
-      >
+      <div className={`${styles.row} ${lockKind ? styles.single : ""}`}>
         {lockKind ? null : (
           <Select
             label={t("form.kind")}
@@ -569,23 +564,20 @@ export function ItemForm({
           </Select>
         )}
 
-        {showExtra ? (
-          <Select
-            label={t("form.status")}
-            value={values.status}
-            onChange={(event) =>
-              update("status", event.target.value as ItemStatus)
-            }
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {t(statusKey(values.kind, status))}
-              </option>
-            ))}
-          </Select>
-        ) : null}
+        <Select
+          label={t("form.status")}
+          value={values.status}
+          onChange={(event) =>
+            update("status", event.target.value as ItemStatus)
+          }
+        >
+          {statuses.map((status) => (
+            <option key={status} value={status}>
+              {t(statusKey(values.kind, status))}
+            </option>
+          ))}
+        </Select>
       </div>
-      )}
 
       {values.kind === "movie" || values.kind === "tv" ? (
         <MovieSearch

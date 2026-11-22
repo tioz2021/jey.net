@@ -8,6 +8,8 @@ test("a record can be added from the notebook", async ({ context, page, request 
   const title = unique("E2E record");
 
   await page.goto("/items/new");
+  await expect(page.getByRole("combobox", { name: "Статус" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Назад/ })).toBeVisible();
   await page.getByRole("button", { name: "Дополнительные настройки" }).click();
   await page.getByLabel("Название").fill(title);
   await page.getByRole("button", { name: "Сохранить" }).click();

@@ -73,8 +73,8 @@ export function StarRating({
           </label>
         ))}
 
-        <span className={styles.value}>
-          {selected > 0 ? t("item.ratingOf", { rating: selected }) : "—"}
+        <span aria-live="polite" className={styles.value}>
+          {shown > 0 ? t("item.ratingOf", { rating: shown }) : "—"}
         </span>
       </div>
 
