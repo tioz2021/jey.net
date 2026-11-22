@@ -59,12 +59,15 @@ export function NotificationsScreen() {
           schedule();
         }
       });
+    const onNotification = () => void refresh();
     window.addEventListener("focus", onVisibility);
+    window.addEventListener("jey:notification", onNotification);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
       window.removeEventListener("focus", onVisibility);
+      window.removeEventListener("jey:notification", onNotification);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

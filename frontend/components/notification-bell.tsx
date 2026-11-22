@@ -134,6 +134,16 @@ export function NotificationBell() {
     };
     const onRead = () => void load();
     const onChatUpdated = () => void load();
+    const onNotification = () => {
+      window.dispatchEvent(new Event("jey:notification"));
+      void load();
+    };
+    // Live signal; the interval below remains the fallback if SSE is blocked.
+    const source = typeof EventSource === "undefined"
+      ? null
+      : new EventSource("/api/v1/notifications/stream");
+    source?.addEventListener("notification", onNotification);
+    source?.addEventListener("resync", onNotification);
     const onWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === "jey:notification") void load();
     };
@@ -151,6 +161,7 @@ export function NotificationBell() {
       stopBlink();
       document.title = baseTitle;
       updateFavicon(0);
+      source?.close();
       window.removeEventListener("jey:notifications-read", onRead);
       window.removeEventListener("jey:chat-updated", onChatUpdated);
       window.removeEventListener("focus", onVisibility);

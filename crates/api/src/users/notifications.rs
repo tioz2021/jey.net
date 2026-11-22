@@ -5,11 +5,39 @@ use axum::extract::{Path, State};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use tokio::sync::broadcast;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+
+/// In-process fan-out for the authenticated SSE notification stream.
+#[derive(Clone)]
+pub struct NotificationEvents {
+    tx: broadcast::Sender<Uuid>,
+}
+
+impl NotificationEvents {
+    pub fn new() -> Self {
+        let (tx, _) = broadcast::channel(256);
+        Self { tx }
+    }
+
+    pub fn subscribe(&self) -> broadcast::Receiver<Uuid> {
+        self.tx.subscribe()
+    }
+
+    pub(crate) fn publish(&self, user_id: Uuid) {
+        let _ = self.tx.send(user_id);
+    }
+}
+
+impl Default for NotificationEvents {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Debug, serde::Serialize)]
 pub struct NotificationPreferences {
@@ -132,6 +160,7 @@ pub async fn notify_new_item(
     .await
     .unwrap_or_default();
     for recipient in recipients {
+        state.notifications.publish(recipient);
         crate::push::send_to_user(
             state,
             recipient,
@@ -232,6 +261,7 @@ pub async fn notify_social(
     .await
     .is_ok();
     if inserted {
+        state.notifications.publish(target_id);
         crate::push::send_to_user(state, target_id, "Новое уведомление", push_body, url).await;
     }
 }
@@ -266,8 +296,46 @@ pub async fn notify_report(
     .await
     .is_ok();
     if inserted {
+        state.notifications.publish(reporter_id);
         crate::push::send_to_user(state, reporter_id, "Жалоба обработана", body, "/").await;
     }
+}
+
+/// `GET /api/v1/notifications/stream` — SSE signal for the current account.
+pub async fn stream(
+    State(state): State<AppState>,
+    current: CurrentUser,
+) -> axum::response::sse::Sse<
+    impl futures_util::Stream<Item = Result<axum::response::sse::Event, std::convert::Infallible>>,
+> {
+    use std::convert::Infallible;
+    use tokio::sync::broadcast::error::RecvError;
+
+    let mut rx = state.notifications.subscribe();
+    let user_id = current.user.id;
+    let stream = async_stream::stream! {
+        loop {
+            match rx.recv().await {
+                Ok(target) if target == user_id => {
+                    yield Ok::<_, Infallible>(
+                        axum::response::sse::Event::default().event("notification").data("{}"),
+                    );
+                }
+                Ok(_) => {}
+                Err(RecvError::Lagged(_)) => {
+                    yield Ok(axum::response::sse::Event::default()
+                        .event("resync")
+                        .data("{}"));
+                }
+                Err(RecvError::Closed) => break,
+            }
+        }
+    };
+    axum::response::sse::Sse::new(stream).keep_alive(
+        axum::response::sse::KeepAlive::new()
+            .interval(std::time::Duration::from_secs(15))
+            .text("keep-alive"),
+    )
 }
 
 /// `GET /api/v1/notifications`

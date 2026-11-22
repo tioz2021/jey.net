@@ -124,6 +124,9 @@ impl TestClient {
                 jey_api::recommendations::RecommendationCache::new(),
             ),
             chat: std::sync::Arc::new(jey_api::chat::ChatEvents::new()),
+            notifications: std::sync::Arc::new(
+                jey_api::users::notifications::NotificationEvents::new(),
+            ),
         };
 
         // Every test gets its own client address so rate-limit counters of one

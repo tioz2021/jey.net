@@ -134,11 +134,13 @@ export function FeedScreen() {
 
     schedule();
     window.addEventListener("focus", onVisibility);
+    window.addEventListener("jey:notification", onVisibility);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
       window.removeEventListener("focus", onVisibility);
+      window.removeEventListener("jey:notification", onVisibility);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [kind, sort, period, loading, refreshing, loadingMore]);

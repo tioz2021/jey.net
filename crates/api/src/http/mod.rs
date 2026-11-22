@@ -68,6 +68,7 @@ pub struct AppState {
     pub books: Arc<crate::books::BookClient>,
     pub recommendations: Arc<crate::recommendations::RecommendationCache>,
     pub chat: Arc<crate::chat::ChatEvents>,
+    pub notifications: Arc<crate::users::notifications::NotificationEvents>,
 }
 
 /// Builds the full application router.
@@ -345,6 +346,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
             post(crate::comments::toggle_reaction).put(crate::comments::set_reaction),
         )
         .route("/notifications", get(crate::users::notifications::list))
+        .route(
+            "/notifications/stream",
+            get(crate::users::notifications::stream),
+        )
         .route(
             "/push/subscribe",
             post(crate::push::subscribe).delete(crate::push::unsubscribe),

@@ -93,6 +93,7 @@ pub async fn follow(
         .execute(&state.pool)
         .await
         .map_err(AppError::internal)?;
+        state.notifications.publish(target);
         crate::push::send_to_user(
             &state,
             target,
