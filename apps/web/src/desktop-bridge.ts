@@ -224,6 +224,20 @@ export function installDesktopBridge() {
     if (tierItem && (method === "PUT" || method === "DELETE")) {
       try { return await remote(method, path, body); }
       catch {
+        const detailKey = `/api/v1/tier-lists/${tierItem[1]}`;
+        const detail = await cacheValue(detailKey);
+        if (detail && Array.isArray(detail.items)) {
+          if (method === "PUT") {
+            detail.items = detail.items.map((item: any) =>
+              item.id === tierItem[2]
+                ? { ...item, tier: body?.tier ?? item.tier, position: body?.position ?? item.position }
+                : item,
+            );
+          } else {
+            detail.items = detail.items.filter((item: any) => item.id !== tierItem[2]);
+          }
+          await putCache(detailKey, detail);
+        }
         await enqueueSocial(method, path, body);
         return method === "PUT" ? json({ ok: true, tier: body?.tier ?? "S" }) : new Response(null, { status: 204 });
       }
