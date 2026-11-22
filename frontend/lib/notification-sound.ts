@@ -14,6 +14,9 @@ function audioContext(): AudioContext | null {
 
 /** Must be called from a real click/keypress before autoplay is allowed. */
 export function unlockNotificationSound(): void {
+  // WebKitGTK can block while creating an AudioContext when the sound server
+  // is unavailable; desktop only needs the WAV element.
+  if (typeof window !== "undefined" && "__TAURI__" in window) return;
   const audio = audioContext();
   if (audio && audio.state === "suspended") {
     void audio.resume();
@@ -47,6 +50,7 @@ export async function playNotificationSound(): Promise<void> {
   } catch {
     // A broken/missing audio backend may never resolve play(); fall through.
     player?.pause();
+    if (typeof window !== "undefined" && "__TAURI__" in window) return;
   }
 
   const audio = audioContext();

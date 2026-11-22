@@ -58,4 +58,25 @@ describe("notification sound", () => {
     await playNotificationSound();
     expect(oscillators).toHaveLength(2);
   });
+
+  it("never creates Web Audio inside the desktop shell", async () => {
+    vi.stubGlobal("__TAURI__", {});
+    const Context = vi.fn(() => {
+      throw new Error("AudioContext must not run in desktop");
+    });
+    vi.stubGlobal("AudioContext", Context);
+    vi.stubGlobal(
+      "Audio",
+      class {
+        currentTime = 0;
+        volume = 0;
+        play = vi.fn().mockRejectedValue(new Error("no audio backend"));
+        pause = vi.fn();
+      },
+    );
+
+    const { playNotificationSound } = await import("./notification-sound");
+    await playNotificationSound();
+    expect(Context).not.toHaveBeenCalled();
+  });
 });

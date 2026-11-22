@@ -44,7 +44,10 @@ export function NotificationSettings() {
     if (testing) return;
     setTesting(true);
     try {
-      await playNotificationSound();
+      await Promise.race([
+        playNotificationSound(),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 1200)),
+      ]);
       setTested(true);
     } finally {
       setTesting(false);
