@@ -163,6 +163,8 @@ export const uk = {
   "recommendations.notInterested": "Не цікаво",
   "recommendations.title": "Рекомендації",
   "recommendations.kindEmpty": "У цій категорії поки нічого немає",
+  "recommendations.showAllReviews": "Показати всі {count} рецензії",
+  "recommendations.showLess": "Згорнути",
   "recommendations.friendsTitle": "Рекомендації друзів",
   "recommendations.emptyTitle": "Поки немає рекомендацій",
   "recommendations.emptyText": "Підпишіться на людей із публічними оцінками.",

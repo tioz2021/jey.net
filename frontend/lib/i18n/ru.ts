@@ -162,6 +162,8 @@ export const ru = {
   "recommendations.notInterested": "Не интересно",
   "recommendations.title": "Рекомендации",
   "recommendations.kindEmpty": "В этой категории пока ничего нет",
+  "recommendations.showAllReviews": "Показать все {count} рецензии",
+  "recommendations.showLess": "Свернуть",
   "recommendations.friendsTitle": "Рекомендации друзей",
   "recommendations.emptyTitle": "Пока нет рекомендаций",
   "recommendations.emptyText": "Подпишитесь на людей с публичными оценками.",

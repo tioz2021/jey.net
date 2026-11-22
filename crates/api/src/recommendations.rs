@@ -545,7 +545,20 @@ pub async fn friends(
                     'name', display_name, 'handle', handle
                 )) as friend_people,
                 count(distinct user_id) as friend_count,
-                round(avg(rating)::numeric, 1) as average_rating
+                round(avg(rating)::numeric, 1) as average_rating,
+                coalesce(
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'author_name', display_name,
+                            'author_handle', handle,
+                            'rating', rating,
+                            'review', review,
+                            'updated_at', updated_at
+                        )
+                        order by updated_at desc
+                    ) filter (where review is not null and btrim(review) <> ''),
+                    '[]'::jsonb
+                ) as reviews
             from candidates
             group by coalesce(external_source || ':' || external_id, lower(title))
          )
@@ -557,7 +570,8 @@ pub async fn friends(
             'external_source', external_source, 'external_id', external_id,
             'details', details, 'updated_at', updated_at,
             'friends', friends, 'friend_people', friend_people,
-            'friend_count', friend_count, 'average_rating', average_rating
+            'friend_count', friend_count, 'average_rating', average_rating,
+            'reviews', reviews
          )
          from grouped
          order by {order}

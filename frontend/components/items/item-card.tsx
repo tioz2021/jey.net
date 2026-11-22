@@ -106,6 +106,7 @@ export function ItemCard({
   hideRating = false,
   hideReview = false,
   hideActionDate = false,
+  extras,
   onOpen,
   coverSrc,
 }: {
@@ -121,6 +122,7 @@ export function ItemCard({
   hideRating?: boolean;
   hideReview?: boolean;
   hideActionDate?: boolean;
+  extras?: React.ReactNode;
   /** Desktop opens a local detail view instead of following a web route. */
   onOpen?: () => void;
   /** Explicit image source for clients with a local media cache. */
@@ -291,6 +293,8 @@ export function ItemCard({
         ) : null}
 
         {item.review && !hideReview ? <p className={styles.review}>{item.review}</p> : null}
+
+        {extras ? <div className={styles.cardExtras}>{extras}</div> : null}
 
         {item.deleted_at ? (
           <div className={styles.deleted}>

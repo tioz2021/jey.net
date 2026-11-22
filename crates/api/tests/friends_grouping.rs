@@ -23,11 +23,17 @@ async fn account(name: &str) -> (TestClient, String, String, String) {
     (client, email, cookie, id)
 }
 
-async fn rated_item(client: &TestClient, cookie: &str, title: &str, rating: u8) {
+async fn rated_item(client: &TestClient, cookie: &str, title: &str, rating: u8, review: &str) {
     let response = client
         .post_with_cookie(
             "/api/v1/items",
-            json!({ "kind": "movie", "title": title, "status": "done", "rating": rating }),
+            json!({
+                "kind": "movie",
+                "title": title,
+                "status": "done",
+                "rating": rating,
+                "review": review
+            }),
             cookie,
         )
         .await;
@@ -48,8 +54,8 @@ async fn friends_group_the_same_record() {
     }
 
     let title = format!("Grouped Movie {}", Uuid::new_v4());
-    rated_item(&alice, &alice_cookie, &title, 9).await;
-    rated_item(&bob, &bob_cookie, &title, 10).await;
+    rated_item(&alice, &alice_cookie, &title, 9, "Alice review").await;
+    rated_item(&bob, &bob_cookie, &title, 10, "Bob review").await;
 
     let response = viewer
         .get(
@@ -69,6 +75,18 @@ async fn friends_group_the_same_record() {
     let people = card["friend_people"].as_array().unwrap();
     assert!(people.iter().any(|person| person["name"] == "Group Alice"));
     assert!(people.iter().any(|person| person["name"] == "Group Bob"));
+    let reviews = card["reviews"].as_array().unwrap();
+    assert_eq!(reviews.len(), 2);
+    assert!(
+        reviews
+            .iter()
+            .any(|review| review["review"] == "Alice review")
+    );
+    assert!(
+        reviews
+            .iter()
+            .any(|review| review["review"] == "Bob review")
+    );
 
     viewer.cleanup(&viewer_email).await;
     alice.cleanup(&alice_email).await;

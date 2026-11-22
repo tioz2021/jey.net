@@ -408,6 +408,14 @@ export interface SimilarItem {
   href: string;
 }
 
+export interface FriendReview {
+  author_name: string;
+  author_handle: string;
+  rating: number;
+  review: string;
+  updated_at: string;
+}
+
 export interface FriendRecommendation extends PublicItem {
   author_id: string;
   author_handle: string;
@@ -415,6 +423,7 @@ export interface FriendRecommendation extends PublicItem {
   friend_people?: Array<{ name: string; handle: string }>;
   friend_count: number;
   average_rating: number;
+  reviews?: FriendReview[];
 }
 
 export interface CommunityRecommendation extends PublicItem {

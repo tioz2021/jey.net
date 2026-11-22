@@ -8,6 +8,7 @@ import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";
 import { FeedPeriod, type FeedPeriodValue } from "@/components/social/feed-period";
 import { FeedItemActions } from "@/components/social/feed-item-actions";
+import { RecommendationReviews } from "@/components/social/recommendation-reviews";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
 import { FeedLoadMore } from "@/components/feed-load-more";
 import { ItemCard } from "@/components/items/item-card";
@@ -232,7 +233,12 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                           : ""}
                       </FeedCardHeader>
                     }
+                    extras={
+                      item.reviews?.length ? <RecommendationReviews reviews={item.reviews} /> : undefined
+                    }
                     hideActionDate
+                    hideRating={item.friend_count > 1}
+                    hideReview
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}

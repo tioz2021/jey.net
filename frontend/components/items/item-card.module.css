@@ -262,6 +262,12 @@
 }
 
 
+.cardExtras {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
 .cardFooter {
   position: relative;
   z-index: 2;

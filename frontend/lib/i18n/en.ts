@@ -163,6 +163,8 @@ export const en = {
   "recommendations.notInterested": "Not interested",
   "recommendations.title": "Recommendations",
   "recommendations.kindEmpty": "Nothing in this category yet",
+  "recommendations.showAllReviews": "Show all {count} reviews",
+  "recommendations.showLess": "Show less",
   "recommendations.friendsTitle": "Friends picks",
   "recommendations.emptyTitle": "No recommendations yet",
   "recommendations.emptyText": "Follow people with public ratings.",
