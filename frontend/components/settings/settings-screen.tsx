@@ -9,6 +9,7 @@ import { ChatPrivacySettings } from "@/components/chat/privacy-settings";
 import { ChatCryptoSettings } from "@/components/chat/crypto-settings";
 import { DesktopStorage } from "./desktop-storage";
 import { DesktopAbout } from "./desktop-about";
+import { DesktopGraphics } from "./desktop-graphics";
 import { NotificationSettings } from "@/components/notification-settings";
 import { PushSettings } from "@/components/push-settings";
 import { ShareProfile } from "@/components/share-profile";
@@ -38,6 +39,7 @@ export function SettingsScreen() {
         <ChatPrivacySettings />
         <ChatCryptoSettings />
         <DesktopStorage />
+        <DesktopGraphics />
         <DesktopAbout />
         <NotificationSettings />
         <PushSettings />

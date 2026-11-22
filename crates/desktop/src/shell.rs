@@ -62,13 +62,57 @@ fn configured_data_dir(default_dir: &Path) -> Option<PathBuf> {
     path.is_dir().then_some(path)
 }
 
-fn save_data_dir(default_dir: &Path, path: &Path) -> Result<(), String> {
+fn storage_config(default_dir: &Path) -> Value {
+    std::fs::read_to_string(storage_config_path(default_dir))
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+        .unwrap_or_else(|| json!({}))
+}
+
+fn write_storage_config(default_dir: &Path, value: &Value) -> Result<(), String> {
     std::fs::create_dir_all(default_dir).map_err(|error| error.to_string())?;
-    std::fs::write(
-        storage_config_path(default_dir),
-        json!({ "data_dir": path }).to_string(),
-    )
-    .map_err(|error| error.to_string())
+    std::fs::write(storage_config_path(default_dir), value.to_string())
+        .map_err(|error| error.to_string())
+}
+
+fn gpu_acceleration_enabled(default_dir: &Path) -> bool {
+    storage_config(default_dir)
+        .get("gpu_acceleration")
+        .and_then(Value::as_bool)
+        .unwrap_or(true)
+}
+
+fn save_data_dir(default_dir: &Path, path: &Path) -> Result<(), String> {
+    let mut value = storage_config(default_dir);
+    value["data_dir"] = json!(path);
+    write_storage_config(default_dir, &value)
+}
+
+fn apply_gpu_setting(app: &tauri::App, enabled: bool) {
+    #[cfg(target_os = "linux")]
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.with_webview(move |webview| {
+            use webkit2gtk::{SettingsExt, WebViewExt};
+            let policy = if enabled {
+                webkit2gtk::HardwareAccelerationPolicy::OnDemand
+            } else {
+                webkit2gtk::HardwareAccelerationPolicy::Never
+            };
+            if let Some(settings) = webview.inner().settings() {
+                settings.set_hardware_acceleration_policy(policy);
+            }
+        });
+    }
+    #[cfg(target_os = "windows")]
+    if !enabled {
+        // WebView2 reads this before creating its renderer. The setting takes
+        // effect after the restart requested by the UI.
+        // SAFETY: this is set during single-threaded app setup.
+        unsafe {
+            std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
+        }
+    }
+    let _ = (app, enabled);
 }
 
 #[tauri::command]
@@ -85,6 +129,25 @@ fn local_open_external(url: String) -> Result<(), String> {
 fn local_storage_info(state: State<'_, DesktopState>) -> Result<Value, String> {
     let current = state.store.path().parent().unwrap_or(Path::new("."));
     Ok(json!({ "data_dir": current, "default_dir": state.default_dir }))
+}
+
+#[tauri::command]
+fn local_gpu_info(state: State<'_, DesktopState>) -> Result<Value, String> {
+    Ok(json!({
+        "enabled": gpu_acceleration_enabled(&state.default_dir),
+        "restart_required": false,
+    }))
+}
+
+#[tauri::command]
+fn local_set_gpu_acceleration(
+    state: State<'_, DesktopState>,
+    enabled: bool,
+) -> Result<Value, String> {
+    let mut value = storage_config(&state.default_dir);
+    value["gpu_acceleration"] = json!(enabled);
+    write_storage_config(&state.default_dir, &value)?;
+    Ok(json!({ "enabled": enabled, "restart_required": true }))
 }
 
 #[tauri::command]
@@ -112,8 +175,11 @@ fn local_choose_data_dir(state: State<'_, DesktopState>) -> Result<Value, String
 
 #[tauri::command]
 fn local_use_default_data_dir(state: State<'_, DesktopState>) -> Result<(), String> {
-    let _ = std::fs::remove_file(storage_config_path(&state.default_dir));
-    Ok(())
+    let mut value = storage_config(&state.default_dir);
+    if let Some(object) = value.as_object_mut() {
+        object.remove("data_dir");
+    }
+    write_storage_config(&state.default_dir, &value)
 }
 
 fn current_user(state: &DesktopState) -> Result<uuid::Uuid, String> {
@@ -1186,6 +1252,7 @@ pub fn run() {
             let data_dir = configured_data_dir(&default_dir).unwrap_or_else(|| default_dir.clone());
             let store = DesktopStore::open(&data_dir)
                 .map_err(|error| format!("local database: {error}"))?;
+            apply_gpu_setting(app, gpu_acceleration_enabled(&default_dir));
             app.manage(DesktopState {
                 default_dir,
                 access: AccessStore::new(data_dir.clone()),
@@ -1205,6 +1272,8 @@ pub fn run() {
             local_db_status,
             local_open_external,
             local_storage_info,
+            local_gpu_info,
+            local_set_gpu_acceleration,
             local_choose_data_dir,
             local_use_default_data_dir,
             local_list_items,

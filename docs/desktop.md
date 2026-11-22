@@ -223,3 +223,32 @@ Windows и Linux собираются из одного кода, но отде�
 - Без шифрования локальной БД в 0.3.
 - Офлайн-вход: вариант A, первый вход онлайн, затем сохранённая сессия.
 - Один аккаунт — одна библиотека на всех своих устройствах.
+
+## Аппаратное ускорение
+
+В **Настройки → Локальные данные** есть переключатель «Аппаратное ускорение».
+Он включён по умолчанию и применяется только после перезапуска приложения.
+
+На Linux используется WebKitGTK:
+
+- включено — `HardwareAccelerationPolicy::OnDemand`;
+- выключено — `HardwareAccelerationPolicy::Never`, интерфейс рисуется без GPU.
+
+Настройка хранится в `storage.json` рядом с базой. Если WebKitGTK всё равно
+уходит в software rendering, это ограничение драйвера/WebKit, а не React.
+Диагностика:
+
+```bash
+echo "$XDG_SESSION_TYPE"
+glxinfo -B
+```
+
+Проверить поведение можно временными переменными:
+
+```bash
+WEBKIT_DISABLE_DMABUF_RENDERER=1 ./target/release/jey-desktop
+WEBKIT_DISABLE_COMPOSITING_MODE=1 ./target/release/jey-desktop
+```
+
+Замер FPS нужно делать на машине с рабочим GPU: в headless-среде без DRI
+WebKit создаёт software context, поэтому цифры не показательны.
