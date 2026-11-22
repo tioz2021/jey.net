@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLink } from "@/lib/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { ItemCard } from "@/components/items/item-card";
@@ -30,6 +30,8 @@ export function FeedScreen() {
   const { t } = i18n;
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<ViewMode>(() =>
@@ -51,10 +53,12 @@ export function FeedScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const firstLoad = !loadedOnce.current;
+    setLoading(firstLoad);
+    setRefreshing(!firstLoad);
     setError(null);
     setNextOffset(null);
-    setItems([]);
+    if (firstLoad) setItems([]);
     setNewSince(feedSeenCutoff());
     api.feed
       .get(kind, sort, period, 0)
@@ -70,7 +74,11 @@ export function FeedScreen() {
         if (!cancelled) setError(describeError(cause, i18n).text);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setRefreshing(false);
+          loadedOnce.current = true;
+        }
       });
     return () => {
       cancelled = true;
@@ -78,7 +86,7 @@ export function FeedScreen() {
   }, [reload, i18n, kind, sort, period]);
 
   async function loadMore() {
-    if (nextOffset === null || loadingMore) return;
+    if (nextOffset === null || loadingMore || refreshing) return;
     setLoadingMore(true);
     try {
       const response = await api.feed.get(kind, sort, period, nextOffset);
@@ -107,6 +115,7 @@ export function FeedScreen() {
         <ViewSwitch onChange={changeView} value={view} />
         <FeedSort includePopular={false} onChange={(value) => setFilters({ sort: value })} value={sort} />
         <FeedPeriod onChange={(value) => setFilters({ period: value })} value={period} />
+        {refreshing ? <span aria-live="polite" className="feed-updating">{t("feed.updating")}</span> : null}
       </div>
       <Card>
         {loading ? (
@@ -158,7 +167,7 @@ export function FeedScreen() {
           </ul>
         )}
         <FeedLoadMore
-          hasMore={nextOffset !== null}
+          hasMore={nextOffset !== null && !refreshing}
           loading={loadingMore}
           onLoad={() => void loadMore()}
         />

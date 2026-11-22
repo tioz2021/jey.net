@@ -512,6 +512,20 @@ button:not(:disabled):active {
   width: 145px;
 }
 
+.feed-updating {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  opacity: 0;
+  animation: feed-updating-in var(--duration-fast) var(--ease-out) 150ms forwards;
+}
+
+@keyframes feed-updating-in {
+  to {
+    opacity: 1;
+  }
+}
+
 .feed-load-more {
   display: flex;
   justify-content: center;

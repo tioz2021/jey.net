@@ -174,6 +174,7 @@ export const ru = {
   "recommendations.feedLink": "Смотреть ленту",
   "nav.feed": "Лента",
   "feed.new": "Новые записи: {count}",
+  "feed.updating": "Обновляем…",
   "feed.newSince": "Новые с прошлого визита",
   "feed.loadingMore": "Загрузка…",
   "feed.loadMore": "Показать ещё",

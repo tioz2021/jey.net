@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { FeedTabs } from "@/components/feed-tabs";
@@ -36,6 +36,8 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
   const [friends, setFriends] = useState<FriendRecommendation[]>([]);
   const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [view, setView] = useState<ViewMode>(() =>
     readViewPreference("jey:view:feed", "list"),
   );
@@ -58,10 +60,14 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const firstLoad = !loadedOnce.current;
+    setLoading(firstLoad);
+    setRefreshing(!firstLoad);
     setError(null);
-    setFriends([]);
-    setCommunity([]);
+    if (firstLoad) {
+      setFriends([]);
+      setCommunity([]);
+    }
     setNextFriends(null);
     setNextCommunity(null);
     Promise.all([
@@ -82,7 +88,11 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         if (!cancelled) setError(describeError(cause, i18n).text);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setRefreshing(false);
+          loadedOnce.current = true;
+        }
       });
     return () => {
       cancelled = true;
@@ -108,7 +118,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
 
   async function loadMore() {
     const next = isCommunity ? nextCommunity : nextFriends;
-    if (next === null || loadingMore) return;
+    if (next === null || loadingMore || refreshing) return;
     setLoadingMore(true);
     try {
       if (isCommunity) {
@@ -140,6 +150,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         <ViewSwitch onChange={changeView} value={view} />
         <FeedSort onChange={(value) => setFilters({ sort: value })} value={sort} />
         <FeedPeriod onChange={(value) => setFilters({ period: value })} value={period} />
+        {refreshing ? <span aria-live="polite" className="feed-updating">{t("feed.updating")}</span> : null}
       </div>
 
       {isCommunity ? (
@@ -217,7 +228,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             </p>
           ) : null}
           <FeedLoadMore
-            hasMore={nextCommunity !== null}
+            hasMore={nextCommunity !== null && !refreshing}
             loading={loadingMore}
             onLoad={() => void loadMore()}
           />
@@ -286,7 +297,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
             </p>
           ) : null}
           <FeedLoadMore
-            hasMore={nextFriends !== null}
+            hasMore={nextFriends !== null && !refreshing}
             loading={loadingMore}
             onLoad={() => void loadMore()}
           />

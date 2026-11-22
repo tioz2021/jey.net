@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { EmptyState } from "@/components/empty-state";
 import { FeedCardHeader } from "@/components/social/feed-card-header";
@@ -34,14 +34,18 @@ export function LikedScreen() {
     readViewPreference("jey:view:liked", "list"),
   );
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const loadedOnce = useRef(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const firstLoad = !loadedOnce.current;
+    setLoading(firstLoad);
+    setRefreshing(!firstLoad);
     setError(null);
-    setItems([]);
+    if (firstLoad) setItems([]);
     setNextOffset(null);
     api.liked
       .list(kind, 0)
@@ -54,7 +58,11 @@ export function LikedScreen() {
         if (!cancelled) setError(describeError(cause, i18n).text);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setRefreshing(false);
+          loadedOnce.current = true;
+        }
       });
     return () => {
       cancelled = true;
@@ -67,7 +75,7 @@ export function LikedScreen() {
   }
 
   async function loadMore() {
-    if (nextOffset === null || loadingMore) return;
+    if (nextOffset === null || loadingMore || refreshing) return;
     setLoadingMore(true);
     try {
       const response = await api.liked.list(kind, nextOffset);
@@ -87,6 +95,7 @@ export function LikedScreen() {
       </div>
       <div className="section-toolbar feed-controls">
         <ViewSwitch onChange={changeView} value={view} />
+        {refreshing ? <span aria-live="polite" className="feed-updating">{t("feed.updating")}</span> : null}
       </div>
       <Card>
         {loading ? (
@@ -123,7 +132,7 @@ export function LikedScreen() {
           </ul>
         )}
         <FeedLoadMore
-          hasMore={nextOffset !== null}
+          hasMore={nextOffset !== null && !refreshing}
           loading={loadingMore}
           onLoad={() => void loadMore()}
         />
