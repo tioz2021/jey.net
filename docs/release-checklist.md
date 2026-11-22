@@ -28,7 +28,7 @@
 - [ ] Проверить «О приложении → Проверить обновления».
 - [ ] Опубликовать на VPS:
       `VERSION=0.7.3 DEPLOY_HOST=... bash scripts/publish-desktop.sh`.
-- [ ] `curl -fsS https://j3ynet.site/downloads/desktop/latest.json`.
+- [ ] `bash scripts/verify-release.sh vX.Y.Z`.
 - [ ] Скачать AppImage из манифеста и проверить SHA256.
 
 ## Tag

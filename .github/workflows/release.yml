@@ -133,6 +133,8 @@ jobs:
           chmod 600 ~/.ssh/jey_vps
       - name: Publish to VPS
         run: bash scripts/publish-desktop.sh
+      - name: Verify published release
+        run: bash scripts/verify-release.sh "${GITHUB_REF_NAME}"
 
   publish:
     name: Publish release

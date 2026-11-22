@@ -1,5 +1,13 @@
 # Архив задач
 
+## T184 · Автопроверка релиза `[x]`
+
+- `scripts/verify-release.sh`: версия, Linux/Windows, подписи updater,
+  URL, размеры, SHA256 и health;
+- встроен в release workflow после VPS-публикации;
+- проверен на опубликованном 0.7.3.
+
+
 ## 0.7.3 `[x]`
 
 - первый релиз с `tauri-plugin-updater`;
