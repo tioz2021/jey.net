@@ -24,11 +24,15 @@ export function DesktopGraphics() {
   const [busy, setBusy] = useState(false);
   const [measuring, setMeasuring] = useState(false);
   const [fps, setFps] = useState<number | null>(null);
+  const [backend, setBackend] = useState<"x11" | "wayland">("x11");
 
   useEffect(() => {
     if (!invoke) return;
     invoke<{ enabled: boolean }>("local_gpu_info")
       .then((info) => setEnabled(info.enabled))
+      .catch(() => {});
+    invoke<{ backend: "x11" | "wayland" }>("local_backend_info")
+      .then((info) => setBackend(info.backend))
       .catch(() => {});
   }, [invoke]);
 
@@ -49,6 +53,30 @@ export function DesktopGraphics() {
         tone: "success",
         title: t("settings.gpuSaved"),
         text: t("settings.gpuRestart"),
+        requestId: null,
+      });
+    } catch (cause) {
+      notifyError(cause);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeBackend(next: "x11" | "wayland") {
+    const api = invoke;
+    if (!api) return;
+    setBusy(true);
+    try {
+      const result = await api<{ backend: "x11" | "wayland"; restart_required: boolean }>(
+        "local_set_backend",
+        { backend: next },
+      );
+      setBackend(result.backend);
+      setRestart(result.restart_required);
+      notify({
+        tone: "success",
+        title: t("settings.gpuSaved"),
+        text: t("settings.backendRestart"),
         requestId: null,
       });
     } catch (cause) {
@@ -88,6 +116,16 @@ export function DesktopGraphics() {
           <span>{t("settings.gpuEnabled")}</span>
         </label>
         <p className={styles.hint}>{t("settings.gpuHint")}</p>
+        <label className={styles.switchRow}>
+          <input
+            checked={backend === "x11"}
+            disabled={busy}
+            onChange={(event) => void changeBackend(event.target.checked ? "x11" : "wayland")}
+            type="checkbox"
+          />
+          <span>{t("settings.backendX11")}</span>
+        </label>
+        <p className={styles.hint}>{t("settings.backendHint")}</p>
         <Button loading={measuring} onClick={measureFps} size="sm" variant="secondary">
           {t("settings.gpuMeasure")}
         </Button>

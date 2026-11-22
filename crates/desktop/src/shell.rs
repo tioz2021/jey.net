@@ -99,6 +99,40 @@ fn app_data_candidate() -> Option<PathBuf> {
         .map(|home| PathBuf::from(home).join(".local/share/net.jey.desktop"))
 }
 
+fn startup_backend(default_dir: &Path) -> String {
+    if let Ok(value) = std::env::var("JEY_BACKEND") {
+        if value == "wayland" || value == "x11" {
+            return value;
+        }
+    }
+    storage_config(default_dir)
+        .get("backend")
+        .and_then(Value::as_str)
+        .filter(|value| *value == "x11" || *value == "wayland")
+        .unwrap_or("x11")
+        .to_owned()
+}
+
+fn apply_startup_backend_setting() {
+    if std::env::var_os("GDK_BACKEND").is_some() {
+        return;
+    }
+    let backend = app_data_candidate()
+        .map(|dir| startup_backend(&dir))
+        .unwrap_or_else(|| "x11".to_owned());
+    // SAFETY: called once before GTK/WebKit initializes.
+    unsafe {
+        std::env::set_var(
+            "GDK_BACKEND",
+            if backend == "wayland" {
+                "wayland"
+            } else {
+                "x11,wayland"
+            },
+        );
+    }
+}
+
 /// Startup-only compatibility switch. WebKitGTK reads these variables when it
 /// creates the web process, so they must be set before Tauri builds the window.
 /// `JEY_SAFE_MODE=1` is the recovery path for a bad GPU/driver combination.
@@ -156,6 +190,22 @@ fn local_gpu_info(state: State<'_, DesktopState>) -> Result<Value, String> {
         "enabled": gpu_acceleration_enabled(&state.default_dir),
         "restart_required": false,
     }))
+}
+
+#[tauri::command]
+fn local_backend_info(state: State<'_, DesktopState>) -> Result<Value, String> {
+    Ok(json!({ "backend": startup_backend(&state.default_dir) }))
+}
+
+#[tauri::command]
+fn local_set_backend(state: State<'_, DesktopState>, backend: String) -> Result<Value, String> {
+    if backend != "x11" && backend != "wayland" {
+        return Err("backend must be x11 or wayland".to_owned());
+    }
+    let mut value = storage_config(&state.default_dir);
+    value["backend"] = json!(backend);
+    write_storage_config(&state.default_dir, &value)?;
+    Ok(json!({ "backend": backend, "restart_required": true }))
 }
 
 #[tauri::command]
@@ -1262,6 +1312,7 @@ async fn local_google_sign_in(
 }
 
 pub fn run() {
+    apply_startup_backend_setting();
     apply_startup_gpu_setting();
     tauri::Builder::default()
         .setup(|app| {
@@ -1293,6 +1344,8 @@ pub fn run() {
             local_storage_info,
             local_gpu_info,
             local_set_gpu_acceleration,
+            local_backend_info,
+            local_set_backend,
             local_choose_data_dir,
             local_use_default_data_dir,
             local_list_items,
