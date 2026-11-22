@@ -85,6 +85,10 @@ print(json.dumps(manifest, ensure_ascii=False, indent=2))
 PY
 
 if [[ -z "${DEPLOY_HOST}" ]]; then
+    if [[ "${REQUIRE_VPS:-0}" == "1" ]]; then
+        echo "DEPLOY_HOST is empty; configure VPS_HOST/VPS_USER/VPS_SSH_KEY" >&2
+        exit 1
+    fi
     echo "DEPLOY_HOST is empty; manifest staged in ${STAGE}"
     exit 0
 fi

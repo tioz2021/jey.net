@@ -103,6 +103,7 @@ jobs:
       VERSION: ${{ github.ref_name }}
       ARTIFACTS_DIR: release-assets
       REQUIRE_WINDOWS: "1"
+      REQUIRE_VPS: "1"
       DEPLOY_HOST: ${{ secrets.VPS_HOST }}
       DEPLOY_USER: ${{ secrets.VPS_USER }}
       SSH_KEY: ~/.ssh/jey_vps

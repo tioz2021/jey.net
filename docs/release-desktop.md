@@ -95,7 +95,9 @@ VPS_USER
 VPS_SSH_KEY
 ```
 
-Если `VPS_HOST` не задан, release job пропускает публикацию (dry-run).
+Если `VPS_HOST` не задан, локальный запуск только готовит staging. В GitHub
+Actions `REQUIRE_VPS=1`, поэтому job падает с явной ошибкой, если секреты
+`VPS_HOST/VPS_USER/VPS_SSH_KEY` не настроены.
 
 Клиент в «О приложении» вызывает `local_latest_release`, сравнивает версии и
 открывает ссылку на скачивание через `local_open_external`. Автоустановки нет:
