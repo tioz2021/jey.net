@@ -1164,6 +1164,34 @@ async fn local_delete_item(state: State<'_, DesktopState>, id: uuid::Uuid) -> Re
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+fn local_list_deleted_items(state: State<'_, DesktopState>) -> Result<Vec<Value>, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .deleted_items(user)
+        .map(|items| items.iter().map(|item| item_json(item, false)).collect())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_purge_item(state: State<'_, DesktopState>, id: uuid::Uuid) -> Result<bool, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .purge_deleted(user, id)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn local_empty_trash(state: State<'_, DesktopState>) -> Result<usize, String> {
+    let user = current_user(&state)?;
+    state
+        .store
+        .empty_deleted(user)
+        .map_err(|error| error.to_string())
+}
+
 #[derive(Debug, Deserialize)]
 struct LoginInput {
     server_url: String,
@@ -1443,6 +1471,9 @@ pub fn run() {
             local_create_item,
             local_update_item,
             local_delete_item,
+            local_list_deleted_items,
+            local_purge_item,
+            local_empty_trash,
             local_export_json,
             local_backup,
             local_cover_data,

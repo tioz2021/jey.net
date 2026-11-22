@@ -126,11 +126,24 @@ export function installDesktopBridge() {
       });
     }
     if (path === "/api/v1/items" && method === "GET") {
+      if (url.searchParams.get("only_deleted") === "true") {
+        const items = await api.invoke<Item[]>("local_list_deleted_items");
+        return json({ items, next_cursor: null });
+      }
       const query = url.searchParams.get("q")?.trim() ?? "";
       const items = query ? await api.invoke<Item[]>("local_search_items", { query }) : await api.invoke<Item[]>("local_list_items", { query: null });
       const kind = url.searchParams.get("kind") as ItemKind | null;
       const status = url.searchParams.get("status") as ItemStatus | null;
       return json({ items: items.filter((item) => (!kind || item.kind === kind) && (!status || item.status === status)), next_cursor: null });
+    }
+    if (path === "/api/v1/trash" && method === "DELETE") {
+      const purged = await api.invoke<number>("local_empty_trash");
+      return json({ purged });
+    }
+    const purge = path.match(/^\/api\/v1\/items\/([^/]+)\/purge$/);
+    if (purge && method === "DELETE") {
+      await api.invoke<boolean>("local_purge_item", { id: purge[1] });
+      return new Response(null, { status: 204 });
     }
     if (path === "/api/v1/items" && method === "POST") {
       const result = { item: await api.invoke<Item>("local_create_item", { newItem: body }) };

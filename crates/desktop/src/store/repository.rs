@@ -454,9 +454,80 @@ impl ItemRepository for SqliteItems {
     }
 }
 
+impl DesktopStore {
+    pub fn deleted_items(&self, user_id: Uuid) -> Result<Vec<Item>, StoreError> {
+        let connection = self.connection()?;
+        let sql = format!(
+            "select {COLUMNS} from items
+             where user_id = ?1 and deleted_at is not null
+             order by deleted_at desc, id desc"
+        );
+        let mut statement = connection.prepare(&sql)?;
+        let rows = statement.query_map([user_id.to_string()], item_from_row)?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(StoreError::Sql)
+    }
+
+    pub fn purge_deleted(&self, user_id: Uuid, id: Uuid) -> Result<bool, StoreError> {
+        let connection = self.connection()?;
+        let changed = connection.execute(
+            "delete from items where id = ?1 and user_id = ?2 and deleted_at is not null",
+            params![id.to_string(), user_id.to_string()],
+        )?;
+        Ok(changed > 0)
+    }
+
+    pub fn empty_deleted(&self, user_id: Uuid) -> Result<usize, StoreError> {
+        let connection = self.connection()?;
+        let changed = connection.execute(
+            "delete from items where user_id = ?1 and deleted_at is not null",
+            [user_id.to_string()],
+        )?;
+        Ok(changed)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn deleted_items_can_be_purged_and_emptied() {
+        let store = DesktopStore::in_memory().expect("store");
+        let repository = SqliteItems::new(store.clone());
+        let user = Uuid::new_v4();
+        let input = |title: &str| NewItem {
+            kind: ItemKind::Movie,
+            title: title.to_owned(),
+            subtitle: None,
+            year: None,
+            status: ItemStatus::Done,
+            rating: None,
+            review: None,
+            body: None,
+            source_url: None,
+            external_source: None,
+            external_id: None,
+            details: None,
+            public_hidden: false,
+        };
+        let first = repository
+            .create_item(user, None, &input("First"))
+            .await
+            .unwrap();
+        let second = repository
+            .create_item(user, None, &input("Second"))
+            .await
+            .unwrap();
+        repository.delete_item(user, first.id).await.unwrap();
+        repository.delete_item(user, second.id).await.unwrap();
+
+        assert_eq!(store.deleted_items(user).unwrap().len(), 2);
+        assert!(store.purge_deleted(user, first.id).unwrap());
+        assert_eq!(store.deleted_items(user).unwrap().len(), 1);
+        assert_eq!(store.empty_deleted(user).unwrap(), 1);
+        assert!(store.deleted_items(user).unwrap().is_empty());
+    }
 
     #[tokio::test]
     async fn offline_mutations_are_queued_and_searchable() {
