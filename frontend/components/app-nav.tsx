@@ -136,19 +136,19 @@ export function AppNav() {
           <DesktopSync withLabel />
         </div>
 
-        {!desktop ? (
-          <AppLink className={styles.downloadApp} href="/download">
-            <svg aria-hidden="true" fill="none" height="15" viewBox="0 0 24 24" width="15">
-              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-            </svg>
-            <span>{t("nav.downloadApp")}</span>
-          </AppLink>
-        ) : null}
-
         {user ? (
           <div className={styles.profile}>
             <UserMenu menuAlign="left" user={user} />
           </div>
+        ) : null}
+
+        {!desktop ? (
+          <AppLink className={styles.downloadApp} href="/download">
+            <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 24 24" width="14">
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+            </svg>
+            <span>{t("nav.downloadApp")}</span>
+          </AppLink>
         ) : null}
 
       </aside>
