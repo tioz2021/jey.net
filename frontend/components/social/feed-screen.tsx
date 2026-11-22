@@ -98,6 +98,50 @@ export function FeedScreen() {
     }
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | null = null;
+
+    const refresh = async () => {
+      if (cancelled || document.visibilityState !== "visible") return;
+      if (loading || refreshing || loadingMore) return;
+      try {
+        const response = await api.feed.get(kind, sort, period, 0);
+        if (cancelled) return;
+        setItems(response.items);
+        setCounts(response.counts ?? {});
+        setNextOffset(response.next_offset);
+      } catch {
+        // Keep the current feed; the next focus/poll retries.
+      }
+    };
+
+    const schedule = () => {
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        void refresh().finally(schedule);
+      }, document.visibilityState === "visible" ? 30_000 : 120_000);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh().finally(schedule);
+      } else {
+        schedule();
+      }
+    };
+
+    schedule();
+    window.addEventListener("focus", onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener("focus", onVisibility);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [kind, sort, period, loading, refreshing, loadingMore]);
+
   const newItemsCount = newSince
     ? items.filter((item) => new Date(item.updated_at).getTime() > newSince).length
     : 0;

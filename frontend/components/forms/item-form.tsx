@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppRouter } from "@/lib/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import { Button, Input, Select, Textarea } from "@/components/ui";
@@ -27,6 +27,7 @@ import { GameSearch } from "@/components/items/game-search";
 import { AnimeSearch } from "@/components/items/anime-search";
 import { MovieSearch } from "@/components/items/movie-search";
 import { useToast } from "@/components/toasts";
+import { draftKey, readDraft, removeDraft, saveDraft } from "@/lib/local-draft";
 import { mediaUrl } from "@/lib/media";
 import styles from "./item-form.module.css";
 
@@ -223,9 +224,15 @@ export function ItemForm({
   const router = useAppRouter();
   const { t } = useI18n();
   const { notify, notifyError } = useToast();
-  const [values, setValues] = useState<Values>(() =>
-    toValues(initial, lockKind ?? initialKind),
-  );
+  const storageKey = draftKey(itemId);
+  const initialDraft = readDraft(storageKey);
+  const [values, setValues] = useState<Values>(() => {
+    const base = toValues(initial, lockKind ?? initialKind);
+    return initialDraft
+      ? { ...base, review: initialDraft.review, body: initialDraft.body }
+      : base;
+  });
+  const [draftRestored] = useState(Boolean(initialDraft));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
@@ -239,6 +246,21 @@ export function ItemForm({
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => saveDraft(storageKey, values.review, values.body),
+      400,
+    );
+    const flush = () => saveDraft(storageKey, values.review, values.body);
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("beforeunload", flush);
+    };
+  }, [storageKey, values.review, values.body]);
 
   function update<K extends keyof Values>(field: K, value: Values[K]) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -470,6 +492,7 @@ export function ItemForm({
         }
       }
 
+      removeDraft(storageKey);
       // The detail page fetches the record on the server; refreshing here
       // would race with the navigation and can keep the form's route.
       router.push(`/items/${savedId}`);
@@ -689,13 +712,20 @@ export function ItemForm({
         error={errors.body}
       />
 
+      {draftRestored ? (
+        <p className={styles.draftHint} role="status">{t("form.draftRestored")}</p>
+      ) : null}
+
       <div className={styles.actions}>
         <Button type="submit" loading={submitting}>
           {itemId ? t("form.update") : t("form.save")}
         </Button>
         <Button
           variant="secondary"
-          onClick={() => router.push("/items")}
+          onClick={() => {
+            removeDraft(storageKey);
+            router.push("/items");
+          }}
           disabled={submitting}
         >
           {t("form.cancel")}

@@ -933,6 +933,7 @@ export const en = {
   'download.updateText': 'The app checks for new versions in “About”. It does not install automatically: download the new version manually.',
   'download.dataText': 'Data is stored locally in ~/.local/share/net.jey.desktop on Linux. You can change the folder in settings.',
   'download.login': 'Sign in',
+  'form.draftRestored': 'Review draft restored',
   'settings.saved': 'Saved',
   'settings.photo': 'Profile photo',
   'settings.bannerHint': 'A wide image, 1200×300 or larger recommended. Shown on the public profile.',

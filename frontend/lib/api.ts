@@ -476,7 +476,9 @@ export const push = {
 
 export const notifications = {
   list: () =>
-    request<{ items: NotificationItem[]; unread: number }>("/notifications"),
+    request<{ items: NotificationItem[]; unread: number }>("/notifications", {
+      cache: "no-store",
+    }),
   settings: () =>
     request<{ preferences: NotificationPreferences }>("/notifications/settings"),
   updateSettings: (patch: Partial<NotificationPreferences>) =>

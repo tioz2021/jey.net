@@ -21,19 +21,49 @@ export function NotificationsScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    api.notifications
-      .list()
-      .then((response) => {
+    let timer: number | null = null;
+
+    const refresh = async () => {
+      try {
+        const response = await api.notifications.list();
+        if (cancelled) return;
+        setItems(response.items);
+        setUnread(response.unread);
+        setOpenedAt((current) => current ?? new Date().toISOString());
+      } catch {
+        // Keep the current list; the next poll retries.
+      }
+    };
+
+    const schedule = () => {
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        void refresh().finally(schedule);
+      }, document.visibilityState === "visible" ? 10_000 : 60_000);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void refresh().finally(schedule);
+      } else {
+        schedule();
+      }
+    };
+
+    void refresh()
+      .finally(() => {
         if (!cancelled) {
-          setItems(response.items);
-          setUnread(response.unread);
-          setOpenedAt(new Date().toISOString());
+          setLoading(false);
+          schedule();
         }
-      })
-      .catch(() => {})
-      .finally(() => !cancelled && setLoading(false));
+      });
+    window.addEventListener("focus", onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
+      if (timer) window.clearTimeout(timer);
+      window.removeEventListener("focus", onVisibility);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

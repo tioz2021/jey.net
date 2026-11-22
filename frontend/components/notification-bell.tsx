@@ -11,7 +11,7 @@ import { playNotificationSound, unlockNotificationSound } from "@/lib/notificati
 
 import styles from "./notification-bell.module.css";
 
-const POLL_VISIBLE_MS = 10_000;
+const POLL_VISIBLE_MS = 5_000;
 const POLL_HIDDEN_MS = 60_000;
 
 function updateFavicon(count: number) {
