@@ -63,6 +63,17 @@
   --control-h: 40px;
   --control-h-sm: 32px;
 
+  /* Shared card contract. Keep item cards and feed cards on these tokens. */
+  --card-padding: var(--space-3);
+  --card-gap: var(--space-4);
+  --card-radius: var(--radius-lg);
+  --card-poster-width: 8rem;
+  --card-poster-width-sm: 4.75rem;
+  --card-header-height: 44px;
+  --card-control-size: 28px;
+  --card-grid-min: 30rem;
+  --card-grid-gap: 0.75rem;
+
   /* Caption, compact UI, reading text, section and page titles. */
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;

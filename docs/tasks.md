@@ -125,7 +125,7 @@
 | T172 | P1 | Offline-паритет `[x]` | кэш ленты/тир-листов/лайков, social outbox, offline tier/лайк |
 | T173 | P1 | Frontend-тесты `[x]` | 12 тестов: crypto, view preference, card states |
 | T174 | P1 | Доступность `[x]` | skip link, mobile axe, keyboard focus |
-| T175 | P1 | Дизайн-система карточек | единый spec: размеры, шапка, действия, grid/list, mobile |
+| T175 | P1 | Дизайн-система карточек `[x]` | токены + docs/design-system.md |
 | T176 | P1 | UX-состояния | loading/error/empty/offline, сохранение фильтров в URL, без миганий |
 | T177 | P1 | Матрица устройств | web mobile/tablet/desktop, desktop window sizes, RU/UK/EN |
 | T178 | P1 | i18n и форматы | плюрализация, даты, числа, непереведённые строки |

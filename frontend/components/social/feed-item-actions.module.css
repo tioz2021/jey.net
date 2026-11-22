@@ -10,8 +10,8 @@
 .icon {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: var(--card-control-size);
+  height: var(--card-control-size);
   padding: 0;
   color: var(--color-text-muted);
   background: var(--color-bg);

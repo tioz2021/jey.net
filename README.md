@@ -87,6 +87,7 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 | Документ | О чём |
 |---|---|
 | [docs/spec.md](docs/spec.md) | Продукт, роли, функции, критерии приёмки |
+| [docs/design-system.md](docs/design-system.md) | Контракт карточек: размеры, шапка, действия, grid/list |
 | [docs/architecture.md](docs/architecture.md) | Компоненты, модель данных, безопасность, деплой |
 | [docs/api.md](docs/api.md) | Практическое руководство по API с примерами |
 | [docs/openapi.yaml](docs/openapi.yaml) | OpenAPI 3.1, все эндпоинты v1 |
