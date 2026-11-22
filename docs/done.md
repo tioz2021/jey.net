@@ -1,5 +1,13 @@
 # Архив задач
 
+## T174 · Доступность `[x]`
+
+- добавлен реальный skip-link и цель `#main-content`;
+- axe-аудит ключевых страниц и мобильного вида: 0 serious/critical;
+- тест первого Tab-фокуса;
+- существующие focus-visible/reduced-motion проверены.
+
+
 ## T173 · Frontend tests `[x]`
 
 - Playwright не заменяет компонентные тесты;

@@ -61,6 +61,7 @@ function ContextCreate() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!getPageCache("collections")) {
@@ -77,12 +78,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const controlsInTabs = pathname === "/items" || pathname === "/liked" || pathname === "/collections" || pathname === "/feed" || pathname.startsWith("/recommendations") || pathname === "/people" || pathname.startsWith("/collections/") || pathname.startsWith("/tiers") || pathname === "/messages";
   return (
     <>
+      <a className="skip-link" href="#main-content">
+        {t("app.skip")}
+      </a>
       <div className={styles.desktopHeader}>
         <SiteHeader />
       </div>
       <div className={styles.shell}>
         <AppNav />
-        <div className={styles.content}>
+        <div className={styles.content} id="main-content" tabIndex={-1}>
           <div className={`${styles.topControls} ${controlsInTabs ? styles.topControlsInTabs : ""}`}>
             <ThemeToggle />
             <LanguageSwitch />
