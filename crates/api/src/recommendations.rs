@@ -474,41 +474,25 @@ pub async fn friends(
         return Ok(Json(value));
     }
     let order = match sort {
-        "new" => "i.updated_at desc",
-        "popular" => "count(distinct u.id) desc, avg(i.rating) desc, i.updated_at desc",
-        _ => "avg(i.rating) desc, count(distinct u.id) desc, i.updated_at desc",
+        "new" => "updated_at desc",
+        "popular" => "friend_count desc, average_rating desc, updated_at desc",
+        _ => "average_rating desc, friend_count desc, updated_at desc",
     };
     let sql = format!(
-        "select jsonb_build_object(
-            'id', i.id,
-            'slug', i.slug,
-            'author_id', (array_agg(u.id order by f.created_at desc))[1],
-            'author_handle', (array_agg(u.handle order by f.created_at desc))[1],
-            'kind', i.kind,
-            'title', i.title,
-            'subtitle', i.subtitle,
-            'year', i.year,
-            'status', i.status,
-            'rating', i.rating,
-            'review', i.review,
-            'cover_key', i.cover_key,
-            'external_source', i.external_source,
-            'external_id', i.external_id,
-            'details', i.details,
-            'updated_at', i.updated_at,
-            'friends', jsonb_agg(distinct u.display_name),
-            'friend_people', jsonb_agg(distinct jsonb_build_object('name', u.display_name, 'handle', u.handle)),
-            'friend_count', count(distinct u.id),
-            'average_rating', round(avg(i.rating)::numeric, 1)
-         )
-         from follows f
-         join users u on u.id = f.followee_id
-         join items i on i.user_id = u.id
-         where f.follower_id = $1
-           and ($2::text is null or i.kind = $2)
-           and ($3::timestamptz is null or i.updated_at >= $3)
-           and u.is_public and u.deleted_at is null
-           and not exists (
+        "with candidates as (
+            select
+                i.id, i.slug, i.kind, i.title, i.subtitle, i.year, i.status,
+                i.rating, i.review, i.cover_key, i.external_source, i.external_id,
+                i.details, i.updated_at,
+                u.id as user_id, u.handle, u.display_name
+            from follows f
+            join users u on u.id = f.followee_id
+            join items i on i.user_id = u.id
+            where f.follower_id = $1
+              and ($2::text is null or i.kind = $2)
+              and ($3::timestamptz is null or i.updated_at >= $3)
+              and u.is_public and u.deleted_at is null
+              and not exists (
                   select 1 from hidden_recommendations hr
                   join items hidden_item on hidden_item.id = hr.item_id
                   where hr.user_id = $1
@@ -519,28 +503,63 @@ pub async fn friends(
                         or lower(hidden_item.title) = lower(i.title)
                     )
               )
-           and i.status = 'done'
-           and i.rating >= 8
-           and not i.public_hidden
-           and i.deleted_at is null
-           and 'done' = ANY(u.public_statuses)
-           and not exists (
-               select 1 from items mine
-               where mine.user_id = $1
-                 and mine.deleted_at is null
-                 and (
-                     (i.external_source is not null
-                      and mine.external_source = i.external_source
-                      and mine.external_id = i.external_id)
-                     or lower(mine.title) = lower(i.title)
-                 )
-           )
-           and not exists (
-               select 1 from blocks b
-               where (b.blocker_id = $1 and b.blocked_id = u.id)
-                  or (b.blocker_id = u.id and b.blocked_id = $1)
-           )
-         group by i.id
+              and i.status = 'done' and i.rating >= 8
+              and not i.public_hidden and i.deleted_at is null
+              and 'done' = ANY(u.public_statuses)
+              and not exists (
+                  select 1 from items mine
+                  where mine.user_id = $1 and mine.deleted_at is null
+                    and (
+                        (i.external_source is not null
+                         and mine.external_source = i.external_source
+                         and mine.external_id = i.external_id)
+                        or lower(mine.title) = lower(i.title)
+                    )
+              )
+              and not exists (
+                  select 1 from blocks b
+                  where (b.blocker_id = $1 and b.blocked_id = u.id)
+                     or (b.blocker_id = u.id and b.blocked_id = $1)
+              )
+         ),
+         grouped as (
+            select
+                (array_agg(id order by rating desc, updated_at desc))[1] as id,
+                (array_agg(slug order by rating desc, updated_at desc))[1] as slug,
+                (array_agg(kind order by rating desc, updated_at desc))[1] as kind,
+                (array_agg(title order by rating desc, updated_at desc))[1] as title,
+                (array_agg(subtitle order by rating desc, updated_at desc))[1] as subtitle,
+                (array_agg(year order by rating desc, updated_at desc))[1] as year,
+                (array_agg(status order by rating desc, updated_at desc))[1] as status,
+                (array_agg(rating order by rating desc, updated_at desc))[1] as rating,
+                (array_agg(review order by rating desc, updated_at desc))[1] as review,
+                (array_agg(cover_key order by rating desc, updated_at desc))[1] as cover_key,
+                (array_agg(external_source order by rating desc, updated_at desc))[1] as external_source,
+                (array_agg(external_id order by rating desc, updated_at desc))[1] as external_id,
+                (array_agg(details order by rating desc, updated_at desc))[1] as details,
+                (array_agg(updated_at order by rating desc, updated_at desc))[1] as updated_at,
+                (array_agg(user_id order by rating desc, updated_at desc))[1] as author_id,
+                (array_agg(handle order by rating desc, updated_at desc))[1] as author_handle,
+                jsonb_agg(distinct display_name) as friends,
+                jsonb_agg(distinct jsonb_build_object(
+                    'name', display_name, 'handle', handle
+                )) as friend_people,
+                count(distinct user_id) as friend_count,
+                round(avg(rating)::numeric, 1) as average_rating
+            from candidates
+            group by coalesce(external_source || ':' || external_id, lower(title))
+         )
+         select jsonb_build_object(
+            'id', id, 'slug', slug, 'author_id', author_id,
+            'author_handle', author_handle, 'kind', kind, 'title', title,
+            'subtitle', subtitle, 'year', year, 'status', status,
+            'rating', rating, 'review', review, 'cover_key', cover_key,
+            'external_source', external_source, 'external_id', external_id,
+            'details', details, 'updated_at', updated_at,
+            'friends', friends, 'friend_people', friend_people,
+            'friend_count', friend_count, 'average_rating', average_rating
+         )
+         from grouped
          order by {order}
          limit $5 offset $4"
     );
@@ -555,8 +574,8 @@ pub async fn friends(
         .map_err(AppError::internal)?;
 
     let count_rows: Vec<(String, i64)> = sqlx::query_as(
-        "with filtered as (
-            select i.id, i.kind
+        "with candidates as (
+            select i.kind, i.title, i.external_source, i.external_id
             from follows f
             join users u on u.id = f.followee_id
             join items i on i.user_id = u.id
@@ -592,9 +611,13 @@ pub async fn friends(
                   where (b.blocker_id = $1 and b.blocked_id = u.id)
                      or (b.blocker_id = u.id and b.blocked_id = $1)
               )
-            group by i.id, i.kind
+         ),
+         grouped as (
+            select (array_agg(kind order by title))[1] as kind
+            from candidates
+            group by coalesce(external_source || ':' || external_id, lower(title))
          )
-         select kind, count(*) from filtered group by kind",
+         select kind, count(*) from grouped group by kind",
     )
     .bind(current.user.id)
     .bind(since)
