@@ -142,7 +142,9 @@ jobs:
           mkdir -p release-assets
           find artifacts -type f -exec cp -v {} release-assets/ \;
           cd release-assets
-          sha256sum * > SHA256SUMS.txt
+          # Never hash the checksum file itself: it is overwritten below.
+          find . -maxdepth 1 -type f ! -name SHA256SUMS.txt ! -name release.json -print0 \
+            | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
           python3 - <<'PY'
           import json, os, pathlib, subprocess
           files = sorted(p.name for p in pathlib.Path('.').iterdir() if p.is_file())
