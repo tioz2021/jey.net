@@ -131,7 +131,7 @@
 | T178 | P1 | i18n и форматы `[x]` | словари, plural, даты/числа, locale-aware UI |
 | T179 | P2 | Desktop release pipeline | CI AppImage/deb, checksums, auto-update, подпись Windows |
 | T180 | P2 | Документация и релиз | актуальность docs, release checklist, 0.7.x tag |
-| T181 | P2 | Desktop: GPU-ускорение `[~]` | переключатель + WebKit policy; FPS не замерен без GPU |
+| T181 | P2 | Desktop: GPU-ускорение `[~]` | переключатель, WebKit policy, встроенный FPS-замер; ждём замер на GPU |
 
 ### Порядок работ
 

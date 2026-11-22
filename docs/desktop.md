@@ -250,5 +250,7 @@ WEBKIT_DISABLE_DMABUF_RENDERER=1 ./target/release/jey-desktop
 WEBKIT_DISABLE_COMPOSITING_MODE=1 ./target/release/jey-desktop
 ```
 
-Замер FPS нужно делать на машине с рабочим GPU: в headless-среде без DRI
-WebKit создаёт software context, поэтому цифры не показательны.
+В карточке есть кнопка **«Замерить FPS»**: она 2,5 секунды считает
+`requestAnimationFrame` и показывает результат. Замер нужно делать на машине
+с рабочим GPU: в headless-среде без DRI WebKit создаёт software context,
+поэтому цифры не показательны.

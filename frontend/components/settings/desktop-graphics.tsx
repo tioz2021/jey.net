@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { useToast } from "@/components/toasts";
 import { useI18n } from "@/lib/locale-context";
 
@@ -22,6 +22,8 @@ export function DesktopGraphics() {
   const [enabled, setEnabled] = useState(true);
   const [restart, setRestart] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [measuring, setMeasuring] = useState(false);
+  const [fps, setFps] = useState<number | null>(null);
 
   useEffect(() => {
     if (!invoke) return;
@@ -56,6 +58,23 @@ export function DesktopGraphics() {
     }
   }
 
+  function measureFps() {
+    setFps(null);
+    setMeasuring(true);
+    let frames = 0;
+    const started = performance.now();
+    const tick = (now: number) => {
+      frames += 1;
+      if (now - started < 2500) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      setFps((frames * 1000) / (now - started));
+      setMeasuring(false);
+    };
+    requestAnimationFrame(tick);
+  }
+
   return (
     <Card title={t("settings.gpuTitle")}>
       <div className={styles.body}>
@@ -69,6 +88,12 @@ export function DesktopGraphics() {
           <span>{t("settings.gpuEnabled")}</span>
         </label>
         <p className={styles.hint}>{t("settings.gpuHint")}</p>
+        <Button loading={measuring} onClick={measureFps} size="sm" variant="secondary">
+          {t("settings.gpuMeasure")}
+        </Button>
+        {fps !== null ? (
+          <p className={styles.hint}>{t("settings.gpuFps", { fps: fps.toFixed(1) })}</p>
+        ) : null}
         {restart ? <p className={styles.warn}>{t("settings.gpuRestart")}</p> : null}
       </div>
     </Card>

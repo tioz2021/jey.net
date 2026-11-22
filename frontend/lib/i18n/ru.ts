@@ -896,6 +896,8 @@ export const ru = {
   'settings.gpuSaved': 'Настройка сохранена',
   'settings.gpuRestart': 'Перезапустите jey.net, чтобы применить настройку.',
   'settings.gpuHint': 'Использовать GPU для отрисовки интерфейса. Перезапустите jey.net, чтобы применить настройку.',
+  'settings.gpuMeasure': 'Замерить FPS',
+  'settings.gpuFps': 'Текущая плавность: {fps} FPS',
   'settings.saved': 'Сохранено',
   'settings.photo': 'Фотография профиля',
   'settings.bannerHint': 'Широкая картинка, рекомендуется от 1200×300. Видна на публичном профиле.',
