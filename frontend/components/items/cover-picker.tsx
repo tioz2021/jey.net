@@ -26,7 +26,7 @@ export function CoverPicker({
   label,
 }: {
   currentUrl?: string | null;
-  onUploaded: (uploadId: string) => void;
+  onUploaded: (uploadId: string, preview: string | null) => void;
   onCleared: () => void;
   label?: string;
 }) {
@@ -36,6 +36,21 @@ export function CoverPicker({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [broken, setBroken] = useState(false);
+
+  async function thumbnail(file: File): Promise<string | null> {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 240 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      return canvas.toDataURL("image/jpeg", 0.72);
+    } catch {
+      return null;
+    }
+  }
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -51,7 +66,7 @@ export function CoverPicker({
     try {
       const response = await api.uploads.upload(file);
       setPreview(URL.createObjectURL(file));
-      onUploaded(response.upload.id);
+      onUploaded(response.upload.id, await thumbnail(file));
     } catch (cause) {
       setError(describeError(cause, i18n).text);
     } finally {

@@ -46,3 +46,29 @@ test("the whole new item form survives a reload", async ({ context, page, reques
   await expect(page.getByLabel("Публичная рецензия")).toHaveValue(review);
   await expect(page.getByText("Черновик рецензии восстановлен")).toBeVisible();
 });
+
+test("an uploaded cover preview survives a reload with the form draft", async ({
+  context,
+  page,
+  request,
+}) => {
+  const account = await register(request, unique("Cover Draft User"));
+  await useSession(context, account);
+  await page.goto("/items/new");
+  await page.getByRole("button", { name: "Дополнительные настройки" }).click();
+  await page.getByLabel("Название").fill(unique("Cover draft"));
+
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+    "base64",
+  );
+  await page.locator("input[type=file]").setInputFiles({
+    name: "cover.png",
+    mimeType: "image/png",
+    buffer: png,
+  });
+  await expect(page.locator('img[src^="blob:"]')).toBeVisible();
+  await page.waitForTimeout(900);
+  await page.reload();
+  await expect(page.locator('img[src^="data:image/"]')).toBeVisible();
+});

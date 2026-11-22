@@ -2,6 +2,7 @@ export interface ItemFormDraft {
   values: Record<string, unknown>;
   advanced: boolean;
   coverUploadId: string | null;
+  coverPreview: string | null;
   coverCleared: boolean;
   savedAt: number;
 }
@@ -23,6 +24,7 @@ export function readDraft(key: string): ItemFormDraft | null {
       values: parsed.values,
       advanced: Boolean(parsed.advanced),
       coverUploadId: typeof parsed.coverUploadId === "string" ? parsed.coverUploadId : null,
+      coverPreview: typeof parsed.coverPreview === "string" ? parsed.coverPreview : null,
       coverCleared: Boolean(parsed.coverCleared),
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : 0,
     };
@@ -42,7 +44,7 @@ export function saveDraft(
       !String(draft.values.review ?? "").trim() &&
       !String(draft.values.body ?? "").trim() &&
       !String(draft.values.external_id ?? "").trim();
-    if (empty && !draft.coverUploadId) {
+    if (empty && !draft.coverUploadId && !draft.coverPreview) {
       window.localStorage.removeItem(key);
       return;
     }

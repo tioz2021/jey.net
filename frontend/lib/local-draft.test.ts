@@ -12,6 +12,7 @@ describe("item drafts", () => {
       values: { title: "Фильм", review: "черновик", rating: "9" },
       advanced: true,
       coverUploadId: null,
+      coverPreview: null,
       coverCleared: false,
     });
     expect(readDraft(key)).toMatchObject({
@@ -22,7 +23,7 @@ describe("item drafts", () => {
 
   it("removes an empty draft and ignores broken data", () => {
     const key = draftKey(undefined);
-    saveDraft(key, { values: { title: "x" }, advanced: false, coverUploadId: null, coverCleared: false });
+    saveDraft(key, { values: { title: "x" }, advanced: false, coverUploadId: null, coverPreview: null, coverCleared: false });
     removeDraft(key);
     expect(readDraft(key)).toBeNull();
     localStorage.setItem(key, "{broken");
@@ -30,8 +31,8 @@ describe("item drafts", () => {
   });
 
   it("uses item-specific keys", () => {
-    saveDraft(draftKey("a"), { values: { title: "A" }, advanced: false, coverUploadId: null, coverCleared: false });
-    saveDraft(draftKey("b"), { values: { title: "B" }, advanced: false, coverUploadId: null, coverCleared: false });
+    saveDraft(draftKey("a"), { values: { title: "A" }, advanced: false, coverUploadId: null, coverPreview: null, coverCleared: false });
+    saveDraft(draftKey("b"), { values: { title: "B" }, advanced: false, coverUploadId: null, coverPreview: null, coverCleared: false });
     expect(readDraft(draftKey("a"))?.values.title).toBe("A");
     expect(readDraft(draftKey("b"))?.values.title).toBe("B");
   });

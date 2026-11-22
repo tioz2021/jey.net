@@ -250,6 +250,9 @@ export function ItemForm({
   const [coverUploadId, setCoverUploadId] = useState<string | null>(
     initialDraft?.coverUploadId ?? null,
   );
+  const [coverPreview, setCoverPreview] = useState<string | null>(
+    initialDraft?.coverPreview ?? null,
+  );
   const [coverCleared, setCoverCleared] = useState(initialDraft?.coverCleared ?? false);
   const [posterPending, setPosterPending] = useState(false);
   const [advanced, setAdvanced] = useState(
@@ -265,6 +268,7 @@ export function ItemForm({
       values: values as unknown as Record<string, unknown>,
       advanced,
       coverUploadId,
+      coverPreview,
       coverCleared,
     };
     const timeout = window.setTimeout(() => saveDraft(storageKey, draft), 400);
@@ -276,7 +280,7 @@ export function ItemForm({
       window.removeEventListener("pagehide", flush);
       window.removeEventListener("beforeunload", flush);
     };
-  }, [storageKey, values, advanced, coverUploadId, coverCleared]);
+  }, [storageKey, values, advanced, coverUploadId, coverPreview, coverCleared]);
 
   function update<K extends keyof Values>(field: K, value: Values[K]) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -327,6 +331,7 @@ export function ItemForm({
     });
     setPosterPending(true);
     setCoverUploadId(null);
+    setCoverPreview(null);
     setCoverCleared(false);
   }
 
@@ -377,6 +382,7 @@ export function ItemForm({
     }));
     setPosterPending(true);
     setCoverUploadId(null);
+    setCoverPreview(null);
     setCoverCleared(false);
   }
 
@@ -435,6 +441,7 @@ export function ItemForm({
     }));
     setPosterPending(true);
     setCoverUploadId(null);
+    setCoverPreview(null);
     setCoverCleared(false);
   }
 
@@ -688,14 +695,17 @@ export function ItemForm({
 
           <CoverPicker
             currentUrl={
-              initial?.cover_key ? mediaUrl(initial.cover_key) : null
+              coverPreview ??
+              (initial?.cover_key ? mediaUrl(initial.cover_key) : null)
             }
-            onUploaded={(uploadId) => {
+            onUploaded={(uploadId, preview) => {
               setCoverUploadId(uploadId);
+              setCoverPreview(preview);
               setCoverCleared(false);
             }}
             onCleared={() => {
               setCoverUploadId(null);
+              setCoverPreview(null);
               setCoverCleared(true);
             }}
           />
