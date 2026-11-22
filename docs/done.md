@@ -1,5 +1,13 @@
 # Архив задач
 
+## T167 · Web E2E `[x]`
+
+- Playwright + отдельная схема `jey_e2e`;
+- 5 сценариев: регистрация, запись, коллекция, лента/лайк/«Понравилось», чат;
+- `scripts/e2e.sh`, `CHECK_E2E=1` для quality gate;
+- CI job устанавливает Chromium и запускает тот же набор.
+
+
 ## T168 · Единый CI quality gate `[x]`
 
 - `scripts/check.sh`: fmt, clippy, web tests/build, cargo tests, migrations, API release;

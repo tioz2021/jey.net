@@ -83,5 +83,10 @@ fi
 step "cargo build --release (API)"
 cargo build --locked --release -p jey-api --bin jey-api || fail "release build"
 
+if [[ "${CHECK_E2E:-0}" == "1" ]]; then
+    step "Playwright E2E"
+    bash "${ROOT_DIR}/scripts/e2e.sh" || fail "e2e"
+fi
+
 elapsed=$(( $(date +%s) - started_at ))
 printf '\nAll checks passed in %ss\n' "${elapsed}"
