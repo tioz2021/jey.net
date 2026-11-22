@@ -432,6 +432,8 @@ export interface CommunityRecommendation extends PublicItem {
   people: Array<{ name: string; handle: string }>;
   people_count: number;
   average_rating: number;
+  reviews?: FriendReview[];
+  review_count?: number;
 }
 
 export interface LikedItem extends PublicItem {

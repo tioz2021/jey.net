@@ -741,7 +741,23 @@ pub async fn community(
                     'name', display_name, 'handle', handle
                 )) as people,
                 count(distinct user_id) as people_count,
-                round(avg(rating)::numeric, 1) as average_rating
+                round(avg(rating)::numeric, 1) as average_rating,
+                coalesce(
+                    jsonb_agg(
+                        jsonb_build_object(
+                            'author_name', display_name,
+                            'author_handle', handle,
+                            'rating', rating,
+                            'review', review,
+                            'updated_at', updated_at
+                        )
+                        order by updated_at desc
+                    ) filter (where review is not null and btrim(review) <> ''),
+                    '[]'::jsonb
+                ) as reviews,
+                count(distinct user_id) filter (
+                    where review is not null and btrim(review) <> ''
+                ) as review_count
             from candidates
             group by coalesce(external_source || ':' || external_id, lower(title))
          )
@@ -753,7 +769,8 @@ pub async fn community(
             'external_source', external_source, 'external_id', external_id,
             'details', details, 'updated_at', updated_at,
             'people', people, 'people_count', people_count,
-            'average_rating', average_rating
+            'average_rating', average_rating,
+            'reviews', reviews, 'review_count', review_count
          )
          from grouped
          order by {order}

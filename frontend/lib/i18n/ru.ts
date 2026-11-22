@@ -155,6 +155,7 @@ export const ru = {
   "recommendations.generalSubtitle": "Записи, которые высоко оценили люди с публичными профилями.",
   "recommendations.communityEmptyTitle": "Пока нет рекомендаций сообщества",
   "recommendations.communityEmptyText": "Публичные пользователи ещё не оценили ничего высоко.",
+  "recommendations.reviewsCount": "рецензий: {count}",
   "recommendations.communityMeta": "{count} человек",
   "recommendations.subtitle": "Записи, которые высоко оценили люди, на которых вы подписаны.",
   "nav.recommendationsHint": "Рекомендации: подборки для вас",

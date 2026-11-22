@@ -156,6 +156,7 @@ export const en = {
   "recommendations.generalSubtitle": "Records highly rated by people with public profiles.",
   "recommendations.communityEmptyTitle": "No community recommendations yet",
   "recommendations.communityEmptyText": "Public users have not rated anything highly yet.",
+  "recommendations.reviewsCount": "reviews: {count}",
   "recommendations.communityMeta": "{count} people",
   "recommendations.subtitle": "Records highly rated by people you follow.",
   "nav.recommendationsHint": "Recommendations: picks for you",

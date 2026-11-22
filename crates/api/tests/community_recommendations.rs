@@ -27,11 +27,17 @@ async fn account(name: &str) -> (TestClient, String, String, Uuid) {
     (client, email, cookie, id)
 }
 
-async fn rated_item(client: &TestClient, cookie: &str, title: &str, rating: u8) {
+async fn rated_item(client: &TestClient, cookie: &str, title: &str, rating: u8, review: &str) {
     let response = client
         .post_with_cookie(
             "/api/v1/items",
-            json!({ "kind": "movie", "title": title, "status": "done", "rating": rating }),
+            json!({
+                "kind": "movie",
+                "title": title,
+                "status": "done",
+                "rating": rating,
+                "review": review
+            }),
             cookie,
         )
         .await;
@@ -45,8 +51,8 @@ async fn community_aggregates_public_ratings_across_profiles() {
     let (bob, bob_email, bob_cookie, bob_id) = account("Community Bob").await;
 
     let title = format!("Community Movie {}", Uuid::new_v4());
-    rated_item(&alice, &alice_cookie, &title, 9).await;
-    rated_item(&bob, &bob_cookie, &title, 10).await;
+    rated_item(&alice, &alice_cookie, &title, 9, "Alice community review").await;
+    rated_item(&bob, &bob_cookie, &title, 10, "Bob community review").await;
 
     let response = viewer
         .get("/api/v1/recommendations/community", Some(&viewer_cookie))
@@ -107,6 +113,18 @@ async fn community_aggregates_public_ratings_across_profiles() {
     let people = movie["people"].as_array().unwrap();
     assert!(people.iter().any(|p| p["name"] == "Community Alice"));
     assert!(people.iter().any(|p| p["name"] == "Community Bob"));
+    let reviews = movie["reviews"].as_array().unwrap();
+    assert_eq!(reviews.len(), 2);
+    assert!(
+        reviews
+            .iter()
+            .any(|review| review["review"] == "Alice community review")
+    );
+    assert!(
+        reviews
+            .iter()
+            .any(|review| review["review"] == "Bob community review")
+    );
 
     viewer.cleanup(&viewer_email).await;
     alice.cleanup(&alice_email).await;

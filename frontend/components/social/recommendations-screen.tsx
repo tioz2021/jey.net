@@ -173,9 +173,20 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
                             })}
                           </>
                         ) : null}
+                        {item.review_count ? (
+                          <>
+                            {" · "}
+                            {t("recommendations.reviewsCount", { count: item.review_count })}
+                          </>
+                        ) : null}
                       </FeedCardHeader>
                     }
+                    extras={
+                      item.reviews?.length ? <RecommendationReviews reviews={item.reviews} /> : undefined
+                    }
                     hideActionDate
+                    hideRating={item.people_count > 1}
+                    hideReview
                     hideStatus
                     href={`/u/${item.author_handle}/cart/${item.slug}`}
                     item={item}

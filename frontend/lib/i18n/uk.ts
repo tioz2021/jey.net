@@ -156,6 +156,7 @@ export const uk = {
   "recommendations.generalSubtitle": "Записи, які високо оцінили люди з публічними профілями.",
   "recommendations.communityEmptyTitle": "Поки немає рекомендацій спільноти",
   "recommendations.communityEmptyText": "Публічні користувачі ще не оцінили нічого високо.",
+  "recommendations.reviewsCount": "рецензій: {count}",
   "recommendations.communityMeta": "{count} людей",
   "recommendations.subtitle": "Записи, які високо оцінили люди, на яких ви підписані.",
   "nav.recommendationsHint": "Рекомендації: добірки для вас",
