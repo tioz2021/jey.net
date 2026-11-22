@@ -34,6 +34,8 @@ export function PublicFooter() {
         </div>
 
         <nav aria-label="Документы" className={styles.links}>
+          <AppLink href="/download">{t("public.download")}</AppLink>
+          <span aria-hidden="true">·</span>
           <AppLink href="/privacy">{t("footer.privacy")}</AppLink>
           <span aria-hidden="true">·</span>
           <AppLink href="/terms">{t("footer.terms")}</AppLink>

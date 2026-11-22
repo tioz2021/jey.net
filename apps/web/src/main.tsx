@@ -5,6 +5,7 @@ import { LoginScreen } from "@/components/auth/login-screen";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LegalScreen } from "@/components/legal/legal-screen";
 import { PublicShell } from "@/components/legal/public-shell";
+import { DownloadScreen } from "@/components/public/download-screen";
 import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
@@ -68,6 +69,7 @@ createRoot(document.getElementById("root")!).render(
         <ErrorBoundary>
         <Routes>
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
+          <Route path="/download" element={<PublicShell><DownloadScreen /></PublicShell>} />
           <Route path="/u/:id" element={<PublicShell><PublicProfileRoute /></PublicShell>} />
           <Route path="/u/:id/collection/:slug" element={<PublicShell><PublicCollectionRoute /></PublicShell>} />
           <Route path="/u/:id/item/:itemId" element={<PublicShell><PublicItemRoute /></PublicShell>} />

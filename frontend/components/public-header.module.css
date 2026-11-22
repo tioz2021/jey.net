@@ -54,6 +54,12 @@
   box-shadow: inset 0 1px 3px rgb(0 0 0 / 18%);
 }
 
+@media (width <= 700px) {
+  .downloadLink {
+    display: none;
+  }
+}
+
 @media (width <= 640px) {
   .inner {
     gap: var(--space-3);

@@ -1,5 +1,7 @@
 # Установка desktop
 
+Актуальные сборки и инструкции: **https://j3ynet.site/download**
+
 ## Linux
 
 ### AppImage

@@ -17,7 +17,7 @@ test("pages do not overflow at phone, tablet and desktop widths", async ({
     { width: 1440, height: 900 },
   ]) {
     await page.setViewportSize(viewport);
-    for (const path of ["/items", "/collections", "/feed", "/recommendations/all", "/liked", "/messages"]) {
+    for (const path of ["/items", "/collections", "/feed", "/recommendations/all", "/liked", "/messages", "/download"]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
       const overflow = await page.evaluate(

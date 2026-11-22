@@ -34,6 +34,9 @@ export function PublicHeader({ authenticated = false }: { authenticated?: boolea
           <AppLink className={styles.navLink} href="/">
             {t("public.home")}
           </AppLink>
+          <AppLink className={`${styles.navLink} ${styles.downloadLink}`} href="/download">
+            {t("public.download")}
+          </AppLink>
           <LanguageSwitch />
           <AppLink className={styles.cta} href="/login">
             {t("public.login")}

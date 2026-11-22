@@ -103,6 +103,7 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 | [docs/known-limitations.md](docs/known-limitations.md) | Известные ограничения 0.7.x |
 | [docs/deploy.md](docs/deploy.md) | Провижининг, Postgres, systemd, Caddy, секреты |
 | [docs/install.md](docs/install.md) | Установка desktop: AppImage, deb, Windows NSIS |
+| [https://j3ynet.site/download](https://j3ynet.site/download) | Публичная страница загрузки desktop |
 | [docs/release-checklist.md](docs/release-checklist.md) | Финальный чек-лист релиза |
 | [docs/release-desktop.md](docs/release-desktop.md) | Сборка и VPS-канал обновлений |
 | [docs/releases/0.7.1.md](docs/releases/0.7.1.md) | Release notes 0.7.1 |

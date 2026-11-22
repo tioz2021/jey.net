@@ -45,6 +45,7 @@ export function LandingScreen() {
             <>
               <AppLink className={styles.primary} href="/api/v1/auth/google/start">{t("landing.google")}</AppLink>
               <AppLink className={styles.secondary} href="/u/tios23">{t("landing.example")}</AppLink>
+              <AppLink className={styles.secondary} href="/download">{t("public.download")}</AppLink>
             </>
           )}
         </div>
@@ -100,9 +101,12 @@ export function LandingScreen() {
         <p className={styles.finalText}>
           {t("landing.finalText")}
         </p>
-        <AppLink className={styles.primary} href="/api/v1/auth/google/start">
-          {t("landing.google")}
-        </AppLink>
+        <div className={styles.actions}>
+          <AppLink className={styles.primary} href="/api/v1/auth/google/start">
+            {t("landing.google")}
+          </AppLink>
+          <AppLink className={styles.secondary} href="/download">{t("public.download")}</AppLink>
+        </div>
       </section>
     </div>
   );
