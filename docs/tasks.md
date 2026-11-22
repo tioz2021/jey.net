@@ -123,7 +123,7 @@
 | T170 | P0 | Безопасность и лимиты `[x]` | headers, read limits, pixel cap, dependency audit |
 | T171 | P0 | Наблюдаемость и восстановление `[x]` | метрики в admin/system, backup restore-check |
 | T172 | P1 | Offline-паритет `[x]` | кэш ленты/тир-листов/лайков, social outbox, offline tier/лайк |
-| T173 | P1 | Frontend-тесты | компонентные тесты ключевых состояний и ошибок |
+| T173 | P1 | Frontend-тесты `[x]` | 12 тестов: crypto, view preference, card states |
 | T174 | P1 | Доступность | клавиатура, фокус, aria, контраст, reduced motion |
 | T175 | P1 | Дизайн-система карточек | единый spec: размеры, шапка, действия, grid/list, mobile |
 | T176 | P1 | UX-состояния | loading/error/empty/offline, сохранение фильтров в URL, без миганий |

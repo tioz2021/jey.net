@@ -1,5 +1,14 @@
 # Архив задач
 
+## T173 · Frontend tests `[x]`
+
+- Playwright не заменяет компонентные тесты;
+- добавлены Vitest + Testing Library + jsdom;
+- покрыты social proof/actions, раскрытие рецензий, empty state фильтра,
+  сохранение list/grid и fallback при повреждённом localStorage;
+- `npm test`: 12 passed.
+
+
 ## T172 · Offline cache/outbox `[x]`
 
 - SQLite `api_cache` для «Понравилось», тир-листов, ленты и сообщества;

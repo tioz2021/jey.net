@@ -31,10 +31,16 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["../../frontend/lib/**/*.test.ts"],
+    include: [
+      "../../frontend/lib/**/*.test.ts",
+      "../../frontend/components/**/*.test.tsx",
+    ],
   },
   server: {
     port: 1420,
     strictPort: true,
+    fs: {
+      allow: [path.resolve(here, "../.."), frontend],
+    },
   },
 });
