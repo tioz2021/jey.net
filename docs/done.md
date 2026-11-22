@@ -1,5 +1,15 @@
 # Архив задач
 
+## T179 · Desktop release pipeline `[~]`
+
+- version gate для Cargo/package/tauri/tag;
+- SHA256 для Linux и Windows;
+- `release.json` с версией и коммитом;
+- отдельные manual/release workflows;
+- Windows signing и auto-update осознанно не включены без ключей и
+  сертификата; требования описаны в `docs/release-desktop.md`.
+
+
 ## T181 · Desktop GPU `[~]`
 
 - переключатель «Аппаратное ускорение» в настройках, по умолчанию включён;
