@@ -1,6 +1,8 @@
-export interface ItemDraft {
-  review: string;
-  body: string;
+export interface ItemFormDraft {
+  values: Record<string, unknown>;
+  advanced: boolean;
+  coverUploadId: string | null;
+  coverCleared: boolean;
   savedAt: number;
 }
 
@@ -10,18 +12,18 @@ export function draftKey(itemId: string | undefined): string {
   return `jey:item-draft:${itemId ?? "new"}`;
 }
 
-export function readDraft(key: string): ItemDraft | null {
+export function readDraft(key: string): ItemFormDraft | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ItemDraft>;
-    if (typeof parsed.review !== "string" || typeof parsed.body !== "string") {
-      return null;
-    }
+    const parsed = JSON.parse(raw) as Partial<ItemFormDraft>;
+    if (!parsed.values || typeof parsed.values !== "object") return null;
     return {
-      review: parsed.review,
-      body: parsed.body,
+      values: parsed.values,
+      advanced: Boolean(parsed.advanced),
+      coverUploadId: typeof parsed.coverUploadId === "string" ? parsed.coverUploadId : null,
+      coverCleared: Boolean(parsed.coverCleared),
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : 0,
     };
   } catch {
@@ -29,15 +31,23 @@ export function readDraft(key: string): ItemDraft | null {
   }
 }
 
-export function saveDraft(key: string, review: string, body: string): void {
+export function saveDraft(
+  key: string,
+  draft: Omit<ItemFormDraft, "savedAt">,
+): void {
   if (typeof window === "undefined") return;
   try {
-    if (!review.trim() && !body.trim()) {
+    const empty =
+      !String(draft.values.title ?? "").trim() &&
+      !String(draft.values.review ?? "").trim() &&
+      !String(draft.values.body ?? "").trim() &&
+      !String(draft.values.external_id ?? "").trim();
+    if (empty && !draft.coverUploadId) {
       window.localStorage.removeItem(key);
       return;
     }
-    const draft: ItemDraft = { review, body, savedAt: Date.now() };
-    window.localStorage.setItem(key, JSON.stringify(draft));
+    const value: ItemFormDraft = { ...draft, savedAt: Date.now() };
+    window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // Storage may be disabled in a private/embedded context.
   }

@@ -121,6 +121,20 @@ function toValues(item?: Item, initialKind?: ItemKind): Values {
   };
 }
 
+function mergeDraft(base: Values, draft: Record<string, unknown> | null): Values {
+  if (!draft || typeof draft !== "object") return base;
+  const candidate = draft as Partial<Values>;
+  if (typeof candidate.kind !== "string" || !KINDS.includes(candidate.kind as ItemKind)) {
+    return base;
+  }
+  return {
+    ...base,
+    ...candidate,
+    kind: candidate.kind,
+    details: candidate.details ?? base.details,
+  } as Values;
+}
+
 function parseNumber(
   value: string,
   field: string,
@@ -226,33 +240,35 @@ export function ItemForm({
   const { notify, notifyError } = useToast();
   const storageKey = draftKey(itemId);
   const initialDraft = readDraft(storageKey);
-  const [values, setValues] = useState<Values>(() => {
-    const base = toValues(initial, lockKind ?? initialKind);
-    return initialDraft
-      ? { ...base, review: initialDraft.review, body: initialDraft.body }
-      : base;
-  });
+  const startKind = initial?.kind ?? lockKind ?? initialKind ?? "movie";
+  const [values, setValues] = useState<Values>(() =>
+    mergeDraft(toValues(initial, lockKind ?? initialKind), initialDraft?.values ?? null),
+  );
   const [draftRestored] = useState(Boolean(initialDraft));
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [coverUploadId, setCoverUploadId] = useState<string | null>(null);
-  const [coverCleared, setCoverCleared] = useState(false);
+  const [coverUploadId, setCoverUploadId] = useState<string | null>(
+    initialDraft?.coverUploadId ?? null,
+  );
+  const [coverCleared, setCoverCleared] = useState(initialDraft?.coverCleared ?? false);
   const [posterPending, setPosterPending] = useState(false);
-  const startKind = initial?.kind ?? lockKind ?? initialKind ?? "movie";
   const [advanced, setAdvanced] = useState(
     () =>
-      Boolean(itemId) ||
-      !COMPACT_KINDS.has(startKind),
+      initialDraft?.advanced ??
+      (Boolean(itemId) || !COMPACT_KINDS.has(startKind)),
   );
 
   const statuses = STATUS_BY_KIND[values.kind];
 
   useEffect(() => {
-    const timeout = window.setTimeout(
-      () => saveDraft(storageKey, values.review, values.body),
-      400,
-    );
-    const flush = () => saveDraft(storageKey, values.review, values.body);
+    const draft = {
+      values: values as unknown as Record<string, unknown>,
+      advanced,
+      coverUploadId,
+      coverCleared,
+    };
+    const timeout = window.setTimeout(() => saveDraft(storageKey, draft), 400);
+    const flush = () => saveDraft(storageKey, draft);
     window.addEventListener("pagehide", flush);
     window.addEventListener("beforeunload", flush);
     return () => {
@@ -260,7 +276,7 @@ export function ItemForm({
       window.removeEventListener("pagehide", flush);
       window.removeEventListener("beforeunload", flush);
     };
-  }, [storageKey, values.review, values.body]);
+  }, [storageKey, values, advanced, coverUploadId, coverCleared]);
 
   function update<K extends keyof Values>(field: K, value: Values[K]) {
     setValues((current) => ({ ...current, [field]: value }));

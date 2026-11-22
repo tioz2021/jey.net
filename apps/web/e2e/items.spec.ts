@@ -30,3 +30,19 @@ test("an unsaved public review survives a reload", async ({ context, page, reque
   await expect(page.getByLabel("Публичная рецензия")).toHaveValue(draft);
   await expect(page.getByText("Черновик рецензии восстановлен")).toBeVisible();
 });
+
+test("the whole new item form survives a reload", async ({ context, page, request }) => {
+  const account = await register(request, unique("Full Draft User"));
+  await useSession(context, account);
+  await page.goto("/items/new");
+  await page.getByRole("button", { name: "Дополнительные настройки" }).click();
+  const title = unique("Cached draft");
+  const review = `Полный черновик ${Date.now()}`;
+  await page.getByLabel("Название").fill(title);
+  await page.getByLabel("Публичная рецензия").fill(review);
+  await page.waitForTimeout(700);
+  await page.reload();
+  await expect(page.getByLabel("Название")).toHaveValue(title);
+  await expect(page.getByLabel("Публичная рецензия")).toHaveValue(review);
+  await expect(page.getByText("Черновик рецензии восстановлен")).toBeVisible();
+});
