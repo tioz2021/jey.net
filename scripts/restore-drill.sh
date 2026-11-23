@@ -99,6 +99,27 @@ else
 fi
 pg_restore --list "${PLAIN}" >/dev/null || fail "archive is not readable"
 
+cleanup_stale_drills() {
+    local cutoff stamp db
+    cutoff="$(date -d '2 days ago' +%Y%m%d)"
+    if [[ "${ALLOW_NONROOT}" == "1" ]]; then
+        psql -d postgres -Atc "select datname from pg_database where datname like 'jey\_drill\_%'" 2>/dev/null |
+        while IFS= read -r db; do
+            stamp="${db#jey_drill_}"; stamp="${stamp:0:8}"
+            [[ "${stamp}" =~ ^[0-9]{8}$ && "${stamp}" < "${cutoff}" ]] || continue
+            dropdb --if-exists "${db}" >/dev/null 2>&1 || true
+        done
+    else
+        runuser -u postgres -- psql -d postgres -Atc "select datname from pg_database where datname like 'jey\_drill\_%'" 2>/dev/null |
+        while IFS= read -r db; do
+            stamp="${db#jey_drill_}"; stamp="${stamp:0:8}"
+            [[ "${stamp}" =~ ^[0-9]{8}$ && "${stamp}" < "${cutoff}" ]] || continue
+            runuser -u postgres -- dropdb --if-exists "${db}" >/dev/null 2>&1 || true
+        done
+    fi
+}
+
+cleanup_stale_drills
 say "creating ${TEMP_DB} and restoring"
 if [[ "${ALLOW_NONROOT}" == "1" ]]; then
     createdb "${TEMP_DB}"
