@@ -29,7 +29,11 @@ T198 идёт срезами: сначала типы, которые дейст
 - `ChatEnvelopeView`, `ChatEncryptedMessageView`;
 - `BookDetails` / `BookDetailsEnvelope`;
 - `TvEpisodeView`, `TvSeasonHeader`, `TvSeasonResponse`;
-- `MovieDetailsResponse`, `MovieDetailsEnvelope`, `TmdbCastMember`.
+- `MovieDetailsResponse`, `MovieDetailsEnvelope`, `TmdbCastMember`;
+- `ItemFilters` из Rust `ListQuery`.
+
+`MovieDetails` (локальный snapshot) намеренно остаётся отдельной моделью,
+потому что его форма шире TMDB detail response.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

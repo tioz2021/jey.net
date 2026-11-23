@@ -419,7 +419,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T195 | P2 | Рефакторинг desktop-bridge `[x]` | 2–3 d | T188/T194 | context/account/items/social/chat |
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
-| T198 | P1 | Генерируемые TS-типы из Rust `[~]` | 3–5 d | — | ts-rs + CI; ItemKind/Status готовы |
+| T198 | P1 | Генерируемые TS-типы из Rust `[x]` | 3–5 d | — | wire DTO generated; snapshot отдельно |
 | T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item/collection/tier typed |
 | T198.2 | P2 | Generated search/media/chat DTOs `[x]` | 2–3 d | T198.1 | search/upload/comments/chat done |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
@@ -612,7 +612,7 @@ desktop WebKit smoke 6/6.
 Не новые продуктовые функции: убираем оставшиеся источники drift и
 операционного риска.
 
-### T198 · Генерируемые TS-типы из Rust `[~]`
+### T198 · Генерируемые TS-типы из Rust `[x]`
 
 **Приоритет:** P1. **Оценка:** 3–5 d.
 
@@ -631,10 +631,8 @@ response-структуры типизированы (T198.1). Generated-фай�
 `frontend/lib/generated`, CI-проверка drift. Остались collection/tier
 response-типы и замена manual public types на фронте.
 
-**Сделано:** generated для core item DTO, `ItemView`/`UserView`,
-public profile/list/item, collection/tier public и owner detail/list.
-`PublicItem` и `PublicProfileResponse` сведены в единый Rust shape.
-Остались search/media/chat response-типы — T198.2.
+**Сделано:** все wire DTO и `ItemFilters` генерируются из Rust; CI
+проверяет drift. `MovieDetails` остаётся локальным snapshot, а не wire DTO.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

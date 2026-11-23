@@ -11,6 +11,7 @@ use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use jey_core::items::{Item, ItemKind, ItemStatus};
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -22,24 +23,39 @@ use crate::items::repo;
 use crate::items::search;
 use crate::items::view::ItemView;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, TS)]
+#[ts(export, rename = "ItemFilters")]
 pub struct ListQuery {
+    #[ts(optional = nullable, type = "import(\"./ItemKind\").ItemKind")]
     pub kind: Option<String>,
+    #[ts(optional = nullable, type = "import(\"./ItemStatus\").ItemStatus")]
     pub status: Option<String>,
+    #[ts(optional = nullable, type = "\"created_desc\" | \"created_asc\" | \"updated_desc\" | \"rating_desc\" | \"title_asc\" | \"year_desc\"")]
     pub sort: Option<String>,
+    #[ts(optional = nullable, type = "number")]
     pub limit: Option<i64>,
+    #[ts(optional = nullable)]
     pub cursor: Option<String>,
     /// `true` shows records from the bin as well.
+    #[ts(optional = nullable)]
     pub include_deleted: Option<bool>,
     /// `true` lists only records that are in the bin.
+    #[ts(optional = nullable)]
     pub only_deleted: Option<bool>,
+    #[ts(optional = nullable)]
     pub tag: Option<String>,
+    #[ts(optional = nullable)]
     pub year_from: Option<i32>,
+    #[ts(optional = nullable)]
     pub year_to: Option<i32>,
+    #[ts(optional = nullable)]
     pub rating_min: Option<u8>,
+    #[ts(optional = nullable)]
     pub rating_max: Option<u8>,
     /// `YYYY-MM`: limits the list to records added in that month.
+    #[ts(optional = nullable)]
     pub month: Option<String>,
+    #[ts(optional = nullable)]
     pub q: Option<String>,
 }
 

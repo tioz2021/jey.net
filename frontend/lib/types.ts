@@ -10,6 +10,7 @@ import type {
   BookDetails as BookDetailsResponse,
   BookSearchItem,
   GameSearchItem,
+  ItemFilters,
   MovieDetailsResponse,
   MovieSearchItem,
   ItemKind,
@@ -71,6 +72,7 @@ export type {
   CommentListResponse,
   CommentView as Comment,
   GameSearchItem,
+  ItemFilters,
   MovieDetailsResponse,
   MovieSearchItem,
   CollectionView as Collection,
@@ -173,23 +175,6 @@ export interface SeasonSummary {
 export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
 
 export type TierName = "S" | "A" | "B" | "C" | "D" | "E" | "F";
-
-export interface ItemFilters {
-  kind?: ItemKind;
-  status?: ItemStatus;
-  sort?: Sort;
-  limit?: number;
-  cursor?: string | null;
-  q?: string;
-  tag?: string;
-  year_from?: number;
-  year_to?: number;
-  rating_min?: number;
-  rating_max?: number;
-  month?: string;
-  include_deleted?: boolean;
-  only_deleted?: boolean;
-}
 
 export interface ItemNeighbors {
   prev_id: string | null;

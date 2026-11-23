@@ -1,5 +1,12 @@
 # Архив задач
 
+## T198 · TS types from Rust `[x]`
+
+- wire DTO генерируются через `ts-rs`;
+- `ItemFilters` генерируется из `ListQuery`;
+- generated-файлы проверяются в CI;
+- `MovieDetails` оставлен локальным snapshot намеренно.
+
 ## T198.2 · Search DTOs `[~]`
 
 - четыре search-response структуры получили `ts-rs` и уникальные TS-имена;

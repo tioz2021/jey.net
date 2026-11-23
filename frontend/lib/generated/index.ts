@@ -56,3 +56,4 @@ export type { MovieDetailsResponse } from "./MovieDetailsResponse";
 export type { TmdbCastMember } from "./TmdbCastMember";
 export type { MovieTranslation } from "./MovieTranslation";
 export type { SeasonSummary } from "./SeasonSummary";
+export type { ItemFilters } from "./ItemFilters";
