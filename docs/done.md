@@ -1,5 +1,15 @@
 # Архив задач
 
+## T191–T192 · CSP и audit `[~]`
+
+- inline theme script заменён на SHA-256 hash в Caddy;
+- `scripts/check-csp.sh` встроен в quality gate;
+- production CSP проверен: 0 violation, script `unsafe-inline` убран;
+- `cargo audit`: 0 vulnerabilities, 6 принятых warning с причинами;
+- `npm audit --omit=dev`: 0;
+- `style-src 'unsafe-inline'` остаётся из-за React style props → T197.
+
+
 ## T186–T187 · WebKit smoke `[x]`
 
 - `tauri-driver` + `WebKitWebDriver` открывают реальное Tauri-окно;

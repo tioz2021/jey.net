@@ -7,4 +7,10 @@ ignore = [
   "RUSTSEC-2026-0459", # libsqlite3-sys via rusqlite: local desktop DB
   "RUSTSEC-2026-0387", # crypto-bigint via web-push-native
   "RUSTSEC-2023-0071", # rsa via web-push-native
+  "RUSTSEC-2026-0543", # chrono unmaintained; used for timestamps in API/desktop
+  "RUSTSEC-2024-0370", # proc-macro-error via Tauri build tooling
+  "RUSTSEC-2026-0371", # zbus_names via Tauri/GTK; no safe upgrade yet
+  "RUSTSEC-2026-0370", # zvariant via Tauri/GTK; no safe upgrade yet
+  "RUSTSEC-2026-0372", # zvariant_derive via Tauri/GTK; no safe upgrade yet
+  "RUSTSEC-2024-0429", # glib GTK iterator unsoundness; local desktop only
 ]

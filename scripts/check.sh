@@ -43,6 +43,9 @@ fail() {
 step "cargo fmt --check"
 cargo fmt --all -- --check || fail "formatting (run: cargo fmt)"
 
+step "check CSP hash"
+bash scripts/check-csp.sh || fail "CSP hash"
+
 step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 

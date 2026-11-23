@@ -13,10 +13,10 @@
 		X-Frame-Options "DENY"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 		Cross-Origin-Opener-Policy "same-origin"
-		# No third-party assets are used, so everything is same-origin.
-		# 'unsafe-inline' is needed because Next.js inlines its bootstrap and
-		# the theme script; a nonce-based policy is the next step.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+		# The only inline script is the pre-paint theme bootstrap; its hash is
+		# checked by scripts/check-csp.sh. React uses style props, so style-src
+		# keeps a documented 'unsafe-inline' exception for now.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-bbDjrROHH0WJVm5VGhQOF6CdSZCPLjxjMpesOM9zKjM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 		-Server
 		-X-Powered-By
 	}

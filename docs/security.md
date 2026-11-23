@@ -8,7 +8,7 @@ API, React SPA, Tauri desktop и сервер. Метод: чтение кода
 
 | Проверка | Результат |
 |---|---|
-| `cargo audit` | 0 actionable; 5 принятых transitive-рисков в desktop/push |
+| `cargo audit` | 0 vulnerabilities; 6 принятых warning в Tauri/GTK/chrono |
 | `npm audit --omit=dev` | 0 уязвимостей (после override `postcss`) |
 | `npm audit` (полный) | 1 moderate в dev-зависимости, не попадает в прод |
 | IDOR | чужие записи и файлы недоступны, тесты есть |
@@ -131,6 +131,10 @@ upgrade-insecure-requests
 | 4 | Полигон `/dev` доступен на проде | низкая | исправлено (404) |
 | 5 | `ctutils 0.4.2` (RUSTSEC-2026-0385) | высокая | исправлено (0.4.4) |
 | 6 | `postcss 8.4.31` (npm audit) | высокая | исправлено (override 8.5.32) |
+| 7 | chrono unmaintained | низкая | принято, timestamps |
+| 8 | proc-macro-error unmaintained | низкая | build-time Tauri |
+| 9–11 | zbus_names/zvariant* unmaintained | низкая | Tauri/GTK, нет безопасного апгрейда |
+| 12 | glib iterator unsound | низкая | локальный GTK, не сетевой ввод |
 | 7 | `minimatch` в eslint | низкая (dev) | принято |
 
 ## E2E чат (0.6.0)
@@ -155,3 +159,13 @@ upgrade-insecure-requests
    уязвимостях.
 6. Зависимости обновляются вручную; аудит запускается в CI, автоматический
    Dependabot/Renovate стоит включить перед публичным запуском.
+
+
+## CSP (T191)
+
+Web CSP больше не разрешает `script-src 'unsafe-inline'`: hash inline
+theme-скрипта проверяется `scripts/check-csp.sh` и встроен в quality gate.
+
+Остаётся `style-src 'unsafe-inline'` из-за React `style={{...}}` в десятках
+компонентов. Это задокументированный остаток и задача T197; он не позволяет
+внедрять скрипты.
