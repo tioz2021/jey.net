@@ -64,3 +64,6 @@ var/
 
 # Python smoke caches
 scripts/__pycache__/
+
+# ts-rs default output if TS_RS_EXPORT_DIR is not applied
+crates/*/bindings/
