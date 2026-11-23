@@ -94,7 +94,7 @@ cat <<MSG
 
 Role creation (run once, as a PostgreSQL superuser):
 
-  sudo -u postgres psql -v ON_ERROR_STOP=1 -f ${role_sql}
+  sudo -u postgres psql -v ON_ERROR_STOP=1 < ${role_sql}
   rm -f ${role_sql}
 
 The password is in ${CONFIG} (0600), not in this output.
