@@ -2,8 +2,9 @@
 
 use axum::Json;
 use axum::extract::{Path, State};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -314,14 +315,47 @@ pub async fn sync_auto_item(
     Ok(())
 }
 
-async fn list_json(pool: &sqlx::PgPool, id: Uuid) -> Result<Value, AppError> {
-    sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind, 'auto', t.auto,
-            'visibility', t.visibility, 'created_at', t.created_at,
-            'updated_at', t.updated_at, 'handle', u.handle,
-            'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)
-         )
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct TierListView {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
+    pub kind: String,
+    pub auto: bool,
+    #[ts(type = "\"private\" | \"public\"")]
+    pub visibility: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub handle: Option<String>,
+    #[ts(type = "number")]
+    pub item_count: i64,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TierListItemView {
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub item: ItemView,
+    #[ts(type = "\"S\" | \"A\" | \"B\" | \"C\" | \"D\" | \"E\" | \"F\"")]
+    pub tier: String,
+    pub position: i32,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TierListDetailResponse {
+    pub tier_list: TierListView,
+    pub items: Vec<TierListItemView>,
+}
+
+async fn list_json(pool: &sqlx::PgPool, id: Uuid) -> Result<TierListView, AppError> {
+    sqlx::query_as::<_, TierListView>(
+        "select t.id, t.title, t.slug, t.kind, t.auto, t.visibility,
+                t.created_at, t.updated_at, u.handle,
+                (select count(*) from tier_list_items ti where ti.tier_list_id = t.id) as item_count
          from tier_lists t join users u on u.id = t.user_id
          where t.id = $1",
     )
@@ -335,7 +369,7 @@ async fn owner_items(
     state: &AppState,
     user_id: Uuid,
     list_id: Uuid,
-) -> Result<Vec<Value>, AppError> {
+) -> Result<Vec<TierListItemView>, AppError> {
     let rows: Vec<(Uuid, String, i32)> = sqlx::query_as(
         "select item_id, tier, position from tier_list_items
          where tier_list_id = $1 order by tier, position, created_at",
@@ -347,12 +381,11 @@ async fn owner_items(
     let mut items = Vec::new();
     for (item_id, tier, position) in rows {
         if let Some(item) = repo::get(&state.pool, user_id, item_id).await? {
-            let mut value = serde_json::to_value(ItemView::from(item)).unwrap_or(Value::Null);
-            if let Some(object) = value.as_object_mut() {
-                object.insert("tier".to_owned(), Value::String(tier));
-                object.insert("position".to_owned(), Value::from(position));
-            }
-            items.push(value);
+            items.push(TierListItemView {
+                item: ItemView::from(item),
+                tier,
+                position,
+            });
         }
     }
     Ok(items)
@@ -362,7 +395,7 @@ async fn public_items(
     state: &AppState,
     owner: Uuid,
     list_id: Uuid,
-) -> Result<Vec<Value>, AppError> {
+) -> Result<Vec<TierListItemView>, AppError> {
     let rows: Vec<(Uuid, String, i32)> = sqlx::query_as(
         "select ti.item_id, ti.tier, ti.position
          from tier_list_items ti
@@ -380,12 +413,11 @@ async fn public_items(
     let mut items = Vec::new();
     for (item_id, tier, position) in rows {
         if let Some(item) = repo::get(&state.pool, owner, item_id).await? {
-            let mut value = serde_json::to_value(ItemView::from(item)).unwrap_or(Value::Null);
-            if let Some(object) = value.as_object_mut() {
-                object.insert("tier".to_owned(), Value::String(tier));
-                object.insert("position".to_owned(), Value::from(position));
-            }
-            items.push(value);
+            items.push(TierListItemView {
+                item: ItemView::from(item),
+                tier,
+                position,
+            });
         }
     }
     Ok(items)
@@ -457,11 +489,12 @@ pub async fn detail(
     State(state): State<AppState>,
     current: CurrentUser,
     Path(id): Path<Uuid>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<TierListDetailResponse>, AppError> {
     owned(&state.pool, current.user.id, id).await?;
-    Ok(Json(
-        json!({ "tier_list": list_json(&state.pool, id).await?, "items": owner_items(&state, current.user.id, id).await? }),
-    ))
+    Ok(Json(TierListDetailResponse {
+        tier_list: list_json(&state.pool, id).await?,
+        items: owner_items(&state, current.user.id, id).await?,
+    }))
 }
 
 /// `PATCH /api/v1/tier-lists/{id}`
@@ -587,7 +620,7 @@ pub async fn remove_item(
 pub async fn public_detail(
     State(state): State<AppState>,
     Path((user_id, slug)): Path<(String, String)>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<TierListDetailResponse>, AppError> {
     let owner: Option<Uuid> = if let Ok(uuid) = Uuid::parse_str(&user_id) {
         Some(uuid)
     } else {
@@ -613,7 +646,8 @@ pub async fn public_detail(
     let Some((id, owner)) = row else {
         return Err(AppError::not_found("tier list"));
     };
-    Ok(Json(
-        json!({ "tier_list": list_json(&state.pool, id).await?, "items": public_items(&state, owner, id).await? }),
-    ))
+    Ok(Json(TierListDetailResponse {
+        tier_list: list_json(&state.pool, id).await?,
+        items: public_items(&state, owner, id).await?,
+    }))
 }

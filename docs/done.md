@@ -7,7 +7,8 @@
 - public item detail/response;
 - generated TS for all этих структур;
 - API public-profile tests: 6/6;
-- remaining: collection/tier detail + frontend aliases.
+- collection/tier detail: `PublicCollectionResponse`, `TierListView`;
+- frontend `PublicCollection`, `TierList`, `TierListDetail` заменены на generated.
 
 
 ## T198 · TS types from Rust `[~]`

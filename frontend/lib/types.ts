@@ -9,6 +9,10 @@ import type {
   ItemKind,
   ItemStatus,
   ItemView as Item,
+  PublicCollectionResponse as PublicCollection,
+  TierListDetailResponse as TierListDetail,
+  TierListItemView as TierListItem,
+  TierListView as TierList,
   UserView as User,
 } from "./generated";
 
@@ -22,7 +26,14 @@ export type Sort =
   | "title_asc"
   | "year_desc";
 
-export type { ItemView as Item, UserView as User } from "./generated";
+export type {
+  ItemView as Item,
+  PublicCollectionResponse as PublicCollection,
+  TierListDetailResponse as TierListDetail,
+  TierListItemView as TierListItem,
+  TierListView as TierList,
+  UserView as User,
+} from "./generated";
 export type { ItemPatch, NewItem } from "./generated";
 
 export interface CastMember {
@@ -181,29 +192,7 @@ export interface MovieDetailsResponse extends MovieDetails {
 
 export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
 
-export interface TierList {
-  id: string;
-  title: string;
-  slug: string;
-  kind: TierListKind;
-  auto: boolean;
-  visibility: "private" | "public";
-  created_at: string;
-  updated_at: string;
-  item_count: number;
-}
-
 export type TierName = "S" | "A" | "B" | "C" | "D" | "E" | "F";
-
-export type TierListItem = Item & {
-  tier: TierName;
-  position: number;
-};
-
-export interface TierListDetail {
-  tier_list: TierList & { handle?: string };
-  items: TierListItem[];
-}
 
 export interface Collection {
   id: string;
@@ -219,27 +208,6 @@ export interface Collection {
 export interface CollectionDetail {
   collection: Omit<Collection, "item_count">;
   items: Item[];
-}
-
-export interface PublicCollection {
-  collection: {
-    id: string;
-    title: string;
-    slug: string;
-    owner_name: string;
-  };
-  items: Array<{
-    id: string;
-    slug: string;
-    kind: ItemKind;
-    title: string;
-    subtitle: string | null;
-    year: number | null;
-    status: ItemStatus;
-    rating: number | null;
-    review: string | null;
-    cover_key: string | null;
-  }>;
 }
 
 export interface ItemFilters {

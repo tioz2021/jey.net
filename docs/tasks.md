@@ -630,6 +630,10 @@ response-структуры типизированы (T198.1). Generated-фай�
 `frontend/lib/generated`, CI-проверка drift. Остались collection/tier
 response-типы и замена manual public types на фронте.
 
+**Сделано:** generated для core item DTO, `ItemView`/`UserView`,
+public profile/list/item, public collection/tier detail. Остались
+owner collection/tier list-ответы и часть public-profile aliases.
+
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.
 

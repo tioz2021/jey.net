@@ -2,8 +2,9 @@
 
 use axum::Json;
 use axum::extract::{Path, State};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use ts_rs::TS;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -286,6 +287,39 @@ pub async fn remove_item(
     Ok(axum::http::StatusCode::NO_CONTENT)
 }
 
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicCollectionHeader {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub owner_name: String,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct PublicCollectionItem {
+    pub id: Uuid,
+    pub slug: String,
+    #[ts(type = "import(\"./ItemKind\").ItemKind")]
+    pub kind: String,
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub year: Option<i32>,
+    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
+    pub status: String,
+    pub rating: Option<i16>,
+    pub review: Option<String>,
+    pub cover_key: Option<String>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicCollectionResponse {
+    pub collection: PublicCollectionHeader,
+    pub items: Vec<PublicCollectionItem>,
+}
+
 /// `GET /api/v1/public/users/{handle}/collections/{slug}`
 ///
 /// Public collections expose only records that are public on their own:
@@ -293,7 +327,7 @@ pub async fn remove_item(
 pub async fn public_detail(
     State(state): State<AppState>,
     axum::extract::Path((handle, slug)): axum::extract::Path<(String, String)>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<PublicCollectionResponse>, AppError> {
     let row: Option<(Uuid, String, String, String, String)> = sqlx::query_as(
         "select c.id, c.title, c.slug, c.visibility, u.display_name
          from collections c join users u on u.id = c.user_id
@@ -309,12 +343,9 @@ pub async fn public_detail(
         return Err(AppError::not_found("collection"));
     };
 
-    let items: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', i.id, 'slug', i.slug, 'kind', i.kind, 'title', i.title,
-            'subtitle', i.subtitle, 'year', i.year, 'status', i.status,
-            'rating', i.rating, 'review', i.review, 'cover_key', i.cover_key
-         )
+    let items = sqlx::query_as::<_, PublicCollectionItem>(
+        "select i.id, i.slug, i.kind, i.title, i.subtitle, i.year,
+                i.status, i.rating, i.review, i.cover_key
          from collection_items ci
          join items i on i.id = ci.item_id
          join users u on u.id = i.user_id
@@ -329,10 +360,10 @@ pub async fn public_detail(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({
-        "collection": { "id": id, "title": title, "slug": slug, "owner_name": owner_name },
-        "items": items,
-    })))
+    Ok(Json(PublicCollectionResponse {
+        collection: PublicCollectionHeader { id, title, slug, owner_name },
+        items,
+    }))
 }
 
 /// `GET /api/v1/collections/for-item/{item_id}` — collections and membership.

@@ -14,7 +14,9 @@ T198 идёт срезами: сначала типы, которые дейст
 - `PublicProfileResponse`, `PublicProfileView`, `PublicItemView`;
 - `PublicItemDetail`, `PublicItemResponse`;
 - `PublicUserEntry`, `PublicUserListResponse`;
-- `PublicCollectionSummary`, `PublicTierListSummary`.
+- `PublicCollectionSummary`, `PublicTierListSummary`;
+- `PublicCollectionResponse` / header / item;
+- `TierListView`, `TierListItemView`, `TierListDetailResponse`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 
