@@ -422,7 +422,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T198 | P1 | Генерируемые TS-типы из Rust `[ ]` | 3–5 d | — | один источник DTO, CI-check на drift |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
-| T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted archive + counts + off-host timer |
+| T201 | P1 | Backup/restore drill `[~]` | 2 d | — | code ready; local CREATEDB/key drill pending |
 | T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[ ]` | 3–4 d | T190 | SLO baseline и ADR масштабирования |
 
 ### T183 · Решение по Windows-подписи и auto-update
@@ -659,7 +659,7 @@ release workflow запускает его как job `smoke`, а `vps` и `publ
 **Готово, когда:** ошибка из production доходит до хранилища, не содержит
 секретов, а по ней можно найти route/версию.
 
-### T201 · Backup/restore drill `[x]`
+### T201 · Backup/restore drill `[~]`
 
 **Приоритет:** P1. **Оценка:** 2 d.
 
