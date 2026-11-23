@@ -69,8 +69,10 @@ systemctl --user enable --now jey-restore-drill.timer
 systemctl --user list-timers jey-restore-drill.timer
 ```
 
-Сейчас локальный timer drill ещё не установлен; pull-backup timer уже
-работает ежедневно.
+Pull-backup timer уже работает ежедневно. Drill вручную проверен
+2026-11-23 на backup от 2026-11-22: encrypted archive расшифрован,
+восстановлен в одноразовую БД, schema/migrations проверены. Локальный
+timer drill пока не установлен.
 
 ## RPO / RTO
 

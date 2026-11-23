@@ -66,6 +66,7 @@ say "pulling database dumps"
 rsync -az --partial --human-readable \
     --include='jey-*.dump.gpg' \
     --include='jey-*.dump.gpg.sha256' \
+    --include='jey-*.counts.json' \
     --exclude='*' \
     -e "${SSH_CMD}" \
     "${VPS_USER}@${VPS_HOST}:${REMOTE_DB_DIR}/" "${LOCAL_DIR}/db/"
