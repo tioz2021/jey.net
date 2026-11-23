@@ -101,9 +101,15 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  smoke:
+    name: Desktop WebKit smoke
+    uses: ./.github/workflows/desktop-smoke.yml
+    permissions:
+      contents: read
+
   vps:
     name: Publish VPS download channel
-    needs: [linux, windows]
+    needs: [linux, windows, smoke]
     runs-on: ubuntu-24.04
     if: github.ref_type == 'tag'
     timeout-minutes: 20
@@ -138,7 +144,7 @@ jobs:
 
   publish:
     name: Publish release
-    needs: [linux, windows]
+    needs: [linux, windows, smoke]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

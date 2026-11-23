@@ -133,3 +133,10 @@ TAURI_SIGNING_PRIVATE_KEY_PASSWORD = пусто
 Важно: текущая сборка 0.7.2 ещё не содержит updater. Автообновление
 заработает начиная с первой сборки с плагином (0.7.3) и следующего
 подписанного релиза.
+
+
+## Release gate (T199)
+
+`release.yml` не публикует VPS и GitHub release, пока не пройдёт
+`desktop-smoke.yml` (WebKit + Xvfb). Smoke-джоб можно запустить вручную
+через **Run workflow**, но для тега он обязателен.

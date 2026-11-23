@@ -420,7 +420,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 | T198 | P1 | Генерируемые TS-типы из Rust `[ ]` | 3–5 d | — | один источник DTO, CI-check на drift |
-| T199 | P1 | Desktop smoke в release gate `[ ]` | 2–3 d | T187 | WebKit smoke блокирует релиз |
+| T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
 | T201 | P1 | Backup/restore drill `[ ]` | 2 d | — | восстановление проверяется, не только бэкап |
 | T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[ ]` | 3–4 d | T190 | SLO baseline и ADR масштабирования |
@@ -626,7 +626,7 @@ desktop WebKit smoke 6/6.
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.
 
-### T199 · Desktop smoke в обязательном release gate
+### T199 · Desktop smoke в обязательном release gate `[x]`
 
 **Приоритет:** P1. **Оценка:** 2–3 d.
 
@@ -637,8 +637,9 @@ desktop WebKit smoke 6/6.
 - 6 сценариев проходят;
 - падение smoke блокирует VPS-публикацию.
 
-**Готово, когда:** ручной workflow больше не нужен для релиза, а
-`v*`-тег не может опубликоваться с красным smoke.
+**Сделано:** `desktop-smoke.yml` стал reusable (`workflow_call`);
+release workflow запускает его как job `smoke`, а `vps` и `publish` имеют
+`needs: [linux, windows, smoke]`. **Готово:** первый тег с гейтом — 0.7.6.
 
 ### T200 · Структурированная телеметрия ошибок
 

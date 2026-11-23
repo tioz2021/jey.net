@@ -1,5 +1,13 @@
 # Архив задач
 
+## T199 · Desktop smoke в release gate `[x]`
+
+- WebKit smoke вынесен в reusable workflow;
+- release job `smoke` обязателен для `vps` и `publish`;
+- ручной запуск сохранён;
+- первый тег, который проверит гейт — следующий релиз.
+
+
 ## 0.7.5 `[x]`
 
 - stability-релиз после 0.8;
