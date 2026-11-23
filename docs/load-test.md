@@ -50,3 +50,7 @@ Move to two instances when any of these is true:
 
 Before two instances: implement T190 (cross-instance notifications), move
 background jobs to one owner, and share media storage.
+
+## Связанный план
+
+Практический план роста: [scaling.md](scaling.md).
