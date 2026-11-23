@@ -7,6 +7,7 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -1106,6 +1107,31 @@ pub async fn unmute(
     Ok(Json(json!({ "muted": false })))
 }
 
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatSettingsView {
+    #[ts(type = "\"all\" | \"following\" | \"nobody\"")]
+    pub message_policy: String,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct ChatDeviceView {
+    pub device_id: Uuid,
+    pub public_key: String,
+    #[ts(type = "\"x25519\"")]
+    pub algorithm: String,
+    pub name: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatDeviceListResponse {
+    pub devices: Vec<ChatDeviceView>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ChatSettingsPatch {
     pub message_policy: String,
@@ -1119,7 +1145,7 @@ fn valid_policy(value: &str) -> bool {
 pub async fn get_settings(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatSettingsView>, AppError> {
     let policy: String = sqlx::query_scalar(
         "select coalesce(
             (select message_policy from chat_settings where user_id = $1),
@@ -1130,7 +1156,7 @@ pub async fn get_settings(
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "message_policy": policy })))
+    Ok(Json(ChatSettingsView { message_policy: policy }))
 }
 
 /// `PATCH /api/v1/chat/settings`
@@ -1138,7 +1164,7 @@ pub async fn update_settings(
     State(state): State<AppState>,
     current: CurrentUser,
     Json(payload): Json<ChatSettingsPatch>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatSettingsView>, AppError> {
     if !valid_policy(&payload.message_policy) {
         return Err(AppError::validation_field(
             "message_policy",
@@ -1156,7 +1182,7 @@ pub async fn update_settings(
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "message_policy": payload.message_policy })))
+    Ok(Json(ChatSettingsView { message_policy: payload.message_policy }))
 }
 
 #[derive(Debug, Deserialize)]
@@ -1180,7 +1206,7 @@ fn validate_public_key(raw: &str) -> Result<(), AppError> {
     Ok(())
 }
 
-async fn device_list(pool: &PgPool, user_id: Uuid) -> Result<Value, AppError> {
+async fn device_list(pool: &PgPool, user_id: Uuid) -> Result<ChatDeviceListResponse, AppError> {
     let exists: bool = sqlx::query_scalar(
         "select exists(select 1 from users where id = $1 and deleted_at is null)",
     )
@@ -1191,32 +1217,25 @@ async fn device_list(pool: &PgPool, user_id: Uuid) -> Result<Value, AppError> {
     if !exists {
         return Err(AppError::not_found("user"));
     }
-    let devices: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'device_id', device_id,
-            'public_key', public_key,
-            'algorithm', algorithm,
-            'name', name,
-            'created_at', created_at,
-            'updated_at', updated_at
-        )
-        from chat_devices
-        where user_id = $1 and revoked_at is null
-        order by updated_at desc
-        limit 50",
+    let devices = sqlx::query_as::<_, ChatDeviceView>(
+        "select device_id, public_key, algorithm, name, created_at, updated_at
+         from chat_devices
+         where user_id = $1 and revoked_at is null
+         order by updated_at desc
+         limit 50",
     )
     .bind(user_id)
     .fetch_all(pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(json!({ "devices": devices }))
+    Ok(ChatDeviceListResponse { devices })
 }
 
 /// `GET /api/v1/chat/devices` — public keys of the current account's devices.
 pub async fn my_devices(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatDeviceListResponse>, AppError> {
     Ok(Json(device_list(&state.pool, current.user.id).await?))
 }
 
@@ -1262,7 +1281,7 @@ pub async fn user_devices(
     State(state): State<AppState>,
     _current: CurrentUser,
     Path(user_id): Path<Uuid>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatDeviceListResponse>, AppError> {
     Ok(Json(device_list(&state.pool, user_id).await?))
 }
 

@@ -30,3 +30,6 @@ export type { UploadView } from "./UploadView";
 export type { CommentCreated } from "./CommentCreated";
 export type { CommentListResponse } from "./CommentListResponse";
 export type { CommentView } from "./CommentView";
+export type { ChatDeviceListResponse } from "./ChatDeviceListResponse";
+export type { ChatDeviceView } from "./ChatDeviceView";
+export type { ChatSettingsView } from "./ChatSettingsView";

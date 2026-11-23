@@ -6,7 +6,8 @@
 - фронт использует generated `Movie/Book/Game/AnimeSearchItem`;
 - upload media: `UploadView`/`UploadResponse` generated;
 - comments: `CommentView`/`CommentListResponse` generated;
-- остался chat.
+- chat devices/settings: `ChatDeviceView`, `ChatSettingsView`;
+- остались chat thread/message/envelopes.
 
 
 ## T198.1 · Typed public responses `[x]`

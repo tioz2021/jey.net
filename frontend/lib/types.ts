@@ -12,6 +12,8 @@ import type {
   MovieSearchItem,
   ItemKind,
   ItemStatus,
+  ChatDeviceView as ChatDevice,
+  ChatSettingsView as ChatSettings,
   CollectionDetailResponse as CollectionDetail,
   CommentListResponse,
   CommentView as Comment,
@@ -44,6 +46,8 @@ export type Sort =
 export type {
   AnimeSearchItem,
   BookSearchItem,
+  ChatDeviceView as ChatDevice,
+  ChatSettingsView as ChatSettings,
   CollectionDetailResponse as CollectionDetail,
   CommentListResponse,
   CommentView as Comment,
@@ -557,19 +561,6 @@ export interface ChatLastMessage {
   sender_id: string;
   body: string;
   created_at: string;
-}
-
-export interface ChatDevice {
-  device_id: string;
-  public_key: string;
-  algorithm: "x25519";
-  name: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ChatSettings {
-  message_policy: "all" | "following" | "nobody";
 }
 
 export interface ChatEnvelope {
