@@ -20,7 +20,14 @@ test("followed activity and likes reach the notebook", async ({
   await page.goto("/recommendations/all");
   await expect(page.getByText(title).first()).toBeVisible();
   const card = page.locator("article").filter({ hasText: title });
+  const reaction = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      response.url().includes("/api/v1/public/items/") &&
+      response.url().endsWith("/reactions"),
+  );
   await card.getByRole("button", { name: "Нравится" }).click();
+  expect((await reaction).ok()).toBe(true);
 
   await page.goto("/liked");
   await expect(page.getByText(title).first()).toBeVisible();
