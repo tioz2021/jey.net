@@ -26,7 +26,8 @@ T198 идёт срезами: сначала типы, которые дейст
 - `CommentView`, `CommentListResponse`, `CommentCreated`;
 - `ChatDeviceView`, `ChatDeviceListResponse`, `ChatSettingsView`;
 - `ChatThreadView`, `ChatMessageView`, `ChatPeerView`, `ChatReactionView`;
-- `ChatEnvelopeView`, `ChatEncryptedMessageView`.
+- `ChatEnvelopeView`, `ChatEncryptedMessageView`;
+- `BookDetails` / `BookDetailsEnvelope`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

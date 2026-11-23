@@ -25,12 +25,14 @@ pub struct SearchItem {
     pub authors: Vec<String>,
     pub year: Option<i32>,
     #[ts(type = "number | null")]
+    #[ts(type = "number | null")]
     pub cover_id: Option<i64>,
     pub cover_url: Option<String>,
     pub isbn: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
 pub struct BookDetails {
     pub book_id: String,
     pub source: String,
@@ -41,6 +43,7 @@ pub struct BookDetails {
     pub publisher: Option<String>,
     pub page_count: Option<i32>,
     pub isbn: Option<String>,
+    #[ts(type = "number | null")]
     pub cover_id: Option<i64>,
     pub cover_url: Option<String>,
     pub subjects: Vec<String>,

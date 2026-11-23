@@ -653,8 +653,9 @@ Handlers `public/users`, `public/users/{id}`, `public/users/{id}/items/{id}`
 ### T198.2 · Generated search/media/chat DTOs `[~]`
 
 **Сделано:** search, upload, comments, chat devices/settings,
-thread/message, encrypted envelopes генерируются из Rust. Остался
-только клиентский `ChatSharedItem`.
+thread/message, encrypted envelopes, `BookDetails` генерируются из Rust.
+Остались TV season/episode, `MovieDetailsResponse` и клиентский
+`ChatSharedItem`.
 
 ### T199 · Desktop smoke в обязательном release gate `[x]`
 

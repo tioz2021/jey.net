@@ -7,6 +7,7 @@
 
 import type {
   AnimeSearchItem,
+  BookDetails as BookDetailsResponse,
   BookSearchItem,
   GameSearchItem,
   MovieSearchItem,
@@ -52,6 +53,7 @@ export type Sort =
 
 export type {
   AnimeSearchItem,
+  BookDetails as BookDetailsResponse,
   BookSearchItem,
   ChatDeviceView as ChatDevice,
   ChatEncryptedMessageView as ChatEncryptedMessage,
@@ -175,21 +177,6 @@ export interface SeasonSummary {
   episode_count: number;
   air_date: string | null;
   poster_path: string | null;
-}
-
-export interface BookDetailsResponse {
-  book_id: string;
-  title: string;
-  authors: string[];
-  year: number | null;
-  overview: string | null;
-  publisher: string | null;
-  page_count: number | null;
-  isbn: string | null;
-  cover_id: number | null;
-  cover_url: string | null;
-  source: "openlibrary" | "googlebooks" | string;
-  subjects: string[];
 }
 
 export interface MovieDetailsResponse extends MovieDetails {

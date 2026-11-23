@@ -46,3 +46,5 @@ export type { ChatReactionView } from "./ChatReactionView";
 export type { ChatThreadListResponse } from "./ChatThreadListResponse";
 export type { ChatThreadResponse } from "./ChatThreadResponse";
 export type { ChatThreadView } from "./ChatThreadView";
+export type { BookDetails } from "./BookDetails";
+export type { BookDetailsEnvelope } from "./BookDetailsEnvelope";

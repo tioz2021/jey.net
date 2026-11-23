@@ -201,6 +201,12 @@ pub async fn search(
     Ok(Json(json!({ "results": results })).into_response())
 }
 
+#[derive(Debug, serde::Serialize, ts_rs::TS)]
+#[ts(export)]
+pub struct BookDetailsEnvelope {
+    pub book: openlibrary::BookDetails,
+}
+
 /// `GET /api/v1/books/{id}`
 pub async fn details(
     State(state): State<crate::http::AppState>,
@@ -211,7 +217,7 @@ pub async fn details(
         .books
         .details(&id, state.config.google_books_key.as_deref())
         .await?;
-    Ok(Json(json!({ "book": book })).into_response())
+    Ok(Json(BookDetailsEnvelope { book }).into_response())
 }
 
 /// `GET /api/v1/books/image?...`

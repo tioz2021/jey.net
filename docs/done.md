@@ -9,7 +9,8 @@
 - chat devices/settings: `ChatDeviceView`, `ChatSettingsView`;
 - chat thread/message/envelopes: `ChatThreadView`, `ChatMessageView`,
   `ChatEnvelopeView`, `ChatEncryptedMessageView`;
-- chat tests: 6/6.
+- chat tests: 6/6;
+- book detail: `BookDetails`/`BookDetailsEnvelope` generated.
 
 
 ## T198.1 · Typed public responses `[x]`
