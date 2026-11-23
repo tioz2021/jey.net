@@ -3,7 +3,8 @@
 use axum::Json;
 use axum::extract::{Multipart, State};
 use axum::http::StatusCode;
-use serde_json::{Value, json};
+use serde::Serialize;
+use ts_rs::TS;
 
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
@@ -24,11 +25,29 @@ fn multipart_error(error: axum::extract::multipart::MultipartError) -> AppError 
     AppError::validation(format!("invalid multipart body: {message}"))
 }
 
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct UploadView {
+    pub id: uuid::Uuid,
+    pub mime: String,
+    #[ts(type = "number")]
+    pub size_bytes: i64,
+    pub width: u32,
+    pub height: u32,
+    pub preview_url: String,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct UploadResponse {
+    pub upload: UploadView,
+}
+
 pub async fn upload(
     State(state): State<AppState>,
     current: CurrentUser,
     mut multipart: Multipart,
-) -> Result<(StatusCode, Json<Value>), AppError> {
+) -> Result<(StatusCode, Json<UploadResponse>), AppError> {
     let mut bytes = None;
 
     while let Some(field) = multipart.next_field().await.map_err(multipart_error)? {
@@ -55,15 +74,15 @@ pub async fn upload(
 
     Ok((
         StatusCode::CREATED,
-        Json(json!({
-            "upload": {
-                "id": stored.id,
-                "mime": stored.mime,
-                "size_bytes": stored.size,
-                "width": stored.width,
-                "height": stored.height,
-                "preview_url": state.storage.url(&stored.preview_key),
-            }
-        })),
+        Json(UploadResponse {
+            upload: UploadView {
+                id: stored.id,
+                mime: stored.mime.to_owned(),
+                size_bytes: stored.size,
+                width: stored.width,
+                height: stored.height,
+                preview_url: state.storage.url(&stored.preview_key),
+            },
+        }),
     ))
 }

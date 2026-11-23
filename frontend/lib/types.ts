@@ -22,6 +22,8 @@ import type {
   PublicProfileView as PublicProfile,
   PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
+  UploadResponse,
+  UploadView as Upload,
   TierListItemView as TierListItem,
   TierListView as TierList,
   UserView as User,
@@ -52,6 +54,8 @@ export type {
   PublicProfileView as PublicProfile,
   PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
+  UploadResponse,
+  UploadView as Upload,
   TierListItemView as TierListItem,
   TierListView as TierList,
   UserView as User,
@@ -549,21 +553,6 @@ export interface UserResponse {
 export interface ItemResponse {
   item: Item;
 }
-
-export interface Upload {
-  id: string;
-  mime: string;
-  size_bytes: number;
-  width: number;
-  height: number;
-  preview_url: string;
-}
-
-export interface UploadResponse {
-  upload: Upload;
-}
-
-
 
 export interface ChatPeer {
   id: string;

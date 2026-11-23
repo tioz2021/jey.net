@@ -25,3 +25,5 @@ export type { AnimeSearchItem } from "./AnimeSearchItem";
 export type { BookSearchItem } from "./BookSearchItem";
 export type { GameSearchItem } from "./GameSearchItem";
 export type { MovieSearchItem } from "./MovieSearchItem";
+export type { UploadResponse } from "./UploadResponse";
+export type { UploadView } from "./UploadView";
