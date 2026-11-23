@@ -9,6 +9,7 @@ use std::time::{Duration, Instant};
 
 use reqwest::Client;
 use serde::Serialize;
+use ts_rs::TS;
 use serde_json::Value;
 
 use crate::error::AppError;
@@ -21,8 +22,10 @@ const SEARCH_TTL: Duration = Duration::from_secs(15 * 60);
 const DETAILS_TTL: Duration = Duration::from_secs(60 * 60);
 const CACHE_CAPACITY: usize = 200;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "GameSearchItem")]
 pub struct SearchItem {
+    #[ts(type = "number")]
     pub igdb_id: u64,
     pub title: String,
     pub year: Option<i32>,

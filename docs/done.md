@@ -1,5 +1,12 @@
 # Архив задач
 
+## T198.2 · Search DTOs `[~]`
+
+- четыре search-response структуры получили `ts-rs` и уникальные TS-имена;
+- фронт использует generated `Movie/Book/Game/AnimeSearchItem`;
+- остались upload/media, comments и chat.
+
+
 ## T198.1 · Typed public responses `[x]`
 
 - `PublicProfileResponse` / profile/items/collections/tier summaries;

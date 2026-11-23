@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 
 use reqwest::Url;
 use serde::Serialize;
+use ts_rs::TS;
 use serde_json::Value;
 
 use crate::error::AppError;
@@ -27,8 +28,10 @@ pub struct SimilarItem {
     pub href: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "MovieSearchItem")]
 pub struct SearchItem {
+    #[ts(type = "number")]
     pub tmdb_id: u64,
     pub title: String,
     pub original_title: String,

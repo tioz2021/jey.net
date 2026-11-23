@@ -14,6 +14,7 @@ use axum::http::{HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use serde::Serialize;
+use ts_rs::TS;
 use serde_json::json;
 
 use crate::auth::middleware::CurrentUser;
@@ -147,7 +148,8 @@ impl AnimeClient {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "AnimeSearchItem")]
 pub struct SearchItem {
     pub anime_id: String,
     pub source: String,

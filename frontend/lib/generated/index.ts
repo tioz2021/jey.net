@@ -21,3 +21,7 @@ export type { TierListView } from "./TierListView";
 export type { CollectionDetailResponse } from "./CollectionDetailResponse";
 export type { CollectionView } from "./CollectionView";
 export type { TierListListResponse } from "./TierListListResponse";
+export type { AnimeSearchItem } from "./AnimeSearchItem";
+export type { BookSearchItem } from "./BookSearchItem";
+export type { GameSearchItem } from "./GameSearchItem";
+export type { MovieSearchItem } from "./MovieSearchItem";

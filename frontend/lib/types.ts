@@ -6,6 +6,10 @@
  */
 
 import type {
+  AnimeSearchItem,
+  BookSearchItem,
+  GameSearchItem,
+  MovieSearchItem,
   ItemKind,
   ItemStatus,
   CollectionDetailResponse as CollectionDetail,
@@ -34,7 +38,11 @@ export type Sort =
   | "year_desc";
 
 export type {
+  AnimeSearchItem,
+  BookSearchItem,
   CollectionDetailResponse as CollectionDetail,
+  GameSearchItem,
+  MovieSearchItem,
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
@@ -143,26 +151,6 @@ export interface SeasonSummary {
   poster_path: string | null;
 }
 
-export interface MovieSearchItem {
-  tmdb_id: number;
-  title: string;
-  original_title: string;
-  year: number | null;
-  poster_path: string | null;
-  overview: string | null;
-}
-
-export interface BookSearchItem {
-  book_id: string;
-  source: "openlibrary" | "googlebooks" | string;
-  title: string;
-  authors: string[];
-  year: number | null;
-  cover_id: number | null;
-  cover_url?: string | null;
-  isbn: string | null;
-}
-
 export interface BookDetailsResponse {
   book_id: string;
   title: string;
@@ -176,25 +164,6 @@ export interface BookDetailsResponse {
   cover_url: string | null;
   source: "openlibrary" | "googlebooks" | string;
   subjects: string[];
-}
-
-export interface GameSearchItem {
-  igdb_id: number;
-  title: string;
-  year: number | null;
-  cover_url: string | null;
-  platforms: string[];
-  summary: string | null;
-}
-
-export interface AnimeSearchItem {
-  anime_id: string;
-  source: "anilist" | "shikimori" | string;
-  title: string;
-  year: number | null;
-  cover_url: string | null;
-  format: string | null;
-  episodes: number | null;
 }
 
 export interface MovieDetailsResponse extends MovieDetails {

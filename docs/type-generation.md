@@ -20,7 +20,8 @@ T198 идёт срезами: сначала типы, которые дейст
 - `CollectionView`, `CollectionDetailResponse`, `CollectionListView`;
 - `PublicProfileView` (as `PublicProfile`);
 - `PublicItem` (единый item shape для profile и detail);
-- `PublicProfileResponse` (полностью).
+- `PublicProfileResponse` (полностью);
+- `MovieSearchItem`, `BookSearchItem`, `GameSearchItem`, `AnimeSearchItem`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

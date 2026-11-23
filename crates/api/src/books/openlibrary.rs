@@ -7,6 +7,7 @@ use std::time::Duration;
 
 use reqwest::Client;
 use serde::Serialize;
+use ts_rs::TS;
 use serde_json::Value;
 
 use crate::error::AppError;
@@ -15,13 +16,15 @@ const SEARCH_URL: &str = "https://openlibrary.org/search.json";
 const COVERS_URL: &str = "https://covers.openlibrary.org/b/id";
 const FIELDS: &str = "key,title,author_name,first_publish_year,cover_i,isbn,publisher,number_of_pages_median,subject,first_sentence";
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "BookSearchItem")]
 pub struct SearchItem {
     pub book_id: String,
     pub source: String,
     pub title: String,
     pub authors: Vec<String>,
     pub year: Option<i32>,
+    #[ts(type = "number | null")]
     pub cover_id: Option<i64>,
     pub cover_url: Option<String>,
     pub isbn: Option<String>,
