@@ -64,16 +64,18 @@ impl BookClient {
             return Ok(value);
         }
 
-        let google_query = async {
-            match key {
-                Some(key) => google::search(query, key, locale).await,
-                None => Ok(Vec::new()),
-            }
+        // Google is much faster (usually <1 s). Open Library is a fallback
+        // only when Google returned nothing; joining both made every search
+        // wait for Open Library's 5–17 s tail.
+        let google_results = match key {
+            Some(key) => google::search(query, key, locale).await.unwrap_or_default(),
+            None => Vec::new(),
         };
-        let openlibrary_query = openlibrary::search(query);
-        let (google_result, openlibrary_result) = tokio::join!(google_query, openlibrary_query);
-        let google_results = google_result.unwrap_or_default();
-        let openlibrary_results = openlibrary_result.unwrap_or_default();
+        let openlibrary_results = if google_results.is_empty() {
+            openlibrary::search(query).await.unwrap_or_default()
+        } else {
+            Vec::new()
+        };
         if google_results.is_empty() && openlibrary_results.is_empty() && key.is_none() {
             return Err(AppError::unavailable("Google Books is not configured"));
         }
