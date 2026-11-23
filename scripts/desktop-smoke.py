@@ -15,8 +15,20 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BINARY = ROOT / "target/release/jey-desktop"
-DRIVER = pathlib.Path(os.environ.get("TAURI_DRIVER", ROOT / ".toolchain/cargo/bin/tauri-driver"))
-NATIVE_DRIVER = pathlib.Path(os.environ.get("WEBKIT_WEBDRIVER", "/usr/bin/WebKitWebDriver"))
+def _tool(name: str, fallback: pathlib.Path) -> pathlib.Path:
+    explicit = os.environ.get(name)
+    if explicit:
+        return pathlib.Path(explicit)
+    found = shutil.which(name.lower().replace("tauri_driver", "tauri-driver"))
+    if name == "TAURI_DRIVER":
+        found = found or shutil.which("tauri-driver")
+    if found:
+        return pathlib.Path(found)
+    return fallback
+
+
+DRIVER = _tool("TAURI_DRIVER", ROOT / ".toolchain/cargo/bin/tauri-driver")
+NATIVE_DRIVER = _tool("WEBKIT_WEBDRIVER", pathlib.Path("/usr/bin/WebKitWebDriver"))
 PORT = int(os.environ.get("SMOKE_PORT", "4460"))
 NATIVE_PORT = PORT + 1
 
