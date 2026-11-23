@@ -415,8 +415,8 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T191 | P1 | CSP: убрать unsafe-inline `[x]` | 2–3 d | — | hash script + CSSOM styles |
 | T192 | P1 | Разбор остаточных audit-advisories `[x]` | 1–2 d | — | 0 vulnerabilities, 6 warning excluded |
 | T193 | P2 | Лимиты публичных endpoints и private-field тесты `[x]` | 2 d | T191/T192 | 300/min per IP, 429, private-field tests |
-| T194 | P2 | Рефакторинг ItemForm `[ ]` | 2–3 d | T187 | секции/хуки, поведение и E2E не меняются |
-| T195 | P2 | Рефакторинг desktop-bridge `[ ]` | 2–3 d | T188/T194 | типизированные handlers, отдельные модули |
+| T194 | P2 | Рефакторинг ItemForm `[x]` | 2–3 d | T187 | model + fields + notes + actions |
+| T195 | P2 | Рефакторинг desktop-bridge `[x]` | 2–3 d | T188/T194 | context/account/items/social/chat |
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 
@@ -560,7 +560,7 @@ CSP violation не растёт.
   ответах;
 - единый формат ошибок.
 
-### T194 · Рефакторинг ItemForm
+### T194 · Рефакторинг ItemForm `[x]`
 
 **Приоритет:** P2. **Оценка:** 2–3 d.
 
@@ -572,10 +572,10 @@ CSP violation не растёт.
 - рейтинг/статус;
 - submit/очистка.
 
-**Готово, когда:** все 5 E2E формы проходят, размер файла и число
-состояний уменьшились, поведение не изменилось.
+**Сделано:** `ItemForm` 814 → 436 строк; модель, поля, заметки и действия
+вынесены. 27 frontend + 5 item E2E. **Готово:** поведение не изменилось.
 
-### T195 · Рефакторинг desktop-bridge
+### T195 · Рефакторинг desktop-bridge `[x]`
 
 **Приоритет:** P2. **Оценка:** 2–3 d.
 
@@ -586,8 +586,8 @@ CSP violation не растёт.
 - cache;
 - auth/profile.
 
-**Готово, когда:** маршруты не дублируются, ошибки типизированы, desktop
-store tests зелёные.
+**Сделано:** bridge разбит на `index/context/account/items/social/chat`;
+desktop WebKit smoke 6/6.
 
 ### T196 · Аудит проглоченных ошибок
 
