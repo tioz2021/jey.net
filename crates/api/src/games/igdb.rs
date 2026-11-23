@@ -9,8 +9,8 @@ use std::time::{Duration, Instant};
 
 use reqwest::Client;
 use serde::Serialize;
-use ts_rs::TS;
 use serde_json::Value;
+use ts_rs::TS;
 
 use crate::error::AppError;
 use crate::movies::tmdb::SimilarItem;

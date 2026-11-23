@@ -46,7 +46,9 @@ fn scrub(value: &str) -> String {
             || lowered.contains("access_token")
             || lowered.contains("password")
             || lowered.contains("authorization:")
-            || word.len() > 120 && word.chars().any(|ch| ch.is_ascii_digit()) && word.matches('.').count() >= 2
+            || word.len() > 120
+                && word.chars().any(|ch| ch.is_ascii_digit())
+                && word.matches('.').count() >= 2
         {
             parts.push("[redacted]");
         } else {

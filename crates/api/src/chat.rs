@@ -7,11 +7,11 @@
 use axum::Json;
 use axum::extract::{Path, State};
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::sync::broadcast;
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -341,7 +341,11 @@ fn parse_chat_json<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, Ap
     serde_json::from_value(value).map_err(AppError::internal)
 }
 
-async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<ChatThreadView, AppError> {
+async fn thread_payload(
+    pool: &PgPool,
+    viewer: Uuid,
+    thread_id: Uuid,
+) -> Result<ChatThreadView, AppError> {
     let value = sqlx::query_scalar::<_, Value>(
         "select jsonb_build_object(
             'id', t.id,
@@ -553,7 +557,10 @@ pub async fn get(
     Path(thread_id): Path<Uuid>,
 ) -> Result<Json<ChatThreadResponse>, AppError> {
     let thread = thread_payload(&state.pool, current.user.id, thread_id).await?;
-    Ok(Json(ChatThreadResponse { thread, created: false }))
+    Ok(Json(ChatThreadResponse {
+        thread,
+        created: false,
+    }))
 }
 
 /// `DELETE /api/v1/chat/threads/{id}` — hide a conversation for this account.
@@ -1303,7 +1310,9 @@ pub async fn get_settings(
     .fetch_one(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(ChatSettingsView { message_policy: policy }))
+    Ok(Json(ChatSettingsView {
+        message_policy: policy,
+    }))
 }
 
 /// `PATCH /api/v1/chat/settings`
@@ -1329,7 +1338,9 @@ pub async fn update_settings(
     .execute(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(ChatSettingsView { message_policy: payload.message_policy }))
+    Ok(Json(ChatSettingsView {
+        message_policy: payload.message_policy,
+    }))
 }
 
 #[derive(Debug, Deserialize)]

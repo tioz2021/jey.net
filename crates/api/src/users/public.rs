@@ -118,7 +118,9 @@ pub struct PublicTierListSummary {
     pub id: Uuid,
     pub title: String,
     pub slug: String,
-    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
+    #[ts(
+        type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\""
+    )]
     pub kind: String,
     pub auto: bool,
     #[ts(type = "number")]

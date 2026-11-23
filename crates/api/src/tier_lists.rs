@@ -321,7 +321,9 @@ pub struct TierListView {
     pub id: Uuid,
     pub title: String,
     pub slug: String,
-    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
+    #[ts(
+        type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\""
+    )]
     pub kind: String,
     pub auto: bool,
     #[ts(type = "\"private\" | \"public\"")]
@@ -437,7 +439,9 @@ pub struct TierListCreated {
     pub slug: String,
     #[ts(type = "\"private\" | \"public\"")]
     pub visibility: String,
-    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
+    #[ts(
+        type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\""
+    )]
     pub kind: String,
 }
 
@@ -495,9 +499,13 @@ pub async fn create(
     })?;
     Ok((
         axum::http::StatusCode::CREATED,
-        Json(
-            TierListCreated { id, title, slug, visibility: visible.to_owned(), kind: kind.to_owned() },
-        ),
+        Json(TierListCreated {
+            id,
+            title,
+            slug,
+            visibility: visible.to_owned(),
+            kind: kind.to_owned(),
+        }),
     ))
 }
 

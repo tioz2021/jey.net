@@ -135,7 +135,9 @@ async fn public_profile_shows_finished_records_only_and_no_private_fields() {
     assert!(!raw.contains("Черновик"));
     assert!(!raw.contains("Удалённая"));
 
-    let listing = client.get("/api/v1/public/users?q=Public%20Person", None).await;
+    let listing = client
+        .get("/api/v1/public/users?q=Public%20Person", None)
+        .await;
     assert_eq!(listing.status, 200);
     let listed = listing.body["users"].as_array().expect("users array");
     assert!(

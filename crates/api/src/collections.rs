@@ -4,8 +4,8 @@ use axum::Json;
 use axum::extract::{Path, State};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use ts_rs::TS;
 use std::collections::HashMap;
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -209,7 +209,12 @@ pub async fn create(
 
     Ok((
         axum::http::StatusCode::CREATED,
-        Json(CollectionCreated { id, title, slug, visibility }),
+        Json(CollectionCreated {
+            id,
+            title,
+            slug,
+            visibility,
+        }),
     ))
 }
 
@@ -397,7 +402,12 @@ pub async fn public_detail(
     .map_err(AppError::internal)?;
 
     Ok(Json(PublicCollectionResponse {
-        collection: PublicCollectionHeader { id, title, slug, owner_name },
+        collection: PublicCollectionHeader {
+            id,
+            title,
+            slug,
+            owner_name,
+        },
         items,
     }))
 }
