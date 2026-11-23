@@ -1,5 +1,15 @@
 # Архив задач
 
+## T198.1 · Typed public responses `[x]`
+
+- `PublicProfileResponse` / profile/items/collections/tier summaries;
+- public user list response;
+- public item detail/response;
+- generated TS for all этих структур;
+- API public-profile tests: 6/6;
+- remaining: collection/tier detail + frontend aliases.
+
+
 ## T198 · TS types from Rust `[~]`
 
 - `ts-rs` в `jey-core`;

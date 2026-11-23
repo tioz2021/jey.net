@@ -420,6 +420,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 | T198 | P1 | Генерируемые TS-типы из Rust `[~]` | 3–5 d | — | ts-rs + CI; ItemKind/Status готовы |
+| T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item typed; collections/tier next |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
@@ -624,12 +625,24 @@ desktop WebKit smoke 6/6.
 - CI-проверка `types:check` падает при расхождении.
 
 **Сделано:** `ts-rs` для `ItemKind`, `ItemStatus`, `NewItem`, `ItemPatch`,
-`ItemView` (as `Item`), `UserView` (as `User`); generated-файлы в
-`frontend/lib/generated`, CI-проверка drift. Публичные profile/collection/
-tier response-типы — следующими срезами.
+`ItemView` (as `Item`), `UserView` (as `User`); public profile/list/item
+response-структуры типизированы (T198.1). Generated-файлы в
+`frontend/lib/generated`, CI-проверка drift. Остались collection/tier
+response-типы и замена manual public types на фронте.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.
+
+### T198.1 · Typed public response structs `[x]`
+
+**Сделано:** `PublicProfileResponse`, `PublicProfileView`,
+`PublicItemView`, `PublicItemDetail`, `PublicItemResponse`,
+`PublicUserEntry`, `PublicUserListResponse`,
+`PublicCollectionSummary`, `PublicTierListSummary`.
+
+Handlers `public/users`, `public/users/{id}`, `public/users/{id}/items/{id}`
+больше не собирают эти ответы через `json!`. API-тесты публичного профиля:
+6/6. Остались collection/tier detail и frontend aliases.
 
 ### T199 · Desktop smoke в обязательном release gate `[x]`
 

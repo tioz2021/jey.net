@@ -10,7 +10,11 @@ T198 идёт срезами: сначала типы, которые дейст
 - `NewItem`;
 - `ItemPatch`;
 - `ItemView` (реэкспортируется как `Item`);
-- `UserView` (реэкспортируется как `User`).
+- `UserView` (реэкспортируется как `User`);
+- `PublicProfileResponse`, `PublicProfileView`, `PublicItemView`;
+- `PublicItemDetail`, `PublicItemResponse`;
+- `PublicUserEntry`, `PublicUserListResponse`;
+- `PublicCollectionSummary`, `PublicTierListSummary`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

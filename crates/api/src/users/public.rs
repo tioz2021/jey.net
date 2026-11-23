@@ -13,6 +13,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
 use sqlx::PgPool;
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -37,27 +38,36 @@ struct PublicUserRow {
 
 /// A finished record as the public sees it: no review, no source URL, no sync
 /// fields.
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
 pub struct PublicItemView {
     pub id: Uuid,
     pub slug: String,
+    #[ts(type = "import(\"./ItemKind\").ItemKind")]
+    #[ts(type = "import(\"./ItemKind\").ItemKind")]
     pub kind: String,
     pub title: String,
     pub subtitle: Option<String>,
     pub year: Option<i32>,
+    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
+    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
     pub status: String,
     pub rating: Option<i16>,
     pub review: Option<String>,
     pub cover_key: Option<String>,
+    #[ts(type = "Record<string, string> | null")]
     pub titles: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    #[ts(type = "Record<string, string> | null")]
     pub directors: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    #[ts(type = "Record<string, string[]> | null")]
     pub genres: Option<sqlx::types::Json<std::collections::BTreeMap<String, Vec<String>>>>,
     pub updated_at: DateTime<Utc>,
 }
 
 /// One public record page: unlike the listing it includes the author's note,
 /// because sharing the impression is the point of a public record.
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
 pub struct PublicItemDetail {
     pub id: Uuid,
     pub slug: String,
@@ -71,12 +81,14 @@ pub struct PublicItemDetail {
     pub cover_key: Option<String>,
     pub external_source: Option<String>,
     pub external_id: Option<String>,
+    #[ts(type = "import(\"../types\").MovieDetails | null")]
     pub details: Option<sqlx::types::Json<MovieDetails>>,
     pub updated_at: DateTime<Utc>,
 }
 
 /// One public profile in the sitemap listing.
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
 pub struct PublicUserEntry {
     pub id: Uuid,
     pub handle: String,
@@ -86,6 +98,83 @@ pub struct PublicUserEntry {
     pub followers: i64,
     pub created_at: DateTime<Utc>,
     pub last_active: Option<DateTime<Utc>>,
+}
+
+/// Profile card returned by public and owner-preview endpoints.
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicProfileView {
+    pub id: Uuid,
+    pub handle: String,
+    pub display_name: String,
+    pub avatar_key: Option<String>,
+    pub banner_key: Option<String>,
+    pub locale: String,
+    pub created_at: DateTime<Utc>,
+    #[ts(type = "number")]
+    pub followers: i64,
+    #[ts(type = "number")]
+    pub following: i64,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct PublicCollectionSummary {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    #[ts(type = "number")]
+    pub item_count: i64,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct PublicTierListSummary {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub kind: String,
+    pub auto: bool,
+    #[ts(type = "number")]
+    pub item_count: i64,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicProfileResponse {
+    pub profile: PublicProfileView,
+    pub items: Vec<PublicItemView>,
+    pub collections: Vec<PublicCollectionSummary>,
+    pub tier_lists: Vec<PublicTierListSummary>,
+    pub preview: bool,
+}
+
+fn profile_view(user: &PublicUserRow, followers: i64, following: i64) -> PublicProfileView {
+    PublicProfileView {
+        id: user.id,
+        handle: user.handle.clone(),
+        display_name: user.display_name.clone(),
+        avatar_key: user.avatar_key.clone(),
+        banner_key: user.banner_key.clone(),
+        locale: user.locale.clone(),
+        created_at: user.created_at,
+        followers,
+        following,
+    }
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicUserListResponse {
+    pub users: Vec<PublicUserEntry>,
+    pub next_offset: Option<i64>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct PublicItemResponse {
+    pub item: PublicItemDetail,
+    pub progress_visible: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -102,7 +191,7 @@ pub struct PeopleQuery {
 pub async fn list(
     State(state): State<AppState>,
     Query(query): Query<PeopleQuery>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<PublicUserListResponse>, AppError> {
     let q = query.q.as_deref().map(str::trim).unwrap_or("");
     if q.chars().count() > 100 {
         return Err(AppError::validation_field(
@@ -156,29 +245,24 @@ pub async fn list(
         .map_err(AppError::internal)?;
     let next_offset = (users.len() as i64 == limit).then_some(offset + limit);
 
-    Ok(Json(json!({ "users": users, "next_offset": next_offset })))
+    Ok(Json(PublicUserListResponse { users, next_offset }))
 }
 
 /// `GET /api/v1/public/users/{id}`
 pub async fn profile(
     State(state): State<AppState>,
     Path(reference): Path<String>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<PublicProfileResponse>, AppError> {
     let id = resolve_user_id(&state.pool, &reference).await?;
     let user = load_public_user(&state.pool, id).await?;
     let items = load_public_items(&state.pool, id, &user.public_statuses).await?;
-    let collections: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', c.id, 'title', c.title, 'slug', c.slug,
-            'item_count', (
-                select count(*)
-                from collection_items ci
-                join items i on i.id = ci.item_id
-                where ci.collection_id = c.id
-                  and i.deleted_at is null and not i.public_hidden
-                  and i.status = ANY(u.public_statuses)
-            )
-         )
+    let collections = sqlx::query_as::<_, PublicCollectionSummary>(
+        "select c.id, c.title, c.slug,
+                (select count(*) from collection_items ci
+                 join items i on i.id = ci.item_id
+                 where ci.collection_id = c.id
+                   and i.deleted_at is null and not i.public_hidden
+                   and i.status = ANY(u.public_statuses)) as item_count
          from collections c
          join users u on u.id = c.user_id
          where c.user_id = $1 and c.visibility = 'public'
@@ -188,20 +272,14 @@ pub async fn profile(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    let tier_lists: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug,
-            'kind', t.kind, 'auto', t.auto,
-            'item_count', (
-                select count(*)
-                from tier_list_items ti
-                join items i on i.id = ti.item_id
-                where ti.tier_list_id = t.id
-                  and i.deleted_at is null and not i.public_hidden
-                  and i.status = ANY(u.public_statuses)
-                  and (t.kind = 'all' or i.kind = t.kind)
-            )
-         )
+    let tier_lists = sqlx::query_as::<_, PublicTierListSummary>(
+        "select t.id, t.title, t.slug, t.kind, t.auto,
+                (select count(*) from tier_list_items ti
+                 join items i on i.id = ti.item_id
+                 where ti.tier_list_id = t.id
+                   and i.deleted_at is null and not i.public_hidden
+                   and i.status = ANY(u.public_statuses)
+                   and (t.kind = 'all' or i.kind = t.kind)) as item_count
          from tier_lists t
          join users u on u.id = t.user_id
          where t.user_id = $1 and t.visibility = 'public'
@@ -221,29 +299,20 @@ pub async fn profile(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({
-        "profile": {
-            "id": user.id,
-            "handle": user.handle,
-            "display_name": user.display_name,
-            "avatar_key": user.avatar_key,
-            "banner_key": user.banner_key,
-            "locale": user.locale,
-            "created_at": user.created_at,
-            "followers": followers,
-            "following": following,
-        },
-        "items": items,
-        "collections": collections,
-        "tier_lists": tier_lists,
-    })))
+    Ok(Json(PublicProfileResponse {
+        profile: profile_view(&user, followers, following),
+        items,
+        collections,
+        tier_lists,
+        preview: false,
+    }))
 }
 
 /// `GET /api/v1/me/profile` — owner preview, even when the profile is private.
 pub async fn own_profile(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<PublicProfileResponse>, AppError> {
     let user = sqlx::query_as::<_, PublicUserRow>(
         "select id, handle, display_name, avatar_key, banner_key, locale,
                 public_statuses, public_show_progress, created_at
@@ -256,22 +325,34 @@ pub async fn own_profile(
     .map_err(AppError::internal)?
     .ok_or_else(|| AppError::not_found("profile"))?;
     let items = load_public_items(&state.pool, user.id, &user.public_statuses).await?;
-    let collections: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', c.id, 'title', c.title, 'slug', c.slug,
-            'item_count', (
-                select count(*)
-                from collection_items ci
-                join items i on i.id = ci.item_id
-                where ci.collection_id = c.id
-                  and i.deleted_at is null and not i.public_hidden
-                  and i.status = ANY(u.public_statuses)
-            )
-         )
+    let collections = sqlx::query_as::<_, PublicCollectionSummary>(
+        "select c.id, c.title, c.slug,
+                (select count(*) from collection_items ci
+                 join items i on i.id = ci.item_id
+                 where ci.collection_id = c.id
+                   and i.deleted_at is null and not i.public_hidden
+                   and i.status = ANY(u.public_statuses)) as item_count
          from collections c
          join users u on u.id = c.user_id
          where c.user_id = $1 and c.visibility = 'public'
          order by c.created_at desc",
+    )
+    .bind(user.id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(AppError::internal)?;
+    let tier_lists = sqlx::query_as::<_, PublicTierListSummary>(
+        "select t.id, t.title, t.slug, t.kind, t.auto,
+                (select count(*) from tier_list_items ti
+                 join items i on i.id = ti.item_id
+                 where ti.tier_list_id = t.id
+                   and i.deleted_at is null and not i.public_hidden
+                   and i.status = ANY(u.public_statuses)
+                   and (t.kind = 'all' or i.kind = t.kind)) as item_count
+         from tier_lists t
+         join users u on u.id = t.user_id
+         where t.user_id = $1 and t.visibility = 'public'
+         order by t.auto desc, t.updated_at desc",
     )
     .bind(user.id)
     .fetch_all(&state.pool)
@@ -287,22 +368,13 @@ pub async fn own_profile(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({
-        "preview": true,
-        "profile": {
-            "id": user.id,
-            "handle": user.handle,
-            "display_name": user.display_name,
-            "avatar_key": user.avatar_key,
-            "banner_key": user.banner_key,
-            "locale": user.locale,
-            "created_at": user.created_at,
-            "followers": followers,
-            "following": following,
-        },
-        "items": items,
-        "collections": collections,
-    })))
+    Ok(Json(PublicProfileResponse {
+        profile: profile_view(&user, followers, following),
+        items,
+        collections,
+        tier_lists,
+        preview: true,
+    }))
 }
 
 pub async fn resolve_user_id(pool: &PgPool, reference: &str) -> Result<Uuid, AppError> {
@@ -406,7 +478,7 @@ pub async fn by_slug(
 pub async fn item(
     State(state): State<AppState>,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<PublicItemResponse>, AppError> {
     let user = load_public_user(&state.pool, user_id).await?;
 
     let item = sqlx::query_as::<_, PublicItemDetail>(
@@ -464,10 +536,10 @@ pub async fn item(
     .map_err(AppError::internal)?
     .ok_or_else(|| AppError::not_found("record"))?;
 
-    Ok(Json(json!({
-        "item": item,
-        "progress_visible": user.public_show_progress,
-    })))
+    Ok(Json(PublicItemResponse {
+        item,
+        progress_visible: user.public_show_progress,
+    }))
 }
 
 /// `GET /api/v1/public/users/{id}/items/{item_id}/episodes?season=N`
