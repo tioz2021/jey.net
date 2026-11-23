@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 import urllib.error
 import urllib.request
 
@@ -221,3 +222,7 @@ if __name__ == "__main__":
         print(f"::error title=Desktop smoke::FAIL: {error}")
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(1)
+    except Exception as error:
+        traceback.print_exc()
+        print(f"::error title=Desktop smoke::{type(error).__name__}: {error}")
+        raise
