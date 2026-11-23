@@ -417,7 +417,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T193 | P2 | Лимиты публичных endpoints и private-field тесты `[x]` | 2 d | T191/T192 | 300/min per IP, 429, private-field tests |
 | T194 | P2 | Рефакторинг ItemForm `[ ]` | 2–3 d | T187 | секции/хуки, поведение и E2E не меняются |
 | T195 | P2 | Рефакторинг desktop-bridge `[ ]` | 2–3 d | T188/T194 | типизированные handlers, отдельные модули |
-| T196 | P2 | Аудит `catch {}` и ошибок `[ ]` | 1–2 d | T194/T195 | нет проглатывания критичных ошибок |
+| T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 
 ### T183 · Решение по Windows-подписи и auto-update

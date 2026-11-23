@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 
 import { api } from "./api";
+import { isExpectedAuthError, reportClientError } from "./client-errors";
 import type { User } from "./types";
 
 interface UserContextValue {
@@ -36,7 +37,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.auth.me({ redirectOnUnauthorized: false });
       setUser(response.user);
-    } catch {
+    } catch (error) {
+      if (!isExpectedAuthError(error)) reportClientError("user.refresh", error);
       setUser(null);
     } finally {
       setLoading(false);

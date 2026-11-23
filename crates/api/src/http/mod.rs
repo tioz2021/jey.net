@@ -206,13 +206,16 @@ async fn track_errors(
     let response = next.run(request).await;
     if response.status().is_server_error() {
         let status = response.status().as_u16() as i16;
-        let _ =
+        if let Err(error) =
             sqlx::query("insert into system_errors (path, status, request_id) values ($1, $2, $3)")
                 .bind(&path)
                 .bind(status)
                 .bind(&request_id)
                 .execute(&state.pool)
-                .await;
+                .await
+        {
+            tracing::warn!(error = %error, "failed to record system error");
+        }
     }
     response
 }

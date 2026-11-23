@@ -1,3 +1,5 @@
+import { reportClientError } from "./client-errors";
+
 export interface ItemFormDraft {
   values: Record<string, unknown>;
   advanced: boolean;
@@ -28,7 +30,8 @@ export function readDraft(key: string): ItemFormDraft | null {
       coverCleared: Boolean(parsed.coverCleared),
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : 0,
     };
-  } catch {
+  } catch (error) {
+    reportClientError("draft.read", error);
     return null;
   }
 }
@@ -50,8 +53,10 @@ export function saveDraft(
     }
     const value: ItemFormDraft = { ...draft, savedAt: Date.now() };
     window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Storage may be disabled in a private/embedded context.
+  } catch (error) {
+    // Storage may be disabled in a private/embedded context, but the failure
+    // must still be visible: losing a draft is user-visible data loss.
+    reportClientError("draft.save", error);
   }
 }
 
@@ -59,7 +64,7 @@ export function removeDraft(key: string): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(key);
-  } catch {
-    // Ignore unavailable storage.
+  } catch (error) {
+    reportClientError("draft.remove", error);
   }
 }

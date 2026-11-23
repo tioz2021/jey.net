@@ -1,5 +1,14 @@
 # Архив задач
 
+## T196 · Error handling audit `[x]`
+
+- `reportClientError` + `jey:client-error` для критичных client-side сбоев;
+- профиль, draft, sync, desktop bridge больше не теряют ошибки молча;
+- Rust: warning при session touch/system_errors/rollback cleanup;
+- `scripts/check-silent-catches.sh` в quality gate;
+- 29 frontend tests, 18 E2E.
+
+
 ## T195 · desktop-bridge split `[x]`
 
 - `context.ts` — tauri invoke, cache, social outbox, remote/fallback;

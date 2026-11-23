@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { api } from "@/lib/api";
+import { reportClientError } from "@/lib/client-errors";
 
 const DEVICE_KEY = "jey-web-device";
 const SEQ_KEY = "jey-web-sync-seq";
@@ -32,9 +33,10 @@ export function SyncRefresher() {
       device = deviceId();
       try {
         await api.sync.registerDevice(device);
-      } catch {
+      } catch (error) {
         // Registration can fail while the session is expiring; the next tick
         // will retry, and normal web navigation still works.
+        reportClientError("sync.register", error);
       }
     }
 
@@ -48,8 +50,9 @@ export function SyncRefresher() {
           window.localStorage.setItem(SEQ_KEY, String(status.last_seq));
           if (status.changes_after > 0) router.refresh();
         }
-      } catch {
+      } catch (error) {
         // Offline or a stale session must not break the page.
+        reportClientError("sync.poll", error);
       }
     }
 

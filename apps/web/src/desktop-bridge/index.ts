@@ -1,3 +1,5 @@
+import { reportClientError } from "@/lib/client-errors";
+
 import { handleAccount } from "./account";
 import { handleChat } from "./chat";
 import { createBridgeContext, type BridgeContext, type Invoke } from "./context";
@@ -33,7 +35,8 @@ export function installDesktopBridge() {
         if (response) return response;
       }
       return await ctx.fallback();
-    } catch {
+    } catch (error) {
+      reportClientError("desktop-bridge", error);
       return ctx.fallback();
     }
   };

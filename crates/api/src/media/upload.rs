@@ -141,13 +141,19 @@ pub async fn save(
     storage.put(&storage_key, bytes).await?;
 
     if let Err(error) = storage.put(&large_key, &processed.large).await {
-        let _ = storage.delete(&storage_key).await;
+        if let Err(cleanup) = storage.delete(&storage_key).await {
+            tracing::warn!(error = %cleanup, "failed to roll back upload");
+        }
         return Err(error);
     }
 
     if let Err(error) = storage.put(&preview_key, &processed.preview).await {
-        let _ = storage.delete(&storage_key).await;
-        let _ = storage.delete(&large_key).await;
+        if let Err(cleanup) = storage.delete(&storage_key).await {
+            tracing::warn!(error = %cleanup, "failed to roll back upload");
+        }
+        if let Err(cleanup) = storage.delete(&large_key).await {
+            tracing::warn!(error = %cleanup, "failed to roll back large rendition");
+        }
         return Err(error);
     }
 

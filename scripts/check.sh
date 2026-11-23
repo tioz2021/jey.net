@@ -46,6 +46,9 @@ cargo fmt --all -- --check || fail "formatting (run: cargo fmt)"
 step "check CSP hash"
 bash scripts/check-csp.sh || fail "CSP hash"
 
+step "audit silent catches"
+bash scripts/check-silent-catches.sh || fail "silent catches"
+
 step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 

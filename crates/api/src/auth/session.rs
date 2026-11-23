@@ -63,13 +63,16 @@ pub async fn authenticate(
 
     // Touching the row on every request would turn reads into writes; once per
     // five minutes is enough to keep `last_seen_at` useful.
-    let _ = sqlx::query(
+    if let Err(error) = sqlx::query(
         "update sessions set last_seen_at = now()
          where id = $1 and last_seen_at < now() - interval '5 minutes'",
     )
     .bind(session.id)
     .execute(pool)
-    .await;
+    .await
+    {
+        tracing::warn!(error = %error, "failed to touch session");
+    }
 
     Ok(AuthenticatedSession {
         session_id: session.id,
