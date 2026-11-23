@@ -8,6 +8,8 @@
 import type {
   ItemKind,
   ItemStatus,
+  CollectionDetailResponse as CollectionDetail,
+  CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
   TierListDetailResponse as TierListDetail,
@@ -27,6 +29,8 @@ export type Sort =
   | "year_desc";
 
 export type {
+  CollectionDetailResponse as CollectionDetail,
+  CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
   TierListDetailResponse as TierListDetail,
@@ -193,22 +197,6 @@ export interface MovieDetailsResponse extends MovieDetails {
 export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
 
 export type TierName = "S" | "A" | "B" | "C" | "D" | "E" | "F";
-
-export interface Collection {
-  id: string;
-  title: string;
-  slug: string;
-  visibility: "private" | "public";
-  created_at: string;
-  item_count: number;
-  handle?: string;
-  contains?: boolean;
-}
-
-export interface CollectionDetail {
-  collection: Omit<Collection, "item_count">;
-  items: Item[];
-}
 
 export interface ItemFilters {
   kind?: ItemKind;

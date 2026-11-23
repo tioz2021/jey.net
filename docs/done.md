@@ -8,7 +8,9 @@
 - generated TS for all этих структур;
 - API public-profile tests: 6/6;
 - collection/tier detail: `PublicCollectionResponse`, `TierListView`;
-- frontend `PublicCollection`, `TierList`, `TierListDetail` заменены на generated.
+- frontend `PublicCollection`, `Collection`, `CollectionDetail`,
+  `TierList`, `TierListDetail` заменены на generated;
+- tier tests 3/3.
 
 
 ## T198 · TS types from Rust `[~]`

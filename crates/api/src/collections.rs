@@ -24,6 +24,44 @@ pub struct CollectionInput {
     pub id: Option<Uuid>,
 }
 
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export)]
+pub struct CollectionView {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    #[ts(type = "\"private\" | \"public\"")]
+    pub visibility: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    #[ts(type = "number")]
+    pub item_count: i64,
+    pub handle: Option<String>,
+    pub contains: Option<bool>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct CollectionListView {
+    pub collections: Vec<CollectionView>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct CollectionDetailResponse {
+    pub collection: CollectionView,
+    pub items: Vec<ItemView>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct CollectionCreated {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    #[ts(type = "\"private\" | \"public\"")]
+    pub visibility: String,
+}
+
 fn clean_title(raw: &str) -> Result<String, AppError> {
     let title = raw.trim();
     if title.is_empty() || title.chars().count() > 80 {
@@ -64,13 +102,11 @@ async fn owned(pool: &sqlx::PgPool, user_id: Uuid, id: Uuid) -> Result<(), AppEr
 pub async fn list(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
-    let rows: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', c.id, 'title', c.title, 'slug', c.slug,
-            'visibility', c.visibility, 'created_at', c.created_at,
-            'item_count', (select count(*) from collection_items ci where ci.collection_id = c.id)
-         )
+) -> Result<Json<CollectionListView>, AppError> {
+    let collections = sqlx::query_as::<_, CollectionView>(
+        "select c.id, c.title, c.slug, c.visibility, c.created_at,
+                (select count(*) from collection_items ci where ci.collection_id = c.id) as item_count,
+                null::text as handle, null::boolean as contains
          from collections c
          where c.user_id = $1
          order by c.created_at desc",
@@ -79,14 +115,14 @@ pub async fn list(
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "collections": rows })))
+    Ok(Json(CollectionListView { collections }))
 }
 
 pub async fn create(
     State(state): State<AppState>,
     current: CurrentUser,
     Json(input): Json<CollectionInput>,
-) -> Result<(axum::http::StatusCode, Json<Value>), AppError> {
+) -> Result<(axum::http::StatusCode, Json<CollectionCreated>), AppError> {
     let title = clean_title(&input.title)?;
     let visibility = clean_visibility(input.visibility.as_deref())?.to_owned();
     let base: String = sqlx::query_scalar("select jey_slug($1)")
@@ -173,7 +209,7 @@ pub async fn create(
 
     Ok((
         axum::http::StatusCode::CREATED,
-        Json(json!({ "id": id, "title": title, "slug": slug, "visibility": visibility })),
+        Json(CollectionCreated { id, title, slug, visibility }),
     ))
 }
 
@@ -181,12 +217,12 @@ pub async fn detail(
     State(state): State<AppState>,
     current: CurrentUser,
     Path(id): Path<Uuid>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<CollectionDetailResponse>, AppError> {
     owned(&state.pool, current.user.id, id).await?;
-    let collection: Value = sqlx::query_scalar(
-        "select jsonb_build_object('id', c.id, 'title', c.title, 'slug', c.slug,
-            'visibility', c.visibility, 'created_at', c.created_at,
-            'handle', u.handle)
+    let collection = sqlx::query_as::<_, CollectionView>(
+        "select c.id, c.title, c.slug, c.visibility, c.created_at,
+                (select count(*) from collection_items ci where ci.collection_id = c.id) as item_count,
+                u.handle, null::boolean as contains
          from collections c join users u on u.id = c.user_id where c.id = $1",
     )
     .bind(id)
@@ -211,7 +247,7 @@ pub async fn detail(
         .iter()
         .filter_map(|item_id| by_id.remove(item_id).map(ItemView::from))
         .collect();
-    Ok(Json(json!({ "collection": collection, "items": items })))
+    Ok(Json(CollectionDetailResponse { collection, items }))
 }
 
 pub async fn update(

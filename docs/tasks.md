@@ -631,8 +631,8 @@ response-структуры типизированы (T198.1). Generated-фай�
 response-типы и замена manual public types на фронте.
 
 **Сделано:** generated для core item DTO, `ItemView`/`UserView`,
-public profile/list/item, public collection/tier detail. Остались
-owner collection/tier list-ответы и часть public-profile aliases.
+public profile/list/item, collection/tier public и owner detail/list.
+Остались `PublicItem`/`PublicProfile` aliases и часть profile response.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

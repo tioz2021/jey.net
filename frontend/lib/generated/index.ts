@@ -19,3 +19,6 @@ export type { PublicCollectionResponse } from "./PublicCollectionResponse";
 export type { TierListDetailResponse } from "./TierListDetailResponse";
 export type { TierListItemView } from "./TierListItemView";
 export type { TierListView } from "./TierListView";
+export type { CollectionDetailResponse } from "./CollectionDetailResponse";
+export type { CollectionView } from "./CollectionView";
+export type { TierListListResponse } from "./TierListListResponse";

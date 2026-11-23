@@ -423,24 +423,41 @@ async fn public_items(
     Ok(items)
 }
 
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TierListListResponse {
+    pub tier_lists: Vec<TierListView>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TierListCreated {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    #[ts(type = "\"private\" | \"public\"")]
+    pub visibility: String,
+    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
+    pub kind: String,
+}
+
 /// `GET /api/v1/tier-lists`
 pub async fn list(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
-    let rows: Vec<Value> = sqlx::query_scalar(
-        "select jsonb_build_object(
-            'id', t.id, 'title', t.title, 'slug', t.slug, 'kind', t.kind, 'auto', t.auto,
-            'visibility', t.visibility, 'created_at', t.created_at,
-            'updated_at', t.updated_at,
-            'item_count', (select count(*) from tier_list_items ti where ti.tier_list_id = t.id)
-         ) from tier_lists t where t.user_id = $1 order by t.updated_at desc",
+) -> Result<Json<TierListListResponse>, AppError> {
+    let tier_lists = sqlx::query_as::<_, TierListView>(
+        "select t.id, t.title, t.slug, t.kind, t.auto, t.visibility,
+                t.created_at, t.updated_at, u.handle,
+                (select count(*) from tier_list_items ti where ti.tier_list_id = t.id) as item_count
+         from tier_lists t join users u on u.id = t.user_id
+         where t.user_id = $1 order by t.updated_at desc",
     )
     .bind(current.user.id)
     .fetch_all(&state.pool)
     .await
     .map_err(AppError::internal)?;
-    Ok(Json(json!({ "tier_lists": rows })))
+    Ok(Json(TierListListResponse { tier_lists }))
 }
 
 /// `POST /api/v1/tier-lists`
@@ -448,7 +465,7 @@ pub async fn create(
     State(state): State<AppState>,
     current: CurrentUser,
     Json(input): Json<TierListInput>,
-) -> Result<(axum::http::StatusCode, Json<Value>), AppError> {
+) -> Result<(axum::http::StatusCode, Json<TierListCreated>), AppError> {
     let title = title(&input.title)?;
     let visible = visibility(input.visibility.as_deref())?;
     let kind = kind(input.kind.as_deref())?;
@@ -479,7 +496,7 @@ pub async fn create(
     Ok((
         axum::http::StatusCode::CREATED,
         Json(
-            json!({ "id": id, "title": title, "slug": slug, "visibility": visible, "kind": kind }),
+            TierListCreated { id, title, slug, visibility: visible.to_owned(), kind: kind.to_owned() },
         ),
     ))
 }
