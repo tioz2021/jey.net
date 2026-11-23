@@ -5,7 +5,12 @@
  * components work with these types and never touch raw responses.
  */
 
-import type { ItemKind, ItemStatus } from "./generated";
+import type {
+  ItemKind,
+  ItemStatus,
+  ItemView as Item,
+  UserView as User,
+} from "./generated";
 
 export type { ItemKind, ItemStatus } from "./generated";
 
@@ -17,23 +22,8 @@ export type Sort =
   | "title_asc"
   | "year_desc";
 
-export interface User {
-  id: string;
-  handle: string;
-  email: string;
-  display_name: string;
-  locale: string;
-  email_verified: boolean;
-  is_public: boolean;
-  is_admin?: boolean;
-  role: "user" | "viewer" | "moderator" | "admin";
-  public_statuses: string[];
-  public_show_progress: boolean;
-  avatar_key: string | null;
-  banner_key: string | null;
-  has_password: boolean;
-  created_at: string;
-}
+export type { ItemView as Item, UserView as User } from "./generated";
+export type { ItemPatch, NewItem } from "./generated";
 
 export interface CastMember {
   tmdb_id: number;
@@ -189,33 +179,6 @@ export interface MovieDetailsResponse extends MovieDetails {
   poster_path: string | null;
 }
 
-export interface Item {
-  id: string;
-  slug: string;
-  kind: ItemKind;
-  title: string;
-  subtitle: string | null;
-  year: number | null;
-  status: ItemStatus;
-  rating: number | null;
-  review: string | null;
-  body: string | null;
-  source_url: string | null;
-  cover_key: string | null;
-  external_source: string | null;
-  external_id: string | null;
-  details: MovieDetails | null;
-  details_fetched_at: string | null;
-  public_hidden: boolean;
-  revision: number;
-  sync_seq: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-}
-
-export type { ItemPatch, NewItem } from "./generated";
-
 export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
 
 export interface TierList {
@@ -232,10 +195,10 @@ export interface TierList {
 
 export type TierName = "S" | "A" | "B" | "C" | "D" | "E" | "F";
 
-export interface TierListItem extends Item {
+export type TierListItem = Item & {
   tier: TierName;
   position: number;
-}
+};
 
 export interface TierListDetail {
   tier_list: TierList & { handle?: string };

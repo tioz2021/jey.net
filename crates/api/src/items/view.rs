@@ -3,9 +3,11 @@
 use chrono::{DateTime, Utc};
 use jey_core::items::{Item, ItemKind, ItemStatus, MovieDetails};
 use serde::Serialize;
+use ts_rs::TS;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
 pub struct ItemView {
     pub id: Uuid,
     pub slug: String,
@@ -22,9 +24,12 @@ pub struct ItemView {
     pub public_hidden: bool,
     pub external_source: Option<String>,
     pub external_id: Option<String>,
+    #[ts(type = "import(\"../types\").MovieDetails | null")]
     pub details: Option<MovieDetails>,
     pub details_fetched_at: Option<DateTime<Utc>>,
+    #[ts(type = "number")]
     pub revision: u64,
+    #[ts(type = "number")]
     pub sync_seq: u64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

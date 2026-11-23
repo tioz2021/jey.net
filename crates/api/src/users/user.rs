@@ -3,6 +3,7 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::PgPool;
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::error::AppError;
@@ -14,7 +15,8 @@ pub const SUPPORTED_LOCALES: &[&str] = &["ru", "en", "uk"];
 pub const MAX_DISPLAY_NAME_LENGTH: usize = 60;
 
 /// What the API returns about a user. Never contains the password hash.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
 pub struct UserView {
     pub id: Uuid,
     pub handle: String,
@@ -26,6 +28,7 @@ pub struct UserView {
     pub public_statuses: Vec<String>,
     pub public_show_progress: bool,
     pub is_admin: bool,
+    #[ts(type = "\"user\" | \"viewer\" | \"moderator\" | \"admin\"")]
     pub role: String,
     pub avatar_key: Option<String>,
     pub banner_key: Option<String>,

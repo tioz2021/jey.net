@@ -8,7 +8,9 @@ T198 идёт срезами: сначала типы, которые дейст
 - `ItemKind`;
 - `ItemStatus`;
 - `NewItem`;
-- `ItemPatch`.
+- `ItemPatch`;
+- `ItemView` (реэкспортируется как `Item`);
+- `UserView` (реэкспортируется как `User`).
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 
@@ -34,8 +36,6 @@ git diff --exit-code -- frontend/lib/generated
 ## Следующие срезы
 
 1. `NewItem` / `ItemPatch` (нужно аккуратно описать optional-поля).
-2. `ItemView`.
-3. `UserView`.
-4. Публичные profile/collection/tier DTO.
+2. Публичные profile/collection/tier DTO.
 
 Полный T198 не закрыт, пока ручные response-типы не заменены.
