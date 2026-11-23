@@ -425,7 +425,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[x]` | 3–4 d | T196 | client-errors + admin list |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
-| T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[ ]` | 3–4 d | T190 | SLO baseline и ADR масштабирования |
+| T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[x]` | 3–4 d | T190 | local baseline; ADR: один инстанс |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -704,7 +704,7 @@ release workflow запускает его как job `smoke`, а `vps` и `publ
 для backup-хоста; на VPS timer отключён без GPG private key. Drill проверен
 на VPS с plain-архивом: 1 s, users 94, items 174, migrations 75.
 
-### T202 · Нагрузочный тест и решение по второму инстансу
+### T202 · Нагрузочный тест и решение по второму инстансу `[x]`
 
 **Приоритет:** P2. **Оценка:** 3–4 d.
 
@@ -715,8 +715,9 @@ release workflow запускает его как job `smoke`, а `vps` и `publ
 - один инстанс против двух;
 - ADR: остаёмся на одном или включаем T190/очередь.
 
-**Готово, когда:** есть отчёт с цифрами и явное решение, без
-преждевременного `LISTEN/NOTIFY`.
+**Сделано:** harness `scripts/load-test.py`; local baseline и production
+health probe; ADR в `docs/load-test.md`: остаёмся на одном инстансе,
+T190 включать только при срабатывании триггеров.
 
 ### Порядок цикла 0.9
 

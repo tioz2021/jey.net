@@ -1,5 +1,15 @@
 # Архив задач
 
+## T202 · Load test + instance ADR `[x]`
+
+- stdlib harness `scripts/load-test.py`;
+- auth 50 VU: 6.9k RPS, p95 18 ms, 0 errors (local isolated);
+- public 300/min limit подтверждён 429;
+- SSE 20/20 connected;
+- production health: 48 req/s, 0 failed;
+- ADR: один API instance; T190 только по триггерам.
+
+
 ## T200 · Client error telemetry `[x]`
 
 - `POST /client-errors` с optional user;
