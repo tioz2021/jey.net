@@ -42,7 +42,7 @@ def http(method: str, path: str, payload: dict | None = None) -> dict:
         method=method,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(request, timeout=20) as response:
+    with urllib.request.urlopen(request, timeout=90) as response:
         return json.loads(response.read())
 
 
