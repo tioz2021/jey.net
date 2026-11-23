@@ -1258,6 +1258,7 @@ export const uk = {
   'bookSearch.placeholder': 'Назва, автор або ISBN',
   'bookSearch.hint': 'Почніть вводити назву — поля заповняться самі.',
   'bookSearch.searching': 'Шукаємо…',
+  'bookSearch.timeout': 'Пошук триває занадто довго. Спробуйте ще раз.',
   'bookSearch.error': 'Не вдалося виконати пошук.',
   'bookSearch.loadError': 'Не вдалося завантажити книгу.',
   'bookSearch.notFound': 'Книг не знайдено.',

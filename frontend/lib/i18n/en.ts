@@ -1258,6 +1258,7 @@ export const en = {
   'bookSearch.placeholder': 'Title, author or ISBN',
   'bookSearch.hint': 'Start typing a title — the fields will fill in.',
   'bookSearch.searching': 'Searching…',
+  'bookSearch.timeout': 'Search took too long. Try again.',
   'bookSearch.error': 'Search failed.',
   'bookSearch.loadError': 'Could not load the book.',
   'bookSearch.notFound': 'No books found.',

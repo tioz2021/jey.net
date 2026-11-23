@@ -14,7 +14,9 @@ use crate::error::AppError;
 
 const SEARCH_URL: &str = "https://openlibrary.org/search.json";
 const COVERS_URL: &str = "https://covers.openlibrary.org/b/id";
-const FIELDS: &str = "key,title,author_name,first_publish_year,cover_i,isbn,publisher,number_of_pages_median,subject,first_sentence";
+// Only fields the search response actually uses. Asking Open Library for
+// subjects/descriptions made Russian queries take 5–17 seconds.
+const FIELDS: &str = "key,title,author_name,first_publish_year,cover_i,isbn";
 
 #[derive(Debug, Clone, Serialize, TS)]
 #[ts(export, rename = "BookSearchItem")]

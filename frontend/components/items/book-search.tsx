@@ -72,9 +72,11 @@ export function BookSearch({
     setLoading(true);
     setError(null);
 
+    const controller = new AbortController();
+    const abortTimer = window.setTimeout(() => controller.abort(), 10_000);
     const timer = window.setTimeout(() => {
       api.books
-        .search(q)
+        .search(q, controller.signal)
         .then((response) => {
           if (!cancelled) {
             setResults(response.results.slice(0, 8));
@@ -82,14 +84,19 @@ export function BookSearch({
             setOpen(true);
           }
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           if (!cancelled) {
             setResults([]);
-            setError(t("bookSearch.error"));
+            setError(
+              error instanceof DOMException && error.name === "AbortError"
+                ? t("bookSearch.timeout")
+                : t("bookSearch.error"),
+            );
             setOpen(true);
           }
         })
         .finally(() => {
+          window.clearTimeout(abortTimer);
           if (!cancelled) {
             setLoading(false);
           }
@@ -99,6 +106,8 @@ export function BookSearch({
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      window.clearTimeout(abortTimer);
+      controller.abort();
     };
   }, [query, t]);
 

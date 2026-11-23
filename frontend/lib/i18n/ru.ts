@@ -1257,6 +1257,7 @@ export const ru = {
   'bookSearch.placeholder': 'Название, автор или ISBN',
   'bookSearch.hint': 'Начните вводить название — поля заполнятся сами.',
   'bookSearch.searching': 'Ищем…',
+  'bookSearch.timeout': 'Поиск занял слишком долго. Попробуйте ещё раз.',
   'bookSearch.error': 'Не удалось выполнить поиск.',
   'bookSearch.loadError': 'Не удалось загрузить книгу.',
   'bookSearch.notFound': 'Книги не найдены.',

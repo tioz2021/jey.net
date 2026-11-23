@@ -758,9 +758,10 @@ export const publicItems = {
 };
 
 export const books = {
-  search: (q: string) =>
+  search: (q: string, signal?: AbortSignal) =>
     request<{ results: BookSearchItem[] }>(
       `/books/search?q=${encodeURIComponent(q)}`,
+      { signal },
     ),
 
   get: (id: string) =>
