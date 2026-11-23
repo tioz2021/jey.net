@@ -10,6 +10,8 @@
 - [ ] `.env` и секреты не попали в diff.
 - [ ] `bash scripts/check.sh` проходит.
 - [ ] `CHECK_E2E=1 bash scripts/check.sh` проходит.
+- [ ] Desktop WebKit smoke зелёный на `main` **до** создания тега
+      (workflow `desktop-smoke` запускается на push в `main`).
 - [ ] `cargo audit`/`npm audit` без новых незакоммиченных исключений.
 - [ ] backup БД свежий; restore drill `ok: true` (`docs/backup-restore.md`).
 

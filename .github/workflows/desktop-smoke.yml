@@ -3,6 +3,16 @@ name: desktop-smoke
 on:
   workflow_dispatch:
   workflow_call:
+  push:
+    branches: [main]
+    paths:
+      - "crates/desktop/**"
+      - "frontend/**"
+      - "apps/web/**"
+      - "scripts/desktop-smoke.*"
+      - ".github/workflows/desktop-smoke.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
 
 permissions:
   contents: read
