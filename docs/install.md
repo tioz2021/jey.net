@@ -7,14 +7,14 @@
 ### AppImage
 
 ```bash
-chmod +x jey.net_0.7.5_amd64.AppImage
-./jey.net_0.7.5_amd64.AppImage
+chmod +x jey.net_0.7.6_amd64.AppImage
+./jey.net_0.7.6_amd64.AppImage
 ```
 
 ### deb
 
 ```bash
-sudo apt install ./jey.net_0.7.5_amd64.deb
+sudo apt install ./jey.net_0.7.6_amd64.deb
 jey.net
 ```
 
@@ -27,7 +27,7 @@ jey.net
 Установщик NSIS:
 
 ```text
-jey.net_0.7.5_x64-setup.exe
+jey.net_0.7.6_x64-setup.exe
 ```
 
 Артефакт `jey-desktop-windows` из GitHub Actions содержит NSIS `.exe`.

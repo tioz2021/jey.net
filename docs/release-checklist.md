@@ -1,6 +1,6 @@
 # Release checklist
 
-Дата: 22 ноября 2026. Релиз: **0.7.5**.
+Дата: 23 ноября 2026. Релиз: **0.7.6**.
 
 ## Preflight
 
@@ -27,13 +27,13 @@
 - [ ] Проверить запуск AppImage на X11/XWayland.
 - [ ] Проверить «О приложении → Проверить обновления».
 - [ ] Опубликовать на VPS:
-      `VERSION=0.7.5 DEPLOY_HOST=... bash scripts/publish-desktop.sh`.
+      `VERSION=0.7.6 DEPLOY_HOST=... bash scripts/publish-desktop.sh`.
 - [ ] `bash scripts/verify-release.sh vX.Y.Z`.
 - [ ] Скачать AppImage из манифеста и проверить SHA256.
 
 ## Tag
 
-- [ ] `git tag v0.7.5`.
+- [ ] `git tag v0.7.6`.
 - [ ] Проверить, что `latest.json` содержит `platforms.*.signature`.
 - [ ] `git push origin main --tags`.
 - [ ] Дождаться зелёного release workflow.
