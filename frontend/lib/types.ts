@@ -13,7 +13,14 @@ import type {
   ItemKind,
   ItemStatus,
   ChatDeviceView as ChatDevice,
+  ChatEncryptedMessageView as ChatEncryptedMessage,
+  ChatEnvelopeView as ChatEnvelope,
+  ChatLastMessageView as ChatLastMessage,
+  ChatMessageView as ChatMessage,
+  ChatPeerView as ChatPeer,
+  ChatReactionView as ChatReaction,
   ChatSettingsView as ChatSettings,
+  ChatThreadView as ChatThread,
   CollectionDetailResponse as CollectionDetail,
   CommentListResponse,
   CommentView as Comment,
@@ -47,7 +54,14 @@ export type {
   AnimeSearchItem,
   BookSearchItem,
   ChatDeviceView as ChatDevice,
+  ChatEncryptedMessageView as ChatEncryptedMessage,
+  ChatEnvelopeView as ChatEnvelope,
+  ChatLastMessageView as ChatLastMessage,
+  ChatMessageView as ChatMessage,
+  ChatPeerView as ChatPeer,
+  ChatReactionView as ChatReaction,
   ChatSettingsView as ChatSettings,
+  ChatThreadView as ChatThread,
   CollectionDetailResponse as CollectionDetail,
   CommentListResponse,
   CommentView as Comment,
@@ -549,40 +563,6 @@ export interface ItemResponse {
   item: Item;
 }
 
-export interface ChatPeer {
-  id: string;
-  handle: string;
-  display_name: string;
-  avatar_key: string | null;
-}
-
-export interface ChatLastMessage {
-  id: string;
-  sender_id: string;
-  body: string;
-  created_at: string;
-}
-
-export interface ChatEnvelope {
-  device_id: string;
-  version: number;
-  ephemeral_public: string;
-  salt: string;
-  nonce: string;
-  ciphertext: string;
-}
-
-export interface ChatEncryptedMessage {
-  version: number;
-  envelopes: ChatEnvelope[];
-}
-
-export interface ChatReaction {
-  emoji: string;
-  count: number;
-  user_ids: string[];
-}
-
 export interface ChatSharedItem {
   id: string;
   kind: string;
@@ -592,30 +572,4 @@ export interface ChatSharedItem {
   review: string | null;
   cover_key: string | null;
   url: string | null;
-}
-
-export interface ChatMessage {
-  id: string;
-  thread_id: string;
-  sender_id: string;
-  body: string;
-  client_id: string;
-  created_at: string;
-  edited_at?: string | null;
-  reply_to_id?: string | null;
-  reactions?: ChatReaction[];
-  encrypted?: ChatEncryptedMessage | null;
-  encryption_version?: number | null;
-  shared_item?: ChatSharedItem | null;
-}
-
-export interface ChatThread {
-  id: string;
-  kind: "direct";
-  created_at: string;
-  updated_at: string;
-  peer: ChatPeer;
-  last_message: ChatLastMessage | null;
-  unread: number;
-  muted: boolean;
 }

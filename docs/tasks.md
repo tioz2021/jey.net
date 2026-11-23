@@ -421,7 +421,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 | T198 | P1 | Генерируемые TS-типы из Rust `[~]` | 3–5 d | — | ts-rs + CI; ItemKind/Status готовы |
 | T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item/collection/tier typed |
-| T198.2 | P2 | Generated search/media/chat DTOs `[~]` | 2–3 d | T198.1 | chat devices/settings done; messages remain |
+| T198.2 | P2 | Generated search/media/chat DTOs `[x]` | 2–3 d | T198.1 | search/upload/comments/chat done |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
@@ -652,9 +652,9 @@ Handlers `public/users`, `public/users/{id}`, `public/users/{id}/items/{id}`
 
 ### T198.2 · Generated search/media/chat DTOs `[~]`
 
-**Сделано:** search, upload, comments, `ChatDeviceView`,
-`ChatSettingsView` генерируются из Rust. Остались chat thread/message
-и encrypted envelopes.
+**Сделано:** search, upload, comments, chat devices/settings,
+thread/message, encrypted envelopes генерируются из Rust. Остался
+только клиентский `ChatSharedItem`.
 
 ### T199 · Desktop smoke в обязательном release gate `[x]`
 

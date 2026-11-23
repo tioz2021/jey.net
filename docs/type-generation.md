@@ -24,7 +24,9 @@ T198 идёт срезами: сначала типы, которые дейст
 - `MovieSearchItem`, `BookSearchItem`, `GameSearchItem`, `AnimeSearchItem`;
 - `UploadView`, `UploadResponse`;
 - `CommentView`, `CommentListResponse`, `CommentCreated`;
-- `ChatDeviceView`, `ChatDeviceListResponse`, `ChatSettingsView`.
+- `ChatDeviceView`, `ChatDeviceListResponse`, `ChatSettingsView`;
+- `ChatThreadView`, `ChatMessageView`, `ChatPeerView`, `ChatReactionView`;
+- `ChatEnvelopeView`, `ChatEncryptedMessageView`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

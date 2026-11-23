@@ -7,7 +7,9 @@
 - upload media: `UploadView`/`UploadResponse` generated;
 - comments: `CommentView`/`CommentListResponse` generated;
 - chat devices/settings: `ChatDeviceView`, `ChatSettingsView`;
-- остались chat thread/message/envelopes.
+- chat thread/message/envelopes: `ChatThreadView`, `ChatMessageView`,
+  `ChatEnvelopeView`, `ChatEncryptedMessageView`;
+- chat tests: 6/6.
 
 
 ## T198.1 · Typed public responses `[x]`

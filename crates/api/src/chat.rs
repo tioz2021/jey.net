@@ -23,6 +23,136 @@ pub struct NewThread {
     pub user_id: Uuid,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatPeerView {
+    pub id: Uuid,
+    pub handle: String,
+    pub display_name: String,
+    pub avatar_key: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatLastMessageView {
+    pub id: Uuid,
+    pub sender_id: Uuid,
+    pub body: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatThreadView {
+    pub id: Uuid,
+    pub kind: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub muted: bool,
+    pub peer: ChatPeerView,
+    pub last_message: Option<ChatLastMessageView>,
+    #[ts(type = "number")]
+    pub unread: i64,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatThreadListResponse {
+    pub threads: Vec<ChatThreadView>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatThreadResponse {
+    pub thread: ChatThreadView,
+    pub created: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatReactionView {
+    pub emoji: String,
+    #[ts(type = "number")]
+    pub count: i64,
+    pub user_ids: Vec<Uuid>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatEnvelopeView {
+    pub device_id: Uuid,
+    pub version: i32,
+    pub ephemeral_public: String,
+    pub salt: String,
+    pub nonce: String,
+    pub ciphertext: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatEncryptedMessageView {
+    pub version: i32,
+    pub envelopes: Vec<ChatEnvelopeView>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChatMessageView {
+    pub id: Uuid,
+    pub thread_id: Uuid,
+    pub sender_id: Uuid,
+    pub body: String,
+    pub client_id: Uuid,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    #[serde(default)]
+    #[ts(optional = nullable)]
+    pub edited_at: Option<chrono::DateTime<chrono::Utc>>,
+    #[serde(default)]
+    #[ts(optional = nullable)]
+    pub reply_to_id: Option<Uuid>,
+    #[serde(default)]
+    #[ts(optional)]
+    pub reactions: Option<Vec<ChatReactionView>>,
+    #[serde(default)]
+    #[ts(optional = nullable, type = "import(\"../types\").ChatEncryptedMessage | null")]
+    pub encrypted: Option<serde_json::Value>,
+    #[serde(default)]
+    #[ts(optional = nullable)]
+    pub encryption_version: Option<i32>,
+    #[serde(default)]
+    #[ts(optional = nullable, type = "import(\"../types\").ChatSharedItem | null")]
+    pub shared_item: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatMessageListResponse {
+    pub messages: Vec<ChatMessageView>,
+    pub next_before: Option<String>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatMessageResponse {
+    pub message: ChatMessageView,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatMessageCreated {
+    pub message: ChatMessageView,
+    pub created: bool,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct ChatReactionUpdate {
+    pub message: ChatMessageView,
+    pub reacted: bool,
+    #[ts(type = "number")]
+    pub count: i64,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChatEvent {
     pub kind: String,
@@ -207,8 +337,12 @@ async fn can_start(state: &AppState, sender: Uuid, target: Uuid) -> Result<(), A
     }
 }
 
-async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<Value, AppError> {
-    sqlx::query_scalar(
+fn parse_chat_json<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, AppError> {
+    serde_json::from_value(value).map_err(AppError::internal)
+}
+
+async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<ChatThreadView, AppError> {
+    let value = sqlx::query_scalar::<_, Value>(
         "select jsonb_build_object(
             'id', t.id,
             'kind', t.kind,
@@ -255,7 +389,8 @@ async fn thread_payload(pool: &PgPool, viewer: Uuid, thread_id: Uuid) -> Result<
     .fetch_optional(pool)
     .await
     .map_err(AppError::internal)?
-    .ok_or_else(|| AppError::not_found("conversation"))
+    .ok_or_else(|| AppError::not_found("conversation"))?;
+    parse_chat_json(value)
 }
 
 /// `GET /api/v1/chat/stream` — SSE stream of events for the current account.
@@ -297,7 +432,7 @@ pub async fn stream(
 pub async fn list(
     State(state): State<AppState>,
     current: CurrentUser,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatThreadListResponse>, AppError> {
     let threads: Vec<Value> = sqlx::query_scalar(
         "select jsonb_build_object(
             'id', t.id,
@@ -346,7 +481,11 @@ pub async fn list(
     .await
     .map_err(AppError::internal)?;
 
-    Ok(Json(json!({ "threads": threads })))
+    let threads = threads
+        .into_iter()
+        .map(parse_chat_json)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Json(ChatThreadListResponse { threads }))
 }
 
 /// `POST /api/v1/chat/threads` — find or create a direct conversation.
@@ -354,7 +493,7 @@ pub async fn create(
     State(state): State<AppState>,
     current: CurrentUser,
     Json(payload): Json<NewThread>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatThreadResponse>, AppError> {
     can_start(&state, current.user.id, payload.user_id).await?;
     let key = direct_key(current.user.id, payload.user_id);
 
@@ -401,9 +540,10 @@ pub async fn create(
     tx.commit().await.map_err(AppError::internal)?;
 
     let thread = thread_payload(&state.pool, current.user.id, thread_id).await?;
-    Ok(Json(
-        json!({ "thread": thread, "created": inserted.is_some() }),
-    ))
+    Ok(Json(ChatThreadResponse {
+        thread,
+        created: inserted.is_some(),
+    }))
 }
 
 /// `GET /api/v1/chat/threads/{id}` — one conversation for its members.
@@ -411,9 +551,9 @@ pub async fn get(
     State(state): State<AppState>,
     current: CurrentUser,
     Path(thread_id): Path<Uuid>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatThreadResponse>, AppError> {
     let thread = thread_payload(&state.pool, current.user.id, thread_id).await?;
-    Ok(Json(json!({ "thread": thread })))
+    Ok(Json(ChatThreadResponse { thread, created: false }))
 }
 
 /// `DELETE /api/v1/chat/threads/{id}` — hide a conversation for this account.
@@ -581,8 +721,8 @@ async fn message_payload(
     pool: &PgPool,
     thread_id: Uuid,
     message_id: Uuid,
-) -> Result<Value, AppError> {
-    sqlx::query_scalar(
+) -> Result<ChatMessageView, AppError> {
+    let value = sqlx::query_scalar::<_, Value>(
         "select jsonb_build_object(
             'id', m.id,
             'thread_id', m.thread_id,
@@ -618,7 +758,8 @@ async fn message_payload(
     .fetch_optional(pool)
     .await
     .map_err(AppError::internal)?
-    .ok_or_else(|| AppError::not_found("message"))
+    .ok_or_else(|| AppError::not_found("message"))?;
+    parse_chat_json(value)
 }
 
 /// `POST /api/v1/chat/threads/{id}/messages`
@@ -627,7 +768,7 @@ pub async fn send(
     current: CurrentUser,
     Path(thread_id): Path<Uuid>,
     Json(payload): Json<NewMessage>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatMessageCreated>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
     let target = peer_id(&state.pool, thread_id, current.user.id).await?;
     can_start(&state, current.user.id, target).await?;
@@ -719,17 +860,17 @@ pub async fn send(
                 kind: "message.created".to_owned(),
                 thread_id,
                 recipients: vec![current.user.id, target],
-                message: Some(message.clone()),
+                message: Some(serde_json::to_value(&message).map_err(AppError::internal)?),
                 read_by: None,
                 typing_by: None,
                 origin: Uuid::nil(),
             },
         )
         .await;
-    Ok(Json(json!({
-        "message": message,
-        "created": inserted.is_some()
-    })))
+    Ok(Json(ChatMessageCreated {
+        message,
+        created: inserted.is_some(),
+    }))
 }
 
 #[derive(Debug, Deserialize)]
@@ -744,7 +885,7 @@ pub async fn edit(
     current: CurrentUser,
     Path((thread_id, message_id)): Path<(Uuid, Uuid)>,
     Json(payload): Json<EditMessage>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatMessageResponse>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
     let (body, encrypted, encryption_version) =
         encrypted_or_body(payload.body.clone(), payload.encrypted.clone())?;
@@ -776,14 +917,14 @@ pub async fn edit(
                 kind: "message.updated".to_owned(),
                 thread_id,
                 recipients: vec![current.user.id, target],
-                message: Some(message.clone()),
+                message: Some(serde_json::to_value(&message).map_err(AppError::internal)?),
                 read_by: None,
                 typing_by: None,
                 origin: Uuid::nil(),
             },
         )
         .await;
-    Ok(Json(json!({ "message": message })))
+    Ok(Json(ChatMessageResponse { message }))
 }
 
 #[derive(Debug, Deserialize)]
@@ -797,7 +938,7 @@ pub async fn toggle_reaction(
     current: CurrentUser,
     Path((thread_id, message_id)): Path<(Uuid, Uuid)>,
     Json(payload): Json<ReactionBody>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatReactionUpdate>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
     let emoji = payload.emoji.trim();
     if emoji.is_empty() || emoji.chars().count() > 16 {
@@ -859,16 +1000,18 @@ pub async fn toggle_reaction(
                 kind: "message.updated".to_owned(),
                 thread_id,
                 recipients: vec![current.user.id, target],
-                message: Some(message.clone()),
+                message: Some(serde_json::to_value(&message).map_err(AppError::internal)?),
                 read_by: None,
                 typing_by: None,
                 origin: Uuid::nil(),
             },
         )
         .await;
-    Ok(Json(
-        json!({ "message": message, "reacted": !removed, "count": count }),
-    ))
+    Ok(Json(ChatReactionUpdate {
+        message,
+        reacted: !removed,
+        count,
+    }))
 }
 
 /// `POST /api/v1/chat/threads/{id}/typing`
@@ -903,7 +1046,7 @@ pub async fn history(
     current: CurrentUser,
     Path(thread_id): Path<Uuid>,
     axum::extract::Query(query): axum::extract::Query<HistoryQuery>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<ChatMessageListResponse>, AppError> {
     require_member(&state.pool, thread_id, current.user.id).await?;
     let limit = query.limit.unwrap_or(50).clamp(1, 100);
     let search = query
@@ -1018,10 +1161,14 @@ pub async fn history(
         None
     };
     messages.reverse();
-    Ok(Json(json!({
-        "messages": messages,
-        "next_before": next_before
-    })))
+    let messages = messages
+        .into_iter()
+        .map(parse_chat_json)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Json(ChatMessageListResponse {
+        messages,
+        next_before,
+    }))
 }
 
 /// `POST /api/v1/chat/threads/{id}/read`
