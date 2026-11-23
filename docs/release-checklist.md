@@ -11,7 +11,7 @@
 - [ ] `bash scripts/check.sh` проходит.
 - [ ] `CHECK_E2E=1 bash scripts/check.sh` проходит.
 - [ ] `cargo audit`/`npm audit` без новых незакоммиченных исключений.
-- [ ] backup БД свежий; restore-check описан в `monitoring.md`.
+- [ ] backup БД свежий; restore drill `ok: true` (`docs/backup-restore.md`).
 
 ## Production
 

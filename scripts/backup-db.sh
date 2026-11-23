@@ -84,6 +84,19 @@ for table in users items _sqlx_migrations; do
     fi
 done
 
+counts_file="${BACKUP_DIR}/jey-${stamp}.counts.json"
+counts_json="{"
+first=1
+for table in users items _sqlx_migrations; do
+    count="$(psql "${DATABASE_URL}" -Atc "select count(*) from ${table}")"
+    [[ ${first} -eq 1 ]] || counts_json+=","
+    counts_json+="\"${table}\":${count}"
+    first=0
+done
+counts_json+="}"
+printf '%s\n' "${counts_json}" > "${counts_file}"
+chmod 600 "${counts_file}"
+
 say "encrypting for ${RECIPIENT}"
 gpg --batch --yes --trust-model always \
     --recipient "${RECIPIENT}" \
@@ -100,7 +113,7 @@ rm -f "${plain}"
 
 say "pruning backups older than ${RETENTION_DAYS} days"
 find "${BACKUP_DIR}" -maxdepth 1 -type f \
-    \( -name 'jey-*.dump.gpg' -o -name 'jey-*.dump.gpg.sha256' \) \
+    \( -name 'jey-*.dump.gpg' -o -name 'jey-*.dump.gpg.sha256' -o -name 'jey-*.counts.json' \) \
     -mtime +"${RETENTION_DAYS}" -delete
 
 sha="$(cut -d' ' -f1 "${checksum}")"

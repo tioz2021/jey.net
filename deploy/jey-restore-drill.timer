@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly jey.net restore drill
+
+[Timer]
+OnCalendar=Sun *-*-* 04:30:00
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

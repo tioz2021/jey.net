@@ -76,8 +76,11 @@ say "uploading artifacts"
 "${SCP[@]}" deploy/jey-api.service "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/jey-api.service.new"
 "${SCP[@]}" scripts/backup-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-backup-db.new"
 "${SCP[@]}" scripts/restore-db.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-restore-db.new"
+"${SCP[@]}" scripts/restore-drill.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-restore-drill.new"
 "${SCP[@]}" deploy/jey-backup.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.service"
 "${SCP[@]}" deploy/jey-backup.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.timer"
+"${SCP[@]}" deploy/jey-restore-drill.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-restore-drill.service"
+"${SCP[@]}" deploy/jey-restore-drill.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-restore-drill.timer"
 "${SCP[@]}" deploy/healthcheck.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-healthcheck.new"
 "${SCP[@]}" deploy/jey-healthcheck.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.service"
 "${SCP[@]}" deploy/jey-healthcheck.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.timer"
@@ -142,13 +145,17 @@ systemctl enable jey-api caddy postgresql@18-main
 # 3. Backup tooling. The GPG public key is installed once, out of band.
 install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
 install -m 700 /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-db
+install -m 700 /usr/local/bin/jey-restore-drill.new /usr/local/bin/jey-restore-drill
 install -m 700 /usr/local/bin/jey-healthcheck.new /usr/local/bin/jey-healthcheck
-rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-healthcheck.new
+rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-drill.new /usr/local/bin/jey-healthcheck.new
 systemctl daemon-reload
 systemctl enable --now jey-healthcheck.timer
 if [[ -s /etc/jey/backup-recipient ]]; then
     systemctl enable --now jey-backup.timer
-    echo "backup timer enabled"
+    # The drill needs the GPG private key, which deliberately is not on the VPS.
+    # Install the unit, but run it on the backup host (see docs/backup-restore.md).
+    systemctl disable --now jey-restore-drill.timer 2>/dev/null || true
+    echo "backup timer enabled; restore drill stays manual/off-host"
 else
     echo "warning: /etc/jey/backup-recipient is missing, backup timer not enabled" >&2
 fi

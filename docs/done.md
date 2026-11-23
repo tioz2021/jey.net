@@ -1,5 +1,15 @@
 # Архив задач
 
+## T201 · Backup/restore drill `[x]`
+
+- drill извлекает encrypted backup, проверяет checksum и counts sidecar;
+- всегда восстанавливает в `jey_drill_*` и удаляет её;
+- status JSON с RPO/RTO;
+- timer предназначен для backup-хоста; на VPS отключён;
+- plain-drill на VPS: users 94, items 174, migrations 75;
+- RPO ≤ ~24 ч 15 мин, RTO target 30 мин.
+
+
 ## T199 · Desktop smoke в release gate `[x]`
 
 - WebKit smoke вынесен в reusable workflow;
