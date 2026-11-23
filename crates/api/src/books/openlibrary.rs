@@ -25,7 +25,6 @@ pub struct SearchItem {
     pub authors: Vec<String>,
     pub year: Option<i32>,
     #[ts(type = "number | null")]
-    #[ts(type = "number | null")]
     pub cover_id: Option<i64>,
     pub cover_url: Option<String>,
     pub isbn: Option<String>,
