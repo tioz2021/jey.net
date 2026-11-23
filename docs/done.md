@@ -1,5 +1,14 @@
 # Архив задач
 
+## T186–T187 · WebKit smoke `[x]`
+
+- `tauri-driver` + `WebKitWebDriver` открывают реальное Tauri-окно;
+- `scripts/desktop-smoke.py` — 6 сценариев на WebKit;
+- локальный доступ, форма, draft reload, clear, запись, корзина;
+- ручной CI workflow `.github/workflows/desktop-smoke.yml`;
+- проверено локально: 6/6.
+
+
 ## T179 / T185 · Signed auto-update `[x]`
 
 - Windows остаётся unsigned по решению T183;

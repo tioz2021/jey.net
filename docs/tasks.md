@@ -407,8 +407,8 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T183 | P1 | Решение по Windows-подписи и auto-update `[x]` | 0.5 d | — | unsigned Windows + auto-update |
 | T184 | P1 | Автопроверка опубликованного релиза `[x]` | 1 d | T183 | verify-release проверяет всё |
 | T185 | P1 | Внедрение updater `[x]` | 3–5 d | T183 | 0.7.3→0.7.4 проверен вручную |
-| T186 | P1 | Spike Tauri WebDriver/WebKitWebDriver `[ ]` | 1–2 d | — | доказано, можно ли гонять WebKit в CI |
-| T187 | P1 | Desktop smoke suite `[ ]` | 2–3 d | T186 | 6 сценариев: форма/черновик/обложка/корзина/уведомления/вход |
+| T186 | P1 | Spike Tauri WebDriver/WebKitWebDriver `[x]` | 1–2 d | — | WebKitWebDriver + tauri-driver работают |
+| T187 | P1 | Desktop smoke suite `[x]` | 2–3 d | T186 | 6 WebKit-сценариев + ручной CI workflow |
 | T188 | P1 | Singleton notification stream `[x]` | 1 d | — | один SSE, replay для поздних подписчиков |
 | T189 | P1 | E2E realtime-уведомлений `[x]` | 1 d | T188 | колокольчик + страница без reload |
 | T190 | P2 | Cross-instance notifications LISTEN/NOTIFY `[ ]` | 2 d | T188 | несколько API-инстансов, без потери SSE |
