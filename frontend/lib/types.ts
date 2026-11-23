@@ -214,24 +214,7 @@ export interface Item {
   deleted_at: string | null;
 }
 
-export interface NewItem {
-  kind: ItemKind;
-  title: string;
-  subtitle?: string | null;
-  year?: number | null;
-  status: ItemStatus;
-  rating?: number | null;
-  review?: string | null;
-  body?: string | null;
-  source_url?: string | null;
-  external_source?: string | null;
-  external_id?: string | null;
-  details?: MovieDetails | null;
-  public_hidden?: boolean;
-}
-
-/** Partial update: absent fields are left untouched by the server. */
-export type ItemPatch = Partial<NewItem>;
+export type { ItemPatch, NewItem } from "./generated";
 
 export type TierListKind = "all" | "movie" | "tv" | "anime" | "book" | "game" | "image" | "other";
 

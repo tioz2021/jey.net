@@ -327,61 +327,85 @@ pub struct Item {
 }
 
 /// Fields needed to create a record.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct NewItem {
     pub kind: ItemKind,
     pub title: String,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub subtitle: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub year: Option<i32>,
     pub status: ItemStatus,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub rating: Option<u8>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub review: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub body: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub source_url: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub external_source: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub external_id: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable, type = "import(\"../types\").MovieDetails | null")]
     pub details: Option<MovieDetails>,
     #[serde(default)]
     pub public_hidden: bool,
 }
 
 /// Partial update: absent fields stay untouched.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ItemPatch {
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub kind: Option<ItemKind>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub title: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub subtitle: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub year: Option<i32>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub status: Option<ItemStatus>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub rating: Option<u8>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub review: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub body: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub source_url: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub external_source: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub external_id: Option<String>,
     #[serde(default)]
+    #[ts(optional = nullable, type = "import(\"../types\").MovieDetails | null")]
     pub details: Option<MovieDetails>,
     #[serde(default)]
+    #[ts(optional = nullable)]
     pub public_hidden: Option<bool>,
 }
 

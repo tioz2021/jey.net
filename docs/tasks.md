@@ -623,9 +623,9 @@ desktop WebKit smoke 6/6.
 - сгенерированный файл коммитится;
 - CI-проверка `types:check` падает при расхождении.
 
-**Сделано (первый срез):** `ts-rs` для `ItemKind`/`ItemStatus`,
+**Сделано:** `ts-rs` для `ItemKind`, `ItemStatus`, `NewItem`, `ItemPatch`;
 generated-файлы в `frontend/lib/generated`, CI-проверка drift.
-Остальные response-типы — следующими срезами.
+`ItemView`, `UserView` и публичные response-типы — следующими срезами.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

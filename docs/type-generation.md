@@ -6,7 +6,9 @@ T198 идёт срезами: сначала типы, которые дейст
 ## Что уже генерируется
 
 - `ItemKind`;
-- `ItemStatus`.
+- `ItemStatus`;
+- `NewItem`;
+- `ItemPatch`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 
@@ -15,7 +17,9 @@ bash scripts/generate-types.sh
 ```
 
 Файлы лежат в `frontend/lib/generated/` и коммитятся. `frontend/lib/types.ts`
-реэкспортирует их; ручных дублей этих двух union-типов больше нет.
+реэкспортирует их; ручных дублей этих типов больше нет. `MovieDetails`
+пока остаётся общим фронтовым типом и подключается в `NewItem`/`ItemPatch`
+через `ts(type=...)`.
 
 ## CI
 

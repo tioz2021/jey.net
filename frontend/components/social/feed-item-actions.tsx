@@ -75,6 +75,7 @@ export function FeedItemActions({
         details: item.details ?? null,
         external_source: item.external_source,
         external_id: item.external_id,
+        public_hidden: false,
       };
       const created = await api.items.create(input);
       // A cover belongs to another user's media store; copy it into this
