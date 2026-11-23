@@ -1,5 +1,13 @@
 # Архив задач
 
+## T197 · CSP без style unsafe-inline `[x]`
+
+- все `style={{...}}` заменены на CSS-классы или CSSOM;
+- `style-src 'self'`, `script-src` с hash;
+- production: 0 CSP violations, 0 inline style attributes;
+- frontend 27 тестов, E2E 18.
+
+
 ## T193 · Публичные лимиты и private fields `[x]`
 
 - публичные маршруты: 300 запросов/минуту на IP;
@@ -9,14 +17,14 @@
 - 413 upload/quota уже покрыты существующими тестами.
 
 
-## T191–T192 · CSP и audit `[~]`
+## T191–T192 · CSP и audit `[x]`
 
 - inline theme script заменён на SHA-256 hash в Caddy;
 - `scripts/check-csp.sh` встроен в quality gate;
 - production CSP проверен: 0 violation, script `unsafe-inline` убран;
 - `cargo audit`: 0 vulnerabilities, 6 принятых warning с причинами;
 - `npm audit --omit=dev`: 0;
-- `style-src 'unsafe-inline'` остаётся из-за React style props → T197.
+- `style-src 'unsafe-inline'` убран через CSSOM/классы (T197).
 
 
 ## T186–T187 · WebKit smoke `[x]`

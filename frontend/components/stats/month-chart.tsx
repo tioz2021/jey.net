@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { useI18n } from "@/lib/locale-context";
+import { HeightBar } from "@/components/ui/progress-bar";
 import type { MonthCount } from "@/lib/types";
 
 import styles from "./month-chart.module.css";
@@ -51,9 +52,9 @@ export function MonthChart({ data }: { data: MonthCount[] }) {
               onMouseLeave={() => setActive(null)}
             >
               <span className={styles.count}>{item.count}</span>
-              <span
+              <HeightBar
                 className={styles.column}
-                style={{ height: `${Math.round((item.count / max) * 100)}%` }}
+                percent={Math.round((item.count / max) * 100)}
               />
               <span className={styles.month}>{monthLabel(item.month)}</span>
             </Link>

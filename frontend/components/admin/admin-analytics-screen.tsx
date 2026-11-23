@@ -6,6 +6,8 @@ import { Card, PageHeader } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { AnalyticsSummary } from "@/lib/types";
 
+import { HeightBar, ProgressBar } from "@/components/ui/progress-bar";
+
 import styles from "./admin-analytics.module.css";
 import { LoadingScreen } from "@/components/loading-screen";
 
@@ -104,10 +106,9 @@ return (
           <div className={styles.bars}>
             {data.daily.map((day) => (
               <div className={styles.column} key={day.date}>
-                <span
+                <HeightBar
                   className={styles.bar}
-                  style={{ height: `${Math.max(3, (day.views / maxViews) * 100)}%` }}
-                  title={`${date(day.date)}: ${day.views}`}
+                  percent={Math.max(3, (day.views / maxViews) * 100)}
                 />
               </div>
             ))}
@@ -162,7 +163,7 @@ return (
             <li key={row.path}>
               <code>{row.path}</code>
               <span className={styles.rowBar}>
-                <i style={{ width: `${(row.count / maxPath) * 100}%` }} />
+                <ProgressBar className={styles.rowFill} percent={(row.count / maxPath) * 100} />
               </span>
               <strong>{row.count}</strong>
             </li>

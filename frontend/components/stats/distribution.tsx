@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ProgressBar } from "@/components/ui/progress-bar";
+
 import styles from "./distribution.module.css";
 
 export interface DistributionRow {
@@ -33,10 +35,7 @@ export function Distribution({
                       role="img"
                       aria-label={`${row.label}: ${row.count} (${share}%)`}
                     >
-                      <span
-                        className={styles.fill}
-                        style={{ width: `${share}%` }}
-                      />
+                      <ProgressBar className={styles.fill} percent={share} />
                     </span>
                     <span className={styles.count}>
                       {row.count}

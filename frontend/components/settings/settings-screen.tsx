@@ -34,7 +34,7 @@ export function SettingsScreen() {
   return (
     <main>
       <PageHeader title={t("settings.title")} />
-      <div style={{ display: "grid", gap: "var(--space-4)" }}>
+      <div className="u-stack-4">
         <SettingsForm initialUser={user} />
         <ChatPrivacySettings />
         <ChatCryptoSettings />

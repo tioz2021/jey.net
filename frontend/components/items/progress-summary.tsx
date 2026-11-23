@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/locale-context";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import type { ItemKind, ItemProgress } from "@/lib/types";
 
 import styles from "./progress-editor.module.css";
@@ -47,7 +48,7 @@ export function ProgressSummary({
       <span>{label}</span>
       {percent !== null ? (
         <div className={styles.track}>
-          <div className={styles.bar} style={{ width: `${percent}%` }} />
+          <ProgressBar className={styles.bar} percent={percent} />
         </div>
       ) : null}
     </div>

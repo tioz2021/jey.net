@@ -24,10 +24,10 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <main style={{ maxWidth: "42rem", margin: "4rem auto", padding: "0 1rem" }}>
+      <main className="u-error-page">
         <h1>Что-то пошло не так</h1>
         <p>Страница не загрузилась. Можно вернуться к записям или перезагрузить приложение.</p>
-        <pre style={{ overflow: "auto", whiteSpace: "pre-wrap" }}>
+        <pre className="u-pre">
           {this.state.error.message}
         </pre>
         <p>

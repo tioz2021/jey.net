@@ -21,5 +21,7 @@ if expected not in caddy:
     raise SystemExit(f"Caddy CSP is stale: expected {expected}")
 if "script-src 'self' 'unsafe-inline'" in caddy:
     raise SystemExit("Caddy CSP still allows inline scripts")
+if "style-src 'self' 'unsafe-inline'" in caddy:
+    raise SystemExit("Caddy CSP still allows inline styles")
 print(f"csp ok: {expected}")
 PY

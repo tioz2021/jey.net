@@ -5,7 +5,7 @@ export function Home() {
   const { t } = useI18n();
 
   return (
-    <main style={{ maxWidth: "48rem", margin: "4rem auto", padding: "0 1rem" }}>
+    <main className="u-home">
       <h1>{t("notFound.title")}</h1>
       <p>{t("notFound.text")}</p>
       <AppLink href="/items">{t("notFound.action")}</AppLink>

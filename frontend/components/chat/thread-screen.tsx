@@ -12,6 +12,7 @@ import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/i18n";
 import { useI18n } from "@/lib/locale-context";
+import { useCssStyle } from "@/lib/use-css-style";
 import { AppLink } from "@/lib/navigation";
 import { mediaUrl } from "@/lib/media";
 import { useUser } from "@/lib/user-context";
@@ -112,6 +113,7 @@ export function ChatThreadScreen() {
   const [editText, setEditText] = useState("");
   const [peerTyping, setPeerTyping] = useState(false);
   const [menu, setMenu] = useState<{ message: ChatMessage; x: number; y: number } | null>(null);
+  const menuRef = useCssStyle<HTMLDivElement>({ left: menu?.x, top: menu?.y });
   const [reportTarget, setReportTarget] = useState<PendingMessage | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
@@ -846,7 +848,7 @@ export function ChatThreadScreen() {
           <div
             className={styles.contextMenu}
             onClick={(event) => event.stopPropagation()}
-            style={{ left: menu.x, top: menu.y }}
+            ref={menuRef}
           >
             <p>{t("chat.more")}</p>
             <button

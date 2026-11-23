@@ -6,6 +6,8 @@ import { Card, PageHeader } from "@/components/ui";
 import { useI18n } from "@/lib/locale-context";
 import type { SystemStatus } from "@/lib/types";
 
+import { ProgressBar } from "@/components/ui/progress-bar";
+
 import styles from "./admin-system.module.css";
 import { LoadingScreen } from "@/components/loading-screen";
 
@@ -42,8 +44,8 @@ export function AdminSystemScreen() {
       <PageHeader subtitle={t("admin.systemSubtitle")} title={t("admin.system")} />
       <section className={styles.services}>{services.map(([name, value]) => <div className={styles.service} key={name}><span className={`${styles.dot} ${value === "ok" ? styles.good : styles.bad}`} /><strong>{name}</strong><span>{serviceLabel(value)}</span></div>)}</section>
       <div className={styles.two}>
-        <Card title={t("admin.disk")}><div className={styles.meter}><div style={{ width: `${percent(data.disk.used, data.disk.total)}%` }} /></div><p>{bytes(data.disk.used)} / {bytes(data.disk.total)} · {percent(data.disk.used, data.disk.total)}%</p></Card>
-        <Card title={t("admin.memory")}><div className={styles.meter}><div style={{ width: `${percent(data.memory.total - data.memory.available, data.memory.total)}%` }} /></div><p>{bytes(data.memory.total - data.memory.available)} / {bytes(data.memory.total)}</p></Card>
+        <Card title={t("admin.disk")}><div className={styles.meter}><ProgressBar percent={percent(data.disk.used, data.disk.total)} /></div><p>{bytes(data.disk.used)} / {bytes(data.disk.total)} · {percent(data.disk.used, data.disk.total)}%</p></Card>
+        <Card title={t("admin.memory")}><div className={styles.meter}><ProgressBar percent={percent(data.memory.total - data.memory.available, data.memory.total)} /></div><p>{bytes(data.memory.total - data.memory.available)} / {bytes(data.memory.total)}</p></Card>
       </div>
       <Card title={t("admin.deployment")}><dl className={styles.facts}><dt>{t("admin.version")}</dt><dd>{data.version}</dd><dt>{t("admin.lastDeploy")}</dt><dd>{dateTime(data.last_deploy_at)}</dd><dt>{t("admin.migrations")}</dt><dd>{data.migrations.count} · {data.migrations.latest ?? "—"}</dd><dt>{t("admin.errors24")}</dt><dd>{data.errors_24h}</dd></dl></Card>
       {data.metrics ? (

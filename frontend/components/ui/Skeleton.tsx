@@ -1,3 +1,5 @@
+import { useCssStyle } from "@/lib/use-css-style";
+
 import styles from "./Skeleton.module.css";
 
 export interface SkeletonProps {
@@ -8,11 +10,6 @@ export interface SkeletonProps {
 }
 
 export function Skeleton({ width = "100%", height = "1rem" }: SkeletonProps) {
-  return (
-    <span
-      className={styles.skeleton}
-      style={{ width, height }}
-      aria-hidden="true"
-    />
-  );
+  const ref = useCssStyle<HTMLSpanElement>({ width, height });
+  return <span aria-hidden="true" className={styles.skeleton} ref={ref} />;
 }

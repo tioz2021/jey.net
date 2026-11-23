@@ -30,7 +30,7 @@ export function ChatPrivacySettings() {
 
   return (
     <Card title={t("chat.privacyTitle")}>
-      <p style={{ margin: "0 0 var(--space-3)", color: "var(--color-text-muted)" }}>
+      <p className="u-note">
         {t("chat.privacyText")}
       </p>
       <Select
@@ -42,7 +42,7 @@ export function ChatPrivacySettings() {
         <option value="following">{t("chat.policyFollowing")}</option>
         <option value="nobody">{t("chat.policyNobody")}</option>
       </Select>
-      {error ? <p style={{ margin: "var(--space-2) 0 0", color: "var(--color-danger)" }}>{t("error.requestFailed")}</p> : null}
+      {error ? <p className="u-error-text-sm">{t("error.requestFailed")}</p> : null}
     </Card>
   );
 }

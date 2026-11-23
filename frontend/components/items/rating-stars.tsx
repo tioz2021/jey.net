@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useCssStyle } from "@/lib/use-css-style";
 
 import styles from "./rating-stars.module.css";
 
@@ -17,13 +17,14 @@ export function RatingStars({
   compact?: boolean;
 }) {
   const rounded = Math.max(0, Math.min(10, Math.round(value)));
+  const ref = useCssStyle<HTMLSpanElement>({ "--star-size": `${size * 1.2}px` });
 
   return (
     <span
       aria-label={label ?? `${value}/10`}
       className={`${styles.rating} ${compact ? styles.compact : ""}`}
+      ref={ref}
       role="img"
-      style={{ "--star-size": `${size * 1.2}px` } as CSSProperties}
     >
       <span aria-hidden="true" className={styles.stars}>
         {STARS.map((star) => (

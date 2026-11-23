@@ -166,9 +166,9 @@ upgrade-insecure-requests
 Web CSP больше не разрешает `script-src 'unsafe-inline'`: hash inline
 theme-скрипта проверяется `scripts/check-csp.sh` и встроен в quality gate.
 
-Остаётся `style-src 'unsafe-inline'` из-за React `style={{...}}` в десятках
-компонентов. Это задокументированный остаток и задача T197; он не позволяет
-внедрять скрипты.
+`style-src` тоже без `unsafe-inline`: динамические размеры применяются через
+CSSOM (`useCssStyle`), статические стили вынесены в CSS. CSP проверен в
+production: 0 violations и 0 inline style attributes.
 
 
 ## Публичный API (T193)

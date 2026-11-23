@@ -64,7 +64,7 @@ export function NicknameForm({ initial }: { initial: string }) {
         value={name}
         onChange={(event) => setName(event.target.value)}
       />
-      <div style={{ marginTop: "var(--space-4)" }}>
+      <div className="u-mt-4">
         <Button
           disabled={name.trim().length === 0}
           loading={pending}

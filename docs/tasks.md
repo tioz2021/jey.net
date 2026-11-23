@@ -412,13 +412,13 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T188 | P1 | Singleton notification stream `[x]` | 1 d | — | один SSE, replay для поздних подписчиков |
 | T189 | P1 | E2E realtime-уведомлений `[x]` | 1 d | T188 | колокольчик + страница без reload |
 | T190 | P2 | Cross-instance notifications LISTEN/NOTIFY `[ ]` | 2 d | T188 | несколько API-инстансов, без потери SSE |
-| T191 | P1 | CSP: убрать script unsafe-inline `[~]` | 2–3 d | — | hash для inline theme; style exception |
+| T191 | P1 | CSP: убрать unsafe-inline `[x]` | 2–3 d | — | hash script + CSSOM styles |
 | T192 | P1 | Разбор остаточных audit-advisories `[x]` | 1–2 d | — | 0 vulnerabilities, 6 warning excluded |
 | T193 | P2 | Лимиты публичных endpoints и private-field тесты `[x]` | 2 d | T191/T192 | 300/min per IP, 429, private-field tests |
 | T194 | P2 | Рефакторинг ItemForm `[ ]` | 2–3 d | T187 | секции/хуки, поведение и E2E не меняются |
 | T195 | P2 | Рефакторинг desktop-bridge `[ ]` | 2–3 d | T188/T194 | типизированные handlers, отдельные модули |
 | T196 | P2 | Аудит `catch {}` и ошибок `[ ]` | 1–2 d | T194/T195 | нет проглатывания критичных ошибок |
-| T197 | P2 | CSP style-src без unsafe-inline `[ ]` | 3–5 d | T191 | inline style props вынесены в классы |
+| T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -532,11 +532,11 @@ checklist.
 - проверить inline-стили и темы;
 - e2e и production smoke.
 
-**Сделано:** hex-хеш inline theme script в Caddy; `scripts/check-csp.sh`
-встроен в quality gate. `style-src 'unsafe-inline'` остаётся из-за React
-`style={{...}}`; это выделено в T197.
+**Сделано:** hash inline theme script; все `style={{...}}` заменены на
+CSS-классы или CSSOM (`useCssStyle`); `script-src` и `style-src` без
+`unsafe-inline`. `scripts/check-csp.sh` встроен в quality gate.
 
-**Готово, когда:** script `unsafe-inline` убран, приложение работает,
+**Готово, когда:** CSP-заголовок без `unsafe-inline`, приложение работает,
 CSP violation не растёт.
 
 ### T192 · Остаточные audit-advisories

@@ -157,14 +157,14 @@ export function ItemsScreen() {
           <Button disabled={selected.size === 0} onClick={() => void trashSelected()} size="sm" variant="danger">В корзину</Button>
         </div>
       ) : null}
-      {error ? <p style={{ color: "var(--color-danger)" }}>{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? (
+      {error ? <p className="u-error-text">{error}</p> : loading && items.length === 0 ? <LoadingScreen /> : items.length === 0 ? (
         <div className="catalogue-empty">
           <p>{hasExtraFilters ? "По этим условиям ничего не нашлось." : "Записей пока нет."}</p>
         </div>
       ) : (
-        <ul aria-busy={loading} className={view === "grid" ? "items-grid" : "items-list"} style={{ opacity: loading ? 0.55 : 1, transition: "opacity 120ms ease" }}>
+        <ul aria-busy={loading} className={`${view === "grid" ? "items-grid" : "items-list"} ${loading ? "u-list-loading" : ""}`}>
           {items.map((item) => (
-            <li key={item.id} style={{ position: "relative" }}>
+            <li className="u-relative" key={item.id}>
               <ItemCard
                 coverSrc={item.cover_key ? covers[item.cover_key] : undefined}
                 href={selectionMode ? undefined : `/items/${item.id}`}

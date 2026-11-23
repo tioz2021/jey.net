@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui";
 import { KIND_KEYS, statusKey } from "@/lib/i18n/labels";
 import { localizedSubtitle, localizedTitle } from "@/lib/item-title";
 import { RatingStars } from "@/components/items/rating-stars";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
 import { STATUS_TONES } from "@/lib/labels";
@@ -237,10 +238,7 @@ export function ItemCard({
               </span>
               {progressPercent !== null ? (
                 <div className={styles.progressTrack}>
-                  <div
-                    className={styles.progressBar}
-                    style={{ width: `${progressPercent}%` }}
-                  />
+                  <ProgressBar className={styles.progressBar} percent={progressPercent} />
                 </div>
               ) : null}
             </div>
@@ -257,16 +255,14 @@ export function ItemCard({
             </span>
             {item.details?.number_of_episodes ? (
               <div className={styles.progressTrack}>
-                <div
+                <ProgressBar
                   className={styles.progressBar}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.round(
-                        (watchedEpisodes / item.details.number_of_episodes) * 100,
-                      ),
-                    )}%`,
-                  }}
+                  percent={Math.min(
+                    100,
+                    Math.round(
+                      (watchedEpisodes / item.details.number_of_episodes) * 100,
+                    ),
+                  )}
                 />
               </div>
             ) : null}

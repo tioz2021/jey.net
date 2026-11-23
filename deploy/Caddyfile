@@ -14,9 +14,9 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 		Cross-Origin-Opener-Policy "same-origin"
 		# The only inline script is the pre-paint theme bootstrap; its hash is
-		# checked by scripts/check-csp.sh. React uses style props, so style-src
-		# keeps a documented 'unsafe-inline' exception for now.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-bbDjrROHH0WJVm5VGhQOF6CdSZCPLjxjMpesOM9zKjM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+		# checked by scripts/check-csp.sh. Dynamic layout uses CSSOM, not
+		# inline style attributes, so style-src does not need unsafe-inline.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-bbDjrROHH0WJVm5VGhQOF6CdSZCPLjxjMpesOM9zKjM='; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 		-Server
 		-X-Powered-By
 	}

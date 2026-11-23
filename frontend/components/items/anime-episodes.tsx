@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import type { Item, MovieDetails, WatchedEpisode } from "@/lib/types";
 
 import styles from "./anime-episodes.module.css";
@@ -90,9 +91,9 @@ export function AnimeEpisodes({ item }: { item: Item }) {
         </Button>
       </div>
       <div className={styles.progressTrack}>
-        <div
+        <ProgressBar
           className={styles.progressBar}
-          style={{ width: `${Math.round((watched.size / total) * 100)}%` }}
+          percent={Math.round((watched.size / total) * 100)}
         />
       </div>
       <div className={styles.grid}>

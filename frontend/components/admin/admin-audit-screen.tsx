@@ -65,7 +65,7 @@ export function AdminAuditScreen() {
       </div>
       <Card title={t("admin.audit")}>
         {data.actions.length === 0 ? <p className={styles.muted}>{t("admin.auditEmpty")}</p> : (
-          <div style={{ overflowX: "auto" }}>
+          <div className="u-scroll-x">
             <table className={styles.table}>
               <thead><tr><th>{t("admin.when")}</th><th>{t("admin.admin")}</th><th>{t("admin.action")}</th><th>{t("admin.target")}</th><th>{t("admin.details")}</th><th>JSON</th></tr></thead>
               <tbody>{data.actions.map((row) => (

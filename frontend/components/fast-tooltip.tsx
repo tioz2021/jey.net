@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useCssStyle } from "@/lib/use-css-style";
+
 import styles from "./fast-tooltip.module.css";
 
 type TooltipState = {
@@ -98,13 +100,15 @@ export function FastTooltip() {
     };
   }, []);
 
+  const tooltipRef = useCssStyle<HTMLDivElement>({ left: tooltip?.left, top: tooltip?.top });
+
   if (!tooltip) return null;
 
   return (
     <div
       className={`${styles.tooltip} ${tooltip.below ? styles.below : ""}`}
+      ref={tooltipRef}
       role="tooltip"
-      style={{ left: tooltip.left, top: tooltip.top }}
     >
       {tooltip.text}
     </div>
