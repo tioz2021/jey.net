@@ -27,6 +27,7 @@ import type {
   TasteRecommendation,
   TasteGenre,
   Comment,
+  CommentListResponse,
   Collection,
   CollectionDetail,
   ChatDevice,
@@ -690,11 +691,7 @@ export const liked = {
 
 export const comments = {
   list: (userId: string, itemId: string, offset = 0) =>
-    request<{
-      comments: Comment[];
-      total: number;
-      next_offset: number | null;
-    }>(
+    request<CommentListResponse>(
       `/public/users/${encodeURIComponent(userId)}/items/${encodeURIComponent(itemId)}/comments?offset=${offset}&limit=5`,
       { redirectOnUnauthorized: false },
     ),

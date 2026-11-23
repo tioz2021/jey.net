@@ -2,8 +2,9 @@
 
 use axum::Json;
 use axum::extract::{Path, Query, State};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::auth::middleware::CurrentUser;
@@ -24,6 +25,38 @@ pub struct NewComment {
 pub struct CommentQuery {
     pub offset: Option<i64>,
     pub limit: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CommentView {
+    pub id: Uuid,
+    pub parent_id: Option<Uuid>,
+    pub body: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub author_id: Uuid,
+    pub author_name: String,
+    pub author_avatar: Option<String>,
+    #[ts(type = "number")]
+    pub like_count: i64,
+    pub liker_ids: Vec<Uuid>,
+    pub replies: Vec<CommentView>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct CommentListResponse {
+    pub comments: Vec<CommentView>,
+    #[ts(type = "number")]
+    pub total: i64,
+    #[ts(type = "number | null")]
+    pub next_offset: Option<i64>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct CommentCreated {
+    pub id: Uuid,
 }
 
 /// Checks the profile/item visibility and returns the item author.
@@ -65,7 +98,7 @@ pub async fn list(
     State(state): State<AppState>,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
     Query(query): Query<CommentQuery>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<CommentListResponse>, AppError> {
     public_item_author(&state.pool, user_id, item_id).await?;
     let limit = query.limit.unwrap_or(5).clamp(1, 20);
     let offset = query.offset.unwrap_or(0).clamp(0, 100_000);
@@ -171,11 +204,16 @@ pub async fn list(
         }
     }
 
-    Ok(Json(json!({
-        "comments": top,
-        "total": total,
-        "next_offset": if has_more { Some(offset + limit) } else { None },
-    })))
+    let comments: Vec<CommentView> = top
+        .into_iter()
+        .map(|row| serde_json::from_value(row).map_err(AppError::internal))
+        .collect::<Result<_, _>>()?;
+
+    Ok(Json(CommentListResponse {
+        comments,
+        total,
+        next_offset: if has_more { Some(offset + limit) } else { None },
+    }))
 }
 
 /// `POST /api/v1/public/users/{user_id}/items/{item_id}/comments`
@@ -184,7 +222,7 @@ pub async fn create(
     current: CurrentUser,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
     Json(payload): Json<NewComment>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<CommentCreated>, AppError> {
     let owner = public_item_author(&state.pool, user_id, item_id).await?;
     if blocked_between(&state.pool, current.user.id, user_id).await? {
         return Err(AppError::forbidden("blocked"));
@@ -294,7 +332,7 @@ pub async fn create(
         },
     )
     .await;
-    Ok(Json(json!({ "id": id })))
+    Ok(Json(CommentCreated { id }))
 }
 
 /// `POST /api/v1/comments/{id}/reaction` — toggle a like on a comment.

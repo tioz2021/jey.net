@@ -5,7 +5,8 @@
 - четыре search-response структуры получили `ts-rs` и уникальные TS-имена;
 - фронт использует generated `Movie/Book/Game/AnimeSearchItem`;
 - upload media: `UploadView`/`UploadResponse` generated;
-- остались comments и chat.
+- comments: `CommentView`/`CommentListResponse` generated;
+- остался chat.
 
 
 ## T198.1 · Typed public responses `[x]`

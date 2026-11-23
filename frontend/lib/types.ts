@@ -13,6 +13,8 @@ import type {
   ItemKind,
   ItemStatus,
   CollectionDetailResponse as CollectionDetail,
+  CommentListResponse,
+  CommentView as Comment,
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
@@ -43,6 +45,8 @@ export type {
   AnimeSearchItem,
   BookSearchItem,
   CollectionDetailResponse as CollectionDetail,
+  CommentListResponse,
+  CommentView as Comment,
   GameSearchItem,
   MovieSearchItem,
   CollectionView as Collection,
@@ -531,19 +535,6 @@ export interface ReactionLiker {
   id: string;
   name: string;
   avatar: string | null;
-}
-
-export interface Comment {
-  id: string;
-  parent_id: string | null;
-  body: string;
-  created_at: string;
-  author_id: string;
-  author_name: string;
-  author_avatar: string | null;
-  like_count: number;
-  liker_ids: string[];
-  replies: Comment[];
 }
 
 export interface UserResponse {

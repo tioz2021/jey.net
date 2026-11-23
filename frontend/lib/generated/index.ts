@@ -27,3 +27,6 @@ export type { GameSearchItem } from "./GameSearchItem";
 export type { MovieSearchItem } from "./MovieSearchItem";
 export type { UploadResponse } from "./UploadResponse";
 export type { UploadView } from "./UploadView";
+export type { CommentCreated } from "./CommentCreated";
+export type { CommentListResponse } from "./CommentListResponse";
+export type { CommentView } from "./CommentView";
