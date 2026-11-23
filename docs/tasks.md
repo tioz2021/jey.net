@@ -420,7 +420,8 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
 | T198 | P1 | Генерируемые TS-типы из Rust `[~]` | 3–5 d | — | ts-rs + CI; ItemKind/Status готовы |
-| T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item typed; collections/tier next |
+| T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item/collection/tier typed |
+| T198.2 | P2 | Generated search/media/chat DTOs `[ ]` | 2–3 d | T198.1 | remaining manual wire types |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
@@ -632,8 +633,8 @@ response-типы и замена manual public types на фронте.
 
 **Сделано:** generated для core item DTO, `ItemView`/`UserView`,
 public profile/list/item, collection/tier public и owner detail/list.
-`PublicProfile` теперь generated; остались `PublicItem` и
-`PublicProfileResponse`, потому что они объединяют поля двух Rust-view.
+`PublicItem` и `PublicProfileResponse` сведены в единый Rust shape.
+Остались search/media/chat response-типы — T198.2.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

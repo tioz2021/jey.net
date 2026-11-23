@@ -12,7 +12,11 @@ import type {
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
+  PublicCollectionSummary,
+  PublicItem,
+  PublicProfileResponse,
   PublicProfileView as PublicProfile,
+  PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
   TierListItemView as TierListItem,
   TierListView as TierList,
@@ -34,7 +38,11 @@ export type {
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
+  PublicCollectionSummary,
+  PublicItem,
+  PublicProfileResponse,
   PublicProfileView as PublicProfile,
+  PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
   TierListItemView as TierListItem,
   TierListView as TierList,
@@ -252,28 +260,6 @@ export interface ImportReport {
   imported: number;
   skipped: number;
   total: number;
-}
-
-export interface PublicItem {
-  id: string;
-  slug: string;
-  kind: ItemKind;
-  title: string;
-  subtitle: string | null;
-  year: number | null;
-  status: ItemStatus;
-  rating: number | null;
-  review: string | null;
-  cover_key: string | null;
-  external_source: string | null;
-  external_id: string | null;
-  details: MovieDetails | null;
-  public_hidden: boolean;
-  titles?: Record<string, string> | null;
-  directors?: Record<string, string> | null;
-  genres?: Record<string, string[]> | null;
-  updated_at: string;
-  progress_visible?: boolean;
 }
 
 export interface TasteGenre {
@@ -585,30 +571,6 @@ export interface Comment {
   like_count: number;
   liker_ids: string[];
   replies: Comment[];
-}
-
-export interface PublicCollectionSummary {
-  id: string;
-  title: string;
-  slug: string;
-  item_count: number;
-}
-
-export interface PublicTierListSummary {
-  id: string;
-  title: string;
-  slug: string;
-  kind: TierListKind;
-  auto: boolean;
-  item_count: number;
-}
-
-export interface PublicProfileResponse {
-  profile: PublicProfile;
-  items: PublicItem[];
-  collections?: PublicCollectionSummary[];
-  tier_lists?: PublicTierListSummary[];
-  preview?: boolean;
 }
 
 export interface UserResponse {

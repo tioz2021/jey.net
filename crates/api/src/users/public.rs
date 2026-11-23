@@ -36,39 +36,11 @@ struct PublicUserRow {
     created_at: DateTime<Utc>,
 }
 
-/// A finished record as the public sees it: no review, no source URL, no sync
-/// fields.
+/// A finished record as the public sees it. The listing and the detail page
+/// share this shape so the frontend has one public item type.
 #[derive(Debug, Serialize, sqlx::FromRow, TS)]
 #[ts(export)]
-pub struct PublicItemView {
-    pub id: Uuid,
-    pub slug: String,
-    #[ts(type = "import(\"./ItemKind\").ItemKind")]
-    #[ts(type = "import(\"./ItemKind\").ItemKind")]
-    pub kind: String,
-    pub title: String,
-    pub subtitle: Option<String>,
-    pub year: Option<i32>,
-    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
-    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
-    pub status: String,
-    pub rating: Option<i16>,
-    pub review: Option<String>,
-    pub cover_key: Option<String>,
-    #[ts(type = "Record<string, string> | null")]
-    pub titles: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
-    #[ts(type = "Record<string, string> | null")]
-    pub directors: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
-    #[ts(type = "Record<string, string[]> | null")]
-    pub genres: Option<sqlx::types::Json<std::collections::BTreeMap<String, Vec<String>>>>,
-    pub updated_at: DateTime<Utc>,
-}
-
-/// One public record page: unlike the listing it includes the author's note,
-/// because sharing the impression is the point of a public record.
-#[derive(Debug, Serialize, sqlx::FromRow, TS)]
-#[ts(export)]
-pub struct PublicItemDetail {
+pub struct PublicItem {
     pub id: Uuid,
     pub slug: String,
     #[ts(type = "import(\"./ItemKind\").ItemKind")]
@@ -85,7 +57,17 @@ pub struct PublicItemDetail {
     pub external_id: Option<String>,
     #[ts(type = "import(\"../types\").MovieDetails | null")]
     pub details: Option<sqlx::types::Json<MovieDetails>>,
+    pub public_hidden: bool,
+    #[ts(type = "Record<string, string> | null")]
+    pub titles: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    #[ts(type = "Record<string, string> | null")]
+    pub directors: Option<sqlx::types::Json<std::collections::BTreeMap<String, String>>>,
+    #[ts(type = "Record<string, string[]> | null")]
+    pub genres: Option<sqlx::types::Json<std::collections::BTreeMap<String, Vec<String>>>>,
     pub updated_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(optional = nullable)]
+    pub progress_visible: Option<bool>,
 }
 
 /// One public profile in the sitemap listing.
@@ -135,6 +117,7 @@ pub struct PublicTierListSummary {
     pub id: Uuid,
     pub title: String,
     pub slug: String,
+    #[ts(type = "\"all\" | \"movie\" | \"tv\" | \"anime\" | \"book\" | \"game\" | \"image\" | \"other\"")]
     pub kind: String,
     pub auto: bool,
     #[ts(type = "number")]
@@ -145,7 +128,7 @@ pub struct PublicTierListSummary {
 #[ts(export)]
 pub struct PublicProfileResponse {
     pub profile: PublicProfileView,
-    pub items: Vec<PublicItemView>,
+    pub items: Vec<PublicItem>,
     pub collections: Vec<PublicCollectionSummary>,
     pub tier_lists: Vec<PublicTierListSummary>,
     pub preview: bool,
@@ -175,7 +158,7 @@ pub struct PublicUserListResponse {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct PublicItemResponse {
-    pub item: PublicItemDetail,
+    pub item: PublicItem,
     pub progress_visible: bool,
 }
 
@@ -483,7 +466,7 @@ pub async fn item(
 ) -> Result<Json<PublicItemResponse>, AppError> {
     let user = load_public_user(&state.pool, user_id).await?;
 
-    let item = sqlx::query_as::<_, PublicItemDetail>(
+    let item = sqlx::query_as::<_, PublicItem>(
         "select i.id,
                 i.slug,
                 i.kind,
@@ -521,6 +504,8 @@ pub async fn item(
                     ),
                     '{}'::jsonb
                 ) as genres,
+                i.public_hidden,
+                null::boolean as progress_visible,
                 i.updated_at
          from items i
          where i.id = $2
@@ -651,8 +636,8 @@ async fn load_public_items(
     pool: &PgPool,
     user_id: Uuid,
     statuses: &[String],
-) -> Result<Vec<PublicItemView>, AppError> {
-    sqlx::query_as::<_, PublicItemView>(
+) -> Result<Vec<PublicItem>, AppError> {
+    sqlx::query_as::<_, PublicItem>(
         "select i.id,
                 i.slug,
                 i.kind,
@@ -690,6 +675,8 @@ async fn load_public_items(
                     ),
                     '{}'::jsonb
                 ) as genres,
+                i.public_hidden,
+                null::boolean as progress_visible,
                 i.updated_at
          from items i
          where i.user_id = $1
