@@ -1,5 +1,16 @@
 # Архив задач
 
+## T195 · desktop-bridge split `[x]`
+
+- `context.ts` — tauri invoke, cache, social outbox, remote/fallback;
+- `account.ts` — me/auth/profile;
+- `items.ts` — items/trash/collections/stats/actions;
+- `social.ts` — likes/tiers/reactions/comments;
+- `chat.ts` — threads/messages/devices/read/mute;
+- `index.ts` — 40 строк, только fetch и порядок handlers;
+- desktop smoke 6/6.
+
+
 ## T194 · ItemForm split `[x]`
 
 - `item-form-model.ts` — типы, draft merge, валидация;
