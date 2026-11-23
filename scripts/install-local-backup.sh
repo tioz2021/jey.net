@@ -33,7 +33,9 @@ fi
 if command -v crontab >/dev/null 2>&1; then
     marker="# jey.net backup pull"
     current="$(crontab -l 2>/dev/null || true)"
-    filtered="$(printf '%s\n' "${current}" | grep -vF "${marker}" || true)"
+    # Remove any previous pull lines, including entries created by older
+    # installers without a marker. This keeps repeated installs idempotent.
+    filtered="$(printf '%s\n' "${current}" | grep -vF "scripts/pull-backup.sh" || true)"
     {
         printf '%s\n' "${filtered}"
         # Cron does not catch up a missed 04:15 run. On a laptop that is often
