@@ -65,7 +65,7 @@ function layout(container: HTMLElement): void {
   const place = (child: HTMLElement, column: number, top: number) => {
     child.style.left = `${column * (columnWidth + gap)}px`;
     child.style.top = `${top}px`;
-    heights[column] = top + child.offsetHeight;
+    heights[column] = top + child.offsetHeight + gap;
   };
 
   const total = children.length;
@@ -89,7 +89,7 @@ function layout(container: HTMLElement): void {
     }
   }
 
-  container.style.height = `${Math.max(...heights)}px`;
+  container.style.height = `${Math.max(0, Math.max(...heights) - gap)}px`;
 }
 
 function schedule(): void {
