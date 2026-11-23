@@ -36,6 +36,11 @@ if command -v crontab >/dev/null 2>&1; then
     filtered="$(printf '%s\n' "${current}" | grep -vF "${marker}" || true)"
     {
         printf '%s\n' "${filtered}"
+        # Cron does not catch up a missed 04:15 run. On a laptop that is often
+        # off, pull once shortly after boot; the lock makes it overlap-safe
+        # with the daily run.
+        printf '@reboot sleep 120; /bin/bash %s/scripts/pull-backup.sh >> %s/pull.log 2>&1 %s\n' \
+            "${ROOT}" "${LOCAL_DIR}" "${marker}"
         printf '15 4 * * * /bin/bash %s/scripts/pull-backup.sh >> %s/pull.log 2>&1 %s\n' \
             "${ROOT}" "${LOCAL_DIR}" "${marker}"
     } | crontab -
