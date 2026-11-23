@@ -632,7 +632,8 @@ response-типы и замена manual public types на фронте.
 
 **Сделано:** generated для core item DTO, `ItemView`/`UserView`,
 public profile/list/item, collection/tier public и owner detail/list.
-Остались `PublicItem`/`PublicProfile` aliases и часть profile response.
+`PublicProfile` теперь generated; остались `PublicItem` и
+`PublicProfileResponse`, потому что они объединяют поля двух Rust-view.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

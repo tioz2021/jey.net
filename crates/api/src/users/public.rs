@@ -71,10 +71,12 @@ pub struct PublicItemView {
 pub struct PublicItemDetail {
     pub id: Uuid,
     pub slug: String,
+    #[ts(type = "import(\"./ItemKind\").ItemKind")]
     pub kind: String,
     pub title: String,
     pub subtitle: Option<String>,
     pub year: Option<i32>,
+    #[ts(type = "import(\"./ItemStatus\").ItemStatus")]
     pub status: String,
     pub rating: Option<i16>,
     pub review: Option<String>,

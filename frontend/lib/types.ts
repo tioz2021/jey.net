@@ -12,6 +12,7 @@ import type {
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
+  PublicProfileView as PublicProfile,
   TierListDetailResponse as TierListDetail,
   TierListItemView as TierListItem,
   TierListView as TierList,
@@ -33,6 +34,7 @@ export type {
   CollectionView as Collection,
   ItemView as Item,
   PublicCollectionResponse as PublicCollection,
+  PublicProfileView as PublicProfile,
   TierListDetailResponse as TierListDetail,
   TierListItemView as TierListItem,
   TierListView as TierList,
@@ -250,18 +252,6 @@ export interface ImportReport {
   imported: number;
   skipped: number;
   total: number;
-}
-
-export interface PublicProfile {
-  id: string;
-  handle: string;
-  display_name: string;
-  avatar_key: string | null;
-  banner_key: string | null;
-  locale: string;
-  created_at: string;
-  followers: number;
-  following: number;
 }
 
 export interface PublicItem {

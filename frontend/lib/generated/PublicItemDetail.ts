@@ -4,4 +4,4 @@
  * One public record page: unlike the listing it includes the author's note,
  * because sharing the impression is the point of a public record.
  */
-export type PublicItemDetail = { id: string, slug: string, kind: string, title: string, subtitle: string | null, year: number | null, status: string, rating: number | null, review: string | null, cover_key: string | null, external_source: string | null, external_id: string | null, details: import("../types").MovieDetails | null, updated_at: string, };
+export type PublicItemDetail = { id: string, slug: string, kind: import("./ItemKind").ItemKind, title: string, subtitle: string | null, year: number | null, status: import("./ItemStatus").ItemStatus, rating: number | null, review: string | null, cover_key: string | null, external_source: string | null, external_id: string | null, details: import("../types").MovieDetails | null, updated_at: string, };
