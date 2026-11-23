@@ -77,12 +77,27 @@ chmod 644 "${UNIT_DIR}/jey-restore-drill.service" "${UNIT_DIR}/jey-restore-drill
 echo "installed user units in ${UNIT_DIR}"
 
 password="$(sed -n 's/^PGPASSWORD=//p' "${CONFIG}")"
+role_sql="$(mktemp /tmp/jey-drill-role-XXXXXX.sql)"
+chmod 600 "${role_sql}"
+cat > "${role_sql}" <<SQL
+DO \$\$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'jey_drill') THEN
+    EXECUTE format('CREATE ROLE jey_drill LOGIN CREATEDB PASSWORD %L', '${password}');
+  ELSE
+    EXECUTE format('ALTER ROLE jey_drill LOGIN CREATEDB PASSWORD %L', '${password}');
+  END IF;
+END
+\$\$;
+SQL
 cat <<MSG
 
 Role creation (run once, as a PostgreSQL superuser):
 
-  sudo -u postgres psql -v ON_ERROR_STOP=1 -c \\
-    "CREATE ROLE jey_drill LOGIN CREATEDB PASSWORD '${password}';"
+  sudo -u postgres psql -v ON_ERROR_STOP=1 -f ${role_sql}
+  rm -f ${role_sql}
+
+The password is in ${CONFIG} (0600), not in this output.
 
 Then verify and enable:
 
