@@ -155,7 +155,7 @@ def main() -> int:
 
         # 1. The app launches and renders the public shell.
         wait_for(session, "document.title.includes('jey.net')")
-        assert "jey.net" in text(session), "landing page did not render"
+        wait_for(session, "document.body.innerText.includes('jey.net')")
 
         # 2. Local access opens the notebook.
         call(session, "window.__TAURI__.core.invoke('local_bootstrap_access'); window.location.assign('/items'); true")
