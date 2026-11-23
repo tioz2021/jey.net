@@ -8,7 +8,8 @@
 - публичные лимиты, private-field тесты;
 - ItemForm и desktop-bridge разделены;
 - подписанный VPS-манифест 0.7.5;
-- verify-release: все файлы, подписи, SHA256 и health.
+- verify-release: все файлы, подписи, SHA256 и health;
+- auto-update 0.7.4 → 0.7.5 подтверждён вручную.
 
 
 ## T196 · Error handling audit `[x]`
