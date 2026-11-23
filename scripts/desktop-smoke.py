@@ -160,14 +160,14 @@ def main() -> int:
         # 2. Local access opens the notebook.
         call(session, "window.__TAURI__.core.invoke('local_bootstrap_access'); window.location.assign('/items'); true")
         wait_for(session, "document.body.innerText.includes('Мои записи')")
-        print("ok 1/6 launch and local access")
+        print("ok 1/7 launch and local access")
 
         # 3. New item form exposes status and the back button immediately.
         call(session, "window.location.assign('/items/new'); true")
         wait_for(session, "document.body.innerText.includes('Добавить запись')")
         wait_for(session, "document.body.innerText.includes('Статус')")
         wait_for(session, "document.body.innerText.includes('Назад')")
-        print("ok 2/6 status and back button")
+        print("ok 2/7 status and back button")
 
         # 4. The whole form draft survives a webview reload.
         click_text(session, "Дополнительные настройки")
@@ -178,7 +178,7 @@ def main() -> int:
         wait_for(session, "document.body.innerText.includes('Черновик рецензии восстановлен')")
         assert value_of(session, "Название") == "Desktop smoke record"
         assert value_of(session, "Публичная рецензия") == "Desktop smoke draft"
-        print("ok 3/6 draft survives reload")
+        print("ok 3/7 draft survives reload")
 
         # 5. Clear form and draft.
         click_text(session, "Очистить")
@@ -186,20 +186,28 @@ def main() -> int:
         click_dialog_text(session, "Очистить")
         wait_for(session, "!document.querySelector('dialog[open]')")
         assert value_of(session, "Название") == ""
-        print("ok 4/6 clear form")
+        print("ok 4/7 clear form")
 
-        # 6. A record saved locally is visible in the notebook.
+        # 6. A record saved locally is visible in the notebook, and metadata
+        # edits (year) survive the local update command.
         call(session, """window.__TAURI__.core.invoke('local_create_item', {
           newItem: {kind: 'movie', title: 'Smoke persisted record', status: 'done'}
-        }); true""")
+        }).then((item) => { window.__smokeItem = item; }); true""")
+        wait_for(session, "Boolean(window.__smokeItem && window.__smokeItem.id)")
+        call(session, """window.__TAURI__.core.invoke('local_update_item', {
+          id: window.__smokeItem.id,
+          patch: {year: 1942}
+        }).then((item) => { window.__smokeYear = item && item.year; }); true""")
+        wait_for(session, "window.__smokeYear === 1942")
         call(session, "window.location.assign('/items'); true")
         wait_for(session, "document.body.innerText.includes('Smoke persisted record')")
-        print("ok 5/6 local record persistence")
+        print("ok 5/7 local record persistence")
 
-        # 6. Local trash screen opens without showing active records.
+        # 7. Local trash screen opens without showing active records.
         call(session, "window.location.assign('/trash'); true")
         wait_for(session, "document.body.innerText.includes('Корзина')")
-        print("ok 6/6 local trash and smoke suite complete")
+        print("ok 6/7 local trash")
+        print("ok 7/7 local metadata update")
         return 0
     finally:
         if session:

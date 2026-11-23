@@ -200,6 +200,12 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
+## 0.7.7
+
+- desktop сохраняет все поля `ItemPatch`, включая год, тип, заметки и прогресс;
+- после редактирования запись ставится в очередь синхронизации;
+- smoke проверяет изменение года.
+
 ## 0.7.6
 
 - карточные сетки переведены на Pinterest-masonry;

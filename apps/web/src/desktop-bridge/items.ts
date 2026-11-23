@@ -138,13 +138,13 @@ export async function handleItems(ctx: BridgeContext): Promise<Response | null> 
       return item ? json({ item }) : json({ error: { code: "not_found" } }, 404);
     }
     if (method === "PATCH") {
+      // Forward the full patch. Listing fields here silently dropped metadata
+      // (year, kind, notes, public review, progress, …) in desktop.
       const item = await api.invoke<Item | null>("local_update_item", {
         id,
-        title: body?.title ?? null,
-        status: body?.status ?? null,
-        rating: body?.rating ?? null,
-        review: body?.review ?? null,
+        patch: body,
       });
+      if (item) window.dispatchEvent(new Event("jey:sync-needed"));
       return item ? json({ item }) : json({ error: { code: "not_found" } }, 404);
     }
     if (method === "DELETE") {
