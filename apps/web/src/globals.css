@@ -71,7 +71,7 @@
   --card-poster-width-sm: 4.75rem;
   --card-header-height: 44px;
   --card-control-size: 28px;
-  --card-grid-min: 30rem;
+  --card-grid-min: 27.5rem;
   --card-grid-gap: 0.75rem;
 
   /* Caption, compact UI, reading text, section and page titles. */
@@ -585,7 +585,7 @@ button:not(:disabled):active {
 
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(27.5rem, 1fr));
   align-items: start;
   gap: 0.75rem;
   padding: 0;

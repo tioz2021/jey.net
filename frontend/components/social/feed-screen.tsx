@@ -187,7 +187,7 @@ export function FeedScreen() {
             title={kind ? t("feed.kindEmptyTitle") : t("feed.emptyTitle")}
           />
         ) : (
-          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="300">
+          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="440">
             {items.map((item, index) => (
               <Fragment key={`${item.author_id}-${item.id}`}>
                 {showNewDivider && index === newItemsCount ? (
