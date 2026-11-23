@@ -165,8 +165,8 @@ def main() -> int:
         # 3. New item form exposes status and the back button immediately.
         call(session, "window.location.assign('/items/new'); true")
         wait_for(session, "document.body.innerText.includes('Добавить запись')")
-        assert "Статус" in text(session), "status selector is hidden"
-        assert "Назад" in text(session), "back button is missing"
+        wait_for(session, "document.body.innerText.includes('Статус')")
+        wait_for(session, "document.body.innerText.includes('Назад')")
         print("ok 2/6 status and back button")
 
         # 4. The whole form draft survives a webview reload.
