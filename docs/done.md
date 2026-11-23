@@ -1,5 +1,16 @@
 # Архив задач
 
+## 0.7.5 `[x]`
+
+- stability-релиз после 0.8;
+- quality gate 730 s, 18 E2E;
+- CSP без `unsafe-inline`, audit 0 vulnerabilities;
+- публичные лимиты, private-field тесты;
+- ItemForm и desktop-bridge разделены;
+- подписанный VPS-манифест 0.7.5;
+- verify-release: все файлы, подписи, SHA256 и health.
+
+
 ## T196 · Error handling audit `[x]`
 
 - `reportClientError` + `jey:client-error` для критичных client-side сбоев;
