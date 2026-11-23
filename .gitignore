@@ -61,3 +61,6 @@ var/
 /jey-spa.tar.gz
 /frontend/tsconfig.tsbuildinfo
 /release/
+
+# Python smoke caches
+scripts/__pycache__/
