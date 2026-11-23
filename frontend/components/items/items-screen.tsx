@@ -162,7 +162,7 @@ export function ItemsScreen() {
           <p>{hasExtraFilters ? "По этим условиям ничего не нашлось." : "Записей пока нет."}</p>
         </div>
       ) : (
-        <ul aria-busy={loading} className={`${view === "grid" ? "items-grid" : "items-list"} ${loading ? "u-list-loading" : ""}`}>
+        <ul aria-busy={loading} className={`${view === "grid" ? "items-grid" : "items-list"} ${loading ? "u-list-loading" : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="480">
           {items.map((item) => (
             <li className="u-relative" key={item.id}>
               <ItemCard

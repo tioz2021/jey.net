@@ -10,10 +10,12 @@ import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
 import { installClientErrorReporter } from "@/lib/client-error-reporter";
+import { installMasonryLayout } from "@/lib/masonry-layout";
 import { installDesktopBridge } from "./desktop-bridge";
 import { installDesktopExternalLinks } from "./desktop-external-links";
 
 installClientErrorReporter();
+installMasonryLayout();
 installDesktopBridge();
 installDesktopExternalLinks();
 import { ItemsRoute } from "./screens/ItemsRoute";

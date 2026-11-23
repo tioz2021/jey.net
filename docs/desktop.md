@@ -200,6 +200,11 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
+## 0.7.8
+
+- masonry-сетка с левым добором последней неполной строки;
+- динамические высоты карточек сохранены.
+
 ## 0.7.7
 
 - desktop сохраняет все поля `ItemPatch`, включая год, тип, заметки и прогресс;

@@ -26,20 +26,15 @@
 }
 
 .grid {
-  display: block;
-  columns: var(--card-grid-min);
-  column-gap: var(--card-grid-gap);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-grid-min), 1fr));
+  align-items: start;
+  gap: var(--card-grid-gap);
 }
 
 .grid > li {
   display: block;
-  break-inside: avoid;
   min-width: 0;
-  margin: 0 0 var(--card-grid-gap);
-}
-
-.grid > li:last-child {
-  margin-bottom: 0;
 }
 
 .grid > li > div:last-child {
@@ -49,4 +44,10 @@
 
 .grid > li article {
   height: auto;
+}
+
+@media (width <= 1000px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

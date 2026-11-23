@@ -169,7 +169,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               title={t("recommendations.communityEmptyTitle")}
             />
           ) : (
-            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="300">
               {visibleCommunity.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
                   <ItemCard
@@ -252,7 +252,7 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
               title={t("recommendations.emptyTitle")}
             />
           ) : (
-            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+            <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="300">
               {visibleFriends.map((item) => (
                 <li key={`${item.author_id}-${item.id}`}>
                   <ItemCard

@@ -401,7 +401,7 @@ export function PublicProfileView({
 
 function ItemGrid({ items, handle }: { items: PublicItem[]; handle: string }) {
   return (
-    <ul className={styles.grid}>
+    <ul className={styles.grid} data-masonry data-masonry-min="288">
       {items.map((item) => (
         <li key={item.id}>
           <ItemCard

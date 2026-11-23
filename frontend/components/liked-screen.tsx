@@ -112,7 +112,7 @@ export function LikedScreen() {
             title={kind ? t("feed.kindEmptyTitle") : t("liked.emptyTitle")}
           />
         ) : (
-          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+          <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="300">
             {items.map((item) => (
               <li key={item.id}>
                 <ItemCard

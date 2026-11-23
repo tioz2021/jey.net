@@ -157,7 +157,7 @@ export function CollectionDetailScreen({ id }: { id: string }) {
       {data.items.length === 0 ? (
         <p className={styles.empty}>{t("collections.empty")}</p>
       ) : (
-        <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`}>
+        <ul className={`${styles.list} ${view === "grid" ? styles.grid : ""}`} data-masonry={view === "grid" ? "" : undefined} data-masonry-min="448">
           {data.items.map((item) => (
             <li key={item.id}>
               <ItemCard
