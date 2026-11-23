@@ -42,8 +42,11 @@ def http(method: str, path: str, payload: dict | None = None) -> dict:
         method=method,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(request, timeout=90) as response:
-        return json.loads(response.read())
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            return json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        raise RuntimeError(f"{method} {path} -> HTTP {error.code}") from error
 
 
 def call(session: str, script: str, args: list | None = None):
@@ -149,9 +152,11 @@ def main() -> int:
                 break
             except Exception:
                 time.sleep(0.2)
+        print("::notice title=Desktop smoke::starting WebKit session")
         session = http("POST", "/session", {
             "capabilities": {"alwaysMatch": {"tauri:options": {"application": str(BINARY)}}},
         })["value"]["sessionId"]
+        print("::notice title=Desktop smoke::session created")
 
         # 1. The app launches and renders the public shell.
         wait_for(session, "document.title.includes('jey.net')")
