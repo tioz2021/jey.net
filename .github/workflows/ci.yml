@@ -94,7 +94,15 @@ jobs:
           git diff --exit-code -- frontend/lib/generated
 
       - name: Clippy
-        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+        run: |
+          set +e
+          cargo clippy --locked --workspace --all-targets --message-format=json -- -D warnings > /tmp/clippy.json 2> /tmp/clippy.err
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            python3 scripts/clippy-annotations.py /tmp/clippy.json
+            cat /tmp/clippy.err
+            exit "$status"
+          fi
 
       - name: Frontend tests
         working-directory: apps/web
