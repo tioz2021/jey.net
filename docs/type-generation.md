@@ -28,7 +28,8 @@ T198 идёт срезами: сначала типы, которые дейст
 - `ChatThreadView`, `ChatMessageView`, `ChatPeerView`, `ChatReactionView`;
 - `ChatEnvelopeView`, `ChatEncryptedMessageView`;
 - `BookDetails` / `BookDetailsEnvelope`;
-- `TvEpisodeView`, `TvSeasonHeader`, `TvSeasonResponse`.
+- `TvEpisodeView`, `TvSeasonHeader`, `TvSeasonResponse`;
+- `MovieDetailsResponse`, `MovieDetailsEnvelope`, `TmdbCastMember`.
 
 Источник: `crates/core/src/items/model.rs`, `#[derive(TS)]`, `#[ts(export)]`.
 

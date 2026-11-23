@@ -40,16 +40,20 @@ pub struct SearchItem {
     pub overview: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "TmdbCastMember")]
 pub struct CastMember {
+    #[ts(type = "number")]
     pub tmdb_id: u64,
     pub name: String,
     pub character: Option<String>,
     pub profile_path: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, rename = "MovieDetailsResponse")]
 pub struct MovieDetails {
+    #[ts(type = "number")]
     pub tmdb_id: u64,
     pub title: String,
     pub original_title: String,
@@ -66,11 +70,15 @@ pub struct MovieDetails {
     pub countries: Vec<String>,
     pub languages: Vec<String>,
     pub companies: Vec<String>,
+    #[ts(type = "number | null")]
     pub budget: Option<i64>,
+    #[ts(type = "number | null")]
     pub revenue: Option<i64>,
     pub imdb_id: Option<String>,
     pub vote_average_tenths: Option<i16>,
+    #[ts(type = "number | null")]
     pub vote_count: Option<i64>,
+    #[ts(type = "Record<string, import(\"./MovieTranslation\").MovieTranslation>")]
     pub translations: BTreeMap<String, jey_core::items::MovieTranslation>,
     pub number_of_seasons: Option<i32>,
     pub number_of_episodes: Option<i32>,

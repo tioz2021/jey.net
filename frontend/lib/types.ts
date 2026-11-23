@@ -10,6 +10,7 @@ import type {
   BookDetails as BookDetailsResponse,
   BookSearchItem,
   GameSearchItem,
+  MovieDetailsResponse,
   MovieSearchItem,
   ItemKind,
   ItemStatus,
@@ -70,6 +71,7 @@ export type {
   CommentListResponse,
   CommentView as Comment,
   GameSearchItem,
+  MovieDetailsResponse,
   MovieSearchItem,
   CollectionView as Collection,
   ItemView as Item,
@@ -165,13 +167,6 @@ export interface SeasonSummary {
   name: string;
   episode_count: number;
   air_date: string | null;
-  poster_path: string | null;
-}
-
-export interface MovieDetailsResponse extends MovieDetails {
-  tmdb_id: number;
-  title: string;
-  year: number | null;
   poster_path: string | null;
 }
 

@@ -51,3 +51,8 @@ export type { BookDetailsEnvelope } from "./BookDetailsEnvelope";
 export type { TvEpisodeView } from "./TvEpisodeView";
 export type { TvSeasonHeader } from "./TvSeasonHeader";
 export type { TvSeasonResponse } from "./TvSeasonResponse";
+export type { MovieDetailsEnvelope } from "./MovieDetailsEnvelope";
+export type { MovieDetailsResponse } from "./MovieDetailsResponse";
+export type { TmdbCastMember } from "./TmdbCastMember";
+export type { MovieTranslation } from "./MovieTranslation";
+export type { SeasonSummary } from "./SeasonSummary";

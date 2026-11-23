@@ -106,9 +106,11 @@ impl ItemStatus {
 
 /// One actor in the stored credits. TMDB ids allow linking to a person page;
 /// profile images are never stored, only the path for an online request.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct CastMember {
     #[serde(default)]
+    #[ts(type = "number")]
     pub tmdb_id: u64,
     pub name: String,
     #[serde(default)]
@@ -119,7 +121,8 @@ pub struct CastMember {
 
 /// One localized version of the text fields. Shared facts (budget, runtime,
 /// release date, IMDb id, rating) live outside the translations.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
 pub struct MovieTranslation {
     #[serde(default)]
     pub title: String,
@@ -142,7 +145,8 @@ pub struct MovieTranslation {
 }
 
 /// One watched episode of a TV show.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct WatchedEpisode {
     #[serde(default)]
     pub season_number: i32,
@@ -151,7 +155,8 @@ pub struct WatchedEpisode {
 }
 
 /// One season of a TV show; episodes are loaded on demand from TMDB.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct SeasonSummary {
     #[serde(default)]
     pub season_number: i32,

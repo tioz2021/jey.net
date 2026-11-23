@@ -654,8 +654,8 @@ Handlers `public/users`, `public/users/{id}`, `public/users/{id}/items/{id}`
 
 **Сделано:** search, upload, comments, chat devices/settings,
 thread/message, encrypted envelopes, `BookDetails` генерируются из Rust.
-Остались `MovieDetailsResponse` (TMDB detail) и клиентский
-`ChatSharedItem`.
+Остался только клиентский `ChatSharedItem`; все серверные DTO из
+T198.2 генерируются.
 
 ### T199 · Desktop smoke в обязательном release gate `[x]`
 

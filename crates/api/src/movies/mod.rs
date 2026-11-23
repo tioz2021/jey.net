@@ -138,6 +138,12 @@ pub async fn tv_details(
     Ok(Json(json!({ "movie": series })).into_response())
 }
 
+#[derive(Debug, serde::Serialize, ts_rs::TS)]
+#[ts(export)]
+pub struct MovieDetailsEnvelope {
+    pub movie: tmdb::MovieDetails,
+}
+
 /// `GET /api/v1/movies/{id}`
 pub async fn details(
     State(state): State<AppState>,
@@ -155,7 +161,7 @@ pub async fn details(
     let language = language_for(&current.user.locale);
     let movie = state.tmdb.details_all(id, language).await?;
 
-    Ok(Json(json!({ "movie": movie })).into_response())
+    Ok(Json(MovieDetailsEnvelope { movie }).into_response())
 }
 
 #[derive(Debug, Deserialize)]
