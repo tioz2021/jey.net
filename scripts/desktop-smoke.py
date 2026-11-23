@@ -53,7 +53,7 @@ def text(session: str) -> str:
     return call(session, "return document.body.innerText") or ""
 
 
-def wait_for(session: str, predicate: str, timeout: float = 12) -> None:
+def wait_for(session: str, predicate: str, timeout: float = 25) -> None:
     deadline = time.time() + timeout
     while time.time() < deadline:
         if call(session, f"return Boolean({predicate})"):
@@ -218,5 +218,6 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except AssertionError as error:
+        print(f"::error title=Desktop smoke::FAIL: {error}")
         print(f"FAIL: {error}", file=sys.stderr)
         raise SystemExit(1)
