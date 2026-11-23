@@ -9,10 +9,9 @@ use std::sync::Arc;
 
 use axum::Json;
 use axum::Router;
-use axum::extract::DefaultBodyLimit;
-use axum::extract::State;
+use axum::extract::{ConnectInfo, DefaultBodyLimit, Request, State};
 use axum::http::{HeaderName, HeaderValue, StatusCode, header};
-use axum::middleware;
+use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, patch, post};
 use serde::Serialize;
@@ -216,6 +215,29 @@ async fn track_errors(
                 .await;
     }
     response
+}
+
+async fn public_rate_limit(
+    State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<std::net::SocketAddr>,
+    request: Request,
+    next: Next,
+) -> Response {
+    // Do not rate-limit the unversioned readiness probe; it is called often.
+    if request.uri().path() == "/api/v1/health" {
+        return next.run(request).await;
+    }
+    let ip = crate::http::ratelimit::client_ip(request.headers(), peer);
+    match crate::http::ratelimit::enforce(
+        &state.pool,
+        crate::http::ratelimit::PUBLIC,
+        &format!("public:{ip}"),
+    )
+    .await
+    {
+        Ok(()) => next.run(request).await,
+        Err(error) => error.into_response(),
+    }
 }
 
 fn api_v1(state: AppState) -> Router<AppState> {
@@ -552,6 +574,10 @@ fn api_v1(state: AppState) -> Router<AppState> {
         .route_layer(middleware::from_fn_with_state(state.clone(), require_auth));
 
     public
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            public_rate_limit,
+        ))
         .merge(protected)
         .layer(middleware::from_fn_with_state(state.clone(), track_errors))
         .layer(middleware::from_fn(security_headers))

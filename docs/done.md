@@ -1,5 +1,14 @@
 # Архив задач
 
+## T193 · Публичные лимиты и private fields `[x]`
+
+- публичные маршруты: 300 запросов/минуту на IP;
+- health исключён;
+- тест 429 и код `rate_limited`;
+- тест отсутствия email/prefs/password_hash/user_id/revision;
+- 413 upload/quota уже покрыты существующими тестами.
+
+
 ## T191–T192 · CSP и audit `[~]`
 
 - inline theme script заменён на SHA-256 hash в Caddy;

@@ -57,6 +57,13 @@ pub const READ_HEAVY: Rule = Rule {
     block: Duration::from_secs(60),
 };
 
+/// Public read surface per IP: 300 requests in a minute.
+pub const PUBLIC: Rule = Rule {
+    limit: 300,
+    window: Duration::from_secs(60),
+    block: Duration::from_secs(60),
+};
+
 /// Registrations per IP: 3 in an hour.
 pub const REGISTER: Rule = Rule {
     limit: 3,

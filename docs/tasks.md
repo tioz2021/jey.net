@@ -414,7 +414,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T190 | P2 | Cross-instance notifications LISTEN/NOTIFY `[ ]` | 2 d | T188 | несколько API-инстансов, без потери SSE |
 | T191 | P1 | CSP: убрать script unsafe-inline `[~]` | 2–3 d | — | hash для inline theme; style exception |
 | T192 | P1 | Разбор остаточных audit-advisories `[x]` | 1–2 d | — | 0 vulnerabilities, 6 warning excluded |
-| T193 | P2 | Лимиты публичных endpoints и private-field тесты `[ ]` | 2 d | T191/T192 | тесты на утечки, 429/413, отсутствие лишних полей |
+| T193 | P2 | Лимиты публичных endpoints и private-field тесты `[x]` | 2 d | T191/T192 | 300/min per IP, 429, private-field tests |
 | T194 | P2 | Рефакторинг ItemForm `[ ]` | 2–3 d | T187 | секции/хуки, поведение и E2E не меняются |
 | T195 | P2 | Рефакторинг desktop-bridge `[ ]` | 2–3 d | T188/T194 | типизированные handlers, отдельные модули |
 | T196 | P2 | Аудит `catch {}` и ошибок `[ ]` | 1–2 d | T194/T195 | нет проглатывания критичных ошибок |
