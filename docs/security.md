@@ -176,3 +176,9 @@ production: 0 violations и 0 inline style attributes.
 Публичные маршруты ограничены **300 запросами в минуту на IP** (окно 60 с,
 блокировка 60 с). `/api/v1/health` исключён, чтобы health checks не упирались
 в лимит. Ошибка — `429 rate_limited` с `Retry-After`.
+
+
+## RUSTSEC-2026-0594 (fixed)
+
+`cookie 0.18.2` (transitive through Tauri) had a private-cookie nonce issue.
+Updated to `0.18.3`; `cargo audit` is clean.
