@@ -21,17 +21,16 @@ COUNTS_FILE="${COUNTS_FILE:-}"
 say() { printf '[%s] %s\n' "$(date -Is)" "$*"; }
 fail() { printf '[%s] ERROR: %s\n' "$(date -Is)" "$*" >&2; exit 1; }
 
-if [[ "${ALLOW_NONROOT}" != "1" && "${EUID}" -ne 0 ]]; then
-    fail "run as root (or ALLOW_NONROOT=1 for a local plain-archive drill)"
-fi
 [[ -r "${ENV_FILE}" ]] || fail "missing ${ENV_FILE}"
-command -v pg_restore >/dev/null || fail "pg_restore is not installed"
-command -v psql >/dev/null || fail "psql is not installed"
-
 set -a
 # shellcheck disable=SC1090
 . "${ENV_FILE}"
 set +a
+if [[ "${ALLOW_NONROOT}" != "1" && "${EUID}" -ne 0 ]]; then
+    fail "run as root (or ALLOW_NONROOT=1 for a local plain-archive drill)"
+fi
+command -v pg_restore >/dev/null || fail "pg_restore is not installed"
+command -v psql >/dev/null || fail "psql is not installed"
 : "${DATABASE_URL:?DATABASE_URL is not set}"
 
 SOURCE_DB="$(psql "${DATABASE_URL}" -Atc 'select current_database()')"
