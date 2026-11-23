@@ -584,18 +584,21 @@ button:not(:disabled):active {
 }
 
 .items-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+  display: block;
+  columns: 30rem;
+  column-gap: 0.75rem;
   padding: 0;
   margin: 0.75rem 0;
   list-style: none;
 }
 
-@media (width <= 1000px) {
-  .items-grid {
-    grid-template-columns: 1fr;
-  }
+.items-grid > li {
+  break-inside: avoid;
+  margin: 0 0 0.75rem;
+}
+
+.items-grid > li:last-child {
+  margin-bottom: 0;
 }
 
 .catalogue-add {

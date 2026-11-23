@@ -36,13 +36,14 @@
 .empty { color: var(--color-text-muted); }
 
 .grid {
-  grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+  display: block;
+  columns: 28rem;
+  column-gap: 0.75rem;
 }
 
-@media (width <= 1000px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.grid > li {
+  break-inside: avoid;
+  margin: 0 0 0.75rem;
 }
 
 .rename {
