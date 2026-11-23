@@ -4,8 +4,9 @@ use axum::Json;
 use axum::extract::{Path, Query, State};
 use chrono::Utc;
 use jey_core::items::{ItemKind, MovieDetails, WatchedEpisode};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use ts_rs::TS;
 
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
@@ -18,6 +19,32 @@ use crate::movies::language_for;
 #[derive(Debug, Deserialize)]
 pub struct SeasonQuery {
     pub season: Option<i32>,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TvEpisodeView {
+    pub episode_number: i32,
+    pub name: String,
+    pub overview: Option<String>,
+    pub air_date: Option<String>,
+    pub runtime: Option<i32>,
+    pub still_path: Option<String>,
+    pub watched: bool,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TvSeasonHeader {
+    pub season_number: i32,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, TS)]
+#[ts(export)]
+pub struct TvSeasonResponse {
+    pub season: TvSeasonHeader,
+    pub episodes: Vec<TvEpisodeView>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,7 +79,7 @@ pub async fn season(
     current: CurrentUser,
     Path(raw_id): Path<String>,
     Query(query): Query<SeasonQuery>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<TvSeasonResponse>, AppError> {
     let item_id = parse_id(&raw_id)?;
     let item = repo::get(&state.pool, current.user.id, item_id)
         .await?
@@ -92,29 +119,27 @@ pub async fn season(
         })
         .unwrap_or_default();
 
-    let episodes: Vec<Value> = season
+    let episodes: Vec<TvEpisodeView> = season
         .episodes
         .iter()
-        .map(|episode| {
-            json!({
-                "episode_number": episode.episode_number,
-                "name": episode.name,
-                "overview": episode.overview,
-                "air_date": episode.air_date,
-                "runtime": episode.runtime,
-                "still_path": episode.still_path,
-                "watched": watched.contains(&(season_number, episode.episode_number)),
-            })
+        .map(|episode| TvEpisodeView {
+            episode_number: episode.episode_number,
+            name: episode.name.clone(),
+            overview: episode.overview.clone(),
+            air_date: episode.air_date.clone(),
+            runtime: episode.runtime,
+            still_path: episode.still_path.clone(),
+            watched: watched.contains(&(season_number, episode.episode_number)),
         })
         .collect();
 
-    Ok(Json(json!({
-        "season": {
-            "season_number": season.season_number,
-            "name": season.name,
+    Ok(Json(TvSeasonResponse {
+        season: TvSeasonHeader {
+            season_number: season.season_number,
+            name: season.name,
         },
-        "episodes": episodes,
-    })))
+        episodes,
+    }))
 }
 
 /// `POST /api/v1/items/{id}/episodes/{season}` — mark/unmark a whole season.

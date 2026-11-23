@@ -48,3 +48,6 @@ export type { ChatThreadResponse } from "./ChatThreadResponse";
 export type { ChatThreadView } from "./ChatThreadView";
 export type { BookDetails } from "./BookDetails";
 export type { BookDetailsEnvelope } from "./BookDetailsEnvelope";
+export type { TvEpisodeView } from "./TvEpisodeView";
+export type { TvSeasonHeader } from "./TvSeasonHeader";
+export type { TvSeasonResponse } from "./TvSeasonResponse";

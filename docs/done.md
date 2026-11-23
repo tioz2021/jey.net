@@ -10,7 +10,8 @@
 - chat thread/message/envelopes: `ChatThreadView`, `ChatMessageView`,
   `ChatEnvelopeView`, `ChatEncryptedMessageView`;
 - chat tests: 6/6;
-- book detail: `BookDetails`/`BookDetailsEnvelope` generated.
+- book detail: `BookDetails`/`BookDetailsEnvelope` generated;
+- TV seasons: `TvEpisodeView`/`TvSeasonResponse` generated.
 
 
 ## T198.1 · Typed public responses `[x]`

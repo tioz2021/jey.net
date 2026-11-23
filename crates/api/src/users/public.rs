@@ -19,6 +19,7 @@ use uuid::Uuid;
 use crate::auth::middleware::CurrentUser;
 use crate::error::AppError;
 use crate::http::AppState;
+use crate::items::episodes::{TvEpisodeView, TvSeasonHeader, TvSeasonResponse};
 
 /// How many finished records a profile shows.
 const MAX_PUBLIC_ITEMS: i64 = 200;
@@ -537,7 +538,7 @@ pub async fn episodes(
     State(state): State<AppState>,
     Path((user_id, item_id)): Path<(Uuid, Uuid)>,
     axum::extract::Query(query): axum::extract::Query<crate::items::episodes::SeasonQuery>,
-) -> Result<Json<Value>, AppError> {
+) -> Result<Json<TvSeasonResponse>, AppError> {
     let user = load_public_user(&state.pool, user_id).await?;
     if !user.public_show_progress {
         return Err(AppError::not_found("record"));
@@ -607,29 +608,27 @@ pub async fn episodes(
         })
         .unwrap_or_default();
 
-    let episodes: Vec<Value> = season
+    let episodes: Vec<TvEpisodeView> = season
         .episodes
         .iter()
-        .map(|episode| {
-            json!({
-                "episode_number": episode.episode_number,
-                "name": episode.name,
-                "overview": episode.overview,
-                "air_date": episode.air_date,
-                "runtime": episode.runtime,
-                "still_path": episode.still_path,
-                "watched": watched.contains(&(season_number, episode.episode_number)),
-            })
+        .map(|episode| TvEpisodeView {
+            episode_number: episode.episode_number,
+            name: episode.name.clone(),
+            overview: episode.overview.clone(),
+            air_date: episode.air_date.clone(),
+            runtime: episode.runtime,
+            still_path: episode.still_path.clone(),
+            watched: watched.contains(&(season_number, episode.episode_number)),
         })
         .collect();
 
-    Ok(Json(json!({
-        "season": {
-            "season_number": season.season_number,
-            "name": season.name,
+    Ok(Json(TvSeasonResponse {
+        season: TvSeasonHeader {
+            season_number: season.season_number,
+            name: season.name,
         },
-        "episodes": episodes,
-    })))
+        episodes,
+    }))
 }
 
 async fn load_public_items(

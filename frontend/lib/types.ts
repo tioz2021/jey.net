@@ -34,6 +34,8 @@ import type {
   PublicProfileView as PublicProfile,
   PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
+  TvEpisodeView as TvEpisode,
+  TvSeasonResponse,
   UploadResponse,
   UploadView as Upload,
   TierListItemView as TierListItem,
@@ -78,6 +80,8 @@ export type {
   PublicProfileView as PublicProfile,
   PublicTierListSummary,
   TierListDetailResponse as TierListDetail,
+  TvEpisodeView as TvEpisode,
+  TvSeasonResponse,
   UploadResponse,
   UploadView as Upload,
   TierListItemView as TierListItem,
@@ -154,21 +158,6 @@ export interface MovieDetails {
 export interface WatchedEpisode {
   season_number: number;
   episode_number: number;
-}
-
-export interface TvEpisode {
-  episode_number: number;
-  name: string;
-  overview: string | null;
-  air_date: string | null;
-  runtime: number | null;
-  still_path: string | null;
-  watched: boolean;
-}
-
-export interface TvSeasonResponse {
-  season: { season_number: number; name: string };
-  episodes: TvEpisode[];
 }
 
 export interface SeasonSummary {
