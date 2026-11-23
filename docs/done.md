@@ -1,5 +1,13 @@
 # Архив задач
 
+## T179 / T185 · Signed auto-update `[x]`
+
+- Windows остаётся unsigned по решению T183;
+- Tauri updater с подписанным `latest.json`;
+- проверено вручную: 0.7.3 → «Обновить» → 0.7.4;
+- release verification и VPS-манифест зелёные.
+
+
 ## 0.7.4 `[x]`
 
 - один SSE stream и replay для уведомлений;

@@ -129,7 +129,7 @@
 | T176 | P1 | UX-состояния `[x]` | error/retry, URL-фильтры, stale-while-revalidate |
 | T177 | P1 | Матрица устройств `[x]` | 390/768/1440, RU/UK/EN, no overflow |
 | T178 | P1 | i18n и форматы `[x]` | словари, plural, даты/числа, locale-aware UI |
-| T179 | P2 | Desktop release pipeline `[~]` | декомпозирован в T183–T185: решение, verify, updater |
+| T179 | P2 | Desktop release pipeline `[x]` | unsigned Windows, signed updater, auto-update проверен |
 | T180 | P2 | Документация и релиз `[x]` | docs 0.7.1, release checklist, tag |
 | T181 | P2 | Desktop: X11/GPU-плавность `[x]` | X11 по умолчанию, Wayland fallback, GPU toggle |
 | T182 | P2 | VPS-канал обновлений `[x]` | latest.json, атомарная публикация, проверка версии |
@@ -406,7 +406,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 |---|---|---|---|---|---|
 | T183 | P1 | Решение по Windows-подписи и auto-update `[x]` | 0.5 d | — | unsigned Windows + auto-update |
 | T184 | P1 | Автопроверка опубликованного релиза `[x]` | 1 d | T183 | verify-release проверяет всё |
-| T185 | P1 | Внедрение updater `[~]` | 3–5 d | T183 | 0.7.3 подписан; остался тест 0.7.3→0.7.4 |
+| T185 | P1 | Внедрение updater `[x]` | 3–5 d | T183 | 0.7.3→0.7.4 проверен вручную |
 | T186 | P1 | Spike Tauri WebDriver/WebKitWebDriver `[ ]` | 1–2 d | — | доказано, можно ли гонять WebKit в CI |
 | T187 | P1 | Desktop smoke suite `[ ]` | 2–3 d | T186 | 6 сценариев: форма/черновик/обложка/корзина/уведомления/вход |
 | T188 | P1 | Singleton notification stream `[x]` | 1 d | — | один SSE, replay для поздних подписчиков |
