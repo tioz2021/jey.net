@@ -65,14 +65,21 @@ backup-хоста. На VPS timer установлен, но отключён н
 На этой локальной машине:
 
 ```bash
+bash scripts/install-local-drill.sh
+# выполнить напечатанную SQL-команду под postgres
+systemctl --user daemon-reload
+systemctl --user start jey-restore-drill.service
+cat ~/.local/state/jey/restore-drill-status.json
 systemctl --user enable --now jey-restore-drill.timer
 systemctl --user list-timers jey-restore-drill.timer
 ```
 
-Pull-backup timer уже работает ежедневно. Drill вручную проверен
-2026-11-23 на backup от 2026-11-22: encrypted archive расшифрован,
-восстановлен в одноразовую БД, schema/migrations проверены. Локальный
-timer drill пока не установлен.
+Installer создаёт `~/.config/jey-drill.env` (0600), user-units и отдельную
+роль `jey_drill` с `CREATEDB`. Pull-backup timer уже работает ежедневно.
+
+Drill вручную проверен 2026-11-23 на backup от 2026-11-22: encrypted
+archive расшифрован, восстановлен в одноразовую БД, schema/migrations
+проверены. Для постоянного timer осталось создать роль и включить units.
 
 ## RPO / RTO
 
