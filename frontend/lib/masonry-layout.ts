@@ -82,7 +82,10 @@ function layout(container: HTMLElement): void {
   }
 
   if (tail !== columns) {
-    const top = Math.max(...heights);
+    // Start the tail under its own left columns, not under the tallest card
+    // in the whole grid. The latter created a huge empty band whenever the
+    // right column was taller than the left ones.
+    const top = Math.max(...heights.slice(0, tail));
     for (let index = 0; index < tail; index += 1) {
       place(children[regular + index], index, top);
     }
