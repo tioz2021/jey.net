@@ -49,6 +49,10 @@ bash scripts/check-csp.sh || fail "CSP hash"
 step "audit silent catches"
 bash scripts/check-silent-catches.sh || fail "silent catches"
 
+step "check generated TS types"
+bash scripts/generate-types.sh || fail "generate TS types"
+git diff --exit-code -- frontend/lib/generated || fail "generated TS types are stale"
+
 step "cargo clippy --all-targets -- -D warnings"
 cargo clippy --locked --workspace --all-targets -- -D warnings || fail "clippy"
 

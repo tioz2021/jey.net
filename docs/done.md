@@ -1,5 +1,14 @@
 # Архив задач
 
+## T198 · TS types from Rust `[~]`
+
+- `ts-rs` в `jey-core`;
+- сгенерированы `ItemKind`, `ItemStatus`;
+- `frontend/lib/types.ts` больше не дублирует эти union-типы;
+- `scripts/generate-types.sh` + CI drift check;
+- остальные response-DTO в следующих срезах.
+
+
 ## T201 · Backup/restore drill `[x]`
 
 - drill извлекает encrypted backup, проверяет checksum и counts sidecar;

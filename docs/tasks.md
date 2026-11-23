@@ -419,7 +419,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T195 | P2 | Рефакторинг desktop-bridge `[x]` | 2–3 d | T188/T194 | context/account/items/social/chat |
 | T196 | P2 | Аудит `catch {}` и ошибок `[x]` | 1–2 d | T194/T195 | reportClientError + catch audit |
 | T197 | P2 | CSP style-src без unsafe-inline `[x]` | 3–5 d | T191 | style props → CSSOM/classes |
-| T198 | P1 | Генерируемые TS-типы из Rust `[ ]` | 3–5 d | — | один источник DTO, CI-check на drift |
+| T198 | P1 | Генерируемые TS-типы из Rust `[~]` | 3–5 d | — | ts-rs + CI; ItemKind/Status готовы |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
@@ -610,7 +610,7 @@ desktop WebKit smoke 6/6.
 Не новые продуктовые функции: убираем оставшиеся источники drift и
 операционного риска.
 
-### T198 · Генерируемые TS-типы из Rust
+### T198 · Генерируемые TS-типы из Rust `[~]`
 
 **Приоритет:** P1. **Оценка:** 3–5 d.
 
@@ -622,6 +622,10 @@ desktop WebKit smoke 6/6.
 - поля ошибок;
 - сгенерированный файл коммитится;
 - CI-проверка `types:check` падает при расхождении.
+
+**Сделано (первый срез):** `ts-rs` для `ItemKind`/`ItemStatus`,
+generated-файлы в `frontend/lib/generated`, CI-проверка drift.
+Остальные response-типы — следующими срезами.
 
 **Готово, когда:** на API-границе нет вручную продублированных DTO,
 `tsc` зелёный, drift ловится в CI.

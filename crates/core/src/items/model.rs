@@ -3,14 +3,16 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::error::DomainError;
 use crate::sync::{DeviceId, Revision, SyncSeq, Timestamp};
 
 /// What kind of record this is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export)]
 pub enum ItemKind {
     Movie,
     Tv,
@@ -64,8 +66,9 @@ impl ItemKind {
 }
 
 /// Where the record stands in the person's own workflow.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
+#[ts(export)]
 pub enum ItemStatus {
     Planned,
     InProgress,

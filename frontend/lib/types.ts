@@ -5,9 +5,9 @@
  * components work with these types and never touch raw responses.
  */
 
-export type ItemKind = "movie" | "tv" | "book" | "game" | "anime" | "image" | "other";
+import type { ItemKind, ItemStatus } from "./generated";
 
-export type ItemStatus = "planned" | "in_progress" | "done" | "dropped";
+export type { ItemKind, ItemStatus } from "./generated";
 
 export type Sort =
   | "created_desc"
