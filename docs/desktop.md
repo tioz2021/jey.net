@@ -200,6 +200,11 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
+## 0.7.9
+
+- masonry: левый добор последней строки, читаемая ширина колонок и ровные отступы;
+- desktop и web получают одинаковую карточную сетку.
+
 ## 0.7.8
 
 - masonry-сетка с левым добором последней неполной строки;
