@@ -1,5 +1,15 @@
 # Архив задач
 
+## T194 · ItemForm split `[x]`
+
+- `item-form-model.ts` — типы, draft merge, валидация;
+- `item-form-fields.tsx` — kind/status, поиск, advanced, cover;
+- `item-form-notes.tsx` — рейтинг и заметки;
+- `item-form-actions.tsx` — submit/cancel/clear dialog;
+- `ItemForm` сокращён с 814 до 436 строк;
+- 27 frontend + 5 item E2E зелёные.
+
+
 ## T197 · CSP без style unsafe-inline `[x]`
 
 - все `style={{...}}` заменены на CSS-классы или CSSOM;
