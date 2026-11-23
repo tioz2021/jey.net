@@ -1,5 +1,15 @@
 # Архив задач
 
+## T200 · Client error telemetry `[x]`
+
+- `POST /client-errors` с optional user;
+- таблица `client_errors`, route/scope/message/stack/version/request_id;
+- санитизация и ограничение длины, без body/cookies;
+- `GET /admin/client-errors` для staff;
+- frontend reporter шлёт `jey:client-error`, дедуп и cap 20;
+- API test: 1/1.
+
+
 ## T198 · TS types from Rust `[x]`
 
 - wire DTO генерируются через `ts-rs`;

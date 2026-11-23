@@ -9,9 +9,11 @@ import { DownloadScreen } from "@/components/public/download-screen";
 import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
+import { installClientErrorReporter } from "@/lib/client-error-reporter";
 import { installDesktopBridge } from "./desktop-bridge";
 import { installDesktopExternalLinks } from "./desktop-external-links";
 
+installClientErrorReporter();
 installDesktopBridge();
 installDesktopExternalLinks();
 import { ItemsRoute } from "./screens/ItemsRoute";

@@ -423,7 +423,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T198.1 | P1 | Typed public response structs `[x]` | 1 d | T198 | profile/list/item/collection/tier typed |
 | T198.2 | P2 | Generated search/media/chat DTOs `[x]` | 2–3 d | T198.1 | search/upload/comments/chat done |
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
-| T200 | P1 | Структурированная телеметрия ошибок `[ ]` | 3–4 d | T196 | сбор client-error без PII |
+| T200 | P1 | Структурированная телеметрия ошибок `[x]` | 3–4 d | T196 | client-errors + admin list |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
 | T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[ ]` | 3–4 d | T190 | SLO baseline и ADR масштабирования |
 

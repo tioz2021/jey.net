@@ -10,6 +10,9 @@ const frontend = path.resolve(here, "../../frontend");
 
 export default defineConfig({
   base: "/",
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? "dev"),
+  },
   plugins: [react()],
   resolve: {
     dedupe: ["react", "react-dom"],

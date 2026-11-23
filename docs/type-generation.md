@@ -30,7 +30,8 @@ T198 идёт срезами: сначала типы, которые дейст
 - `BookDetails` / `BookDetailsEnvelope`;
 - `TvEpisodeView`, `TvSeasonHeader`, `TvSeasonResponse`;
 - `MovieDetailsResponse`, `MovieDetailsEnvelope`, `TmdbCastMember`;
-- `ItemFilters` из Rust `ListQuery`.
+- `ItemFilters` из Rust `ListQuery`;
+- `ClientErrorAccepted` из telemetry endpoint.
 
 `MovieDetails` (локальный snapshot) намеренно остаётся отдельной моделью,
 потому что его форма шире TMDB detail response.
