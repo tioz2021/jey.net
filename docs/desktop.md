@@ -200,6 +200,11 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
+## 0.7.11
+
+- desktop получил перф-фикс masonry: observer реагирует только на изменения сеток;
+- загрузка ленты и каталога без лишних long tasks.
+
 ## 0.7.10
 
 - web и desktop получили кэш вкладок ленты и masonry без мерцания;
