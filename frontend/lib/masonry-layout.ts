@@ -13,7 +13,7 @@ const MIN = 300;
 type State = { height: string };
 
 const known = new Set<HTMLElement>();
-let frame = 0;
+let scheduled = false;
 
 function elements(container: HTMLElement): HTMLElement[] {
   return Array.from(container.children).filter(
@@ -93,9 +93,12 @@ function layout(container: HTMLElement): void {
 }
 
 function schedule(): void {
-  if (frame) return;
-  frame = requestAnimationFrame(() => {
-    frame = 0;
+  if (scheduled) return;
+  scheduled = true;
+  // Run in a microtask: React has committed the DOM, but the browser has not
+  // painted it yet, so cards do not visibly jump from grid to absolute layout.
+  queueMicrotask(() => {
+    scheduled = false;
     const current = new Set(document.querySelectorAll<HTMLElement>("[data-masonry]"));
     for (const element of current) layout(element);
     for (const element of known) {

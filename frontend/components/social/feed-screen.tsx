@@ -26,13 +26,27 @@ import type { FeedItem, FeedKindCounts, ItemKind } from "@/lib/types";
 
 import styles from "./feed.module.css";
 
+type FeedCacheEntry = {
+  items: FeedItem[];
+  counts: FeedKindCounts;
+  nextOffset: number | null;
+};
+
+const feedCache = new Map<string, FeedCacheEntry>();
+
 export function FeedScreen() {
   const i18n = useI18n();
   const { t } = i18n;
-  const [items, setItems] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useFeedUrl("new");
+  const kind = filters.kind;
+  const sort = filters.sort;
+  const period = filters.period;
+  const cacheKey = `${kind ?? ""}:${sort}:${period}`;
+  const cached = feedCache.get(cacheKey);
+  const [items, setItems] = useState<FeedItem[]>(() => cached?.items ?? []);
+  const [loading, setLoading] = useState(() => !cached);
   const [refreshing, setRefreshing] = useState(false);
-  const loadedOnce = useRef(false);
+  const loadedOnce = useRef(Boolean(cached));
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<ViewMode>(() =>
@@ -43,12 +57,8 @@ export function FeedScreen() {
     setView(value);
     saveViewPreference("jey:view:feed", value);
   }
-  const [filters, setFilters] = useFeedUrl("new");
-  const kind = filters.kind;
-  const sort = filters.sort;
-  const period = filters.period;
-  const [counts, setCounts] = useState<FeedKindCounts>({});
-  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [counts, setCounts] = useState<FeedKindCounts>(() => cached?.counts ?? {});
+  const [nextOffset, setNextOffset] = useState<number | null>(() => cached?.nextOffset ?? null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [newSince, setNewSince] = useState(0);
 
@@ -68,6 +78,11 @@ export function FeedScreen() {
           setItems(response.items);
           setCounts(response.counts ?? {});
           setNextOffset(response.next_offset);
+          feedCache.set(cacheKey, {
+            items: response.items,
+            counts: response.counts ?? {},
+            nextOffset: response.next_offset,
+          });
           markFeedSeen();
         }
       })

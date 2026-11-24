@@ -30,14 +30,30 @@ import styles from "./recommendations.module.css";
 
 type Variant = "friends" | "community";
 
+type RecommendationCacheEntry = {
+  friends: FriendRecommendation[];
+  community: CommunityRecommendation[];
+  counts: FeedKindCounts;
+  nextFriends: number | null;
+  nextCommunity: number | null;
+};
+
+const recommendationCache = new Map<string, RecommendationCacheEntry>();
+
 export function RecommendationsScreen({ variant = "friends" }: { variant?: Variant }) {
   const i18n = useI18n();
   const { t, plural } = i18n;
-  const [friends, setFriends] = useState<FriendRecommendation[]>([]);
-  const [community, setCommunity] = useState<CommunityRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useFeedUrl("rating");
+  const kind = filters.kind;
+  const sort = filters.sort;
+  const period = filters.period;
+  const cacheKey = `${variant}:${kind ?? ""}:${sort}:${period}`;
+  const cached = recommendationCache.get(cacheKey);
+  const [friends, setFriends] = useState<FriendRecommendation[]>(() => cached?.friends ?? []);
+  const [community, setCommunity] = useState<CommunityRecommendation[]>(() => cached?.community ?? []);
+  const [loading, setLoading] = useState(() => !cached);
   const [refreshing, setRefreshing] = useState(false);
-  const loadedOnce = useRef(false);
+  const loadedOnce = useRef(Boolean(cached));
   const [view, setView] = useState<ViewMode>(() =>
     readViewPreference("jey:view:feed", "list"),
   );
@@ -46,15 +62,11 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
     setView(value);
     saveViewPreference("jey:view:feed", value);
   }
-  const [filters, setFilters] = useFeedUrl("rating");
-  const kind = filters.kind;
-  const sort = filters.sort;
-  const period = filters.period;
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
-  const [counts, setCounts] = useState<FeedKindCounts>({});
-  const [nextFriends, setNextFriends] = useState<number | null>(null);
-  const [nextCommunity, setNextCommunity] = useState<number | null>(null);
+  const [counts, setCounts] = useState<FeedKindCounts>(() => cached?.counts ?? {});
+  const [nextFriends, setNextFriends] = useState<number | null>(() => cached?.nextFriends ?? null);
+  const [nextCommunity, setNextCommunity] = useState<number | null>(() => cached?.nextCommunity ?? null);
   const [loadingMore, setLoadingMore] = useState(false);
   const { hidden, hide } = useHiddenRecommendations();
 
@@ -80,9 +92,16 @@ export function RecommendationsScreen({ variant = "friends" }: { variant?: Varia
         setCommunity(communityResponse.items);
         setNextFriends(friendResponse.next_offset);
         setNextCommunity(communityResponse.next_offset);
-        setCounts(
-          variant === "community" ? communityResponse.counts : friendResponse.counts,
-        );
+        const nextCounts =
+          variant === "community" ? communityResponse.counts : friendResponse.counts;
+        setCounts(nextCounts);
+        recommendationCache.set(cacheKey, {
+          friends: friendResponse.items,
+          community: communityResponse.items,
+          counts: nextCounts ?? {},
+          nextFriends: friendResponse.next_offset,
+          nextCommunity: communityResponse.next_offset,
+        });
       })
       .catch((cause) => {
         if (!cancelled) setError(describeError(cause, i18n).text);
