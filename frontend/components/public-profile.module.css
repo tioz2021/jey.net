@@ -152,16 +152,10 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  align-items: start;
   gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.grid > li {
-  min-width: 0;
 }
 
 .more {
