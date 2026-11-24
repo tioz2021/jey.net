@@ -13,6 +13,7 @@ const MIN = 300;
 type State = { height: string };
 
 const known = new Set<HTMLElement>();
+const observed = new WeakSet<Element>();
 let scheduled = false;
 
 function elements(container: HTMLElement): HTMLElement[] {
@@ -109,16 +110,37 @@ function schedule(): void {
   });
 }
 
+function intersectsMasonry(record: MutationRecord): boolean {
+  if (record.type === "attributes") return record.attributeName === "data-masonry";
+  const target = record.target instanceof Element ? record.target : null;
+  if (target?.closest("[data-masonry]")) return true;
+  for (const node of record.addedNodes) {
+    if (node instanceof Element && (node.matches("[data-masonry]") || node.querySelector("[data-masonry]"))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function installMasonryLayout(): () => void {
   if (typeof window === "undefined") return () => {};
   const resize = new ResizeObserver(schedule);
   const observe = () => {
     for (const container of document.querySelectorAll<HTMLElement>("[data-masonry]")) {
-      resize.observe(container);
-      for (const child of elements(container)) resize.observe(child);
+      if (!observed.has(container)) {
+        observed.add(container);
+        resize.observe(container);
+        for (const child of elements(container)) {
+          if (!observed.has(child)) {
+            observed.add(child);
+            resize.observe(child);
+          }
+        }
+      }
     }
   };
-  const mutation = new MutationObserver(() => {
+  const mutation = new MutationObserver((records) => {
+    if (!records.some(intersectsMasonry)) return;
     observe();
     schedule();
   });
