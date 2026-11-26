@@ -1,5 +1,15 @@
 # Архив задач
 
+## T215 · Release 0.7.14 `[x]`
+
+- web/API production: **0.7.14**;
+- desktop Linux AppImage/deb + Windows NSIS собраны из тега `v0.7.14`;
+- `latest.json` содержит подписи `linux-x86_64` и `windows-x86_64`;
+- `scripts/verify-release.sh v0.7.14`: checksums и health — ok;
+- 100-USER VPS baseline: p95 77 ms, 0 errors, CPU idle 84%;
+- parity-релиз без новых функций; первый стабильный кандидат для людей.
+
+
 ## T202 · Load test + instance ADR `[x]`
 
 - stdlib harness `scripts/load-test.py`;

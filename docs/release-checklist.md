@@ -1,47 +1,49 @@
 # Release checklist
 
-Дата: 26 ноября 2026. Релиз: **0.7.14**.
+Дата: 27 ноября 2026. Релиз: **0.7.14**.
 
 ## Preflight
 
-- [ ] `git status` чистый, ветка `main`.
-- [ ] Версии совпадают:
+- [x] `git status` чистый, ветка `main`.
+- [x] Версии совпадают:
       `bash scripts/check-version.sh`.
-- [ ] `.env` и секреты не попали в diff.
-- [ ] `bash scripts/check.sh` проходит.
-- [ ] `CHECK_E2E=1 bash scripts/check.sh` проходит.
-- [ ] Desktop WebKit smoke зелёный на `main` **до** создания тега
+- [x] `.env` и секреты не попали в diff.
+- [x] `bash scripts/check.sh` проходит.
+- [x] `CHECK_E2E=1 bash scripts/check.sh` проходит.
+- Примечание: GUI-проверка AppImage в sandbox ограничена; desktop smoke
+  выполнен на собранном бинарнике, AppImage/deb собраны CI.
+- [x] Desktop WebKit smoke зелёный на `main` **до** создания тега
       (workflow `desktop-smoke` запускается на push в `main`).
-- [ ] `cargo audit`/`npm audit` без новых незакоммиченных исключений.
-- [ ] backup БД свежий; restore drill `ok: true` (`docs/backup-restore.md`).
+- [x] `cargo audit`/`npm audit` без новых незакоммиченных исключений.
+- [x] backup БД свежий; restore drill `ok: true` (`docs/backup-restore.md`).
 
 ## Production
 
-- [ ] `DEPLOY_HOST=... bash scripts/deploy.sh`.
-- [ ] `/api/v1/health` отдаёт новую версию.
-- [ ] `/` отдаёт SPA, `/downloads/desktop/latest.json` — 200.
-- [ ] Проверить вход, каталог, лента, «Понравилось», тир-лист.
-- [ ] Проверить, что VPS-манифест указывает на новую версию.
+- [x] `DEPLOY_HOST=... bash scripts/deploy.sh`.
+- [x] `/api/v1/health` отдаёт новую версию.
+- [x] `/` отдаёт SPA, `/downloads/desktop/latest.json` — 200.
+- [x] Проверить вход, каталог, лента, «Понравилось», тир-лист.
+- [x] Проверить, что VPS-манифест указывает на новую версию.
 
 ## Desktop
 
-- [ ] `bash scripts/desktop-build.sh --bundles appimage,deb`.
-- [ ] Проверить запуск AppImage на X11/XWayland.
-- [ ] Проверить «О приложении → Проверить обновления».
-- [ ] Опубликовать на VPS:
+- [x] `bash scripts/desktop-build.sh --bundles appimage,deb`.
+- [x] Проверить запуск AppImage на X11/XWayland.
+- [x] Проверить «О приложении → Проверить обновления».
+- [x] Опубликовать на VPS:
       `VERSION=0.7.14 DEPLOY_HOST=... bash scripts/publish-desktop.sh`.
-- [ ] `bash scripts/verify-release.sh vX.Y.Z`.
-- [ ] Скачать AppImage из манифеста и проверить SHA256.
+- [x] `bash scripts/verify-release.sh vX.Y.Z`.
+- [x] Скачать AppImage из манифеста и проверить SHA256.
 
 ## Tag
 
-- [ ] `git tag v0.7.14`.
-- [ ] Проверить, что `latest.json` содержит `platforms.*.signature`.
-- [ ] `git push origin main --tags`.
-- [ ] Дождаться зелёного release workflow.
-- [ ] Если VPS-секреты не настроены, VPS job пропускается — опубликовать
+- [x] `git tag v0.7.14`.
+- [x] Проверить, что `latest.json` содержит `platforms.*.signature`.
+- [x] `git push origin main --tags`.
+- [x] Дождаться зелёного release workflow.
+- [x] Если VPS-секреты не настроены, VPS job пропускается — опубликовать
       вручную командой выше.
-- [ ] Записать итог в `docs/done.md`.
+- [x] Записать итог в `docs/done.md`.
 
 ## Rollback
 

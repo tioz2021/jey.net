@@ -438,7 +438,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 175 KB gzip; core eager |
 | T213 | P1 | Coverage ratchet `[x]` | 2–3 d | T204 | frontend + weekly Rust LCOV |
 | T214 | P2 | Client errors retention/алерт `[x]` | 1–2 d | T200/T207 | 30 дней + порог 20/15m |
-| T215 | P0 | Release 0.7.14 parity `[~]` | 0.5 d | T214 | web+desktop из одного тега |
+| T215 | P0 | Release 0.7.14 parity `[x]` | 0.5 d | T214 | web+desktop, manifest 0.7.14 |
 
 ### T183 · Решение по Windows-подписи и auto-update
 

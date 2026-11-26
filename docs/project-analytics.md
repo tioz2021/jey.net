@@ -1,6 +1,6 @@
 # Аналитика проекта jey.net
 
-Дата: 26 ноября 2026. Версия production: **0.7.13**.
+Дата: 26 ноября 2026. Версия production: **0.7.14**.
 
 ## Как считались строки
 
@@ -52,7 +52,7 @@ Bundle разбит на route-level chunks; entry и бюджеты прове�
 ## Production
 
 ```text
-health:          ok, 0.7.13
+health:          ok, 0.7.14
 API errors 7d:   0
 backup:          ok, sha256 записан
 users:           7
