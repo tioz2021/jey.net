@@ -84,6 +84,9 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 
 ## Документация
 
+Полный индекс: **[docs/README.md](docs/README.md)**. Исторические планы — в
+[docs/archive](docs/archive/README.md).
+
 | Документ | О чём |
 |---|---|
 | [docs/spec.md](docs/spec.md) | Продукт, роли, функции, критерии приёмки |
@@ -109,10 +112,10 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 | [docs/releases/0.7.13.md](docs/releases/0.7.13.md) | Release notes 0.7.13 |
 | [docs/monitoring.md](docs/monitoring.md) | Health-check, алерты, ротация логов |
 | [docs/security.md](docs/security.md) | Аудит безопасности и остаточные риски |
-| [docs/perf.md](docs/perf.md) | Нагрузочные тесты и LCP |
+| [docs/load-test.md](docs/load-test.md) | Нагрузочный baseline и ADR |
 | [docs/runbook.md](docs/runbook.md) | Что делать, когда всё сломалось |
 | [docs/workflow.md](docs/workflow.md) | Как ведётся работа, включая веб-первый цикл фич |
-| [ROADMAP.md](ROADMAP.md) | План работ по задачам |
+| [docs/tasks.md](docs/tasks.md) | Активная доска задач |
 
 ## Структура репозитория
 

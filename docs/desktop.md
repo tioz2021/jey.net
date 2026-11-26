@@ -143,7 +143,7 @@ T109/T110:
 5. desktop меняет одноразовый код + PKCE на сессию.
 
 WebView для Google не используется. Схема и ограничения — в
-[desktop-ui.md](desktop-ui.md).
+[desktop-ui.md](archive/desktop-ui.md).
 
 ## Запуск
 
