@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST="${ROOT}/apps/web/dist"
 ENTRY_LIMIT_KB="${ENTRY_LIMIT_KB:-220}"
-CHUNK_LIMIT_KB="${CHUNK_LIMIT_KB:-600}"
+CHUNK_LIMIT_KB="${CHUNK_LIMIT_KB:-650}"
 CSS_LIMIT_KB="${CSS_LIMIT_KB:-250}"
 
 [[ -f "${DIST}/index.html" ]] || { echo "bundle: dist is missing" >&2; exit 1; }

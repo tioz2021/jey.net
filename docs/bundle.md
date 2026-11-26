@@ -6,8 +6,8 @@ landing. Everything else is a separate chunk served by Vite/Tauri.
 ## Baseline 0.7.13+
 
 ```text
-entry JS       561 KB raw / 164 KB gzip
-largest chunk  561 KB
+entry JS       615 KB raw / 175 KB gzip
+largest chunk  615 KB
 CSS             42 KB
 ```
 
@@ -18,7 +18,7 @@ CSS             42 KB
 | Что | Бюджет |
 |---|---:|
 | entry JS | 220 KB gzip |
-| largest JS chunk | 600 KB |
+| largest JS chunk | 650 KB |
 | CSS | 250 KB |
 
 CI fails on exceeding any budget. Raise a budget only with a written reason.
@@ -34,4 +34,6 @@ CI fails on exceeding any budget. Raise a budget only with a written reason.
 - admin screens;
 - legal/login/offline/download.
 
+`ItemsRoute` and `FeedScreen` are intentionally eager: they are the two
+primary screens, and lazy-loading them made first navigation visibly slower.
 The route fallback is `LoadingScreen` with `aria-busy`.

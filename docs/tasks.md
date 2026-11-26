@@ -435,7 +435,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
 | T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
-| T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 164 KB gzip |
+| T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 175 KB gzip; core eager |
 | T213 | P1 | Coverage ratchet `[x]` | 2–3 d | T204 | frontend + weekly Rust LCOV |
 | T214 | P2 | Client errors retention/алерт `[x]` | 1–2 d | T200/T207 | 30 дней + порог 20/15m |
 

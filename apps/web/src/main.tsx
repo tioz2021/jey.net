@@ -26,12 +26,10 @@ const PublicCollectionRoute = lazy(() => import("./screens/PublicRoutes").then((
 const PublicItemRoute = lazy(() => import("./screens/PublicItemRoute").then((m) => ({ default: m.PublicItemRoute })));
 const OfflineScreen = lazy(() => import("./screens/OfflineScreen").then((m) => ({ default: m.OfflineScreen })));
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
-const ItemsRoute = lazy(() => import("./screens/ItemsRoute").then((m) => ({ default: m.ItemsRoute })));
 const ItemFormRoute = lazy(() => import("./screens/ItemFormRoute").then((m) => ({ default: m.ItemFormRoute })));
 const ItemDetailRoute = lazy(() => import("./screens/ItemDetailRoute").then((m) => ({ default: m.ItemDetailRoute })));
 const CollectionsRoute = lazy(() => import("./screens/CollectionsRoute").then((m) => ({ default: m.CollectionsRoute })));
 const CollectionDetailRoute = lazy(() => import("./screens/CollectionDetailRoute").then((m) => ({ default: m.CollectionDetailRoute })));
-const FeedScreen = lazy(() => import("@/components/social/feed-screen").then((m) => ({ default: m.FeedScreen })));
 const RecommendationsScreen = lazy(() => import("@/components/social/recommendations-screen").then((m) => ({ default: m.RecommendationsScreen })));
 const PeopleScreen = lazy(() => import("@/components/social/people-screen").then((m) => ({ default: m.PeopleScreen })));
 const NotificationsScreen = lazy(() => import("@/components/social/notifications-screen").then((m) => ({ default: m.NotificationsScreen })));
@@ -48,6 +46,8 @@ const AdminRoute = lazy(() => import("./screens/AdminRoute").then((m) => ({ defa
 const AdminSubRoute = lazy(() => import("./screens/AdminSubRoute").then((m) => ({ default: m.AdminSubRoute })));
 const AdminRedirectRoute = lazy(() => import("./screens/AdminRedirectRoute").then((m) => ({ default: m.AdminRedirectRoute })));
 import { ErrorBoundary } from "@/components/error-boundary";
+import { ItemsRoute } from "./screens/ItemsRoute";
+import { FeedScreen } from "@/components/social/feed-screen";
 import { LoadingScreen } from "@/components/loading-screen";
 
 import "./globals.css";
