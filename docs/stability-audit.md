@@ -60,16 +60,16 @@ backup:         ok, 194 KB, sha256 записан
 ### Сейчас
 
 - [x] аудит production;
-- [ ] smoke: один retry только для транспортных ошибок WebDriver;
+- [x] smoke: один retry только для транспортных ошибок WebDriver;
 - [ ] не деплоить web отдельно от версии/тега;
 - [ ] заморозить новые фичи до 0.7.12.
 
 ### 0.7.12
 
 - [ ] web и desktop из одного тега;
-- [ ] E2E: feed badge = 1 после одной новой записи;
+- [x] E2E: feed badge = 1 после одной новой записи;
 - [ ] E2E: notification badge обновляется без reload на web;
-- [ ] unit: `feedSeenCutoff`/`markFeedSeen` с серверным timestamp;
+- [x] unit: `feedSeenCutoff`/`markFeedSeen` с серверным timestamp;
 - [ ] smoke: стабильный зелёный на main перед тегом.
 
 ### Дальше

@@ -10,7 +10,7 @@ import { Button, Card } from "@/components/ui";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { describeError } from "@/lib/messages";
-import { feedSeenCutoff, markFeedSeen } from "@/components/feed-badge";
+import { feedSeenCutoff, markFeedSeen } from "@/lib/feed-seen";
 import { FeedTabs } from "@/components/feed-tabs";
 import { FeedKindFilter } from "@/components/social/feed-kind-filter";
 import { FeedSort, type FeedSortValue } from "@/components/social/feed-sort";

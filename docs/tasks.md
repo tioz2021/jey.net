@@ -426,6 +426,12 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T200 | P1 | Структурированная телеметрия ошибок `[x]` | 3–4 d | T196 | client-errors + admin list |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
 | T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[x]` | 3–4 d | T190 | local baseline; ADR: один инстанс |
+| T203 | P0 | Release parity 0.7.12 `[ ]` | 1 d | T204/T205 | web и desktop из одного тега |
+| T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
+| T205 | P0 | CI smoke: только транспортный retry `[~]` | 0.5 d | — | retry добавлен, нужен зелёный main |
+| T206 | P1 | Staging/preview для UX `[ ]` | 2–3 d | T203 | не деплоить UX сразу в prod |
+| T207 | P1 | Алерты p95/5xx/backup `[ ]` | 2 d | T203 | мониторинг, не ручные ощущения |
+| T208 | P2 | Desktop realtime: SSE или polling SLO `[ ]` | 2–3 d | T204 | решение и тест |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -718,6 +724,66 @@ release workflow запускает его как job `smoke`, а `vps` и `publ
 **Сделано:** harness `scripts/load-test.py`; local baseline и production
 health probe; ADR в `docs/load-test.md`: остаёмся на одном инстансе,
 T190 включать только при срабатывании триггеров.
+
+
+## Цикл 0.10 — стабилизация существующего
+
+Задач на новые функции нет. Цель — сделать текущее состояние предсказуемым.
+
+| ID | Приоритет | Задача | Оценка | Зависит от | Результат |
+|---|---|---|---|---|---|
+| T203 | P0 | Release parity 0.7.12 | 1 d | T204/T205 | web, desktop и тег совпадают |
+| T204 | P0 | Regression: feed badge и уведомления | 0.5 d | — | cutoff + E2E |
+| T205 | P0 | CI smoke: транспортный retry | 0.5 d | — | main зелёный, gate не флапает |
+| T206 | P1 | Staging/preview для UX | 2–3 d | T203 | правки не идут сразу в prod |
+| T207 | P1 | Алерты p95/5xx/backup | 2 d | T203 | проблема видна до жалобы |
+| T208 | P2 | Desktop realtime: SSE или polling SLO | 2–3 d | T204 | осознанное решение |
+
+### T203 · Release parity 0.7.12
+
+**Приоритет:** P0. **Оценка:** 1 d.
+
+Сделать ровно один тег, в котором web и desktop собраны из одного коммита.
+Перед тегом: main CI + desktop smoke зелёные; после тега не деплоить web
+отдельно.
+
+### T204 · Regression: feed badge и уведомления
+
+**Приоритет:** P0. **Оценка:** 0.5 d.
+
+- unit: `markFeedSeen` использует серверный timestamp;
+- E2E: после одной новой записи badge = 1, не 9+;
+- E2E: уведомление приходит без reload;
+- desktop polling остаётся fallback, пока нет SSE-моста.
+
+**Сделано:** `frontend/lib/feed-seen.test.ts` и
+`apps/web/e2e/feed-badge.spec.ts`; 31 frontend test + badge E2E.
+
+### T205 · CI smoke: транспортный retry
+
+**Приоритет:** P0. **Оценка:** 0.5 d.
+
+Повторять smoke только при `RemoteDisconnected`, `TimeoutError`,
+`Connection refused` или ошибке tauri-driver. Assert UI не ретраить.
+
+### T206 · Staging/preview для UX
+
+**Приоритет:** P1. **Оценка:** 2–3 d.
+
+Отдельный preview URL/сборка для UI-правок, без production-деплоя и тега.
+
+### T207 · Алерты
+
+**Приоритет:** P1. **Оценка:** 2 d.
+
+p95 > 200 ms, 5xx > 1%, backup старше 26 h, SSE disconnect rate.
+
+### T208 · Desktop realtime
+
+**Приоритет:** P2. **Оценка:** 2–3 d.
+
+Выбрать: Tauri SSE-мост или явный polling SLO (2–5 s). Решение записать
+в `docs/stability-audit.md`.
 
 ### Порядок цикла 0.9
 
