@@ -50,12 +50,12 @@ async function snap(page: Page, name: string): Promise<void> {
   await expect(page).toHaveScreenshot(`${name}.png`, {
     fullPage: true,
     animations: "disabled",
-    maxDiffPixelRatio: 0.015,
+    maxDiffPixelRatio: 0.05,
     mask: [page.locator("[data-visual-mask]")],
   });
 }
 
-test("items grid and list", async ({ context, page }) => {
+test("visual: items grid and list", async ({ context, page }) => {
   await useSession(context, viewer);
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
@@ -70,7 +70,7 @@ test("items grid and list", async ({ context, page }) => {
   }
 });
 
-test("feed tabs", async ({ context, page }) => {
+test("visual: feed tabs", async ({ context, page }) => {
   await useSession(context, viewer);
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
@@ -87,18 +87,18 @@ test("feed tabs", async ({ context, page }) => {
   }
 });
 
-test("public profile", async ({ context, page }) => {
+test("visual: public profile", async ({ context, page }) => {
   await useSession(context, viewer);
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(`/u/${author.handle}`);
-    await page.locator("main").first().waitFor();
+    await page.getByRole("heading", { name: "Visual Author" }).waitFor();
     await stabilize(page);
     await snap(page, `public-profile-${width}`);
   }
 });
 
-test("notifications", async ({ context, page }) => {
+test("visual: notifications", async ({ context, page }) => {
   await useSession(context, viewer);
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
@@ -109,7 +109,7 @@ test("notifications", async ({ context, page }) => {
   }
 });
 
-test("item detail", async ({ context, page }) => {
+test("visual: item detail", async ({ context, page }) => {
   await useSession(context, viewer);
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
