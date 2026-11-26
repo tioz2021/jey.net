@@ -425,7 +425,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T199 | P1 | Desktop smoke в release gate `[x]` | 2–3 d | T187 | smoke в needs у vps/publish |
 | T200 | P1 | Структурированная телеметрия ошибок `[x]` | 3–4 d | T196 | client-errors + admin list |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
-| T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[x]` | 3–4 d | T190 | local baseline; ADR: один инстанс |
+| T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[x]` | 3–4 d | T190 | VPS 100 VU p95 77 ms; один инстанс |
 | T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web + desktop + tag 0.7.12 |
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
 | T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |

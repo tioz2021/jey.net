@@ -35,6 +35,7 @@ MEDIA_DIR=/var/lib/jey/preview-media
 MAIL_DIR=/var/lib/jey/preview-mail
 RUN_MIGRATIONS=true
 SESSION_TTL_DAYS=7
+DB_POOL_MAX=4
 LOG_FORMAT=json
 ANALYTICS_SALT=preview-salt
 ENV

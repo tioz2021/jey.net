@@ -79,6 +79,8 @@ pub struct Config {
     pub app_env: AppEnv,
     pub bind_addr: SocketAddr,
     pub database_url: String,
+    /// Maximum PostgreSQL connections in this process.
+    pub db_pool_max: u32,
     /// Apply pending migrations when the server starts.
     pub run_migrations: bool,
     pub session_ttl_days: u32,
@@ -162,6 +164,19 @@ impl Config {
         let database_url = var("DATABASE_URL").ok_or(ConfigError::Missing {
             key: "DATABASE_URL",
         })?;
+        let db_pool_max = match var("DB_POOL_MAX") {
+            Some(raw) => raw
+                .parse::<u32>()
+                .map_err(|_| ConfigError::invalid_value("DB_POOL_MAX", &raw, "must be 1..=30"))?,
+            None => 10,
+        };
+        if !(1..=30).contains(&db_pool_max) {
+            return Err(ConfigError::invalid_value(
+                "DB_POOL_MAX",
+                &db_pool_max.to_string(),
+                "must be 1..=30",
+            ));
+        }
 
         let public_url = match var("PUBLIC_URL") {
             Some(raw) => validate_public_url(&raw)?,
@@ -239,6 +254,7 @@ impl Config {
             app_env,
             bind_addr,
             database_url,
+            db_pool_max,
             run_migrations,
             session_ttl_days,
             allowed_origins,

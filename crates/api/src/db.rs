@@ -7,7 +7,6 @@ use sqlx::postgres::PgPoolOptions;
 
 use crate::config::Config;
 
-const MAX_CONNECTIONS: u32 = 10;
 const ACQUIRE_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Builds the connection pool without opening a connection yet.
@@ -17,7 +16,7 @@ const ACQUIRE_TIMEOUT: Duration = Duration::from_secs(5);
 /// demand once the database is back.
 pub fn create_pool(config: &Config) -> Result<PgPool, sqlx::Error> {
     PgPoolOptions::new()
-        .max_connections(MAX_CONNECTIONS)
+        .max_connections(config.db_pool_max)
         .acquire_timeout(ACQUIRE_TIMEOUT)
         .connect_lazy(&config.database_url)
 }

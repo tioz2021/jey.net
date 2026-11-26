@@ -13,9 +13,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import http.client
 import json
 import statistics
+from pathlib import Path
 import threading
 import time
 import uuid
@@ -39,12 +41,13 @@ class Result:
 
 
 class Client:
-    def __init__(self, base: str, cookie: str | None = None) -> None:
+    def __init__(self, base: str, cookie: str | None = None, basic_auth: str | None = None) -> None:
         parsed = urlparse(base)
         self.host = parsed.hostname or "127.0.0.1"
         self.port = parsed.port or (443 if parsed.scheme == "https" else 80)
         self.https = parsed.scheme == "https"
         self.cookie = cookie
+        self.basic_auth = basic_auth
         self.conn: http.client.HTTPConnection | None = None
         self.origin = base.rstrip("/")
         self.last_set_cookie: str | None = None
@@ -60,6 +63,8 @@ class Client:
         headers = {"Origin": self.origin, "Accept": "application/json"}
         if self.cookie:
             headers["Cookie"] = self.cookie
+        if self.basic_auth:
+            headers["Authorization"] = "Basic " + base64.b64encode(self.basic_auth.encode()).decode()
         payload = None
         if body is not None:
             payload = json.dumps(body)
@@ -88,8 +93,8 @@ class Client:
             self.conn.close()
 
 
-def register(base: str) -> Client:
-    client = Client(base)
+def register(base: str, basic_auth: str | None = None) -> Client:
+    client = Client(base, basic_auth=basic_auth)
     email = f"load-{uuid.uuid4().hex[:12]}@example.test"
     response = client.request("POST", "/api/v1/auth/register", {
         "email": email,
@@ -123,13 +128,21 @@ def percentile(values: list[float], fraction: float) -> float:
     return ordered[min(len(ordered) - 1, int(len(ordered) * fraction))]
 
 
-def run_http(base: str, scenario: str, vus: int, seconds: int, cookie: str | None) -> dict:
+def run_http(
+    base: str,
+    scenario: str,
+    vus: int,
+    seconds: int,
+    cookie: str | None,
+    basic_auth: str | None = None,
+    think_ms: int = 0,
+) -> dict:
     results: list[Result] = []
     lock = threading.Lock()
     stop = threading.Event()
 
     def worker(worker_id: int) -> None:
-        client = Client(base, cookie)
+        client = Client(base, cookie, basic_auth)
         paths = PATHS[scenario]
         index = worker_id
         local: list[Result] = []
@@ -137,6 +150,8 @@ def run_http(base: str, scenario: str, vus: int, seconds: int, cookie: str | Non
             result = client.request("GET", paths[index % len(paths)])
             index += 1
             local.append(result)
+            if think_ms:
+                stop.wait(think_ms / 1000)
         client.close()
         with lock:
             results.extend(local)
@@ -170,7 +185,7 @@ def run_http(base: str, scenario: str, vus: int, seconds: int, cookie: str | Non
     }
 
 
-def run_sse(base: str, vus: int, seconds: int, cookie: str) -> dict:
+def run_sse(base: str, vus: int, seconds: int, cookie: str, basic_auth: str | None = None) -> dict:
     stop = threading.Event()
     connected = []
     lock = threading.Lock()
@@ -180,11 +195,14 @@ def run_sse(base: str, vus: int, seconds: int, cookie: str) -> dict:
         factory = http.client.HTTPSConnection if parsed.scheme == "https" else http.client.HTTPConnection
         conn = factory(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80), timeout=15)
         try:
-            conn.request("GET", "/api/v1/notifications/stream", headers={
+            headers = {
                 "Accept": "text/event-stream",
                 "Cookie": cookie,
                 "Origin": base.rstrip("/"),
-            })
+            }
+            if basic_auth:
+                headers["Authorization"] = "Basic " + base64.b64encode(basic_auth.encode()).decode()
+            conn.request("GET", "/api/v1/notifications/stream", headers=headers)
             response = conn.getresponse()
             with lock:
                 connected.append(response.status)
@@ -221,20 +239,28 @@ def main() -> int:
     parser.add_argument("--vus", type=int, default=10)
     parser.add_argument("--seconds", type=int, default=10)
     parser.add_argument("--seed-items", type=int, default=20)
+    parser.add_argument("--basic-auth", help="user:password for protected preview")
+    parser.add_argument("--cookie-file", help="read a session cookie instead of registering")
+    parser.add_argument("--think-ms", type=int, default=0)
     args = parser.parse_args()
 
     cookie = None
+    if args.cookie_file:
+        cookie = Path(args.cookie_file).read_text().strip()
     if args.scenario in ("auth", "sse"):
-        client = register(args.base_url)
-        if args.scenario == "auth":
+        if cookie:
+            client = Client(args.base_url, cookie, args.basic_auth)
+        else:
+            client = register(args.base_url, args.basic_auth)
+            cookie = client.cookie
+        if args.scenario == "auth" and args.seed_items:
             seed_items(client, args.seed_items)
-        cookie = client.cookie
         client.close()
 
     if args.scenario == "sse":
-        result = run_sse(args.base_url, args.vus, args.seconds, cookie or "")
+        result = run_sse(args.base_url, args.vus, args.seconds, cookie or "", args.basic_auth)
     else:
-        result = run_http(args.base_url, args.scenario, args.vus, args.seconds, cookie)
+        result = run_http(args.base_url, args.scenario, args.vus, args.seconds, cookie, args.basic_auth, args.think_ms)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 

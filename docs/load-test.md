@@ -2,7 +2,61 @@
 
 Harness: `scripts/load-test.py` (Python stdlib, no k6/oha dependency).
 
+## VPS preview: 100 active users
+
+26 ноября 2026. Цель — не loopback, а реальный VPS с 1 vCPU / 1.9 GB.
+
+```text
+target:   preview API 127.0.0.1:8094 через SSH tunnel
+schema:   jey_preview
+user:     один preview-аккаунт
+paths:    /items, /stats, /me
+think:    500 ms на запрос
+duration: 30 s
+```
+
+| VUs | RPS | p50 | p95 | p99 | Errors |
+|---:|---:|---:|---:|---:|---:|
+| 10 | 17.7 | 76.0 ms | 120.5 ms | 133.4 ms | 0 |
+| 50 | 91.9 | 42.4 ms | 80.5 ms | 132.9 ms | 0 |
+| 100 | 185.3 | 42.1 ms | 77.4 ms | 115.2 ms | 0 |
+
+Во время прогона:
+
+```text
+CPU user:   5.6%
+CPU sys:    2.7%
+CPU idle:  83.8%
+DB conns:  12 / 30
+RAM used:  ~420 MB
+```
+
+Вывод: **100 активных пользователей проходят с запасом** для
+authenticated read API. 100 VUs с think 500 ms — это ~185 req/s, более
+интенсивный режим, чем обычные 100 людей в интерфейсе.
+
+### Connection headroom
+
+До теста preview использовал pool 10, production — ещё 10, и на VPS было
+29/30 соединений. Добавлен `DB_POOL_MAX`; production оставлен 10, preview
+получил 4. После изменения:
+
+```text
+DB connections: 12 / 30
+```
+
+Это важно: CPU был свободен, а connection headroom был почти нулевым.
+
+### Ограничения теста
+
+- target — API через SSH tunnel, без Caddy/TLS;
+- один пользователь, read-only paths;
+- feed, запись, SSE и media не входят в этот прогон;
+- external preview с basic auth под длинной конкурентной нагрузкой
+  показывает нестабильные 401 — это ограничение preview, не production.
+
 ## Local isolated API
+
 
 Environment: loopback, isolated `jey_e2e` schema, PostgreSQL on the same machine.
 This measures application overhead, not production network/database capacity.
@@ -32,6 +86,7 @@ This is network/TLS and health only, not authenticated catalogue load.
 
 Reasons:
 
+- 100 active users проверены на VPS: p95 77 ms, CPU idle 84%;
 - one VPS and one PostgreSQL are already the availability boundary;
 - a second process on the same VPS does not remove that boundary;
 - current personal traffic is far below the measured local ceiling;
