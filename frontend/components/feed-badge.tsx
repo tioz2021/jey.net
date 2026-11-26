@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/locale-context";
 import { useUser } from "@/lib/user-context";
+import { subscribeToNotifications } from "@/lib/notification-stream";
+
+const IS_DESKTOP = typeof window !== "undefined" && "__TAURI__" in window;
 
 const SEEN_KEY = "jey.feed-seen";
 const SEEN_EVENT = "jey:feed-seen";
@@ -38,14 +41,20 @@ export function FeedBadge() {
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
     };
-    const timer = window.setInterval(refresh, 30_000);
+    const timer = window.setInterval(refresh, 5_000);
+    // Web gets an instant update from the shared notification SSE. Desktop
+    // has no EventSource bridge, so its shorter interval is the fallback.
+    const unsubscribe = IS_DESKTOP ? () => {} : subscribeToNotifications(refresh);
     window.addEventListener(SEEN_EVENT, refresh);
+    window.addEventListener("jey:notification", refresh);
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      unsubscribe();
       window.removeEventListener(SEEN_EVENT, refresh);
+      window.removeEventListener("jey:notification", refresh);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", onVisible);
     };
@@ -67,7 +76,10 @@ export function feedSeenCutoff(): number {
   return Number.isFinite(value) ? value : 0;
 }
 
-export function markFeedSeen() {
-  localStorage.setItem(SEEN_KEY, new Date().toISOString());
+export function markFeedSeen(uptoTimestamp?: number) {
+  // Use the newest server timestamp from the loaded page, not the client
+  // clock: a small clock skew used to leave every fetched card "unread".
+  const cutoff = uptoTimestamp && Number.isFinite(uptoTimestamp) ? uptoTimestamp : Date.now();
+  localStorage.setItem(SEEN_KEY, new Date(cutoff).toISOString());
   window.dispatchEvent(new Event(SEEN_EVENT));
 }

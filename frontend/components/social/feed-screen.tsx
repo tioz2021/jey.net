@@ -83,7 +83,11 @@ export function FeedScreen() {
             counts: response.counts ?? {},
             nextOffset: response.next_offset,
           });
-          markFeedSeen();
+          const newest = response.items.reduce(
+            (max, item) => Math.max(max, new Date(item.updated_at).getTime() || 0),
+            0,
+          );
+          markFeedSeen(newest || Date.now());
         }
       })
       .catch((cause) => {

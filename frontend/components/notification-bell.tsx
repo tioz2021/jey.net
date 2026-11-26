@@ -12,7 +12,8 @@ import { subscribeToNotifications } from "@/lib/notification-stream";
 
 import styles from "./notification-bell.module.css";
 
-const POLL_VISIBLE_MS = 5_000;
+const IS_DESKTOP = typeof window !== "undefined" && "__TAURI__" in window;
+const POLL_VISIBLE_MS = IS_DESKTOP ? 2_000 : 3_000;
 const POLL_HIDDEN_MS = 60_000;
 
 function updateFavicon(count: number) {

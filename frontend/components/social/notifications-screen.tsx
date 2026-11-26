@@ -12,6 +12,8 @@ import type { NotificationItem } from "@/lib/types";
 
 import styles from "./notifications.module.css";
 
+const IS_DESKTOP = typeof window !== "undefined" && "__TAURI__" in window;
+
 export function NotificationsScreen() {
   const { t, date } = useI18n();
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -42,7 +44,7 @@ export function NotificationsScreen() {
       if (timer) window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         void refresh().finally(schedule);
-      }, document.visibilityState === "visible" ? 10_000 : 60_000);
+      }, document.visibilityState === "visible" ? (IS_DESKTOP ? 3_000 : 5_000) : 60_000);
     };
 
     const onVisibility = () => {
