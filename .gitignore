@@ -67,3 +67,6 @@ scripts/__pycache__/
 
 # ts-rs default output if TS_RS_EXPORT_DIR is not applied
 crates/*/bindings/
+
+# frontend coverage artifacts
+/apps/web/coverage/

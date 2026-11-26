@@ -436,7 +436,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
 | T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
 | T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 164 KB gzip |
-| T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
+| T213 | P1 | Coverage ratchet `[~]` | 2–3 d | T204 | frontend ratchet; Rust job pending |
 | T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
 
 ### T183 · Решение по Windows-подписи и auto-update
@@ -872,7 +872,14 @@ Visual/E2E и desktop smoke проходят; см. [bundle.md](bundle.md).
 - ratchet: покрытие не падает;
 - отчёт в CI.
 
-**Готово, когда:** новый код в критичных модулях не снижает baseline.
+**Сделано:** frontend coverage для feed-seen/notification-stream/
+client-errors/view-preference/local-draft/errors/version; baseline
+`frontend/coverage-baseline.json`; `scripts/check-coverage.sh` в CI.
+Текущий baseline: lines 85.84%, branches 65.04%, functions 82.14%,
+statements 80%.
+
+**Осталось:** отдельный Rust coverage job (`cargo llvm-cov --workspace`)
+для core/auth/sync/desktop; он слишком тяжёл для обычного quality gate.
 
 ### T214 · Client errors retention и алерт
 

@@ -69,6 +69,7 @@
 | [type-generation.md](type-generation.md) | Rust → TypeScript |
 | [error-handling.md](error-handling.md) | Ошибки и telemetry |
 | [bundle.md](bundle.md) | Chunks и бюджет frontend |
+| [coverage.md](coverage.md) | Coverage ratchet |
 | [project-analytics.md](project-analytics.md) | LOC и оценка проекта |
 | [stability-audit.md](stability-audit.md) | Аудит стабильности |
 

@@ -38,6 +38,21 @@ export default defineConfig({
       "../../frontend/lib/**/*.test.ts",
       "../../frontend/components/**/*.test.tsx",
     ],
+    coverage: {
+      provider: "v8",
+      allowExternal: true,
+      include: [
+        "../../frontend/lib/feed-seen.ts",
+        "../../frontend/lib/notification-stream.ts",
+        "../../frontend/lib/client-errors.ts",
+        "../../frontend/lib/view-preference.ts",
+        "../../frontend/lib/local-draft.ts",
+        "../../frontend/lib/errors.ts",
+        "../../frontend/lib/version.ts",
+      ],
+      reporter: ["text", "json-summary"],
+      reportsDirectory: path.resolve(here, "coverage"),
+    },
   },
   server: {
     port: 1420,

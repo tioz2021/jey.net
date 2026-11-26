@@ -1,0 +1,12 @@
+{
+  "total": { "statements": 80, "branches": 65.04, "functions": 82.14, "lines": 85.84 },
+  "files": {
+    "frontend/lib/client-errors.ts": { "statements": 80, "branches": 80, "functions": 100, "lines": 100 },
+    "frontend/lib/errors.ts": { "statements": 46.15, "branches": 0, "functions": 25, "lines": 46.15 },
+    "frontend/lib/feed-seen.ts": { "statements": 92.85, "branches": 71.42, "functions": 100, "lines": 100 },
+    "frontend/lib/local-draft.ts": { "statements": 71.42, "branches": 45.94, "functions": 100, "lines": 82.6 },
+    "frontend/lib/notification-stream.ts": { "statements": 85.18, "branches": 89.28, "functions": 81.81, "lines": 89.79 },
+    "frontend/lib/version.ts": { "statements": 100, "branches": 100, "functions": 100, "lines": 100 },
+    "frontend/lib/view-preference.ts": { "statements": 83.33, "branches": 77.77, "functions": 100, "lines": 100 }
+  }
+}

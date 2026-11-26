@@ -62,11 +62,12 @@ step "npm ci"
     npm ci --no-audit --no-fund --cache "${ROOT_DIR}/.staging/npm-cache"
 ) || fail "npm ci"
 
-step "npm test"
+step "npm test + coverage"
 (
     cd "${ROOT_DIR}/apps/web"
-    npm test
+    npm run test:coverage
 ) || fail "frontend tests"
+bash scripts/check-coverage.sh || fail "frontend coverage ratchet"
 
 step "npm run build"
 (

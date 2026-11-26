@@ -106,9 +106,12 @@ jobs:
             exit "$status"
           fi
 
-      - name: Frontend tests
+      - name: Frontend tests and coverage
         working-directory: apps/web
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Frontend coverage ratchet
+        run: bash scripts/check-coverage.sh
 
       - name: Frontend build
         working-directory: apps/web
