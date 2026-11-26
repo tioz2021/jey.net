@@ -70,3 +70,5 @@ crates/*/bindings/
 
 # frontend coverage artifacts
 /apps/web/coverage/
+
+/node_modules/
