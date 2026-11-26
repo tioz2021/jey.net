@@ -409,7 +409,9 @@ pub async fn stream(
 
     let mut rx = state.chat.subscribe();
     let user_id = current.user.id;
+    let guard = crate::telemetry::open_chat_sse();
     let stream = async_stream::stream! {
+        let _guard = guard;
         loop {
             match rx.recv().await {
                 Ok(event) if event.recipients.contains(&user_id) => {

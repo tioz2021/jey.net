@@ -22,6 +22,12 @@ static STATUS_4XX: AtomicU64 = AtomicU64::new(0);
 static STATUS_5XX: AtomicU64 = AtomicU64::new(0);
 static LATENCY_SUM_US: AtomicU64 = AtomicU64::new(0);
 static LATENCY_MAX_US: AtomicU64 = AtomicU64::new(0);
+static SSE_NOTIFICATIONS_ACTIVE: AtomicU64 = AtomicU64::new(0);
+static SSE_NOTIFICATIONS_OPENED: AtomicU64 = AtomicU64::new(0);
+static SSE_NOTIFICATIONS_CLOSED: AtomicU64 = AtomicU64::new(0);
+static SSE_CHAT_ACTIVE: AtomicU64 = AtomicU64::new(0);
+static SSE_CHAT_OPENED: AtomicU64 = AtomicU64::new(0);
+static SSE_CHAT_CLOSED: AtomicU64 = AtomicU64::new(0);
 static LATENCY_BUCKETS: [AtomicU64; 9] = [
     AtomicU64::new(0),
     AtomicU64::new(0),
@@ -150,6 +156,64 @@ fn record_metrics(status: u16, latency: Duration) {
     LATENCY_BUCKETS[bucket].fetch_add(1, Ordering::Relaxed);
 }
 
+#[derive(Clone, Copy)]
+enum SseKind {
+    Notifications,
+    Chat,
+}
+
+pub struct SseGuard {
+    kind: SseKind,
+}
+
+impl SseGuard {
+    fn open(kind: SseKind) -> Self {
+        let (active, opened) = match kind {
+            SseKind::Notifications => (&SSE_NOTIFICATIONS_ACTIVE, &SSE_NOTIFICATIONS_OPENED),
+            SseKind::Chat => (&SSE_CHAT_ACTIVE, &SSE_CHAT_OPENED),
+        };
+        active.fetch_add(1, Ordering::Relaxed);
+        opened.fetch_add(1, Ordering::Relaxed);
+        Self { kind }
+    }
+}
+
+impl Drop for SseGuard {
+    fn drop(&mut self) {
+        let (active, closed) = match self.kind {
+            SseKind::Notifications => (&SSE_NOTIFICATIONS_ACTIVE, &SSE_NOTIFICATIONS_CLOSED),
+            SseKind::Chat => (&SSE_CHAT_ACTIVE, &SSE_CHAT_CLOSED),
+        };
+        active.fetch_sub(1, Ordering::Relaxed);
+        closed.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+pub fn open_notification_sse() -> SseGuard {
+    SseGuard::open(SseKind::Notifications)
+}
+
+pub fn open_chat_sse() -> SseGuard {
+    SseGuard::open(SseKind::Chat)
+}
+
+/// Process-local SSE counters. `closed` is cumulative since the process start;
+/// alerting compares its delta between healthcheck runs.
+pub fn sse_metrics() -> serde_json::Value {
+    serde_json::json!({
+        "notifications": {
+            "active": SSE_NOTIFICATIONS_ACTIVE.load(Ordering::Relaxed),
+            "opened": SSE_NOTIFICATIONS_OPENED.load(Ordering::Relaxed),
+            "closed": SSE_NOTIFICATIONS_CLOSED.load(Ordering::Relaxed),
+        },
+        "chat": {
+            "active": SSE_CHAT_ACTIVE.load(Ordering::Relaxed),
+            "opened": SSE_CHAT_OPENED.load(Ordering::Relaxed),
+            "closed": SSE_CHAT_CLOSED.load(Ordering::Relaxed),
+        },
+    })
+}
+
 /// Process-local request counters since startup. Good enough for the admin
 /// dashboard and cheap enough to update on every request.
 pub fn metrics() -> serde_json::Value {
@@ -186,6 +250,7 @@ pub fn metrics() -> serde_json::Value {
             "max": LATENCY_MAX_US.load(Ordering::Relaxed) as f64 / 1000.0,
             "buckets": buckets,
         },
+        "sse": sse_metrics(),
     })
 }
 

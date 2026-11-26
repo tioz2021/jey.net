@@ -10,6 +10,7 @@
 | Веб | `GET /` отвечает 200 | публичный адрес |
 | API p95 | > 200 ms при ≥ 20 запросах за 15 минут | structured journal |
 | API 5xx | > 0 за 15 минут | structured journal |
+| SSE отключения | > 25 закрытий за интервал | `/health/ready` |
 | Диск | занято ≥ 80 % | `df` |
 | Память | свободно < 100 МБ | `free` |
 | TLS | осталось < 14 дней | `openssl` |
@@ -41,7 +42,13 @@ MEM_WARN_MB=100
 P95_WARN_MS=200
 P95_MIN_REQUESTS=20
 HC_PING_URL=https://hc-ping.com/<uuid>
+SSE_DISCONNECT_WARN=25
+SSE_STATE_FILE=/var/lib/jey/sse.state
 ```
+
+`/health/ready` отдаёт счётчики `sse.notifications` и `sse.chat`:
+`active`, `opened`, `closed`. Healthcheck сравнивает прирост `closed` с
+предыдущим запуском и отправляет `/fail`, если отключений больше порога.
 
 Если `ALERT_WEBHOOK` не задан, предупреждения всё равно попадают в journald:
 

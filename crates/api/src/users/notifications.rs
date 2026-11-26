@@ -313,7 +313,9 @@ pub async fn stream(
 
     let mut rx = state.notifications.subscribe();
     let user_id = current.user.id;
+    let guard = crate::telemetry::open_notification_sse();
     let stream = async_stream::stream! {
+        let _guard = guard;
         loop {
             match rx.recv().await {
                 Ok(target) if target == user_id => {

@@ -430,7 +430,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
 | T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |
 | T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
-| T207 | P1 | Алерты p95/5xx/backup `[~]` | 2 d | T203 | healthcheck p95/5xx + существующий HC |
+| T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | healthcheck p95/5xx + SSE counters |
 | T208 | P2 | Desktop realtime: SSE или polling SLO `[ ]` | 2–3 d | T204 | решение и тест |
 
 ### T183 · Решение по Windows-подписи и auto-update
@@ -783,9 +783,10 @@ T190 включать только при срабатывании тригге�
 
 p95 > 200 ms, 5xx > 1%, backup старше 26 h, SSE disconnect rate.
 
-**Сделано:** `jey-healthcheck` считает p95 и 5xx по structured journal и
-отправляет `/fail` в существующий healthchecks.io check. Порог p95 — 200 ms
-при ≥ 20 запросах. Осталось: отдельная метрика SSE disconnect rate.
+**Сделано:** `jey-healthcheck` считает p95 и 5xx по structured journal,
+`/health/ready` отдаёт SSE active/opened/closed, а healthcheck сравнивает
+прирост closed между запусками. Всё уходит в существующий healthchecks.io
+check через `/fail`; отдельный URL не нужен.
 
 ### T208 · Desktop realtime
 

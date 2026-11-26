@@ -44,6 +44,8 @@ BACKUP_DIR="${BACKUP_DIR:-/var/backups/jey}"
 BACKUP_MAX_HOURS="${BACKUP_MAX_HOURS:-30}"
 P95_WARN_MS="${P95_WARN_MS:-200}"
 P95_MIN_REQUESTS="${P95_MIN_REQUESTS:-20}"
+SSE_DISCONNECT_WARN="${SSE_DISCONNECT_WARN:-25}"
+SSE_STATE_FILE="${SSE_STATE_FILE:-/var/lib/jey/sse.state}"
 HC_PING_URL="${HC_PING_URL:-}"
 
 problems=()
@@ -76,7 +78,10 @@ send_alert() {
     fi
 }
 
-check_http "API readiness" "${BASE_URL}/health/ready"
+ready_body=""
+if ! ready_body="$(curl -fsS --max-time 10 "${BASE_URL}/health/ready")"; then
+    problems+=("API readiness недоступен")
+fi
 check_http "SPA" "${BASE_URL}/"
 
 if command -v pg_isready >/dev/null 2>&1; then
@@ -171,6 +176,38 @@ if [[ "${BASE_URL}" == https://* ]] && command -v openssl >/dev/null 2>&1; then
         fi
     else
         problems+=("не удалось проверить TLS-сертификат")
+    fi
+fi
+
+if [[ -n "${ready_body}" ]] && command -v python3 >/dev/null 2>&1; then
+    sse_values="$(printf '%s' "${ready_body}" | python3 -c '
+import json, sys
+try:
+    sse = json.load(sys.stdin)["sse"]
+    print(
+        sse["notifications"]["closed"],
+        sse["chat"]["closed"],
+        sse["notifications"]["active"],
+        sse["chat"]["active"],
+    )
+except Exception:
+    print("")
+')"
+    if [[ -n "${sse_values}" ]]; then
+        read -r notif_closed chat_closed notif_active chat_active <<< "${sse_values}"
+        mkdir -p "$(dirname "${SSE_STATE_FILE}")" 2>/dev/null || true
+        if [[ -r "${SSE_STATE_FILE}" ]]; then
+            read -r prev_notif prev_chat _prev_at < "${SSE_STATE_FILE}" || true
+            notif_delta=$(( ${notif_closed:-0} - ${prev_notif:-0} ))
+            chat_delta=$(( ${chat_closed:-0} - ${prev_chat:-0} ))
+            (( notif_delta < 0 )) && notif_delta=0
+            (( chat_delta < 0 )) && chat_delta=0
+            total_delta=$((notif_delta + chat_delta))
+            if (( total_delta > SSE_DISCONNECT_WARN )); then
+                problems+=("SSE: ${total_delta} отключений за интервал (порог ${SSE_DISCONNECT_WARN})")
+            fi
+        fi
+        printf '%s %s %s %s\n' "${notif_closed}" "${chat_closed}" "${notif_active}" "${chat_active}" > "${SSE_STATE_FILE}"
     fi
 fi
 

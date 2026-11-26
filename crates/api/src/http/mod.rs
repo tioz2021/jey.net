@@ -613,7 +613,11 @@ async fn readiness(State(state): State<AppState>) -> Response {
     let check = tokio::time::timeout(READINESS_TIMEOUT, db::ping(&state.pool)).await;
 
     match check {
-        Ok(Ok(())) => (StatusCode::OK, Json(json!({ "status": "ready" }))).into_response(),
+        Ok(Ok(())) => (
+            StatusCode::OK,
+            Json(json!({ "status": "ready", "sse": crate::telemetry::sse_metrics() })),
+        )
+            .into_response(),
         Ok(Err(err)) => {
             tracing::warn!(error = %err, "readiness check failed");
             (
