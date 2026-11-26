@@ -109,7 +109,7 @@ bash scripts/security-audit.sh       # cargo audit + production npm audit
 | [https://j3ynet.site/download](https://j3ynet.site/download) | Публичная страница загрузки desktop |
 | [docs/release-checklist.md](docs/release-checklist.md) | Финальный чек-лист релиза |
 | [docs/release-desktop.md](docs/release-desktop.md) | Сборка и VPS-канал обновлений |
-| [docs/releases/0.7.13.md](docs/releases/0.7.13.md) | Release notes 0.7.13 |
+| [docs/releases/0.7.14.md](docs/releases/0.7.14.md) | Release notes 0.7.14 — stable parity |
 | [docs/monitoring.md](docs/monitoring.md) | Health-check, алерты, ротация логов |
 | [docs/security.md](docs/security.md) | Аудит безопасности и остаточные риски |
 | [docs/load-test.md](docs/load-test.md) | Нагрузочный baseline и ADR |
@@ -135,10 +135,10 @@ jey.net/
 
 ## Статус
 
-Актуальная версия — **0.7.13**: веб и desktop на общем SPA, социальные функции,
+Актуальная версия — **0.7.14**: веб и desktop на общем SPA, социальные функции,
 чат с E2E-шифрованием, локальный кеш и offline outbox.
 
-## Известные ограничения 0.7.13
+## Известные ограничения 0.7.14
 
 - E2E без forward secrecy; сервер видит метаданные;
 - старые plaintext-сообщения не перешифровываются;

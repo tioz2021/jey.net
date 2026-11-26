@@ -3,7 +3,7 @@
 Route-level dynamic imports keep the entry focused on shell, providers and
 landing. Everything else is a separate chunk served by Vite/Tauri.
 
-## Baseline 0.7.13+
+## Baseline 0.7.14
 
 ```text
 entry JS       615 KB raw / 175 KB gzip

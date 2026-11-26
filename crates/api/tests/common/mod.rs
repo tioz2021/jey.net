@@ -51,6 +51,7 @@ fn test_config() -> Config {
         app_env: AppEnv::Test,
         bind_addr: "127.0.0.1:0".parse().expect("valid address"),
         database_url: database_url(),
+        db_pool_max: 2,
         run_migrations: false,
         session_ttl_days: 30,
         allowed_origins: vec!["http://localhost:3000".to_owned()],
