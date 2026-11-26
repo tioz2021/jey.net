@@ -426,9 +426,9 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T200 | P1 | Структурированная телеметрия ошибок `[x]` | 3–4 d | T196 | client-errors + admin list |
 | T201 | P1 | Backup/restore drill `[x]` | 2 d | — | encrypted drill ok; timer + boot pull |
 | T202 | P2 | Нагрузочный тест + решение по 2-му инстансу `[x]` | 3–4 d | T190 | local baseline; ADR: один инстанс |
-| T203 | P0 | Release parity 0.7.12 `[ ]` | 1 d | T204/T205 | web и desktop из одного тега |
+| T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web + desktop + tag 0.7.12 |
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
-| T205 | P0 | CI smoke: только транспортный retry `[~]` | 0.5 d | — | retry добавлен, нужен зелёный main |
+| T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |
 | T206 | P1 | Staging/preview для UX `[ ]` | 2–3 d | T203 | не деплоить UX сразу в prod |
 | T207 | P1 | Алерты p95/5xx/backup `[ ]` | 2 d | T203 | мониторинг, не ручные ощущения |
 | T208 | P2 | Desktop realtime: SSE или polling SLO `[ ]` | 2–3 d | T204 | решение и тест |
@@ -739,7 +739,7 @@ T190 включать только при срабатывании тригге�
 | T207 | P1 | Алерты p95/5xx/backup | 2 d | T203 | проблема видна до жалобы |
 | T208 | P2 | Desktop realtime: SSE или polling SLO | 2–3 d | T204 | осознанное решение |
 
-### T203 · Release parity 0.7.12
+### T203 · Release parity 0.7.12 `[x]`
 
 **Приоритет:** P0. **Оценка:** 1 d.
 
@@ -759,7 +759,7 @@ T190 включать только при срабатывании тригге�
 **Сделано:** `frontend/lib/feed-seen.test.ts` и
 `apps/web/e2e/feed-badge.spec.ts`; 31 frontend test + badge E2E.
 
-### T205 · CI smoke: транспортный retry
+### T205 · CI smoke: транспортный retry `[x]`
 
 **Приоритет:** P0. **Оценка:** 0.5 d.
 
