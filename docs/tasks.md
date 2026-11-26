@@ -434,7 +434,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | Rust SSE → Tauri event |
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
-| T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
+| T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
 | T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
 | T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
 | T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
@@ -746,7 +746,7 @@ T190 включать только при срабатывании тригге�
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | осознанное решение |
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
-| T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
+| T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
 | T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
 | T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
 | T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
@@ -847,7 +847,7 @@ items grid/list, три вкладки ленты, публичный профи
 **Сделано:** внешний URL с TLS и basic auth, отдельный API/systemd unit,
 схема `jey_preview`, отдельные media/mail. Без авторизации — `401`.
 
-### T211 · Разбить shell.rs и chat.rs
+### T211 · Разбить shell.rs и chat.rs `[x]`
 
 **Приоритет:** P1. **Оценка:** 3–4 d.
 
@@ -857,7 +857,9 @@ items grid/list, три вкладки ленты, публичный профи
 - `crates/api/src/chat.rs` → queries/stream/commands;
 - тесты и smoke остаются зелёными.
 
-**Готово, когда:** файлы стали модульными, публичное поведение не изменилось.
+**Сделано:** `shell.rs` 1 587 → 134 строки + 9 секций; `chat.rs` 1 468 →
+172 строки + 5 секций. API-тесты 155/155, desktop smoke 7/7, clippy
+чистый; публичное поведение и Tauri-команды не менялись.
 
 ### T212 · Bundle splitting и бюджет
 
