@@ -165,6 +165,9 @@ systemctl disable --now jey-web 2>/dev/null || true
 
 # 4b. Caddy routing for SPA to Rust (validate before replacing).
 if command -v caddy >/dev/null 2>&1; then
+    if [[ ! -f /etc/caddy/preview.caddy ]]; then
+        printf '# preview not installed\n' > /etc/caddy/preview.caddy
+    fi
     caddy validate --config /etc/caddy/Caddyfile.new
     mv /etc/caddy/Caddyfile /etc/caddy/Caddyfile.prev
     mv /etc/caddy/Caddyfile.new /etc/caddy/Caddyfile

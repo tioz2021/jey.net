@@ -1,0 +1,31 @@
+[Unit]
+Description=jey.net preview API
+Documentation=https://github.com/tioz2021/jey.net
+After=network-online.target postgresql@18-main.service
+Wants=network-online.target postgresql@18-main.service
+
+[Service]
+Type=simple
+User=jey
+Group=jey
+WorkingDirectory=/opt/jey
+EnvironmentFile=/etc/jey/preview.env
+Environment=SPA_DIR=/opt/jey/spa
+ExecStart=/opt/jey/jey-api
+Restart=always
+RestartSec=2
+MemoryMax=256M
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/jey/preview-media /var/lib/jey/preview-mail
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

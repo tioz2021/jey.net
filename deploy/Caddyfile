@@ -76,3 +76,6 @@ www.j3ynet.site {
 129-121-149-16.sslip.io {
 	import jey_app
 }
+
+# External basic-auth preview; installed by scripts/install-preview.sh.
+import /etc/caddy/preview.caddy
