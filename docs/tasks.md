@@ -429,11 +429,11 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web + desktop + tag 0.7.12 |
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
 | T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |
-| T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
+| T206 | P1 | Staging/preview для UX `[x]` | 2–3 d | T203 | local + external preview |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | healthcheck p95/5xx + SSE counters |
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | Rust SSE → Tauri event |
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
-| T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
+| T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
 | T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
 | T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
 | T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
@@ -741,7 +741,7 @@ T190 включать только при срабатывании тригге�
 | T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web, desktop и тег совпадают |
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | cutoff + E2E |
 | T205 | P0 | CI smoke: транспортный retry `[x]` | 0.5 d | — | main зелёный, gate не флапает |
-| T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | правки не идут сразу в prod |
+| T206 | P1 | Staging/preview для UX `[x]` | 2–3 d | T203 | правки не идут сразу в prod |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | проблема видна до жалобы |
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | осознанное решение |
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
@@ -784,10 +784,10 @@ T190 включать только при срабатывании тригге�
 
 Отдельный preview URL/сборка для UI-правок, без production-деплоя и тега.
 
-**Сделано:** локальный `scripts/preview.sh` на `127.0.0.1:8092` с отдельной
-схемой `jey_preview`, media/mail в `.staging`; production и `jey_e2e` не
-затрагиваются. Осталось: внешний preview URL, если понадобится проверка с
-другого устройства.
+**Сделано:** локальный `scripts/preview.sh` на `127.0.0.1:8092` и внешний
+`https://preview.129-121-149-16.sslip.io` с basic auth, отдельным API на
+`127.0.0.1:8094` и схемой `jey_preview`. Production и `jey_e2e` не
+затрагиваются.
 
 ### T207 · Алерты
 
@@ -831,7 +831,7 @@ items grid/list, три вкладки ленты, публичный профи
 деталь записи на 1440/1024/390. Динамические даты замаскированы
 `data-visual-mask`, анимации отключены.
 
-### T210 · Внешний preview URL
+### T210 · Внешний preview URL `[x]`
 
 **Приоритет:** P1. **Оценка:** 2–3 d.
 
@@ -844,7 +844,8 @@ items grid/list, три вкладки ленты, публичный профи
 - доступ ограничен;
 - никаких production-сессий и медиа.
 
-**Готово, когда:** UX можно проверить по URL вне localhost.
+**Сделано:** внешний URL с TLS и basic auth, отдельный API/systemd unit,
+схема `jey_preview`, отдельные media/mail. Без авторизации — `401`.
 
 ### T211 · Разбить shell.rs и chat.rs
 

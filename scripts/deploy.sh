@@ -128,7 +128,12 @@ if [[ "${healthy}" -ne 1 ]]; then
     exit 1
 fi
 
-# 2b. SPA static bundle served by Rust.
+# 2b. Preview uses the same binary and SPA; restart it after the swap.
+if systemctl cat jey-api-preview.service >/dev/null 2>&1; then
+    systemctl restart jey-api-preview
+fi
+
+# 2c. SPA static bundle served by Rust.
 rm -rf /opt/jey/spa.prev
 if [[ -d /opt/jey/spa ]]; then mv /opt/jey/spa /opt/jey/spa.prev; fi
 install -d -o jey -g jey -m 755 /opt/jey/spa

@@ -48,3 +48,27 @@ curl -fsS http://127.0.0.1:8092/api/v1/health
 ```json
 {"status":"ok","version":"0.7.12"}
 ```
+
+
+## Внешний preview
+
+```text
+URL:   https://preview.129-121-149-16.sslip.io
+login: preview
+```
+
+Пароль задаётся при установке `scripts/install-preview.sh` и хранится только
+в bcrypt-хеше Caddy; в git его нет. Без basic auth любой путь отвечает `401`.
+
+Контур:
+
+```text
+Caddy (basic auth + TLS)
+  → 127.0.0.1:8094
+  → jey-api-preview.service
+  → схема jey_preview
+  → /var/lib/jey/preview-media
+```
+
+Production (`jey_api`, схема `jey`) и E2E (`jey_e2e`) не затрагиваются.
+После деплоя preview-сервис перезапускается на новом бинаре.
