@@ -432,7 +432,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | healthcheck p95/5xx + SSE counters |
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | Rust SSE → Tauri event |
-| T209 | P0 | Visual regression критических экранов `[ ]` | 1–2 d | T204 | screenshot baselines |
+| T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
 | T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
 | T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
@@ -744,7 +744,7 @@ T190 включать только при срабатывании тригге�
 | T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | правки не идут сразу в prod |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | проблема видна до жалобы |
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | осознанное решение |
-| T209 | P0 | Visual regression критических экранов `[ ]` | 1–2 d | T204 | screenshot baselines |
+| T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
 | T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
 | T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
@@ -811,7 +811,7 @@ check через `/fail`; отдельный URL не нужен.
 с серверной сессией и эмитит `jey:notification` в webview. Polling 2–5 s
 остаётся fallback. Web продолжает использовать EventSource.
 
-### T209 · Visual regression критических экранов
+### T209 · Visual regression критических экранов `[x]`
 
 **Приоритет:** P0. **Оценка:** 1–2 d.
 
@@ -826,7 +826,10 @@ Playwright screenshot baselines для:
 Ширины: 1440, 1024, 390. Анимации отключить, данные детерминированные,
 baseline обновлять только осознанной командой.
 
-**Готово, когда:** CI падает на визуальном diff, а не только на тексте.
+**Сделано:** `apps/web/e2e/visual.spec.ts` и 24 baseline:
+items grid/list, три вкладки ленты, публичный профиль, уведомления,
+деталь записи на 1440/1024/390. Динамические даты замаскированы
+`data-visual-mask`, анимации отключены.
 
 ### T210 · Внешний preview URL
 

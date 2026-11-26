@@ -272,7 +272,7 @@ export function PublicProfileView({
                 </>
               ) : null}
             </div>
-            <p className={styles.meta}>
+            <p className={styles.meta} data-visual-mask>
               {t("public.followers", { count: followers ?? profile.followers })} ·{" "}
               {t("public.followingCount", { count: profile.following })} ·{" "}
               {visibleItems.length > 0

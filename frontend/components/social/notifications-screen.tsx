@@ -201,7 +201,7 @@ export function NotificationsScreen() {
                   {item.comment_body && (isComment || isReply || isReaction) ? (
                     <p className={styles.snippet}>«{item.comment_body}»</p>
                   ) : null}
-                  <time className={styles.time}>{date(item.created_at)}</time>
+                  <time className={styles.time} data-visual-mask>{date(item.created_at)}</time>
                 </div>
               </li>
               );

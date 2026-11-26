@@ -32,7 +32,7 @@ generated TS (реэкспорты DTO)                          348
 ```text
 Rust test functions       284
 Vitest tests               32
-Playwright E2E             19
+Playwright E2E             24
 ```
 
 Покрытие в процентах не заявляю: coverage-гейта в проекте нет.

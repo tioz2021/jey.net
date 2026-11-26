@@ -114,7 +114,7 @@ export function ItemDetailScreen({
               {item.external_source === "tmdb" || item.external_source === "openlibrary" ? <RefreshMovieButton itemId={item.id} /> : null}
               <ItemActions item={item} />
             </div>
-            <dl className={styles.facts}>
+            <dl className={styles.facts} data-visual-mask>
               <div className={styles.fact}><dt>{t("item.status")}</dt><dd><Badge tone={STATUS_TONES[item.status]}>{t(statusKey(item.kind, item.status))}</Badge></dd></div>
               <div className={styles.fact}><dt>{t("item.rating")}</dt><dd>{item.rating ? <RatingStars label={t("item.ratingOf", { rating: item.rating })} size={14} value={item.rating} /> : "—"}</dd></div>
               {item.source_url ? <div className={styles.fact}><dt>{t("item.link")}</dt><dd><a className={styles.source} href={item.source_url} rel="noreferrer noopener" target="_blank">{t("item.link")} ↗</a></dd></div> : null}
