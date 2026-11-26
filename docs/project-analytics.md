@@ -40,12 +40,14 @@ Playwright E2E             24
 ## Frontend
 
 ```text
-production JS bundle    927.8 KB
-production CSS bundle   171.9 KB
+entry JS bundle         561 KB raw / 164 KB gzip
+largest route chunk     561 KB
+CSS bundle               42 KB
 npm dependencies         21
 ```
 
-Bundle не разбит на route-level chunks; это главный резерв скорости web.
+Bundle разбит на route-level chunks; entry и бюджеты проверяются в CI.
+Остался резерв по vendor/manualChunks.
 
 ## Production
 

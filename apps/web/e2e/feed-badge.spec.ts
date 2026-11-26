@@ -15,6 +15,7 @@ test("feed badge shows one new record, not the old 9+ bucket", async ({
   await useSession(context, viewer);
   await page.goto("/feed");
   await expect(page.getByRole("link", { name: "Активность" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Badge first" })).toBeVisible();
   await expect(page.locator(".feed-badge")).toHaveCount(0, { timeout: 7000 });
 
   await createItem(request, author, { title: "Badge second" });

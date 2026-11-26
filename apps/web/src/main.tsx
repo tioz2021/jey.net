@@ -1,11 +1,8 @@
-import { StrictMode } from "react";
+import { lazy, StrictMode, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { LoginScreen } from "@/components/auth/login-screen";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { LegalScreen } from "@/components/legal/legal-screen";
 import { PublicShell } from "@/components/legal/public-shell";
-import { DownloadScreen } from "@/components/public/download-screen";
 import { AppFrame } from "./screens/AppFrame";
 import { DocumentTitle } from "./DocumentTitle";
 import { NavigationBridge } from "./NavigationBridge";
@@ -18,12 +15,40 @@ installClientErrorReporter();
 installMasonryLayout();
 installDesktopBridge();
 installDesktopExternalLinks();
-import { ItemsRoute } from "./screens/ItemsRoute";
-import { SettingsScreen } from "@/components/settings/settings-screen";
-import { LandingRoute, PublicProfileRoute, PublicCollectionRoute } from "./screens/PublicRoutes";
-import { PublicItemRoute } from "./screens/PublicItemRoute";
-import { OfflineScreen } from "./screens/OfflineScreen";
+
+// Route-level chunks keep the public shell and providers in the entry bundle.
+const LoginScreen = lazy(() => import("@/components/auth/login-screen").then((m) => ({ default: m.LoginScreen })));
+const LegalScreen = lazy(() => import("@/components/legal/legal-screen").then((m) => ({ default: m.LegalScreen })));
+const DownloadScreen = lazy(() => import("@/components/public/download-screen").then((m) => ({ default: m.DownloadScreen })));
+const LandingRoute = lazy(() => import("./screens/PublicRoutes").then((m) => ({ default: m.LandingRoute })));
+const PublicProfileRoute = lazy(() => import("./screens/PublicRoutes").then((m) => ({ default: m.PublicProfileRoute })));
+const PublicCollectionRoute = lazy(() => import("./screens/PublicRoutes").then((m) => ({ default: m.PublicCollectionRoute })));
+const PublicItemRoute = lazy(() => import("./screens/PublicItemRoute").then((m) => ({ default: m.PublicItemRoute })));
+const OfflineScreen = lazy(() => import("./screens/OfflineScreen").then((m) => ({ default: m.OfflineScreen })));
+const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
+const ItemsRoute = lazy(() => import("./screens/ItemsRoute").then((m) => ({ default: m.ItemsRoute })));
+const ItemFormRoute = lazy(() => import("./screens/ItemFormRoute").then((m) => ({ default: m.ItemFormRoute })));
+const ItemDetailRoute = lazy(() => import("./screens/ItemDetailRoute").then((m) => ({ default: m.ItemDetailRoute })));
+const CollectionsRoute = lazy(() => import("./screens/CollectionsRoute").then((m) => ({ default: m.CollectionsRoute })));
+const CollectionDetailRoute = lazy(() => import("./screens/CollectionDetailRoute").then((m) => ({ default: m.CollectionDetailRoute })));
+const FeedScreen = lazy(() => import("@/components/social/feed-screen").then((m) => ({ default: m.FeedScreen })));
+const RecommendationsScreen = lazy(() => import("@/components/social/recommendations-screen").then((m) => ({ default: m.RecommendationsScreen })));
+const PeopleScreen = lazy(() => import("@/components/social/people-screen").then((m) => ({ default: m.PeopleScreen })));
+const NotificationsScreen = lazy(() => import("@/components/social/notifications-screen").then((m) => ({ default: m.NotificationsScreen })));
+const TierListsScreen = lazy(() => import("@/components/tiers/tier-lists-screen").then((m) => ({ default: m.TierListsScreen })));
+const TierDetailScreen = lazy(() => import("@/components/tiers/tier-detail-screen").then((m) => ({ default: m.TierDetailScreen })));
+const PublicTierScreen = lazy(() => import("@/components/tiers/public-tier-screen").then((m) => ({ default: m.PublicTierScreen })));
+const LikedScreen = lazy(() => import("@/components/liked-screen").then((m) => ({ default: m.LikedScreen })));
+const ChatInboxScreen = lazy(() => import("@/components/chat/inbox-screen").then((m) => ({ default: m.ChatInboxScreen })));
+const ChatThreadScreen = lazy(() => import("@/components/chat/thread-screen").then((m) => ({ default: m.ChatThreadScreen })));
+const SettingsScreen = lazy(() => import("@/components/settings/settings-screen").then((m) => ({ default: m.SettingsScreen })));
+const DashboardRoute = lazy(() => import("./screens/DashboardRoute").then((m) => ({ default: m.DashboardRoute })));
+const TrashRoute = lazy(() => import("./screens/TrashRoute").then((m) => ({ default: m.TrashRoute })));
+const AdminRoute = lazy(() => import("./screens/AdminRoute").then((m) => ({ default: m.AdminRoute })));
+const AdminSubRoute = lazy(() => import("./screens/AdminSubRoute").then((m) => ({ default: m.AdminSubRoute })));
+const AdminRedirectRoute = lazy(() => import("./screens/AdminRedirectRoute").then((m) => ({ default: m.AdminRedirectRoute })));
 import { ErrorBoundary } from "@/components/error-boundary";
+import { LoadingScreen } from "@/components/loading-screen";
 
 import "./globals.css";
 import { ToastProvider } from "@/components/toasts";
@@ -35,26 +60,6 @@ import { UserProvider } from "@/lib/user-context";
 import { CatalogueSourceProvider, webCatalogueSource } from "@/lib/data-source";
 import { activeCatalogueSource } from "./data/desktop-source";
 
-import { Home } from "./screens/Home";
-import { ItemDetailRoute } from "./screens/ItemDetailRoute";
-import { ItemFormRoute } from "./screens/ItemFormRoute";
-import { CollectionsRoute } from "./screens/CollectionsRoute";
-import { CollectionDetailRoute } from "./screens/CollectionDetailRoute";
-import { FeedScreen } from "@/components/social/feed-screen";
-import { RecommendationsScreen } from "@/components/social/recommendations-screen";
-import { PeopleScreen } from "@/components/social/people-screen";
-import { NotificationsScreen } from "@/components/social/notifications-screen";
-import { TierListsScreen } from "@/components/tiers/tier-lists-screen";
-import { LikedScreen } from "@/components/liked-screen";
-import { TierDetailScreen } from "@/components/tiers/tier-detail-screen";
-import { PublicTierScreen } from "@/components/tiers/public-tier-screen";
-import { ChatInboxScreen } from "@/components/chat/inbox-screen";
-import { ChatThreadScreen } from "@/components/chat/thread-screen";
-import { DashboardRoute } from "./screens/DashboardRoute";
-import { TrashRoute } from "./screens/TrashRoute";
-import { AdminRedirectRoute } from "./screens/AdminRedirectRoute";
-import { AdminRoute } from "./screens/AdminRoute";
-import { AdminSubRoute } from "./screens/AdminSubRoute";
 
 const initialLocale = ((): Locale => {
   const match = document.cookie.match(/(?:^|; )jey_lang=(ru|uk|en)(?:;|$)/);
@@ -71,6 +76,7 @@ createRoot(document.getElementById("root")!).render(
         <DocumentTitle />
         <NavigationBridge />
         <ErrorBoundary>
+        <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<PublicShell><LandingRoute /></PublicShell>} />
           <Route path="/download" element={<PublicShell><DownloadScreen /></PublicShell>} />
@@ -118,6 +124,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="*" element={<Home />} />
           </Route>
         </Routes>
+        </Suspense>
         </ErrorBoundary>
       </BrowserRouter>
       <BackToTop />

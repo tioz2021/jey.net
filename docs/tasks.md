@@ -435,7 +435,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T209 | P0 | Visual regression критических экранов `[x]` | 1–2 d | T204 | 24 screenshot baselines |
 | T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
 | T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
-| T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
+| T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 164 KB gzip |
 | T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
 | T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
 
@@ -861,7 +861,7 @@ items grid/list, три вкладки ленты, публичный профи
 172 строки + 5 секций. API-тесты 155/155, desktop smoke 7/7, clippy
 чистый; публичное поведение и Tauri-команды не менялись.
 
-### T212 · Bundle splitting и бюджет
+### T212 · Bundle splitting и бюджет `[x]`
 
 **Приоритет:** P1. **Оценка:** 1–2 d.
 
@@ -870,7 +870,9 @@ items grid/list, три вкладки ленты, публичный профи
 - бюджет первого JS bundle;
 - без визуальных изменений.
 
-**Готово, когда:** первый экран не грузит весь SPA, бюджет проверяется в CI.
+**Сделано:** route-level lazy imports, entry 927 → 561 KB raw / 274 → 164 KB
+gzip, бюджеты entry/chunk/CSS в `scripts/check-bundle-budget.sh` и CI.
+Visual/E2E и desktop smoke проходят; см. [bundle.md](bundle.md).
 
 ### T213 · Coverage ratchet
 

@@ -8,6 +8,7 @@ test("critical pages have no serious accessibility violations", async ({
   page,
   request,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const account = await register(request, unique("A11y User"));
   await createItem(request, account, { title: unique("A11y record"), rating: 9 });
   await useSession(context, account);
@@ -15,6 +16,7 @@ test("critical pages have no serious accessibility violations", async ({
   for (const path of ["/items", "/collections", "/recommendations/all", "/liked"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(250);
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
       .analyze();
@@ -37,6 +39,7 @@ test("skip link is the first keyboard stop", async ({ context, page, request }) 
   const account = await register(request, unique("Keyboard User"));
   await useSession(context, account);
   await page.goto("/items");
+  await page.getByRole("link", { name: "Перейти к содержимому" }).waitFor();
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus")).toHaveClass(/skip-link/);
   await expect(page.locator(":focus")).toHaveText("Перейти к содержимому");

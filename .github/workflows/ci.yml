@@ -114,6 +114,10 @@ jobs:
         working-directory: apps/web
         run: npm run build
 
+      - name: Bundle budget
+        working-directory: apps/web
+        run: bash ../../scripts/check-bundle-budget.sh
+
       - name: Rust tests
         run: |
           rm -rf var/test-media

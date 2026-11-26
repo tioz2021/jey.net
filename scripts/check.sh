@@ -74,6 +74,9 @@ step "npm run build"
     npm run build
 ) || fail "frontend build"
 
+step "bundle budget"
+bash scripts/check-bundle-budget.sh || fail "bundle budget"
+
 step "cargo test"
 # Test uploads are disposable and must not leak between runs.
 rm -rf "${ROOT_DIR}/var/test-media"

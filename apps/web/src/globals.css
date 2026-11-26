@@ -244,6 +244,7 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  main { animation: none; }
 }
 
 /* WebKitGTK in the desktop app runs on llvmpipe here. Keep scrolling free of
