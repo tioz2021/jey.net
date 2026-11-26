@@ -200,6 +200,12 @@ sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev \
 Windows и Linux собираются из одного кода, но отдельными job'ами:
 `.github/workflows/desktop.yml` (ручной запуск).
 
+## 0.7.13
+
+- desktop получает уведомления через настоящий Tauri SSE-мост;
+- polling 2–5 s остаётся fallback;
+- SSE active/opened/closed видны в `/health/ready`.
+
 ## 0.7.12
 
 - stabilization release: web и desktop из одного тега;
