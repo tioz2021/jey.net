@@ -1,0 +1,20 @@
+[Unit]
+Description=jey.net client error retention
+Documentation=https://github.com/tioz2021/jey.net
+After=network-online.target postgresql@18-main.service
+Wants=network-online.target postgresql@18-main.service
+
+[Service]
+Type=oneshot
+User=root
+EnvironmentFile=/etc/jey/api.env
+ExecStart=/usr/local/bin/jey-client-errors-retention
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX

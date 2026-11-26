@@ -81,6 +81,9 @@ say "uploading artifacts"
 "${SCP[@]}" deploy/jey-backup.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-backup.timer"
 "${SCP[@]}" deploy/jey-restore-drill.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-restore-drill.service"
 "${SCP[@]}" deploy/jey-restore-drill.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-restore-drill.timer"
+"${SCP[@]}" scripts/client-errors-retention.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-client-errors-retention.new"
+"${SCP[@]}" deploy/jey-client-errors-retention.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-client-errors-retention.service"
+"${SCP[@]}" deploy/jey-client-errors-retention.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-client-errors-retention.timer"
 "${SCP[@]}" deploy/healthcheck.sh "${DEPLOY_USER}@${DEPLOY_HOST}:/usr/local/bin/jey-healthcheck.new"
 "${SCP[@]}" deploy/jey-healthcheck.service "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.service"
 "${SCP[@]}" deploy/jey-healthcheck.timer "${DEPLOY_USER}@${DEPLOY_HOST}:/etc/systemd/system/jey-healthcheck.timer"
@@ -152,9 +155,11 @@ install -m 700 /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-backup-db
 install -m 700 /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-db
 install -m 700 /usr/local/bin/jey-restore-drill.new /usr/local/bin/jey-restore-drill
 install -m 700 /usr/local/bin/jey-healthcheck.new /usr/local/bin/jey-healthcheck
-rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-drill.new /usr/local/bin/jey-healthcheck.new
+install -m 700 /usr/local/bin/jey-client-errors-retention.new /usr/local/bin/jey-client-errors-retention
+rm -f /usr/local/bin/jey-backup-db.new /usr/local/bin/jey-restore-db.new /usr/local/bin/jey-restore-drill.new /usr/local/bin/jey-healthcheck.new /usr/local/bin/jey-client-errors-retention.new
 systemctl daemon-reload
 systemctl enable --now jey-healthcheck.timer
+systemctl enable --now jey-client-errors-retention.timer
 if [[ -s /etc/jey/backup-recipient ]]; then
     systemctl enable --now jey-backup.timer
     # The drill needs the GPG private key, which deliberately is not on the VPS.

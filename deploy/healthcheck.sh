@@ -46,6 +46,8 @@ P95_WARN_MS="${P95_WARN_MS:-200}"
 P95_MIN_REQUESTS="${P95_MIN_REQUESTS:-20}"
 SSE_DISCONNECT_WARN="${SSE_DISCONNECT_WARN:-25}"
 SSE_STATE_FILE="${SSE_STATE_FILE:-/var/lib/jey/sse.state}"
+CLIENT_ERROR_WARN="${CLIENT_ERROR_WARN:-20}"
+CLIENT_ERROR_WINDOW_MIN="${CLIENT_ERROR_WINDOW_MIN:-15}"
 HC_PING_URL="${HC_PING_URL:-}"
 
 problems=()
@@ -144,6 +146,15 @@ elif command -v journalctl >/dev/null 2>&1; then
     if journalctl -u jey-api --since "15 min ago" --no-pager 2>/dev/null \
         | grep -qE 'status=5[0-9][0-9]|"status":5[0-9][0-9]'; then
         problems+=("в API были ошибки 5xx за последние 15 минут")
+    fi
+fi
+
+if [[ -n "${DATABASE_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
+    client_errors="$(psql "${DATABASE_URL}" -Atc \
+        "select count(*) from client_errors where created_at > now() - make_interval(mins => ${CLIENT_ERROR_WINDOW_MIN})" \
+        2>/dev/null || true)"
+    if [[ "${client_errors}" =~ ^[0-9]+$ ]] && (( client_errors > CLIENT_ERROR_WARN )); then
+        problems+=("client errors: ${client_errors} за ${CLIENT_ERROR_WINDOW_MIN} мин (порог ${CLIENT_ERROR_WARN})")
     fi
 fi
 
