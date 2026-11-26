@@ -1,0 +1,73 @@
+{
+  "files": {
+    "crates/api/src/auth/login.rs": {
+      "functions": 72.73,
+      "lines": 93.33
+    },
+    "crates/api/src/auth/password.rs": {
+      "functions": 100.0,
+      "lines": 92.19
+    },
+    "crates/api/src/auth/register.rs": {
+      "functions": 77.78,
+      "lines": 92.55
+    },
+    "crates/api/src/auth/session.rs": {
+      "functions": 95.83,
+      "lines": 98.09
+    },
+    "crates/api/src/auth/tokens.rs": {
+      "functions": 80.0,
+      "lines": 89.74
+    },
+    "crates/api/src/sync_conflicts.rs": {
+      "functions": 70.59,
+      "lines": 90.58
+    },
+    "crates/api/src/sync_pull.rs": {
+      "functions": 90.91,
+      "lines": 91.26
+    },
+    "crates/api/src/sync_push.rs": {
+      "functions": 78.95,
+      "lines": 89.39
+    },
+    "crates/core/src/items/validate.rs": {
+      "functions": 45.95,
+      "lines": 67.33
+    },
+    "crates/core/src/search.rs": {
+      "functions": 80.0,
+      "lines": 92.52
+    },
+    "crates/core/src/sync/merge.rs": {
+      "functions": 100.0,
+      "lines": 100.0
+    },
+    "crates/core/src/sync/mod.rs": {
+      "functions": 70.37,
+      "lines": 71.58
+    },
+    "crates/desktop/src/store/chat.rs": {
+      "functions": 67.5,
+      "lines": 72.96
+    },
+    "crates/desktop/src/store/repository.rs": {
+      "functions": 54.69,
+      "lines": 79.81
+    },
+    "crates/desktop/src/store/sync.rs": {
+      "functions": 83.33,
+      "lines": 91.79
+    },
+    "crates/desktop/src/sync.rs": {
+      "functions": 22.92,
+      "lines": 44.13
+    }
+  },
+  "tool": "cargo-llvm-cov",
+  "total": {
+    "functions": 51.19,
+    "lines": 57.17
+  }
+}

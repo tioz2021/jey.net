@@ -26,11 +26,21 @@ baseline можно только вместе с ростом тестов.
 
 ## Rust
 
-`cargo llvm-cov` требует отдельного тяжёлого прогона с тестовой схемой.
-Он вынесен из обычного CI и должен запускаться как отдельный job:
+Отдельный weekly/manual workflow `.github/workflows/coverage.yml`:
 
 ```bash
 cargo llvm-cov --workspace --lcov --output-path coverage/lcov.info -- --test-threads=1
+bash scripts/check-rust-coverage.sh
 ```
 
-Пока frontend ratchet закрыт; Rust coverage остаётся остатком T213.
+Baseline: `scripts/rust-coverage-baseline.json`. Текущие critical-модули:
+core validation/sync/search, auth session/register/login/password/tokens,
+sync push/pull/conflicts, desktop store/sync/chat.
+
+```text
+total lines      57.17%
+total functions  51.19%
+```
+
+Rust coverage не входит в каждый PR: инструментированный workspace-прогон
+слишком тяжёлый. Он проверяется weekly и вручную после крупных изменений.

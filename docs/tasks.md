@@ -436,7 +436,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T210 | P1 | Внешний preview URL `[x]` | 2–3 d | T206 | basic-auth preview на VPS |
 | T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
 | T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 164 KB gzip |
-| T213 | P1 | Coverage ratchet `[~]` | 2–3 d | T204 | frontend ratchet; Rust job pending |
+| T213 | P1 | Coverage ratchet `[x]` | 2–3 d | T204 | frontend + weekly Rust LCOV |
 | T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
 
 ### T183 · Решение по Windows-подписи и auto-update
@@ -863,7 +863,7 @@ items grid/list, три вкладки ленты, публичный профи
 gzip, бюджеты entry/chunk/CSS в `scripts/check-bundle-budget.sh` и CI.
 Visual/E2E и desktop smoke проходят; см. [bundle.md](bundle.md).
 
-### T213 · Coverage ratchet
+### T213 · Coverage ratchet `[x]`
 
 **Приоритет:** P1. **Оценка:** 2–3 d.
 
@@ -878,8 +878,9 @@ client-errors/view-preference/local-draft/errors/version; baseline
 Текущий baseline: lines 85.84%, branches 65.04%, functions 82.14%,
 statements 80%.
 
-**Осталось:** отдельный Rust coverage job (`cargo llvm-cov --workspace`)
-для core/auth/sync/desktop; он слишком тяжёл для обычного quality gate.
+**Rust:** baseline `scripts/rust-coverage-baseline.json` для
+core/auth/sync/desktop; отдельный weekly/manual workflow `coverage.yml`.
+Инструментированный workspace-прогон слишком тяжёл для каждого PR.
 
 ### T214 · Client errors retention и алерт
 

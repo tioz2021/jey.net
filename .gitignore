@@ -72,3 +72,5 @@ crates/*/bindings/
 /apps/web/coverage/
 
 /node_modules/
+
+/coverage/
