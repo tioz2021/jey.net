@@ -437,7 +437,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T211 | P1 | Разбить shell.rs и chat.rs `[x]` | 3–4 d | T208 | 5 shell + 5 chat секций |
 | T212 | P1 | Bundle splitting + бюджет `[x]` | 1–2 d | — | entry 274 → 164 KB gzip |
 | T213 | P1 | Coverage ratchet `[x]` | 2–3 d | T204 | frontend + weekly Rust LCOV |
-| T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
+| T214 | P2 | Client errors retention/алерт `[x]` | 1–2 d | T200/T207 | 30 дней + порог 20/15m |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -882,7 +882,7 @@ statements 80%.
 core/auth/sync/desktop; отдельный weekly/manual workflow `coverage.yml`.
 Инструментированный workspace-прогон слишком тяжёл для каждого PR.
 
-### T214 · Client errors retention и алерт
+### T214 · Client errors retention и алерт `[x]`
 
 **Приоритет:** P2. **Оценка:** 1–2 d.
 
@@ -891,7 +891,9 @@ core/auth/sync/desktop; отдельный weekly/manual workflow `coverage.yml`
 - группировка по версии/route;
 - без email, токенов и тел запросов.
 
-**Готово, когда:** всплеск client errors виден в healthcheck/админке.
+**Сделано:** `client-errors-retention.timer` удаляет записи старше 30
+дней; healthcheck алертит при >20 ошибках за 15 минут через существующий
+healthchecks.io check. Проверено на VPS: retention deleted=0, state=ok.
 
 ### Порядок цикла 0.10
 

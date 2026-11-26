@@ -11,6 +11,7 @@
 | API p95 | > 200 ms при ≥ 20 запросах за 15 минут | structured journal |
 | API 5xx | > 0 за 15 минут | structured journal |
 | SSE отключения | > 25 закрытий за интервал | `/health/ready` |
+| Client errors | > 20 за 15 минут | `client_errors` |
 | Диск | занято ≥ 80 % | `df` |
 | Память | свободно < 100 МБ | `free` |
 | TLS | осталось < 14 дней | `openssl` |
@@ -44,7 +45,13 @@ P95_MIN_REQUESTS=20
 HC_PING_URL=https://hc-ping.com/<uuid>
 SSE_DISCONNECT_WARN=25
 SSE_STATE_FILE=/var/lib/jey/sse.state
+CLIENT_ERROR_WARN=20
+CLIENT_ERROR_WINDOW_MIN=15
 ```
+
+Client errors старше 30 дней удаляются ежедневно
+`jey-client-errors-retention.timer`; retention задаётся
+`CLIENT_ERROR_RETENTION_DAYS`.
 
 `/health/ready` отдаёт счётчики `sse.notifications` и `sse.chat`:
 `active`, `opened`, `closed`. Healthcheck сравнивает прирост `closed` с
@@ -70,6 +77,11 @@ chmod 600 /etc/jey/health.env
 
 systemctl daemon-reload
 systemctl enable --now jey-healthcheck.timer
+install -m 755 scripts/client-errors-retention.sh /usr/local/bin/jey-client-errors-retention
+install -m 644 deploy/jey-client-errors-retention.service /etc/systemd/system/
+install -m 644 deploy/jey-client-errors-retention.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now jey-client-errors-retention.timer
 ```
 
 Проверить вручную:
