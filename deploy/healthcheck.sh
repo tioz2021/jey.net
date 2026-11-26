@@ -42,6 +42,8 @@ ALERT_WEBHOOK="${ALERT_WEBHOOK:-}"
 CERT_WARN_DAYS="${CERT_WARN_DAYS:-14}"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/jey}"
 BACKUP_MAX_HOURS="${BACKUP_MAX_HOURS:-30}"
+P95_WARN_MS="${P95_WARN_MS:-200}"
+P95_MIN_REQUESTS="${P95_MIN_REQUESTS:-20}"
 HC_PING_URL="${HC_PING_URL:-}"
 
 problems=()
@@ -97,8 +99,43 @@ if command -v systemctl >/dev/null 2>&1; then
     done
 fi
 
-# Recent server errors are easy to spot in the structured API log.
-if command -v journalctl >/dev/null 2>&1; then
+# One pass over the structured request log gives both 5xx count and p95.
+# This is deliberately independent of the admin API: the check must work even
+# when authentication or the database is degraded.
+if command -v journalctl >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+    metrics="$(journalctl -u jey-api --since "15 min ago" --no-pager -o cat 2>/dev/null | python3 -c '
+import json, sys
+latencies = []
+errors = 0
+for line in sys.stdin:
+    try:
+        event = json.loads(line)
+    except Exception:
+        continue
+    fields = event.get("fields", {})
+    if fields.get("message") != "request completed":
+        continue
+    status = fields.get("status")
+    if isinstance(status, int) and status >= 500:
+        errors += 1
+    latency = fields.get("latency_ms")
+    if isinstance(latency, (int, float)):
+        latencies.append(float(latency))
+latencies.sort()
+if not latencies:
+    print("0 0 0")
+else:
+    p95 = latencies[min(len(latencies) - 1, int(len(latencies) * 0.95))]
+    print(len(latencies), round(p95, 1), errors)
+')"
+    read -r request_count p95 errors <<< "${metrics}"
+    if (( ${errors:-0} > 0 )); then
+        problems+=("в API были ошибки 5xx за последние 15 минут")
+    fi
+    if (( ${request_count:-0} >= P95_MIN_REQUESTS )) &&        awk -v value="${p95:-0}" -v limit="${P95_WARN_MS}" 'BEGIN { exit !(value > limit) }'; then
+        problems+=("p95 API ${p95} ms > ${P95_WARN_MS} ms")
+    fi
+elif command -v journalctl >/dev/null 2>&1; then
     if journalctl -u jey-api --since "15 min ago" --no-pager 2>/dev/null \
         | grep -qE 'status=5[0-9][0-9]|"status":5[0-9][0-9]'; then
         problems+=("в API были ошибки 5xx за последние 15 минут")
