@@ -76,7 +76,7 @@ backup:         ok, 194 KB, sha256 записан
 
 - [~] local preview `scripts/preview.sh`; внешний URL — позже;
 - [ ] алерты: p95 > 200 ms, 5xx > 1%, backup > 26 h;
-- [ ] desktop SSE через Tauri-мост или осознанный polling SLO;
+- [x] desktop SSE через Tauri-мост; polling оставлен fallback;
 - [ ] один релиз в неделю, если нет критического бага.
 
 ## Правило

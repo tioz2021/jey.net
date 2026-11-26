@@ -7,10 +7,11 @@ use std::time::Duration;
 
 use base64::Engine;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use futures_util::StreamExt;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 use uuid::Uuid;
 
 use jey_core::items::{Item, ItemPatch, NewItem};
@@ -27,6 +28,7 @@ struct DesktopState {
     store: DesktopStore,
     session: SessionStore,
     sync_busy: Arc<AtomicBool>,
+    notification_task: Arc<std::sync::Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
 #[tauri::command]
@@ -398,6 +400,106 @@ async fn local_proxy(
         serde_json::from_slice(&bytes).unwrap_or(Value::Null)
     };
     Ok(json!({ "status": status, "body": value }))
+}
+
+#[tauri::command]
+async fn local_notification_stream_start(
+    app: tauri::AppHandle,
+    state: State<'_, DesktopState>,
+) -> Result<(), String> {
+    let grant = state
+        .access
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет доступа".to_owned())?;
+    let token = state
+        .session
+        .load()
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| "Нет сессии".to_owned())?;
+    let url = format!("{}/api/v1/notifications/stream", grant.server_url);
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|error| error.to_string())?;
+
+    // Fail fast if the session is no longer valid. Reconnects below handle
+    // transient network failures without blocking the UI.
+    let response = client
+        .get(&url)
+        .header("Origin", &grant.server_url)
+        .header("Cookie", format!("jey_session={token}"))
+        .send()
+        .await
+        .map_err(|error| format!("SSE: {error}"))?;
+    if !response.status().is_success() {
+        return Err(format!("SSE: HTTP {}", response.status()));
+    }
+
+    let old = state
+        .notification_task
+        .lock()
+        .map_err(|_| "SSE lock poisoned".to_owned())?
+        .take();
+    if let Some(old) = old {
+        old.abort();
+    }
+
+    let app = app.clone();
+    let server_url = grant.server_url.clone();
+    let task = tokio::spawn(async move {
+        let mut buffer = String::new();
+        loop {
+            let response = client
+                .get(&url)
+                .header("Origin", &server_url)
+                .header("Cookie", format!("jey_session={token}"))
+                .send()
+                .await;
+            let Ok(response) = response else {
+                tokio::time::sleep(Duration::from_secs(2)).await;
+                continue;
+            };
+            if !response.status().is_success() {
+                tokio::time::sleep(Duration::from_secs(5)).await;
+                continue;
+            }
+            let mut stream = response.bytes_stream();
+            while let Some(chunk) = stream.next().await {
+                let Ok(chunk) = chunk else { break };
+                buffer.push_str(&String::from_utf8_lossy(&chunk));
+                while let Some(newline) = buffer.find('\n') {
+                    let line = buffer[..newline].trim_end_matches('\r').to_owned();
+                    buffer.drain(..=newline);
+                    if line.starts_with("data:") {
+                        let _ = app.emit("jey:notification", ());
+                    }
+                }
+            }
+            buffer.clear();
+            // The connection dropped. The next attempt also acts as the
+            // resync signal for the webview.
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        }
+    });
+    *state
+        .notification_task
+        .lock()
+        .map_err(|_| "SSE lock poisoned".to_owned())? = Some(task);
+    Ok(())
+}
+
+#[tauri::command]
+fn local_notification_stream_stop(state: State<'_, DesktopState>) -> Result<(), String> {
+    if let Some(task) = state
+        .notification_task
+        .lock()
+        .map_err(|_| "SSE lock poisoned".to_owned())?
+        .take()
+    {
+        task.abort();
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -1412,6 +1514,7 @@ pub fn run() {
                 store,
                 session: SessionStore::new(data_dir),
                 sync_busy: Arc::new(AtomicBool::new(false)),
+                notification_task: Arc::new(std::sync::Mutex::new(None)),
             });
 
             if let Some(window) = app.get_webview_window("main") {
@@ -1446,6 +1549,8 @@ pub fn run() {
             local_collection_detail,
             local_bootstrap_access,
             local_proxy,
+            local_notification_stream_start,
+            local_notification_stream_stop,
             local_refresh_profile,
             local_profile,
             local_update_profile,

@@ -431,7 +431,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |
 | T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | healthcheck p95/5xx + SSE counters |
-| T208 | P2 | Desktop realtime: SSE или polling SLO `[ ]` | 2–3 d | T204 | решение и тест |
+| T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | Rust SSE → Tauri event |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -794,6 +794,10 @@ check через `/fail`; отдельный URL не нужен.
 
 Выбрать: Tauri SSE-мост или явный polling SLO (2–5 s). Решение записать
 в `docs/stability-audit.md`.
+
+**Сделано:** desktop запускает Rust SSE-клиент к `/api/v1/notifications/stream`
+с серверной сессией и эмитит `jey:notification` в webview. Polling 2–5 s
+остаётся fallback. Web продолжает использовать EventSource.
 
 ### Порядок цикла 0.9
 
