@@ -9,7 +9,7 @@
       `bash scripts/check-version.sh`.
 - [x] `.env` и секреты не попали в diff.
 - [x] `bash scripts/check.sh` проходит.
-- [x] `CHECK_E2E=1 bash scripts/check.sh` проходит.
+- [x] `check.sh` и отдельный `e2e.sh` (19 functional + 5 visual) проходят.
 - Примечание: GUI-проверка AppImage в sandbox ограничена; desktop smoke
   выполнен на собранном бинарнике, AppImage/deb собраны CI.
 - [x] Desktop WebKit smoke зелёный на `main` **до** создания тега
