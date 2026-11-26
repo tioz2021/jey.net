@@ -429,7 +429,7 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web + desktop + tag 0.7.12 |
 | T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | unit cutoff + E2E badge |
 | T205 | P0 | CI smoke: только транспортный retry `[x]` | 0.5 d | — | retry покрывает RemoteDisconnected/404 |
-| T206 | P1 | Staging/preview для UX `[ ]` | 2–3 d | T203 | не деплоить UX сразу в prod |
+| T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
 | T207 | P1 | Алерты p95/5xx/backup `[~]` | 2 d | T203 | healthcheck p95/5xx + существующий HC |
 | T208 | P2 | Desktop realtime: SSE или polling SLO `[ ]` | 2–3 d | T204 | решение и тест |
 
@@ -771,6 +771,11 @@ T190 включать только при срабатывании тригге�
 **Приоритет:** P1. **Оценка:** 2–3 d.
 
 Отдельный preview URL/сборка для UI-правок, без production-деплоя и тега.
+
+**Сделано:** локальный `scripts/preview.sh` на `127.0.0.1:8092` с отдельной
+схемой `jey_preview`, media/mail в `.staging`; production и `jey_e2e` не
+затрагиваются. Осталось: внешний preview URL, если понадобится проверка с
+другого устройства.
 
 ### T207 · Алерты
 
