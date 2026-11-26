@@ -59,7 +59,7 @@ jobs:
             exit 0
           fi
           cat /tmp/smoke.log
-          if grep -qE 'RemoteDisconnected|TimeoutError|Connection refused|tauri-driver' /tmp/smoke.log; then
+          if grep -qE 'RemoteDisconnected|TimeoutError|Connection refused|tauri-driver|execute/sync -> HTTP 404' /tmp/smoke.log; then
             echo "WebDriver transport failure, retrying once"
             sleep 3
             xvfb-run -a bash scripts/desktop-smoke.sh
