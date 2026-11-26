@@ -1,6 +1,6 @@
 # Доска задач
 
-Обновлено: 15 ноября 2026 года.
+Обновлено: 26 ноября 2026 года.
 
 Рабочая доска: только актуальные задачи. Полная история, комментарии и
 детали завершённых задач — в [архиве](done.md).
@@ -432,6 +432,12 @@ SmartScreen. Автообновление не блокирует релиз 0.3
 | T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | local preview 8092 + jey_preview |
 | T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | healthcheck p95/5xx + SSE counters |
 | T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | Rust SSE → Tauri event |
+| T209 | P0 | Visual regression критических экранов `[ ]` | 1–2 d | T204 | screenshot baselines |
+| T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
+| T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
+| T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
+| T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
+| T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
 
 ### T183 · Решение по Windows-подписи и auto-update
 
@@ -732,12 +738,18 @@ T190 включать только при срабатывании тригге�
 
 | ID | Приоритет | Задача | Оценка | Зависит от | Результат |
 |---|---|---|---|---|---|
-| T203 | P0 | Release parity 0.7.12 | 1 d | T204/T205 | web, desktop и тег совпадают |
-| T204 | P0 | Regression: feed badge и уведомления | 0.5 d | — | cutoff + E2E |
-| T205 | P0 | CI smoke: транспортный retry | 0.5 d | — | main зелёный, gate не флапает |
-| T206 | P1 | Staging/preview для UX | 2–3 d | T203 | правки не идут сразу в prod |
-| T207 | P1 | Алерты p95/5xx/backup | 2 d | T203 | проблема видна до жалобы |
-| T208 | P2 | Desktop realtime: SSE или polling SLO | 2–3 d | T204 | осознанное решение |
+| T203 | P0 | Release parity 0.7.12 `[x]` | 1 d | T204/T205 | web, desktop и тег совпадают |
+| T204 | P0 | Regression: feed badge и уведомления `[x]` | 0.5 d | — | cutoff + E2E |
+| T205 | P0 | CI smoke: транспортный retry `[x]` | 0.5 d | — | main зелёный, gate не флапает |
+| T206 | P1 | Staging/preview для UX `[~]` | 2–3 d | T203 | правки не идут сразу в prod |
+| T207 | P1 | Алерты p95/5xx/backup/SSE `[x]` | 2 d | T203 | проблема видна до жалобы |
+| T208 | P2 | Desktop realtime через Tauri SSE `[x]` | 2–3 d | T204 | осознанное решение |
+| T209 | P0 | Visual regression критических экранов `[ ]` | 1–2 d | T204 | screenshot baselines |
+| T210 | P1 | Внешний preview URL `[ ]` | 2–3 d | T206 | staging с телефона, не prod |
+| T211 | P1 | Разбить shell.rs и chat.rs `[ ]` | 3–4 d | T208 | модули без изменения поведения |
+| T212 | P1 | Bundle splitting + бюджет `[ ]` | 1–2 d | — | route chunks, первый экран |
+| T213 | P1 | Coverage ratchet `[ ]` | 2–3 d | T204 | гейт на критичные модули |
+| T214 | P2 | Client errors retention/алерт `[ ]` | 1–2 d | T200/T207 | 30 дней + рост ошибок |
 
 ### T203 · Release parity 0.7.12 `[x]`
 
@@ -798,6 +810,101 @@ check через `/fail`; отдельный URL не нужен.
 **Сделано:** desktop запускает Rust SSE-клиент к `/api/v1/notifications/stream`
 с серверной сессией и эмитит `jey:notification` в webview. Polling 2–5 s
 остаётся fallback. Web продолжает использовать EventSource.
+
+### T209 · Visual regression критических экранов
+
+**Приоритет:** P0. **Оценка:** 1–2 d.
+
+Playwright screenshot baselines для:
+
+- `/items` в grid и list;
+- `/feed` на трёх вкладках;
+- публичного профиля `/u/:handle`;
+- `/notifications`;
+- детали записи.
+
+Ширины: 1440, 1024, 390. Анимации отключить, данные детерминированные,
+baseline обновлять только осознанной командой.
+
+**Готово, когда:** CI падает на визуальном diff, а не только на тексте.
+
+### T210 · Внешний preview URL
+
+**Приоритет:** P1. **Оценка:** 2–3 d.
+
+Расширение T206: отдельный preview-контур, доступный с телефона/другой
+машины, но не production.
+
+- отдельная схема БД;
+- отдельный порт/systemd unit;
+- Caddy route или tunnel;
+- доступ ограничен;
+- никаких production-сессий и медиа.
+
+**Готово, когда:** UX можно проверить по URL вне localhost.
+
+### T211 · Разбить shell.rs и chat.rs
+
+**Приоритет:** P1. **Оценка:** 3–4 d.
+
+Только перемещение кода, без изменения поведения:
+
+- `crates/desktop/src/shell.rs` → auth/notifications/chat/items команды;
+- `crates/api/src/chat.rs` → queries/stream/commands;
+- тесты и smoke остаются зелёными.
+
+**Готово, когда:** файлы стали модульными, публичное поведение не изменилось.
+
+### T212 · Bundle splitting и бюджет
+
+**Приоритет:** P1. **Оценка:** 1–2 d.
+
+- lazy import админки, настроек, чата, тяжёлых модалок;
+- route-level chunks;
+- бюджет первого JS bundle;
+- без визуальных изменений.
+
+**Готово, когда:** первый экран не грузит весь SPA, бюджет проверяется в CI.
+
+### T213 · Coverage ratchet
+
+**Приоритет:** P1. **Оценка:** 2–3 d.
+
+- coverage для core/auth/sync/feed-badge/desktop PATCH;
+- baseline без требования 100%;
+- ratchet: покрытие не падает;
+- отчёт в CI.
+
+**Готово, когда:** новый код в критичных модулях не снижает baseline.
+
+### T214 · Client errors retention и алерт
+
+**Приоритет:** P2. **Оценка:** 1–2 d.
+
+- retention 30 дней;
+- алерт при росте ошибок за 15 минут;
+- группировка по версии/route;
+- без email, токенов и тел запросов.
+
+**Готово, когда:** всплеск client errors виден в healthcheck/админке.
+
+### Порядок цикла 0.10
+
+1. **T209** — visual regression.
+2. **T210** — внешний preview.
+3. **T211** — разбить крупные файлы.
+4. **T212** — bundle splitting.
+5. **T213** — coverage ratchet.
+6. **T214** — client errors retention.
+
+### Definition of Done цикла 0.10
+
+- визуальные регрессии ловятся в CI;
+- UX проверяется вне localhost;
+- крупные модули разбиты без изменения поведения;
+- первый экран укладывается в бюджет;
+- coverage не падает на критичных модулях;
+- client errors имеют retention и алерт.
 
 ### Порядок цикла 0.9
 
